@@ -1,7 +1,9 @@
+// Pause Button Added In Audio/Video + Camera Switch Function
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Type, Mic, Video, Image, X, Check, AlertCircle, Camera, Square, Play, Pause, RotateCcw } from 'lucide-react';
+import { ArrowLeft, MapPin, Type, Mic, Video, Image, X, Check, AlertCircle, Camera, Square, Play, Pause, RotateCcw, RefreshCw } from 'lucide-react';
 import { toast } from "sonner";
 
 interface Category {
@@ -74,6 +76,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
 }) => {
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -82,7 +85,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-
+  const [recordedChunks, setRecordedChunks] = useState<BlobPart[]>([]);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoCaptureRef = useRef<HTMLVideoElement>(null);
@@ -122,7 +126,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
   ];
 
   useEffect(() => {
-    if (isRecording) {
+    if (isRecording && !isPaused) {
       recordingInterval.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -136,16 +140,65 @@ const ContentInput: React.FC<ContentInputProps> = ({
         clearInterval(recordingInterval.current);
       }
     };
-  }, [isRecording]);
+  }, [isRecording, isPaused]);
 
-  const startRecording = async (type: 'audio' | 'video') => {
+  const switchCamera = async () => {
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(newFacingMode);
+    
+    // Stop current stream
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
     try {
+      // Start new stream with switched camera
+      if (uploadMode === 'image' && isCameraActive) {
+        await capturePhoto(newFacingMode);
+      } else if (uploadMode === 'video' && isRecording) {
+        // For video recording, we need to restart the recording with new camera
+        const wasRecording = isRecording;
+        const wasPaused = isPaused;
+        const currentTime = recordingTime;
+        
+        // Stop current recording
+        if (mediaRecorder) {
+          mediaRecorder.stop();
+        }
+        
+        // Start new recording with new camera
+        setTimeout(() => {
+          startRecording('video', newFacingMode);
+          if (wasPaused) {
+            setTimeout(() => {
+              setRecordingTime(currentTime);
+              pauseRecording();
+            }, 100);
+          }
+        }, 100);
+      }
+      
+      toast.success(`Switched to ${newFacingMode === 'user' ? 'front' : 'rear'} camera`);
+    } catch (error) {
+      console.error('Camera switch error:', error);
+      toast.error('Failed to switch camera');
+      // Revert facing mode if switch failed
+      setFacingMode(facingMode);
+    }
+  };
+
+  const startRecording = async (type: 'audio' | 'video', customFacingMode?: 'user' | 'environment') => {
+    try {
+      const currentFacingMode = customFacingMode || facingMode;
       const constraints = type === 'audio'
         ? { audio: true }
         : {
           audio: true,
           video: {
-            facingMode: 'user',
+            facingMode: currentFacingMode,
             width: { ideal: 1280 },
             height: { ideal: 720 }
           }
@@ -168,12 +221,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
           });
         };
       }
+
       const recorder = new MediaRecorder(mediaStream);
       const chunks: BlobPart[] = [];
 
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunks.push(event.data);
+          setRecordedChunks(prev => [...prev, event.data]);
         }
       };
 
@@ -196,7 +251,9 @@ const ContentInput: React.FC<ContentInputProps> = ({
       recorder.start();
       setMediaRecorder(recorder);
       setIsRecording(true);
+      setIsPaused(false);
       setRecordingTime(0);
+      setRecordedChunks([]);
       toast.success(`${type === 'audio' ? 'Audio' : 'Video'} recording started`);
     } catch (error) {
       console.error('Recording error:', error);
@@ -204,8 +261,24 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }
   };
 
-  const stopRecording = () => {
+  const pauseRecording = () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+      setIsPaused(true);
+      toast.success('Recording paused');
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+      setIsPaused(false);
+      toast.success('Recording resumed');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')) {
       mediaRecorder.stop();
     }
 
@@ -215,21 +288,22 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }
 
     setIsRecording(false);
+    setIsPaused(false);
     setMediaRecorder(null);
     toast.success('Recording stopped');
   };
 
-  const capturePhoto = async () => {
+  const capturePhoto = async (customFacingMode?: 'user' | 'environment') => {
     try {
+      const currentFacingMode = customFacingMode || facingMode;
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'user',
+          facingMode: currentFacingMode,
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
       });
 
-      // Store the stream for later cleanup
       setCameraStream(mediaStream);
       setIsCameraActive(true);
 
@@ -281,7 +355,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }
   };
 
-  // Add a separate function to stop the camera
   const stopCamera = () => {
     if (cameraStream) {
       cameraStream.getTracks().forEach(track => track.stop());
@@ -293,7 +366,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }
   };
 
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -304,6 +376,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
     setRecordedBlob(null);
     setSelectedFile(null);
     setRecordingTime(0);
+    setRecordedChunks([]);
     setAudioUrl(null);
     setVideoUrl(null);
     if (audioUrl) URL.revokeObjectURL(audioUrl);
@@ -323,37 +396,30 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-     {/* Full-width Purple Header Bar */}
-{/* Full-width Purple Header Bar */}
-<div className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white px-6 py-6 shadow-lg relative">
-  {/* Back Button - Positioned at absolute left */}
- <Button
-    onClick={onBack}
-    variant="ghost"
-    size="sm"
-    className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 rounded-lg z-10
-               /* Mobile styles */
-               w-10 h-10 p-0 md:w-auto md:h-auto md:p-2
-               /* Hide text on mobile, show on desktop */
-               "
-  >
-    <ArrowLeft className="w-4 h-4 md:mr-2" />
-    <span className="hidden md:inline">Back</span>
-  </Button>
-  
-  
-  {/* Center Content */}
-  <div className="max-w-4xl mx-auto text-center">
-    <h1 className="text-2xl font-bold">
-      {uploadOptions.find(opt => opt.type === uploadMode)?.title}
-    </h1>
-    <p className="text-purple-100 text-sm mt-1">
-      {selectedCategory.title}
-    </p>
-  </div>
-</div>
-
-
+      {/* Full-width Purple Header Bar */}
+      <div className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white px-6 py-6 shadow-lg relative">
+        {/* Back Button - Positioned at absolute left */}
+        <Button
+          onClick={onBack}
+          variant="ghost"
+          size="sm"
+          className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 rounded-lg z-10
+                     w-10 h-10 p-0 md:w-auto md:h-auto md:p-2"
+        >
+          <ArrowLeft className="w-4 h-4 md:mr-2" />
+          <span className="hidden md:inline">Back</span>
+        </Button>
+        
+        {/* Center Content */}
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold">
+            {uploadOptions.find(opt => opt.type === uploadMode)?.title}
+          </h1>
+          <p className="text-purple-100 text-sm mt-1">
+            {selectedCategory.title}
+          </p>
+        </div>
+      </div>
 
       {/* Main Content Area */}
       <div className="max-w-4xl mx-auto px-6 py-8">
@@ -369,168 +435,304 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 <p className="text-gray-600">Choose how you'd like to contribute</p>
               </div>
             </div>
-            </CardContent>
-            <Card />
 
-            {/* Card Content */}
-            <CardContent className="p-6">
-              {/* Upload Form Header */}
-              <div className="flex items-center mb-6">
-                {uploadOptions.find(opt => opt.type === uploadMode)?.icon}
-                <h2 className="text-xl font-semibold ml-2">Upload Content</h2>
+            {/* Title Input */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title *
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Enter a title for your content"
+              />
+            </div>
+
+            {/* Location Status */}
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="w-4 h-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">Location</span>
               </div>
-
-              {/* Title Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Enter a title for your content"
-                />
-              </div>
-
-              {/* Location Status */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700">Location</span>
+              {location ? (
+                <div className="flex items-center gap-2 text-green-600">
+                  <Check className="w-4 h-4" />
+                  <span className="text-sm">
+                    Location: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                  </span>
                 </div>
-                {location ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <Check className="w-4 h-4" />
-                    <span className="text-sm">
-                      Location: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-                    </span>
-                  </div>
-                ) : locationError ? (
-                  <div className="flex items-center gap-2 text-red-600">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">{locationError}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-orange-600">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">Location required</span>
-                  </div>
-                )}
+              ) : locationError ? (
+                <div className="flex items-center gap-2 text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">{locationError}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-orange-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">Location required</span>
+                </div>
+              )}
 
-                {!location && (
-                  <div className="flex gap-2 mt-3">
+              {!location && (
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    onClick={requestLocation}
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <MapPin className="w-4 h-4 mr-1" />
+                    Get Location
+                  </Button>
+                  <Button
+                    onClick={() => setShowManualLocation(!showManualLocation)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Manual
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Manual Location Input */}
+            {showManualLocation && (
+              <Card className="border-orange-200 bg-orange-50 mb-6">
+                <CardContent className="p-4">
+                  <h3 className="font-medium text-gray-800 mb-3">Enter Location Manually</h3>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Latitude
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={manualLat}
+                        onChange={(e) => setManualLat(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                        placeholder="e.g., 17.3850"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Longitude
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={manualLng}
+                        onChange={(e) => setManualLng(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                        placeholder="e.g., 78.4867"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
                     <Button
-                      onClick={requestLocation}
+                      onClick={handleManualLocationSubmit}
                       size="sm"
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-green-600 hover:bg-green-700"
                     >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Get Location
+                      <Check className="w-4 h-4 mr-1" />
+                      Set Location
                     </Button>
                     <Button
-                      onClick={() => setShowManualLocation(!showManualLocation)}
+                      onClick={() => setShowManualLocation(false)}
                       variant="outline"
                       size="sm"
                     >
-                      Manual
+                      <X className="w-4 h-4 mr-1" />
+                      Cancel
                     </Button>
                   </div>
-                )}
-              </div>
+                </CardContent>
+              </Card>
+            )}
 
-              {/* Manual Location Input */}
-              {showManualLocation && (
-                <Card className="border-orange-200 bg-orange-50">
-                  <CardContent className="p-4">
-                    <h3 className="font-medium text-gray-800 mb-3">Enter Location Manually</h3>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Latitude
-                        </label>
-                        <input
-                          type="number"
-                          step="any"
-                          value={manualLat}
-                          onChange={(e) => setManualLat(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                          placeholder="e.g., 17.3850"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Longitude
-                        </label>
-                        <input
-                          type="number"
-                          step="any"
-                          value={manualLng}
-                          onChange={(e) => setManualLng(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                          placeholder="e.g., 78.4867"
-                        />
-                      </div>
+            {/* Content Input based on type */}
+            {uploadMode === 'text' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Content *
+                </label>
+                <textarea
+                  value={textContent}
+                  onChange={(e) => setTextContent(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
+                  placeholder="Enter your text content here..."
+                />
+              </div>
+            )}
+
+            {uploadMode === 'audio' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Audio Recording *
+                </label>
+
+                {!isRecording && !recordedBlob && (
+                  <Button
+                    onClick={() => startRecording('audio')}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg"
+                  >
+                    <Mic className="w-5 h-5 mr-2" />
+                    Start Recording
+                  </Button>
+                )}
+
+                {isRecording && (
+                  <div className="text-center space-y-4">
+                    <div className="text-2xl font-mono text-red-600">
+                      {formatTime(recordingTime)}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex justify-center gap-2">
+                      {!isPaused ? (
+                        <Button
+                          onClick={pauseRecording}
+                          className="bg-orange-500 hover:bg-orange-600 text-white"
+                        >
+                          <Pause className="w-5 h-5 mr-2" />
+                          Pause
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={resumeRecording}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          <Play className="w-5 h-5 mr-2" />
+                          Resume
+                        </Button>
+                      )}
                       <Button
-                        onClick={handleManualLocationSubmit}
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700"
+                        onClick={stopRecording}
+                        className="bg-red-600 hover:bg-red-700 text-white"
                       >
-                        <Check className="w-4 h-4 mr-1" />
-                        Set Location
+                        <Square className="w-5 h-5 mr-2" />
+                        Stop Recording
                       </Button>
+                    </div>
+                    {isPaused && (
+                      <div className="text-sm text-orange-600 font-medium">
+                        Recording paused
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {recordedBlob && audioUrl && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <span className="text-green-700 font-medium">
+                        Recording completed ({formatTime(recordingTime)})
+                      </span>
                       <Button
-                        onClick={() => setShowManualLocation(false)}
+                        onClick={resetRecording}
                         variant="outline"
                         size="sm"
                       >
-                        <X className="w-4 h-4 mr-1" />
-                        Cancel
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Record Again
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                    <audio controls className="w-full">
+                      <source src={audioUrl} type="audio/webm" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                )}
 
-              {/* Content Input based on type */}
-              {uploadMode === 'text' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content *
+                <div className="mt-4">
+                  <div className="text-center text-gray-500 mb-2">OR</div>
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleFileSelectInternal}
+                      className="hidden"
+                    />
+                    <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
+                      <Mic className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <span className="text-gray-600">
+                        {selectedFile && !recordedBlob ? selectedFile.name : 'Upload Audio File'}
+                      </span>
+                    </div>
                   </label>
-                  <textarea
-                    value={textContent}
-                    onChange={(e) => setTextContent(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
-                    placeholder="Enter your text content here..."
-                  />
                 </div>
-              )}
+              </div>
+            )}
 
-              {uploadMode === 'audio' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Audio Recording *
-                  </label>
+            {uploadMode === 'video' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Video Recording *
+                </label>
 
-                  {!isRecording && !recordedBlob && (
+                {/* Camera Switch Button - show when recording */}
+                {isRecording && (
+                  <div className="flex justify-center mb-4">
                     <Button
-                      onClick={() => startRecording('audio')}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg"
+                      onClick={switchCamera}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/80 hover:bg-white/90 text-gray-700"
                     >
-                      <Mic className="w-5 h-5 mr-2" />
-                      Start Recording
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Switch to {facingMode === 'user' ? 'Rear' : 'Front'} Camera
                     </Button>
-                  )}
+                  </div>
+                )}
 
-                  {isRecording && (
-                    <div className="text-center space-y-4">
-                      <div className="text-2xl font-mono text-red-600">
-                        {formatTime(recordingTime)}
-                      </div>
+                {/* Video preview - show during recording */}
+                <video
+                  ref={videoRecordingRef}
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    display: isRecording ? 'block' : 'none',
+                    borderRadius: '8px',
+                    margin: '0 auto 16px auto',
+                    marginBottom: '16px'
+                  }}
+                  autoPlay
+                  muted
+                  playsInline
+                />
+
+                {!isRecording && !recordedBlob && (
+                  <Button
+                    onClick={() => startRecording('video')}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg"
+                  >
+                    <Video className="w-5 h-5 mr-2" />
+                    Start Video Recording
+                  </Button>
+                )}
+
+                {isRecording && (
+                  <div className="text-center space-y-4">
+                    <div className="text-2xl font-mono text-red-600">
+                      {formatTime(recordingTime)}
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      {!isPaused ? (
+                        <Button
+                          onClick={pauseRecording}
+                          className="bg-orange-500 hover:bg-orange-600 text-white"
+                        >
+                          <Pause className="w-5 h-5 mr-2" />
+                          Pause
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={resumeRecording}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          <Play className="w-5 h-5 mr-2" />
+                          Resume
+                        </Button>
+                      )}
                       <Button
                         onClick={stopRecording}
                         className="bg-red-600 hover:bg-red-700 text-white"
@@ -539,143 +741,78 @@ const ContentInput: React.FC<ContentInputProps> = ({
                         Stop Recording
                       </Button>
                     </div>
-                  )}
-
-                  {recordedBlob && audioUrl && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <span className="text-green-700 font-medium">
-                          Recording completed ({formatTime(recordingTime)})
-                        </span>
-                        <Button
-                          onClick={resetRecording}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-1" />
-                          Record Again
-                        </Button>
+                    {isPaused && (
+                      <div className="text-sm text-orange-600 font-medium">
+                        Recording paused
                       </div>
-                      <audio controls className="w-full">
-                        <source src={audioUrl} type="audio/webm" />
-                        Your browser does not support the audio element.
-                      </audio>
-                    </div>
-                  )}
-
-                  <div className="mt-4">
-                    <div className="text-center text-gray-500 mb-2">OR</div>
-                    <label className="block">
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        onChange={handleFileSelectInternal}
-                        className="hidden"
-                      />
-                      <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
-                        <Mic className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                        <span className="text-gray-600">
-                          {selectedFile && !recordedBlob ? selectedFile.name : 'Upload Audio File'}
-                        </span>
-                      </div>
-                    </label>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {uploadMode === 'video' && (
-                <div>
-                  <h3>Video Recording *</h3>
-
-                  {/* Video preview - show during recording */}
-                  <video
-                    ref={videoRecordingRef}
-                    style={{
-                      width: '100%',
-                      maxWidth: '400px',
-                      display: isRecording ? 'block' : 'none',
-                      borderRadius: '8px',
-                      margin: '0 auto 16px auto',
-                      marginBottom: '16px'
-                    }}
-                    autoPlay
-                    muted
-                    playsInline
-                  />
-
-
-                  {!isRecording && !recordedBlob && (
-                    <Button
-                      onClick={() => startRecording('video')}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg"
-                    >
-                      <Video className="w-5 h-5 mr-2" />
-                      Start Video Recording
-                    </Button>
-                  )}
-
-                  {isRecording && (
-                    <div className="text-center space-y-4">
-                      <div className="text-2xl font-mono text-red-600">
-                        {formatTime(recordingTime)}
-                      </div>
+                {recordedBlob && videoUrl && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <span className="text-green-700 font-medium">
+                        Video recorded ({formatTime(recordingTime)})
+                      </span>
                       <Button
-                        onClick={stopRecording}
-                        className="bg-red-600 hover:bg-red-700 text-white"
+                        onClick={resetRecording}
+                        variant="outline"
+                        size="sm"
                       >
-                        <Square className="w-5 h-5 mr-2" />
-                        Stop Recording
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Record Again
                       </Button>
                     </div>
-                  )}
-
-                  {recordedBlob && videoUrl && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <span className="text-green-700 font-medium">
-                          Video recorded ({formatTime(recordingTime)})
-                        </span>
-                        <Button
-                          onClick={resetRecording}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-1" />
-                          Record Again
-                        </Button>
-                      </div>
-                      <video controls className="w-full max-w-md mx-auto rounded-lg">
-                        <source src={videoUrl} type="video/webm" />
-                        Your browser does not support the video element.
-                      </video>
-                    </div>
-                  )}
-
-                  <div className="mt-4">
-                    <div className="text-center text-gray-500 mb-2">OR</div>
-                    <label className="block">
-                      <input
-                        type="file"
-                        accept="video/*"
-                        onChange={handleFileSelectInternal}
-                        className="hidden"
-                      />
-                      <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
-                        <Video className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                        <span className="text-gray-600">
-                          {selectedFile && !recordedBlob ? selectedFile.name : 'Upload Video File'}
-                        </span>
-                      </div>
-                    </label>
+                    <video controls className="w-full max-w-md mx-auto rounded-lg">
+                      <source src={videoUrl} type="video/webm" />
+                      Your browser does not support the video element.
+                    </video>
                   </div>
+                )}
+
+                <div className="mt-4">
+                  <div className="text-center text-gray-500 mb-2">OR</div>
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleFileSelectInternal}
+                      className="hidden"
+                    />
+                    <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
+                      <Video className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <span className="text-gray-600">
+                        {selectedFile && !recordedBlob ? selectedFile.name : 'Upload Video File'}
+                      </span>
+                    </div>
+                  </label>
                 </div>
-              )}
+              </div>
+            )}
 
-              {uploadMode === 'image' && (
-                <div>
-                  <h3>Image Capture *</h3>
+            {uploadMode === 'image' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image Capture *
+                </label>
+                {/* Camera Switch Button - show when camera is active */}
+                {isCameraActive && (
+                  <div className="flex justify-center mb-4">
+                    <Button
+                      onClick={switchCamera}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/80 hover:bg-white/90 text-gray-700"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Switch to {facingMode === 'user' ? 'Rear' : 'Front'} Camera
+                    </Button>
+                  </div>
+                )}
 
-                  {/* Video preview for camera */}
+                {/* Camera preview and controls */}
+                <div className="text-center space-y-4">
                   <video
                     ref={videoRef}
                     style={{
@@ -683,111 +820,127 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       maxWidth: '400px',
                       display: isCameraActive ? 'block' : 'none',
                       borderRadius: '8px',
-                      margin: '0 auto 16px auto',
-                      marginBottom: '16px'
+                      margin: '0 auto'
                     }}
                     autoPlay
                     muted
                     playsInline
                   />
+                  
+                  <canvas
+                    ref={canvasRef}
+                    style={{ display: 'none' }}
+                  />
 
-                  {/* Hidden canvas for capture */}
-                  <canvas ref={canvasRef} style={{ display: 'none' }} />
-
-                  {!isCameraActive && (
-                    <Button onClick={capturePhoto} className="w-full mb-4">
-                      <Camera className="w-4 h-4 mr-2" />
+                  {!isCameraActive && !selectedFile && (
+                    <Button
+                      onClick={() => capturePhoto()}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg"
+                    >
+                      <Camera className="w-5 h-5 mr-2" />
                       Start Camera
                     </Button>
                   )}
 
                   {isCameraActive && (
-                    <div className="flex gap-2 mb-4">
-                      <Button onClick={capturePhoto} className="flex-1">
-                        <Camera className="w-4 h-4 mr-2" />
-                        Take Photo
+                    <div className="flex justify-center gap-2">
+                      <Button
+                        onClick={() => capturePhoto()}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        <Camera className="w-5 h-5 mr-2" />
+                        Capture Photo
                       </Button>
-                      <Button onClick={stopCamera} variant="outline" className="flex-1">
-                        <X className="w-4 h-4 mr-2" />
+                      <Button
+                        onClick={stopCamera}
+                        variant="outline"
+                        className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                      >
+                        <Square className="w-5 h-5 mr-2" />
                         Stop Camera
                       </Button>
                     </div>
                   )}
 
-                  {/* Show captured image preview */}
                   {selectedFile && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-2">Captured Photo:</p>
-                      <img
-                        src={URL.createObjectURL(selectedFile)}
-                        alt="Captured"
-                        style={{
-                          width: '100%',
-                          maxWidth: '400px',
-                          margin: '0 auto 16px auto',
-                          borderRadius: '8px',
-                          border: '2px solid #e5e7eb'
-                        }}
-                      />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <span className="text-green-700 font-medium">
+                          Photo captured: {selectedFile.name}
+                        </span>
+                        <Button
+                          onClick={() => {
+                            setSelectedFile(null);
+                            if (isCameraActive) {
+                              capturePhoto();
+                            }
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <RotateCcw className="w-4 h-4 mr-1" />
+                          Take Another
+                        </Button>
+                      </div>
+                      {selectedFile && (
+                        <img
+                          src={URL.createObjectURL(selectedFile)}
+                          alt="Captured"
+                          className="w-full max-w-md mx-auto rounded-lg shadow-md"
+                        />
+                      )}
                     </div>
                   )}
+                </div>
 
-                  {/* File upload option */}
+                <div className="mt-4">
                   <div className="text-center text-gray-500 mb-2">OR</div>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelectInternal}
-                    className="hidden"
-                    id="image-upload"
-                  />
-                  <label htmlFor="image-upload">
-                    <Button variant="outline" className="w-full" asChild>
-                      <span>
-                        <Image className="w-4 h-4 mr-2" />
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelectInternal}
+                      className="hidden"
+                    />
+                    <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
+                      <Image className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <span className="text-gray-600">
                         {selectedFile && !isCameraActive ? selectedFile.name : 'Upload Image File'}
                       </span>
-                    </Button>
+                    </div>
                   </label>
                 </div>
-              )}
+              </div>
+            )}
 
-
-
-              {/* Upload Button */}
-              <div className="flex gap-4 pt-4">
-                <Button
-                  onClick={onBack}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={onUpload}
-                  disabled={uploading}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700"
-                >
-                  {uploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Upload
-                    </>
-                  )}
-                 </Button>
-          </div>
-        </CardContent>
-      </Card>
+            {/* Upload Button */}
+            <div className="flex justify-center">
+              <Button
+                onClick={onUpload}
+                disabled={
+                  uploading ||
+                  !title.trim() ||
+                  !location ||
+                  (uploadMode === 'text' && !textContent.trim()) ||
+                  (uploadMode !== 'text' && !selectedFile)
+                }
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload Content'
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  </div>
-);
-
+  );
 };
 
-      export default ContentInput;
+export default ContentInput;
