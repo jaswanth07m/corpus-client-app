@@ -412,6 +412,21 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
     setManualLng('');
   };
 
+  const handleBackToCategories = () => {
+    setSelectedCategory(null);
+    setShowUploadOptions(false);
+    setUploadMode(null);
+    setTitle('');
+    setTextContent('');
+    setSelectedFile(null);
+    setLocationRequested(false);
+    setLocation(null);
+    setLocationError('');
+    setShowManualLocation(false);
+    setManualLat('');
+    setManualLng('');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -421,39 +436,38 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
   }
 
   // Upload Interface
-
-if (uploadMode && selectedCategory) {
-  return (
-    <ContentInput
-      uploadMode={uploadMode}
-      selectedCategory={selectedCategory}
-      title={title}
-      setTitle={setTitle}
-      textContent={textContent}
-      setTextContent={setTextContent}
-      selectedFile={selectedFile}
-      setSelectedFile={setSelectedFile}
-      location={location}
-      setLocation={setLocation}
-      locationError={locationError}
-      setLocationError={setLocationError}
-      showManualLocation={showManualLocation}
-      setShowManualLocation={setShowManualLocation}
-      manualLat={manualLat}
-      setManualLat={setManualLat}
-      manualLng={manualLng}
-      setManualLng={setManualLng}
-      uploading={uploading}
-      token={token}
-      userId={userId}
-      onBack={handleBack}
-      onUpload={handleUpload}
-      requestLocation={requestLocation}
-      handleManualLocationSubmit={handleManualLocationSubmit}
-      handleFileSelect={handleFileSelect}
-    />
-  );
-}
+  if (uploadMode && selectedCategory) {
+    return (
+      <ContentInput
+        uploadMode={uploadMode}
+        selectedCategory={selectedCategory}
+        title={title}
+        setTitle={setTitle}
+        textContent={textContent}
+        setTextContent={setTextContent}
+        selectedFile={selectedFile}
+        setSelectedFile={setSelectedFile}
+        location={location}
+        setLocation={setLocation}
+        locationError={locationError}
+        setLocationError={setLocationError}
+        showManualLocation={showManualLocation}
+        setShowManualLocation={setShowManualLocation}
+        manualLat={manualLat}
+        setManualLat={setManualLat}
+        manualLng={manualLng}
+        setManualLng={setManualLng}
+        uploading={uploading}
+        token={token}
+        userId={userId}
+        onBack={handleBack}
+        onUpload={handleUpload}
+        requestLocation={requestLocation}
+        handleManualLocationSubmit={handleManualLocationSubmit}
+        handleFileSelect={handleFileSelect}
+      />
+    );
+  }
 
   // Upload Options Modal
   if (showUploadOptions && selectedCategory) {
@@ -462,8 +476,15 @@ if (uploadMode && selectedCategory) {
         {/* Header */}
         <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
           <div className="flex items-center justify-between">
-            <div>
-             
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
+                onClick={handleBackToCategories}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold mb-1">
                   {selectedCategory.title}
@@ -509,7 +530,6 @@ if (uploadMode && selectedCategory) {
       <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
         <div className="flex items-center justify-between">
           <div>
-            
             <div>
               <h1 className="text-xl sm:text-2xl font-bold mb-1">Categories</h1>
               <p className="text-purple-100 text-sm sm:text-base">
