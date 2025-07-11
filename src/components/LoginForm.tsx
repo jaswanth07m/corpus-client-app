@@ -77,11 +77,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
-    
+
     setLoading(true);
     try {
       console.log('Sending OTP to:', getFullPhoneNumber());
-      
+
       const response = await fetch('https://backend2.swecha.org/api/v1/auth/send-otp', {
         method: 'POST',
         headers: {
@@ -96,7 +96,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       console.log('OTP Response:', data);
       console.log('Response Status:', response.status);
       console.log('Response Headers:', response.headers);
-      
+
       if (response.ok) {
         setShowOtpInput(true);
         setResendTimer(60); // 60 second timer
@@ -122,7 +122,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setLoading(true);
     try {
       console.log('Verifying OTP:', otp, 'for phone:', getFullPhoneNumber());
-      
+
       const response = await fetch('https://backend2.swecha.org/api/v1/auth/verify-otp', {
         method: 'POST',
         headers: {
@@ -139,7 +139,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       console.log('OTP Verify Response:', data);
       console.log('Response Status:', response.status);
       console.log('Response Headers:', response.headers);
-      
+
       if (response.ok) {
         // Check if we have access_token in the response
         if (data.access_token) {
@@ -157,7 +157,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         }
       } else {
         console.error('OTP Verify Error:', data);
-        
+
         // Handle specific error cases based on response
         if (data.detail && Array.isArray(data.detail)) {
           // Handle validation errors (422)
@@ -201,7 +201,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handleResendOTP = async () => {
     if (!canResend || loading) return;
-    
+
     setCanResend(false);
     setOtp(''); // Clear current OTP
     await handleSendOTP();
@@ -216,7 +216,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setLoading(true);
     try {
       console.log('Password login for:', getFullPhoneNumber());
-      
+
       const response = await fetch('https://backend2.swecha.org/api/v1/auth/login', {
         method: 'POST',
         headers: {
@@ -231,7 +231,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const data = await response.json();
       console.log('Login Response:', data);
       console.log('Response Status:', response.status);
-      
+
       if (response.ok && data.access_token) {
         toast.success("Login successful!");
         onLoginSuccess(data.access_token, data.user || { phone: getFullPhoneNumber() });
@@ -252,27 +252,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
-    
+
     if (!signupData.name.trim()) {
       toast.error("Please enter your name");
       return;
     }
-    
+
     if (!isValidEmail(signupData.email)) {
       toast.error("Please enter a valid email address");
       return;
     }
-    
+
     if (!signupData.password || signupData.password.length < 6) {
       toast.error("Password must be at least 6 characters long");
       return;
     }
-    
+
     if (signupData.password !== signupData.confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
-    
+
     if (!signupData.has_given_consent) {
       toast.error("Please agree to the terms and conditions");
       return;
@@ -281,7 +281,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setLoading(true);
     try {
       console.log('Creating account for:', getFullPhoneNumber());
-      
+
       const requestBody = {
         phone: getFullPhoneNumber(),
         name: signupData.name.trim(),
@@ -312,7 +312,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const data = await response.json();
       console.log('Signup Response:', data);
       console.log('Response Status:', response.status);
-      
+
       if (response.ok) {
         toast.success("Account created successfully! Please login to continue.");
         // Switch to login mode
@@ -330,7 +330,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         });
       } else {
         console.error('Signup Error:', data);
-        
+
         // Handle specific error cases
         if (data.detail && Array.isArray(data.detail)) {
           const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
@@ -402,7 +402,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
       </div>
-      
+
       <Card className="w-full max-w-md animate-scale-in relative z-10 shadow-2xl border-0 bg-white/95 backdrop-blur-lg">
         <CardHeader className="text-center pb-8 pt-8">
           <div className="w-24 h-24 mx-auto mb-6 rounded-3xl shadow-xl overflow-hidden">
@@ -425,11 +425,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
             <Button
               variant={mode === 'login' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${
-                mode === 'login' 
-                  ? 'gradient-purple text-white shadow-lg' 
+              className={`flex-1 rounded-lg transition-all duration-300 ${mode === 'login'
+                  ? 'gradient-purple text-white shadow-lg'
                   : 'hover:bg-gray-200 text-gray-700'
-              }`}
+                }`}
               onClick={() => {
                 setMode('login');
                 resetForm();
@@ -440,11 +439,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             </Button>
             <Button
               variant={mode === 'signup' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${
-                mode === 'signup' 
-                  ? 'gradient-purple text-white shadow-lg' 
+              className={`flex-1 rounded-lg transition-all duration-300 ${mode === 'signup'
+                  ? 'gradient-purple text-white shadow-lg'
                   : 'hover:bg-gray-200 text-gray-700'
-              }`}
+                }`}
               onClick={() => {
                 setMode('signup');
                 resetForm();
@@ -462,11 +460,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
                 <Button
                   variant={loginMethod === 'otp' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${
-                    loginMethod === 'otp' 
-                      ? 'gradient-purple text-white shadow-lg' 
+                  className={`flex-1 rounded-lg transition-all duration-300 ${loginMethod === 'otp'
+                      ? 'gradient-purple text-white shadow-lg'
                       : 'hover:bg-gray-200 text-gray-700'
-                  }`}
+                    }`}
                   onClick={() => {
                     setLoginMethod('otp');
                     setShowOtpInput(false);
@@ -479,11 +476,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 </Button>
                 <Button
                   variant={loginMethod === 'password' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${
-                    loginMethod === 'password' 
-                      ? 'gradient-purple text-white shadow-lg' 
+                  className={`flex-1 rounded-lg transition-all duration-300 ${loginMethod === 'password'
+                      ? 'gradient-purple text-white shadow-lg'
                       : 'hover:bg-gray-200 text-gray-700'
-                  }`}
+                    }`}
                   onClick={() => setLoginMethod('password')}
                 >
                   Login with Password
@@ -499,7 +495,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       Enter your registered phone number to receive OTP
                     </p>
                   </div>
-                  
+
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
                     <div className="absolute left-12 top-4 text-gray-500 font-medium">+91</div>
@@ -541,7 +537,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       OTP sent to +91{phoneDigits}
                     </p>
                   </div>
-                  
+
                   <div className="relative">
                     <Input
                       type="text"
@@ -583,7 +579,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         <RefreshCw className="h-4 w-4" />
                         {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
                       </Button>
-                      
+
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -715,15 +711,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
               {/* Date of Birth */}
               <div className="relative">
-                <Calendar className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                <label className="text-sm text-gray-700 mb-1 block">Date of Birth</label>
+                <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
                 <Input
                   type="date"
                   placeholder="Date of Birth"
                   value={signupData.date_of_birth}
                   onChange={(e) => handleSignupInputChange('date_of_birth', e.target.value)}
-                  className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                  className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 mt-1"
                 />
               </div>
+
 
               {/* Place */}
               <div className="relative">
