@@ -1,9 +1,9 @@
-// Pause Button Added In Audio/Video + Camera Switch Function
+// Pause Button Added In Audio/Video + Camera Switch Function + Multiple File Upload + Progress
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Type, Mic, Video, Image, X, Check, AlertCircle, Camera, Square, Play, Pause, RotateCcw, RefreshCw } from 'lucide-react';
+import { ArrowLeft, MapPin, Type, Mic, Video, Image, X, Check, AlertCircle, Camera, Square, Play, Pause, RotateCcw, RefreshCw, Upload, Trash2 } from 'lucide-react';
 import { toast } from "sonner";
 
 interface Category {
@@ -88,11 +88,17 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const [recordedChunks, setRecordedChunks] = useState<BlobPart[]>([]);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
 
+  // Multiple file upload states
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoCaptureRef = useRef<HTMLVideoElement>(null);
   const videoRecordingRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recordingInterval = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadOptions = [
     {
@@ -237,9 +243,11 @@ const ContentInput: React.FC<ContentInputProps> = ({
           type: type === 'audio' ? 'audio/webm' : 'video/webm'
         });
         setRecordedBlob(blob);
-        setSelectedFile(new File([blob], `recorded-${type}.webm`, {
+        const file = new File([blob], `recorded-${type}.webm`, {
           type: blob.type
-        }));
+        });
+        setSelectedFile(file);
+        setSelectedFiles([file]);
         const url = URL.createObjectURL(blob);
         if (type === 'audio') {
           setAudioUrl(url);
@@ -330,7 +338,9 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
                     canvas.toBlob((blob) => {
                       if (blob) {
-                        setSelectedFile(new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' }));
+                        const file = new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' });
+                        setSelectedFile(file);
+                        setSelectedFiles([file]);
                         toast.success('Photo captured! Click "Stop Camera" when done.');
                         resolve(blob);
                       } else {
@@ -372,9 +382,18 @@ const ContentInput: React.FC<ContentInputProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const resetRecording = () => {
     setRecordedBlob(null);
     setSelectedFile(null);
+    setSelectedFiles([]);
     setRecordingTime(0);
     setRecordedChunks([]);
     setAudioUrl(null);
@@ -383,15 +402,55 @@ const ContentInput: React.FC<ContentInputProps> = ({
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   };
 
-  const handleFileSelectInternal = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+  const handleMultipleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length > 0) {
+      setSelectedFiles(files);
+      if (files.length === 1) {
+        setSelectedFile(files[0]);
+      }
       setRecordedBlob(null);
       setAudioUrl(null);
       setVideoUrl(null);
+      toast.success(`${files.length} file(s) selected`);
     }
     handleFileSelect(event);
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
+    if (newFiles.length === 0) {
+      setSelectedFile(null);
+    } else if (newFiles.length === 1) {
+      setSelectedFile(newFiles[0]);
+    }
+    toast.success('File removed');
+  };
+
+  const handleFileSelectInternal = (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleMultipleFileSelect(event);
+  };
+
+  const simulateUploadProgress = () => {
+    setUploadingFiles(true);
+    setUploadProgress(0);
+    
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setUploadingFiles(false);
+          return 100;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+  };
+
+  const handleUploadWithProgress = () => {
+    simulateUploadProgress();
+    onUpload();
   };
 
   return (
@@ -435,6 +494,22 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 <p className="text-gray-600">Choose how you'd like to contribute</p>
               </div>
             </div>
+
+            {/* Upload Progress Bar */}
+            {uploadingFiles && (
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-700">Uploading...</span>
+                  <span className="text-sm text-gray-500">{Math.round(uploadProgress)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
 
             {/* Title Input */}
             <div className="mb-6">
@@ -647,19 +722,47 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   <div className="text-center text-gray-500 mb-2">OR</div>
                   <label className="block">
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept="audio/*"
+                      multiple
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
                     <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
-                      <Mic className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                       <span className="text-gray-600">
-                        {selectedFile && !recordedBlob ? selectedFile.name : 'Upload Audio File'}
+                        Upload Audio Files (Multiple files supported)
                       </span>
                     </div>
                   </label>
                 </div>
+
+                {/* Selected Files List */}
+                {selectedFiles.length > 0 && !recordedBlob && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className="font-medium text-gray-700">Selected Files:</h4>
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Mic className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <div className="font-medium text-sm">{file.name}</div>
+                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => removeFile(index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -684,20 +787,20 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   </div>
                 )}
 
-                {/* Video preview - show during recording */}
+               {/* Video preview - show during recording */}
                 <video
                   ref={videoRecordingRef}
                   style={{
                     width: '100%',
                     maxWidth: '400px',
                     display: isRecording ? 'block' : 'none',
+                    margin: '0 auto',
                     borderRadius: '8px',
-                    margin: '0 auto 16px auto',
-                    marginBottom: '16px'
+                    backgroundColor: '#000'
                   }}
-                  autoPlay
                   muted
                   playsInline
+                  className="mb-4"
                 />
 
                 {!isRecording && !recordedBlob && (
@@ -753,7 +856,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                       <span className="text-green-700 font-medium">
-                        Video recorded ({formatTime(recordingTime)})
+                        Recording completed ({formatTime(recordingTime)})
                       </span>
                       <Button
                         onClick={resetRecording}
@@ -764,7 +867,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                         Record Again
                       </Button>
                     </div>
-                    <video controls className="w-full max-w-md mx-auto rounded-lg">
+                    <video controls className="w-full" style={{ maxWidth: '400px', margin: '0 auto' }}>
                       <source src={videoUrl} type="video/webm" />
                       Your browser does not support the video element.
                     </video>
@@ -775,27 +878,56 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   <div className="text-center text-gray-500 mb-2">OR</div>
                   <label className="block">
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept="video/*"
+                      multiple
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
                     <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
-                      <Video className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                       <span className="text-gray-600">
-                        {selectedFile && !recordedBlob ? selectedFile.name : 'Upload Video File'}
+                        Upload Video Files (Multiple files supported)
                       </span>
                     </div>
                   </label>
                 </div>
+
+                {/* Selected Files List */}
+                {selectedFiles.length > 0 && !recordedBlob && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className="font-medium text-gray-700">Selected Files:</h4>
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Video className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <div className="font-medium text-sm">{file.name}</div>
+                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => removeFile(index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {uploadMode === 'image' && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image Capture *
+                  Photo Capture *
                 </label>
+
                 {/* Camera Switch Button - show when camera is active */}
                 {isCameraActive && (
                   <div className="flex justify-center mb-4">
@@ -811,38 +943,40 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   </div>
                 )}
 
-                {/* Camera preview and controls */}
-                <div className="text-center space-y-4">
-                  <video
-                    ref={videoRef}
-                    style={{
-                      width: '100%',
-                      maxWidth: '400px',
-                      display: isCameraActive ? 'block' : 'none',
-                      borderRadius: '8px',
-                      margin: '0 auto'
-                    }}
-                    autoPlay
-                    muted
-                    playsInline
-                  />
-                  
-                  <canvas
-                    ref={canvasRef}
-                    style={{ display: 'none' }}
-                  />
+                {/* Camera preview */}
+                <video
+                  ref={videoRef}
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    display: isCameraActive ? 'block' : 'none',
+                    margin: '0 auto',
+                    borderRadius: '8px',
+                    backgroundColor: '#000'
+                  }}
+                  autoPlay
+                  muted
+                  playsInline
+                  className="mb-4"
+                />
 
-                  {!isCameraActive && !selectedFile && (
-                    <Button
-                      onClick={() => capturePhoto()}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg"
-                    >
-                      <Camera className="w-5 h-5 mr-2" />
-                      Start Camera
-                    </Button>
-                  )}
+                <canvas
+                  ref={canvasRef}
+                  style={{ display: 'none' }}
+                />
 
-                  {isCameraActive && (
+                {!isCameraActive && !selectedFile && (
+                  <Button
+                    onClick={() => capturePhoto()}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg"
+                  >
+                    <Camera className="w-5 h-5 mr-2" />
+                    Start Camera
+                  </Button>
+                )}
+
+                {isCameraActive && (
+                  <div className="text-center space-y-4">
                     <div className="flex justify-center gap-2">
                       <Button
                         onClick={() => capturePhoto()}
@@ -853,87 +987,101 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       </Button>
                       <Button
                         onClick={stopCamera}
-                        variant="outline"
-                        className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                        className="bg-red-600 hover:bg-red-700 text-white"
                       >
                         <Square className="w-5 h-5 mr-2" />
                         Stop Camera
                       </Button>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {selectedFile && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <span className="text-green-700 font-medium">
-                          Photo captured: {selectedFile.name}
-                        </span>
-                        <Button
-                          onClick={() => {
-                            setSelectedFile(null);
-                            if (isCameraActive) {
-                              capturePhoto();
-                            }
-                          }}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-1" />
-                          Take Another
-                        </Button>
-                      </div>
-                      {selectedFile && (
-                        <img
-                          src={URL.createObjectURL(selectedFile)}
-                          alt="Captured"
-                          className="w-full max-w-md mx-auto rounded-lg shadow-md"
-                        />
-                      )}
+                {selectedFile && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <span className="text-green-700 font-medium">
+                        Photo captured: {selectedFile.name}
+                      </span>
+                      <Button
+                        onClick={() => {
+                          setSelectedFile(null);
+                          setSelectedFiles([]);
+                        }}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Take Another
+                      </Button>
                     </div>
-                  )}
-                </div>
+                    <div className="text-center">
+                      <img
+                        src={URL.createObjectURL(selectedFile)}
+                        alt="Captured photo"
+                        className="max-w-full max-h-64 mx-auto rounded-lg border"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-4">
                   <div className="text-center text-gray-500 mb-2">OR</div>
                   <label className="block">
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
                     <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
-                      <Image className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                       <span className="text-gray-600">
-                        {selectedFile && !isCameraActive ? selectedFile.name : 'Upload Image File'}
+                        Upload Image Files (Multiple files supported)
                       </span>
                     </div>
                   </label>
                 </div>
+
+                {/* Selected Files List */}
+                {selectedFiles.length > 0 && !selectedFile && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className="font-medium text-gray-700">Selected Files:</h4>
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Image className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <div className="font-medium text-sm">{file.name}</div>
+                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => removeFile(index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Upload Button */}
-            <div className="flex justify-center">
+            {/* Submit Button */}
+            <div className="flex justify-center pt-6">
               <Button
-                onClick={onUpload}
-                disabled={
-                  uploading ||
-                  !title.trim() ||
-                  !location ||
-                  (uploadMode === 'text' && !textContent.trim()) ||
-                  (uploadMode !== 'text' && !selectedFile)
-                }
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleUploadWithProgress}
+                disabled={uploading || uploadingFiles || !title || !location || 
+                  (uploadMode === 'text' && !textContent) ||
+                  (uploadMode !== 'text' && !selectedFile && selectedFiles.length === 0)}
+                className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium text-lg"
               >
-                {uploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Uploading...
-                  </>
-                ) : (
-                  'Upload Content'
-                )}
+                {uploading || uploadingFiles ? 'Uploading...' : 'Upload Content'}
               </Button>
             </div>
           </CardContent>
@@ -944,3 +1092,4 @@ const ContentInput: React.FC<ContentInputProps> = ({
 };
 
 export default ContentInput;
+                    
