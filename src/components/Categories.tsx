@@ -5,7 +5,6 @@ import { ArrowLeft, LogOut, Grid3X3, Calendar, User, FileText, Upload, MapPin, T
 import { toast } from "sonner";
 import ContentInput from "./ContentInput";
 
-// ADD THE JWT DECODER FUNCTION HERE - RIGHT AFTER IMPORTS
 const decodeJWTToken = (token: string): any => {
   try {
     // JWT tokens have 3 parts separated by dots: header.payload.signature
@@ -48,6 +47,7 @@ interface CategoriesProps {
   onLogout: () => void;
   onProfile: () => void;
   onContentInput: (categoryId: string, categoryName: string) => void;
+  onSessionExpired?: () => void; // Add this prop for session expiration callback
 }
 
 interface UploadOption {
@@ -58,7 +58,7 @@ interface UploadOption {
   accept: string;
 }
 
-const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProfile, onContentInput }) => {
+const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProfile, onContentInput, onSessionExpired }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -107,6 +107,27 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
     }
   ];
 
+  // Helper function to check if the response indicates session expiration
+  const isSessionExpired = (response: Response): boolean => {
+    return response.status === 401 || response.status === 403;
+  };
+
+  // Helper function to handle session expiration
+  const handleSessionExpiration = (message: string = "Session expired. Please login again.") => {
+    toast.error(message);
+    // Clear any stored auth data
+    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('authToken');
+    
+    // Call the session expired callback if provided
+    if (onSessionExpired) {
+      onSessionExpired();
+    } else {
+      // Fallback: call onLogout if no specific handler
+      onLogout();
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
     fetchUserProfile();
@@ -119,6 +140,13 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
       const tokenPayload = decodeJWTToken(token);
       if (tokenPayload) {
         console.log('JWT Token payload:', tokenPayload);
+        
+        // Check if token is expired
+        if (tokenPayload.exp && Date.now() >= tokenPayload.exp * 1000) {
+          handleSessionExpiration("Your session has expired. Please login again.");
+          return;
+        }
+        
         // Common JWT payload fields for user ID
         const userId = tokenPayload.sub || tokenPayload.user_id || tokenPayload.id || tokenPayload.uid;
         if (userId) {
@@ -136,6 +164,11 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
         },
       });
 
+      if (isSessionExpired(response)) {
+        handleSessionExpiration("Your session has expired. Please login again.");
+        return;
+      }
+
       if (response.ok) {
         const userData = await response.json();
         console.log('User profile response:', userData);
@@ -152,6 +185,7 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
         console.error('Failed to fetch user profile, status:', response.status);
         const errorData = await response.json().catch(() => ({}));
         console.error('Profile fetch error:', errorData);
+        toast.error("Failed to get user information. Please try logging in again.");
       }
     } catch (error) {
       console.error('User profile error:', error);
@@ -167,6 +201,11 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
           'Content-Type': 'application/json',
         },
       });
+
+      if (isSessionExpired(response)) {
+        handleSessionExpiration("Your session has expired. Please login again.");
+        return;
+      }
 
       if (response.ok) {
         const data = await response.json();

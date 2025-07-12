@@ -74,6 +74,12 @@ const Index = () => {
       />
     );
   }
+   const handleSessionExpired = () => {
+    setToken('');
+    setCurrentView('login');
+    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('authToken');
+  };
 
   if (currentView === 'categories') {
     return (
@@ -83,6 +89,7 @@ const Index = () => {
         onLogout={handleLogout}
         onProfile={() => setCurrentView('profile')}
         onContentInput={() => setCurrentView('content')}
+        onSessionExpired={handleSessionExpired}
       />
     );
   }
