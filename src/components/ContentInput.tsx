@@ -1,4 +1,4 @@
-// Pause Button Added In Audio/Video + Camera Switch Function + Multiple File Upload + Progress
+// Pause Button Added In Audio/Video + Camera Switch Function + Progress
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
@@ -402,20 +402,18 @@ const ContentInput: React.FC<ContentInputProps> = ({
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   };
 
-  const handleMultipleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length > 0) {
-      setSelectedFiles(files);
-      if (files.length === 1) {
-        setSelectedFile(files[0]);
-      }
-      setRecordedBlob(null);
-      setAudioUrl(null);
-      setVideoUrl(null);
-      toast.success(`${files.length} file(s) selected`);
-    }
+  const handleSingleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    setSelectedFile(file);
+    setSelectedFiles([file]); // keep compatibility with existing logic
+    setRecordedBlob(null);
+    setAudioUrl(null);
+    setVideoUrl(null);
+    toast.success(`File selected: ${file.name}`);
     handleFileSelect(event);
-  };
+  }
+};
 
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
@@ -429,8 +427,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
   };
 
   const handleFileSelectInternal = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleMultipleFileSelect(event);
-  };
+  handleSingleFileSelect(event);
+};
 
   const simulateUploadProgress = () => {
     setUploadingFiles(true);
@@ -467,7 +465,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
   }
 
   setUploadingFiles(false);
-  toast.success("All uploads complete");
+  toast.success("upload complete");
 };
 
 
@@ -744,14 +742,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="audio/*"
-                      multiple
+                      
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
                     <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
                       <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                       <span className="text-gray-600">
-                        Upload Audio Files (Multiple files supported)
+                        Upload Audio Files (Single File)
                       </span>
                     </div>
                   </label>
@@ -760,7 +758,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 {/* Selected Files List */}
                 {selectedFiles.length > 0 && !recordedBlob && (
                   <div className="mt-4 space-y-2">
-                    <h4 className="font-medium text-gray-700">Selected Files:</h4>
+                    <h4 className="font-medium text-gray-700">Selected File:</h4>
                     {selectedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
@@ -900,14 +898,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="video/*"
-                      multiple
+                      
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
                     <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
                       <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                       <span className="text-gray-600">
-                        Upload Video Files (Multiple files supported)
+                        Upload Video Files (Single file)
                       </span>
                     </div>
                   </label>
@@ -1050,14 +1048,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
-                      multiple
+                      
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
                     <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
                       <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                       <span className="text-gray-600">
-                        Upload Image Files (Multiple files supported)
+                        Upload Image Files (Single file)
                       </span>
                     </div>
                   </label>
