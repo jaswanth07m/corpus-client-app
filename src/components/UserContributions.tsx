@@ -115,8 +115,8 @@ const UserContributions: React.FC<UserContributionsProps> = ({
         {displayedContributions.map((contribution) => (
           <li key={contribution.id} className="contribution-item">
             <span className="contribution-title">{contribution.title}</span>
-            <span className={`contribution-status ${contribution.reviewed ? 'reviewed' : 'pending'}`}>
-              {contribution.reviewed ? '✓ Reviewed' : '⏳ Pending Review'}
+            <span className={`contribution-status ${contribution.reviewed ? 'reviewed' : 'uploaded'}`}>
+              {contribution.reviewed ? '✓ Reviewed' : '✓ Upload Success'}
             </span>
           </li>
         ))}
