@@ -1,5 +1,6 @@
 // UserContributions.tsx
-import React, { useState, useEffect } from "react";
+import { BACKEND_URL } from '@/lib/constants';
+import React, { useState, useEffect } from 'react';
 
 interface Contribution {
   id: string;
@@ -17,7 +18,7 @@ interface ContributionsResponse {
 
 interface UserContributionsProps {
   userId: string;
-  mediaType: "text" | "audio" | "video" | "image";
+  mediaType: 'text' | 'audio' | 'video' | 'image';
   authToken: string;
 }
 
@@ -45,11 +46,11 @@ const UserContributions: React.FC<UserContributionsProps> = ({
 
       try {
         const response = await fetch(
-          `https://backend2.swecha.org/api/v1/users/${userId}/contributions/${mediaType}`,
+          `${BACKEND_URL}/users/${userId}/contributions/${mediaType}`,
           {
-            method: "GET",
+            method: 'GET',
             headers: {
-              accept: "application/json",
+              accept: 'application/json',
               Authorization: `Bearer ${authToken}`,
             },
           },
@@ -66,7 +67,7 @@ const UserContributions: React.FC<UserContributionsProps> = ({
           (data.contributions || []).slice(0, ITEMS_PER_PAGE),
         );
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -124,9 +125,9 @@ const UserContributions: React.FC<UserContributionsProps> = ({
           <li key={contribution.id} className="contribution-item">
             <span className="contribution-title">{contribution.title}</span>
             <span
-              className={`contribution-status ${contribution.reviewed ? "reviewed" : "uploaded"}`}
+              className={`contribution-status ${contribution.reviewed ? 'reviewed' : 'uploaded'}`}
             >
-              {contribution.reviewed ? "✓ Reviewed" : "✓ Upload Success"}
+              {contribution.reviewed ? '✓ Reviewed' : '✓ Upload Success'}
             </span>
           </li>
         ))}

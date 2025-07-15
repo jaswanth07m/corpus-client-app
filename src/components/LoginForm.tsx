@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Phone, MessageSquare, Eye, EyeOff, Sparkles, RefreshCw, User, Mail, Calendar, MapPin, UserPlus, LogIn } from 'lucide-react';
-import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  Phone,
+  MessageSquare,
+  Eye,
+  EyeOff,
+  Sparkles,
+  RefreshCw,
+  User,
+  Mail,
+  Calendar,
+  MapPin,
+  UserPlus,
+  LogIn,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { BACKEND_URL } from '@/lib/constants';
 
 interface LoginFormProps {
   onLoginSuccess: (token: string, user: any) => void;
@@ -30,7 +44,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     place: '',
     password: '',
     confirmPassword: '',
-    has_given_consent: false
+    has_given_consent: false,
   });
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -40,7 +54,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     let interval: NodeJS.Timeout;
     if (resendTimer > 0) {
       interval = setInterval(() => {
-        setResendTimer(prev => {
+        setResendTimer((prev) => {
           if (prev <= 1) {
             setCanResend(true);
             return 0;
@@ -74,7 +88,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handleSendOTP = async () => {
     if (!isValidPhoneNumber()) {
-      toast.error("Please enter a valid 10-digit phone number");
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
@@ -82,13 +96,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       console.log('Sending OTP to:', getFullPhoneNumber());
 
-      const response = await fetch('https://backend2.swecha.org/api/v1/auth/send-otp', {
+      const response = await fetch(`${BACKEND_URL}/auth/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone_number: getFullPhoneNumber()
+          phone_number: getFullPhoneNumber(),
         }),
       });
 
@@ -101,21 +115,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         setShowOtpInput(true);
         setResendTimer(60); // 60 second timer
         setCanResend(false);
-        toast.success("OTP sent successfully!");
+        toast.success('OTP sent successfully!');
       } else {
         console.error('OTP Send Error:', data);
-        toast.error(data.message || data.detail || data.error || "Failed to send OTP");
+        toast.error(
+          data.message || data.detail || data.error || 'Failed to send OTP',
+        );
       }
     } catch (error) {
       console.error('Network Error:', error);
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error('Network error. Please check your connection and try again.');
     }
     setLoading(false);
   };
 
   const handleVerifyOTP = async () => {
     if (!otp || otp.length !== 6) {
-      toast.error("Please enter a valid 6-digit OTP");
+      toast.error('Please enter a valid 6-digit OTP');
       return;
     }
 
@@ -123,7 +139,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       console.log('Verifying OTP:', otp, 'for phone:', getFullPhoneNumber());
 
-      const response = await fetch('https://backend2.swecha.org/api/v1/auth/verify-otp', {
+      const response = await fetch(`${BACKEND_URL}/auth/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +147,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         body: JSON.stringify({
           phone_number: getFullPhoneNumber(),
           otp_code: otp.trim(),
-          has_given_consent: true
+          has_given_consent: true,
         }),
       });
 
@@ -143,17 +159,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       if (response.ok) {
         // Check if we have access_token in the response
         if (data.access_token) {
-          toast.success("Login successful!");
+          toast.success('Login successful!');
           // Create user object from response data
           const user = {
             user_id: data.user_id,
             phone_number: data.phone_number || getFullPhoneNumber(),
-            roles: data.roles || []
+            roles: data.roles || [],
           };
           onLoginSuccess(data.access_token, user);
         } else {
           console.error('No access token in response:', data);
-          toast.error("Login failed: No access token received");
+          toast.error('Login failed: No access token received');
         }
       } else {
         console.error('OTP Verify Error:', data);
@@ -161,7 +177,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         // Handle specific error cases based on response
         if (data.detail && Array.isArray(data.detail)) {
           // Handle validation errors (422)
-          const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
+          const errorMessages = data.detail
+            .map((err: any) => err.msg)
+            .join(', ');
           toast.error(`Validation error: ${errorMessages}`);
         } else if (data.detail && typeof data.detail === 'string') {
           // Handle string detail messages
@@ -176,16 +194,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           // Handle HTTP status codes
           switch (response.status) {
             case 400:
-              toast.error("Invalid OTP. Please check and try again.");
+              toast.error('Invalid OTP. Please check and try again.');
               break;
             case 401:
-              toast.error("OTP verification failed. Please try again.");
+              toast.error('OTP verification failed. Please try again.');
               break;
             case 422:
-              toast.error("OTP has expired or is invalid. Please request a new one.");
+              toast.error(
+                'OTP has expired or is invalid. Please request a new one.',
+              );
               break;
             case 429:
-              toast.error("Too many attempts. Please wait before trying again.");
+              toast.error(
+                'Too many attempts. Please wait before trying again.',
+              );
               break;
             default:
               toast.error(`OTP verification failed (${response.status})`);
@@ -194,7 +216,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       }
     } catch (error) {
       console.error('Network Error:', error);
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error('Network error. Please check your connection and try again.');
     }
     setLoading(false);
   };
@@ -209,7 +231,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handlePasswordLogin = async () => {
     if (!isValidPhoneNumber() || !password) {
-      toast.error("Please enter a valid phone number and password");
+      toast.error('Please enter a valid phone number and password');
       return;
     }
 
@@ -217,14 +239,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       console.log('Password login for:', getFullPhoneNumber());
 
-      const response = await fetch('https://backend2.swecha.org/api/v1/auth/login', {
+      const response = await fetch(`${BACKEND_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           phone: getFullPhoneNumber(),
-          password: password
+          password: password,
         }),
       });
 
@@ -233,15 +255,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       console.log('Response Status:', response.status);
 
       if (response.ok && data.access_token) {
-        toast.success("Login successful!");
-        onLoginSuccess(data.access_token, data.user || { phone: getFullPhoneNumber() });
+        toast.success('Login successful!');
+        onLoginSuccess(
+          data.access_token,
+          data.user || { phone: getFullPhoneNumber() },
+        );
       } else {
         console.error('Login Error:', data);
-        toast.error(data.message || data.detail || data.error || "Invalid credentials");
+        toast.error(
+          data.message || data.detail || data.error || 'Invalid credentials',
+        );
       }
     } catch (error) {
       console.error('Network Error:', error);
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error('Network error. Please check your connection and try again.');
     }
     setLoading(false);
   };
@@ -249,22 +276,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const handleSignup = async () => {
     // Validation
     if (!isValidPhoneNumber()) {
-      toast.error("Please enter a valid 10-digit phone number");
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
     if (!signupData.name.trim()) {
-      toast.error("Please enter your name");
+      toast.error('Please enter your name');
       return;
     }
 
     if (!isValidEmail(signupData.email)) {
-      toast.error("Please enter a valid email address");
+      toast.error('Please enter a valid email address');
       return;
     }
 
     if (!signupData.password || signupData.password.length < 6) {
-      toast.error("Password must be at least 6 characters long");
+      toast.error('Password must be at least 6 characters long');
       return;
     }
 
@@ -274,7 +301,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     }
 
     if (!signupData.has_given_consent) {
-      toast.error("Please agree to the terms and conditions");
+      toast.error('Please agree to the terms and conditions');
       return;
     }
 
@@ -291,17 +318,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         place: signupData.place.trim() || undefined,
         password: signupData.password,
         role_ids: [2], // Default role ID as per schema
-        has_given_consent: signupData.has_given_consent
+        has_given_consent: signupData.has_given_consent,
       };
 
       // Remove undefined values
-      Object.keys(requestBody).forEach(key => {
+      Object.keys(requestBody).forEach((key) => {
         if (requestBody[key] === undefined) {
           delete requestBody[key];
         }
       });
 
-      const response = await fetch('https://backend2.swecha.org/api/v1/users/', {
+      const response = await fetch(`${BACKEND_URL}/users/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -314,7 +341,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       console.log('Response Status:', response.status);
 
       if (response.ok) {
-        toast.success("Account created successfully! Please login to continue.");
+        toast.success(
+          'Account created successfully! Please login to continue.',
+        );
         // Switch to login mode
         setMode('login');
         // Reset signup form
@@ -326,14 +355,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           place: '',
           password: '',
           confirmPassword: '',
-          has_given_consent: false
+          has_given_consent: false,
         });
       } else {
         console.error('Signup Error:', data);
 
         // Handle specific error cases
         if (data.detail && Array.isArray(data.detail)) {
-          const errorMessages = data.detail.map((err: any) => err.msg).join(', ');
+          const errorMessages = data.detail
+            .map((err: any) => err.msg)
+            .join(', ');
           toast.error(`Validation error: ${errorMessages}`);
         } else if (data.detail && typeof data.detail === 'string') {
           toast.error(data.detail);
@@ -344,13 +375,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         } else {
           switch (response.status) {
             case 400:
-              toast.error("Invalid input. Please check your details and try again.");
+              toast.error(
+                'Invalid input. Please check your details and try again.',
+              );
               break;
             case 409:
-              toast.error("An account with this phone number or email already exists.");
+              toast.error(
+                'An account with this phone number or email already exists.',
+              );
               break;
             case 422:
-              toast.error("Please check your input and try again.");
+              toast.error('Please check your input and try again.');
               break;
             default:
               toast.error(`Account creation failed (${response.status})`);
@@ -359,7 +394,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       }
     } catch (error) {
       console.error('Network Error:', error);
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error('Network error. Please check your connection and try again.');
     }
     setLoading(false);
   };
@@ -370,9 +405,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   const handleSignupInputChange = (field: string, value: string | boolean) => {
-    setSignupData(prev => ({
+    setSignupData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -391,7 +426,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       place: '',
       password: '',
       confirmPassword: '',
-      has_given_consent: false
+      has_given_consent: false,
     });
   };
 
@@ -425,10 +460,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
             <Button
               variant={mode === 'login' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${mode === 'login'
+              className={`flex-1 rounded-lg transition-all duration-300 ${
+                mode === 'login'
                   ? 'gradient-purple text-white shadow-lg'
                   : 'hover:bg-gray-200 text-gray-700'
-                }`}
+              }`}
               onClick={() => {
                 setMode('login');
                 resetForm();
@@ -439,10 +475,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             </Button>
             <Button
               variant={mode === 'signup' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${mode === 'signup'
+              className={`flex-1 rounded-lg transition-all duration-300 ${
+                mode === 'signup'
                   ? 'gradient-purple text-white shadow-lg'
                   : 'hover:bg-gray-200 text-gray-700'
-                }`}
+              }`}
               onClick={() => {
                 setMode('signup');
                 resetForm();
@@ -460,10 +497,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
                 <Button
                   variant={loginMethod === 'otp' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${loginMethod === 'otp'
+                  className={`flex-1 rounded-lg transition-all duration-300 ${
+                    loginMethod === 'otp'
                       ? 'gradient-purple text-white shadow-lg'
                       : 'hover:bg-gray-200 text-gray-700'
-                    }`}
+                  }`}
                   onClick={() => {
                     setLoginMethod('otp');
                     setShowOtpInput(false);
@@ -476,10 +514,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 </Button>
                 <Button
                   variant={loginMethod === 'password' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${loginMethod === 'password'
+                  className={`flex-1 rounded-lg transition-all duration-300 ${
+                    loginMethod === 'password'
                       ? 'gradient-purple text-white shadow-lg'
                       : 'hover:bg-gray-200 text-gray-700'
-                    }`}
+                  }`}
                   onClick={() => setLoginMethod('password')}
                 >
                   Login with Password
@@ -498,12 +537,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                    <div className="absolute left-12 top-4 text-gray-500 font-medium">+91</div>
+                    <div className="absolute left-12 top-4 text-gray-500 font-medium">
+                      +91
+                    </div>
                     <Input
                       type="tel"
                       placeholder="Enter 10-digit phone number"
                       value={phoneDigits}
-                      onChange={(e) => setPhoneDigits(formatPhoneNumber(e.target.value))}
+                      onChange={(e) =>
+                        setPhoneDigits(formatPhoneNumber(e.target.value))
+                      }
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
@@ -522,7 +565,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         Sending...
                       </div>
                     ) : (
-                      "Send OTP"
+                      'Send OTP'
                     )}
                   </Button>
                 </div>
@@ -564,7 +607,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                           Verifying...
                         </div>
                       ) : (
-                        "Verify OTP"
+                        'Verify OTP'
                       )}
                     </Button>
 
@@ -577,7 +620,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         className="flex items-center gap-2 text-purple-600 hover:bg-purple-50 rounded-xl h-12 transition-all duration-300"
                       >
                         <RefreshCw className="h-4 w-4" />
-                        {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
+                        {resendTimer > 0
+                          ? `Resend in ${resendTimer}s`
+                          : 'Resend OTP'}
                       </Button>
 
                       <Button
@@ -602,12 +647,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 <div className="space-y-5 animate-fade-in-up">
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500 z-10" />
-                    <div className="absolute left-12 top-4 text-gray-500 font-medium">+91</div>
+                    <div className="absolute left-12 top-4 text-gray-500 font-medium">
+                      +91
+                    </div>
                     <Input
                       type="tel"
                       placeholder="Enter 10-digit phone number"
                       value={phoneDigits}
-                      onChange={(e) => setPhoneDigits(formatPhoneNumber(e.target.value))}
+                      onChange={(e) =>
+                        setPhoneDigits(formatPhoneNumber(e.target.value))
+                      }
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
@@ -617,7 +666,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   <div className="relative">
                     <Input
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -628,7 +677,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
 
@@ -643,7 +696,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         Logging in...
                       </div>
                     ) : (
-                      "Login"
+                      'Login'
                     )}
                   </Button>
                 </div>
@@ -657,12 +710,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               {/* Phone Number */}
               <div className="relative">
                 <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                <div className="absolute left-12 top-4 text-gray-500 font-medium">+91</div>
+                <div className="absolute left-12 top-4 text-gray-500 font-medium">
+                  +91
+                </div>
                 <Input
                   type="tel"
                   placeholder="Enter 10-digit phone number"
                   value={phoneDigits}
-                  onChange={(e) => setPhoneDigits(formatPhoneNumber(e.target.value))}
+                  onChange={(e) =>
+                    setPhoneDigits(formatPhoneNumber(e.target.value))
+                  }
                   className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                 />
                 <div className="text-xs text-gray-500 mt-1 ml-1">
@@ -677,7 +734,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   type="text"
                   placeholder="Full Name *"
                   value={signupData.name}
-                  onChange={(e) => handleSignupInputChange('name', e.target.value)}
+                  onChange={(e) =>
+                    handleSignupInputChange('name', e.target.value)
+                  }
                   className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                 />
               </div>
@@ -689,7 +748,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   type="email"
                   placeholder="Email Address *"
                   value={signupData.email}
-                  onChange={(e) => handleSignupInputChange('email', e.target.value)}
+                  onChange={(e) =>
+                    handleSignupInputChange('email', e.target.value)
+                  }
                   className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                 />
               </div>
@@ -698,7 +759,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               <div className="relative">
                 <select
                   value={signupData.gender}
-                  onChange={(e) => handleSignupInputChange('gender', e.target.value)}
+                  onChange={(e) =>
+                    handleSignupInputChange('gender', e.target.value)
+                  }
                   className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
                 >
                   <option value="">Select Gender</option>
@@ -711,17 +774,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
               {/* Date of Birth */}
               <div className="relative">
-                <label className="text-sm text-gray-700 mb-1 block">Date of Birth</label>
+                <label className="text-sm text-gray-700 mb-1 block">
+                  Date of Birth
+                </label>
                 <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
                 <Input
                   type="date"
                   placeholder="Date of Birth"
                   value={signupData.date_of_birth}
-                  onChange={(e) => handleSignupInputChange('date_of_birth', e.target.value)}
+                  onChange={(e) =>
+                    handleSignupInputChange('date_of_birth', e.target.value)
+                  }
                   className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 mt-1"
                 />
               </div>
-
 
               {/* Place */}
               <div className="relative">
@@ -730,7 +796,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   type="text"
                   placeholder="Place (City, State)"
                   value={signupData.place}
-                  onChange={(e) => handleSignupInputChange('place', e.target.value)}
+                  onChange={(e) =>
+                    handleSignupInputChange('place', e.target.value)
+                  }
                   className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                 />
               </div>
@@ -738,10 +806,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               {/* Password */}
               <div className="relative">
                 <Input
-                  type={showSignupPassword ? "text" : "password"}
+                  type={showSignupPassword ? 'text' : 'password'}
                   placeholder="Create Password *"
                   value={signupData.password}
-                  onChange={(e) => handleSignupInputChange('password', e.target.value)}
+                  onChange={(e) =>
+                    handleSignupInputChange('password', e.target.value)
+                  }
                   className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                 />
                 <button
@@ -749,17 +819,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onClick={() => setShowSignupPassword(!showSignupPassword)}
                   className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
                 >
-                  {showSignupPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showSignupPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
 
               {/* Confirm Password */}
               <div className="relative">
                 <Input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm Password *"
                   value={signupData.confirmPassword}
-                  onChange={(e) => handleSignupInputChange('confirmPassword', e.target.value)}
+                  onChange={(e) =>
+                    handleSignupInputChange('confirmPassword', e.target.value)
+                  }
                   className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                 />
                 <button
@@ -767,7 +843,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
                 >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
 
@@ -777,18 +857,41 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   type="checkbox"
                   id="consent"
                   checked={signupData.has_given_consent}
-                  onChange={(e) => handleSignupInputChange('has_given_consent', e.target.checked)}
+                  onChange={(e) =>
+                    handleSignupInputChange(
+                      'has_given_consent',
+                      e.target.checked,
+                    )
+                  }
                   className="mt-1 w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
                 />
-                <label htmlFor="consent" className="text-sm text-gray-700 leading-relaxed">
-                  I agree to the <span className="text-purple-600 hover:text-purple-700 cursor-pointer underline">Terms of Service</span> and <span className="text-purple-600 hover:text-purple-700 cursor-pointer underline">Privacy Policy</span>
+                <label
+                  htmlFor="consent"
+                  className="text-sm text-gray-700 leading-relaxed"
+                >
+                  I agree to the{' '}
+                  <span className="text-purple-600 hover:text-purple-700 cursor-pointer underline">
+                    Terms of Service
+                  </span>{' '}
+                  and{' '}
+                  <span className="text-purple-600 hover:text-purple-700 cursor-pointer underline">
+                    Privacy Policy
+                  </span>
                 </label>
               </div>
 
               {/* Sign Up Button */}
               <Button
                 onClick={handleSignup}
-                disabled={loading || !isValidPhoneNumber() || !signupData.name.trim() || !isValidEmail(signupData.email) || !signupData.password || signupData.password !== signupData.confirmPassword || !signupData.has_given_consent}
+                disabled={
+                  loading ||
+                  !isValidPhoneNumber() ||
+                  !signupData.name.trim() ||
+                  !isValidEmail(signupData.email) ||
+                  !signupData.password ||
+                  signupData.password !== signupData.confirmPassword ||
+                  !signupData.has_given_consent
+                }
                 className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
               >
                 {loading ? (
@@ -809,7 +912,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           {/* Footer */}
           <div className="text-center pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Secured by <span className="text-purple-600 font-semibold">Swecha</span>
+              Secured by{' '}
+              <span className="text-purple-600 font-semibold">Swecha</span>
             </p>
           </div>
         </CardContent>
@@ -820,15 +924,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         .gradient-purple {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
+
         .animate-scale-in {
           animation: scale-in 0.5s ease-out;
         }
-        
+
         .animate-fade-in-up {
           animation: fade-in-up 0.3s ease-out;
         }
-        
+
         @keyframes scale-in {
           from {
             opacity: 0;
@@ -839,7 +943,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             transform: scale(1);
           }
         }
-        
+
         @keyframes fade-in-up {
           from {
             opacity: 0;
@@ -850,22 +954,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             transform: translateY(0);
           }
         }
-        
+
         /* Custom scrollbar for better UX */
         ::-webkit-scrollbar {
           width: 6px;
         }
-        
+
         ::-webkit-scrollbar-track {
           background: #f1f1f1;
           border-radius: 3px;
         }
-        
+
         ::-webkit-scrollbar-thumb {
           background: #888;
           border-radius: 3px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
           background: #555;
         }

@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, LogOut, Grid3X3, Calendar, User, FileText, Upload, MapPin, Type, Mic, Video, Image, X, Check, AlertCircle, Camera } from 'lucide-react';
-import { toast } from "sonner";
-import ContentInput from "./ContentInput";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  ArrowLeft,
+  LogOut,
+  Grid3X3,
+  Calendar,
+  User,
+  FileText,
+  Upload,
+  MapPin,
+  Type,
+  Mic,
+  Video,
+  Image,
+  X,
+  Check,
+  AlertCircle,
+  Camera,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import ContentInput from './ContentInput';
+import { BACKEND_URL } from '@/lib/constants';
 
 const decodeJWTToken = (token: string): any => {
   try {
@@ -15,13 +33,13 @@ const decodeJWTToken = (token: string): any => {
 
     // Decode the payload (second part)
     const payload = parts[1];
-    
+
     // Add padding if needed (JWT base64 encoding might not have padding)
-    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
-    
+    const paddedPayload = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+
     // Decode base64
     const decodedPayload = atob(paddedPayload);
-    
+
     // Parse JSON
     return JSON.parse(decodedPayload);
   } catch (error) {
@@ -58,16 +76,29 @@ interface UploadOption {
   accept: string;
 }
 
-const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProfile, onContentInput, onSessionExpired }) => {
+const Categories: React.FC<CategoriesProps> = ({
+  token,
+  onBack,
+  onLogout,
+  onProfile,
+  onContentInput,
+  onSessionExpired,
+}) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
   const [showUploadOptions, setShowUploadOptions] = useState(false);
-  const [uploadMode, setUploadMode] = useState<'text' | 'audio' | 'video' | 'image' | null>(null);
+  const [uploadMode, setUploadMode] = useState<
+    'text' | 'audio' | 'video' | 'image' | null
+  >(null);
   const [title, setTitle] = useState('');
   const [textContent, setTextContent] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [uploading, setUploading] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [locationRequested, setLocationRequested] = useState(false);
@@ -82,29 +113,29 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
       icon: <Type className="h-8 w-8" />,
       title: 'Text Input',
       description: 'Type your content',
-      accept: ''
+      accept: '',
     },
     {
       type: 'audio',
       icon: <Mic className="h-8 w-8" />,
       title: 'Audio Recording',
       description: 'Record your voice',
-      accept: 'audio/*'
+      accept: 'audio/*',
     },
     {
       type: 'video',
       icon: <Video className="h-8 w-8" />,
       title: 'Video Content',
       description: 'Record or upload video',
-      accept: 'video/*'
+      accept: 'video/*',
     },
     {
       type: 'image',
       icon: <Camera className="h-8 w-8" />,
       title: 'Photo Capture',
       description: 'Take or upload photos',
-      accept: 'image/*'
-    }
+      accept: 'image/*',
+    },
   ];
 
   // Helper function to check if the response indicates session expiration
@@ -113,12 +144,14 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
   };
 
   // Helper function to handle session expiration
-  const handleSessionExpiration = (message: string = "Session expired. Please login again.") => {
+  const handleSessionExpiration = (
+    message: string = 'Session expired. Please login again.',
+  ) => {
     toast.error(message);
     // Clear any stored auth data
     localStorage.removeItem('authToken');
     sessionStorage.removeItem('authToken');
-    
+
     // Call the session expired callback if provided
     if (onSessionExpired) {
       onSessionExpired();
@@ -140,15 +173,21 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
       const tokenPayload = decodeJWTToken(token);
       if (tokenPayload) {
         console.log('JWT Token payload:', tokenPayload);
-        
+
         // Check if token is expired
         if (tokenPayload.exp && Date.now() >= tokenPayload.exp * 1000) {
-          handleSessionExpiration("Your session has expired. Please login again.");
+          handleSessionExpiration(
+            'Your session has expired. Please login again.',
+          );
           return;
         }
-        
+
         // Common JWT payload fields for user ID
-        const userId = tokenPayload.sub || tokenPayload.user_id || tokenPayload.id || tokenPayload.uid;
+        const userId =
+          tokenPayload.sub ||
+          tokenPayload.user_id ||
+          tokenPayload.id ||
+          tokenPayload.uid;
         if (userId) {
           console.log('User ID from token:', userId);
           setUserId(userId.toString());
@@ -157,53 +196,62 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
       }
 
       // Fallback: Try to fetch from API
-      const response = await fetch('https://backend2.swecha.org/api/v1/users/profile', {
+      const response = await fetch(`${BACKEND_URL}/users/profile`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (isSessionExpired(response)) {
-        handleSessionExpiration("Your session has expired. Please login again.");
+        handleSessionExpiration(
+          'Your session has expired. Please login again.',
+        );
         return;
       }
 
       if (response.ok) {
         const userData = await response.json();
         console.log('User profile response:', userData);
-        
+
         // Try multiple possible field names for user ID
-        const userId = userData.id || userData.uid || userData.user_id || userData.sub;
+        const userId =
+          userData.id || userData.uid || userData.user_id || userData.sub;
         if (userId) {
           setUserId(userId.toString());
         } else {
           console.error('User ID not found in profile response:', userData);
-          toast.error("User ID not found. Please try logging in again.");
+          toast.error('User ID not found. Please try logging in again.');
         }
       } else {
         console.error('Failed to fetch user profile, status:', response.status);
         const errorData = await response.json().catch(() => ({}));
         console.error('Profile fetch error:', errorData);
-        toast.error("Failed to get user information. Please try logging in again.");
+        toast.error(
+          'Failed to get user information. Please try logging in again.',
+        );
       }
     } catch (error) {
       console.error('User profile error:', error);
-      toast.error("Failed to get user information. Please try logging in again.");
+      toast.error(
+        'Failed to get user information. Please try logging in again.',
+      );
     }
   };
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('https://backend2.swecha.org/api/v1/categories/', {
+      const response = await fetch(`${BACKEND_URL}/categories/`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (isSessionExpired(response)) {
-        handleSessionExpiration("Your session has expired. Please login again.");
+        handleSessionExpiration(
+          'Your session has expired. Please login again.',
+        );
         return;
       }
 
@@ -215,38 +263,38 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
           .sort((a: Category, b: Category) => a.rank - b.rank);
         setCategories(publishedCategories);
       } else {
-        toast.error("Failed to fetch categories");
+        toast.error('Failed to fetch categories');
       }
     } catch (error) {
       console.error('Categories Error:', error);
-      toast.error("Network error. Please try again.");
+      toast.error('Network error. Please try again.');
     }
     setLoading(false);
   };
 
   const getCategoryIcon = (name: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {
-      'fables': '📚',
-      'events': '🎉',
-      'music': '🎵',
-      'places': '🏛️',
-      'food': '🍽️',
-      'people': '👥',
-      'literature': '📖',
-      'architecture': '🏗️',
-      'skills': '⚡',
-      'images': '🖼️',
-      'culture': '🎭',
+      fables: '📚',
+      events: '🎉',
+      music: '🎵',
+      places: '🏛️',
+      food: '🍽️',
+      people: '👥',
+      literature: '📖',
+      architecture: '🏗️',
+      skills: '⚡',
+      images: '🖼️',
+      culture: '🎭',
       'flora_&_fauna': '🌿',
-      'education': '🎓',
-      'vegetation': '🌱',
-      'folk_songs': '🎶',
-      'traditional_skills': '🛠️',
-      'local_cultural_history': '🏛️',
-      'local_history': '📜',
-      'food_agriculture': '🌾',
-      'old_newspapers': '📰',
-      'folk tales': '📓'
+      education: '🎓',
+      vegetation: '🌱',
+      folk_songs: '🎶',
+      traditional_skills: '🛠️',
+      local_cultural_history: '🏛️',
+      local_history: '📜',
+      food_agriculture: '🌾',
+      old_newspapers: '📰',
+      'folk tales': '📓',
     };
     return iconMap[name] || '📂';
   };
@@ -267,32 +315,32 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
   const requestLocation = () => {
     setLocationError('');
     setLocationRequested(true);
-    
+
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by this browser.');
-      toast.error("Geolocation not supported");
+      toast.error('Geolocation not supported');
       setShowManualLocation(true);
       return;
     }
 
-    toast.info("Requesting location access...");
+    toast.info('Requesting location access...');
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         console.log('Location obtained:', position.coords);
         setLocation({
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         });
         setLocationError('');
         setShowManualLocation(false);
-        toast.success("Location access granted!");
+        toast.success('Location access granted!');
       },
       (error) => {
         console.error('Location error:', error);
         let errorMessage = 'Location access failed. ';
-        
-        switch(error.code) {
+
+        switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage += 'Please allow location access or enter manually.';
             break;
@@ -306,7 +354,7 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
             errorMessage += 'An unknown error occurred.';
             break;
         }
-        
+
         setLocationError(errorMessage);
         toast.error(errorMessage);
         setShowManualLocation(true);
@@ -314,34 +362,34 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
       {
         enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 60000
-      }
+        maximumAge: 60000,
+      },
     );
   };
 
   const handleManualLocationSubmit = () => {
     const lat = parseFloat(manualLat);
     const lng = parseFloat(manualLng);
-    
+
     if (isNaN(lat) || isNaN(lng)) {
-      toast.error("Please enter valid latitude and longitude values");
+      toast.error('Please enter valid latitude and longitude values');
       return;
     }
-    
+
     if (lat < -90 || lat > 90) {
-      toast.error("Latitude must be between -90 and 90");
+      toast.error('Latitude must be between -90 and 90');
       return;
     }
-    
+
     if (lng < -180 || lng > 180) {
-      toast.error("Longitude must be between -180 and 180");
+      toast.error('Longitude must be between -180 and 180');
       return;
     }
-    
+
     setLocation({ lat, lng });
     setLocationError('');
     setShowManualLocation(false);
-    toast.success("Location set manually!");
+    toast.success('Location set manually!');
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -353,12 +401,14 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
 
   const handleUpload = async () => {
     if (!selectedCategory || !title.trim()) {
-      toast.error("Please provide a title");
+      toast.error('Please provide a title');
       return;
     }
 
     if (!location) {
-      toast.error("Location is required. Please enable location access or enter manually.");
+      toast.error(
+        'Location is required. Please enable location access or enter manually.',
+      );
       if (!showManualLocation) {
         setShowManualLocation(true);
       }
@@ -366,7 +416,7 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
     }
 
     if (!userId) {
-      toast.error("User ID not found. Please try logging in again.");
+      toast.error('User ID not found. Please try logging in again.');
       return;
     }
 
@@ -374,14 +424,16 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
     let fileToUpload = selectedFile;
     if (uploadMode === 'text') {
       if (!textContent.trim()) {
-        toast.error("Please enter text content");
+        toast.error('Please enter text content');
         return;
       }
       // Create a text file from the content
       const textBlob = new Blob([textContent], { type: 'text/plain' });
-      fileToUpload = new File([textBlob], 'text-content.txt', { type: 'text/plain' });
+      fileToUpload = new File([textBlob], 'text-content.txt', {
+        type: 'text/plain',
+      });
     } else if (!selectedFile) {
-      toast.error("Please select a file");
+      toast.error('Please select a file');
       return;
     }
 
@@ -396,24 +448,24 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
       formData.append('latitude', location.lat.toString());
       formData.append('longitude', location.lng.toString());
       formData.append('use_uid_filename', 'false');
-      
+
       if (fileToUpload) {
         formData.append('file', fileToUpload);
       }
 
       // Use the single upload endpoint
-      const endpoint = 'https://backend2.swecha.org/api/v1/records/upload';
+      const endpoint = `${BACKEND_URL}/records/upload`;
 
       console.log('Uploading to:', endpoint);
       console.log('Form data entries:');
-      for (let [key, value] of formData.entries()) {
+      for (const [key, value] of formData.entries()) {
         console.log(key, value);
       }
 
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -421,16 +473,22 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
       if (response.ok) {
         const result = await response.json();
         console.log('Upload successful:', result);
-        toast.success("Content uploaded successfully!");
+        toast.success('Content uploaded successfully!');
         handleBack();
       } else {
-        const errorData = await response.json().catch(() => ({ detail: 'Upload failed' }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ detail: 'Upload failed' }));
         console.error('Upload failed:', errorData);
-        toast.error(errorData.detail || errorData.message || "Upload failed. Please try again.");
+        toast.error(
+          errorData.detail ||
+            errorData.message ||
+            'Upload failed. Please try again.',
+        );
       }
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error('Network error. Please check your connection and try again.');
     }
 
     setUploading(false);
@@ -550,8 +608,12 @@ const Categories: React.FC<CategoriesProps> = ({ token, onBack, onLogout, onProf
                     <div className="text-purple-600 mb-4 flex justify-center">
                       {option.icon}
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{option.title}</h3>
-                    <p className="text-gray-600 text-sm">{option.description}</p>
+                    <h3 className="font-semibold text-lg mb-2">
+                      {option.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {option.description}
+                    </p>
                   </CardContent>
                 </Card>
               ))}

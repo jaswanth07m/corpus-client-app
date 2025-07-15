@@ -1,7 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Eye, EyeOff, Download, RefreshCw, User, Calendar, MapPin, Phone, Mail, Activity, TrendingUp, Award, ArrowLeft } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Download,
+  RefreshCw,
+  User,
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  Activity,
+  TrendingUp,
+  Award,
+  ArrowLeft,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
+import { BACKEND_URL } from '@/lib/constants';
 
 // Types
 interface UserProfile {
@@ -19,7 +34,6 @@ interface UserProfile {
   updatedAt: string;
   lastLoginAt?: string;
 }
-
 
 interface DailyStats {
   uploads_today: number;
@@ -87,27 +101,31 @@ interface UseUserProfileReturn {
   exportData: any;
   requestExport: () => Promise<void>;
 }
-const baseUrl = 'https://backend2.swecha.org/api/v1/';
 
 // Custom Hook with Debug Statements
-const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileReturn => {
+const useUserProfile = (
+  userId?: string,
+  shouldReset?: boolean,
+): UseUserProfileReturn => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
-  const [contributions, setContributions] = useState<UserContributions | null>(null);
+  const [contributions, setContributions] = useState<UserContributions | null>(
+    null,
+  );
   const [loading, setLoading] = useState({
     profile: true,
     stats: true,
     contributions: true,
   });
   const [error, setError] = useState<string | null>(null);
-    useEffect(() => { 
+  useEffect(() => {
     if (shouldReset) {
       console.log('🔄 Resetting profile data...');
       setProfile(null);
       setContributions(null);
       setError(null);
       setLoading({ profile: true, stats: true, contributions: true });
-      
+
       // Clear cached data
       localStorage.removeItem('cachedProfile');
     }
@@ -126,7 +144,7 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
       'jwt',
       'jwtToken',
       'authorization',
-      'bearer'
+      'bearer',
     ];
 
     let token = null;
@@ -160,7 +178,10 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
     } else {
       console.log('❌ No token found in storage');
       console.log('🔍 Available localStorage keys:', Object.keys(localStorage));
-      console.log('🔍 Available sessionStorage keys:', Object.keys(sessionStorage));
+      console.log(
+        '🔍 Available sessionStorage keys:',
+        Object.keys(sessionStorage),
+      );
     }
 
     return token;
@@ -179,11 +200,16 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
       console.log(`🔧 JWT parts count: ${parts.length}`);
 
       if (parts.length !== 3) {
-        console.error('❌ Invalid JWT format - should have 3 parts separated by dots');
+        console.error(
+          '❌ Invalid JWT format - should have 3 parts separated by dots',
+        );
         return null;
       }
 
-      console.log('📋 JWT parts lengths:', parts.map(p => p.length));
+      console.log(
+        '📋 JWT parts lengths:',
+        parts.map((p) => p.length),
+      );
 
       let payload = parts[1];
       console.log(`📦 Raw payload: ${payload}`);
@@ -205,29 +231,46 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
 
       // Check multiple possible user ID fields
       const possibleFields = [
-        'user_id', 'userId', 'sub', 'id', 'uid', 'user',
-        'user_pk', 'pk', 'user_id_pk', 'userID', 'USER_ID',
-        'username', 'email', 'user_name'
+        'user_id',
+        'userId',
+        'sub',
+        'id',
+        'uid',
+        'user',
+        'user_pk',
+        'pk',
+        'user_id_pk',
+        'userID',
+        'USER_ID',
+        'username',
+        'email',
+        'user_name',
       ];
 
       console.log('🔍 Checking for user ID in fields:', possibleFields);
 
       for (const field of possibleFields) {
         if (payloadObj[field]) {
-          console.log(`✅ Found user ID in field '${field}':`, payloadObj[field]);
+          console.log(
+            `✅ Found user ID in field '${field}':`,
+            payloadObj[field],
+          );
           return payloadObj[field].toString();
         }
       }
 
       console.log('❌ No user ID found in any expected field');
-      console.log('💡 Try checking these available fields manually:', Object.keys(payloadObj));
+      console.log(
+        '💡 Try checking these available fields manually:',
+        Object.keys(payloadObj),
+      );
 
       return null;
     } catch (error) {
       console.error('💥 Token decoding error:', error);
       console.error('🔍 Error details:', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
       return null;
     }
@@ -262,205 +305,217 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
   }, [userId, getAuthToken, decodeUserIdFromToken]);
 
   // Enhanced profile fetching with debug
-  const fetchUserProfile = useCallback(async (currentUserId: string) => {
-    console.log(`👤 Fetching profile for user ID: ${currentUserId}`);
-    setLoading(prev => ({ ...prev, profile: true }));
+  const fetchUserProfile = useCallback(
+    async (currentUserId: string) => {
+      console.log(`👤 Fetching profile for user ID: ${currentUserId}`);
+      setLoading((prev) => ({ ...prev, profile: true }));
 
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No authentication token available');
-      }
-      const baseUrl = 'https://backend2.swecha.org/api/v1/';
-
-      const apiUrl = baseUrl + 'auth/me';
-      console.log(`🌐 Making API call to: ${apiUrl}`);
-
-      const response = await fetch(apiUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log(`📡 API Response status: ${response.status}`);
-      console.log(`📡 API Response headers:`, Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch profile: ${response.status} ${response.statusText}`);
-      }
-
-      const userData = await response.json();
-      console.log('📦 Profile API response:', userData);
-
-      console.log('✅ Profile data received:', userData);
-
-      const profileData = {
-        id: userData.id || currentUserId,
-        username: userData.username || '',
-        email: userData.email || '',
-        phone: userData.phone || '',
-        name: userData.name || userData.username || '',
-        gender: userData.gender,
-        dateOfBirth: userData.date_of_birth,
-        place: userData.place,
-        isActive: userData.is_active !== false,
-        hasGivenConsent: userData.has_given_consent === true,
-        createdAt: userData.created_at || '',
-        updatedAt: userData.updated_at || '',
-        lastLoginAt: userData.last_login_at,
-      };
-
-      setProfile(profileData);
-      localStorage.setItem('cachedProfile', JSON.stringify(userData));
-      console.log('💾 Profile cached successfully');
-    }
-    catch (err) {
-      console.error('💥 Profile fetch error:', err);
-
-      // Try to load from cache
-      const cachedProfile = localStorage.getItem('cachedProfile');
-      if (cachedProfile) {
-        try {
-          console.log('🔄 Loading profile from cache...');
-          const userData = JSON.parse(cachedProfile);
-          setProfile({
-            id: userData.id || currentUserId,
-            username: userData.username || '',
-            email: userData.email || '',
-            phone: userData.phone || '',
-            name: userData.name || userData.username || '',
-            gender: userData.gender,
-            dateOfBirth: userData.date_of_birth,
-            place: userData.place,
-            isActive: userData.is_active !== false,
-            hasGivenConsent: userData.has_given_consent === true,
-            createdAt: userData.created_at || '',
-            updatedAt: userData.updated_at || '',
-            lastLoginAt: userData.last_login_at,
-          });
-          console.log('✅ Profile loaded from cache');
-        } catch (cacheError) {
-          console.error('💥 Cache loading error:', cacheError);
-          setError('Failed to load profile data');
+      try {
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('No authentication token available');
         }
-      } else {
-        console.log('❌ No cached profile available');
-        setError(err instanceof Error ? err.message : 'Failed to fetch profile');
-      }
-    } finally {
-      setLoading(prev => ({ ...prev, profile: false }));
-    }
-  }, [getAuthToken]);
 
-  const fetchDailyStats = useCallback(async (currentUserId: string) => {
-    console.log(`📊 Fetching daily stats for user ID: ${currentUserId}`);
-    setLoading(prev => ({ ...prev, stats: true }));
+        const apiUrl = BACKEND_URL + '/auth/me';
+        console.log(`🌐 Making API call to: ${apiUrl}`);
 
-    try {
-      const token = getAuthToken();
-      const response = await fetch(baseUrl + `/users/${currentUserId}/`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log(`📡 Daily stats API response status: ${response.status}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch daily stats: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('📦 Daily stats response:', data);
-
-      if (data.success) {
-        setDailyStats({
-          uploads_today: data.data.uploads_today || 0,
-          total_uploads: data.data.total_uploads || 0,
-          last_upload_date: data.data.last_upload_date || '',
-          streak_days: data.data.streak_days || 0,
+        const response = await fetch(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         });
-        console.log('✅ Daily stats loaded successfully');
+
+        console.log(`📡 API Response status: ${response.status}`);
+        console.log(
+          `📡 API Response headers:`,
+          Object.fromEntries(response.headers.entries()),
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch profile: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        const userData = await response.json();
+        console.log('📦 Profile API response:', userData);
+
+        console.log('✅ Profile data received:', userData);
+
+        const profileData = {
+          id: userData.id || currentUserId,
+          username: userData.username || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          name: userData.name || userData.username || '',
+          gender: userData.gender,
+          dateOfBirth: userData.date_of_birth,
+          place: userData.place,
+          isActive: userData.is_active !== false,
+          hasGivenConsent: userData.has_given_consent === true,
+          createdAt: userData.created_at || '',
+          updatedAt: userData.updated_at || '',
+          lastLoginAt: userData.last_login_at,
+        };
+
+        setProfile(profileData);
+        localStorage.setItem('cachedProfile', JSON.stringify(userData));
+        console.log('💾 Profile cached successfully');
+      } catch (err) {
+        console.error('💥 Profile fetch error:', err);
+
+        // Try to load from cache
+        const cachedProfile = localStorage.getItem('cachedProfile');
+        if (cachedProfile) {
+          try {
+            console.log('🔄 Loading profile from cache...');
+            const userData = JSON.parse(cachedProfile);
+            setProfile({
+              id: userData.id || currentUserId,
+              username: userData.username || '',
+              email: userData.email || '',
+              phone: userData.phone || '',
+              name: userData.name || userData.username || '',
+              gender: userData.gender,
+              dateOfBirth: userData.date_of_birth,
+              place: userData.place,
+              isActive: userData.is_active !== false,
+              hasGivenConsent: userData.has_given_consent === true,
+              createdAt: userData.created_at || '',
+              updatedAt: userData.updated_at || '',
+              lastLoginAt: userData.last_login_at,
+            });
+            console.log('✅ Profile loaded from cache');
+          } catch (cacheError) {
+            console.error('💥 Cache loading error:', cacheError);
+            setError('Failed to load profile data');
+          }
+        } else {
+          console.log('❌ No cached profile available');
+          setError(
+            err instanceof Error ? err.message : 'Failed to fetch profile',
+          );
+        }
+      } finally {
+        setLoading((prev) => ({ ...prev, profile: false }));
       }
-    } catch (err) {
-      console.error('💥 Daily stats fetch error:', err);
-      setDailyStats({
-        uploads_today: 0,
-        total_uploads: 0,
-        last_upload_date: '',
-        streak_days: 0,
-      });
-    } finally {
-      setLoading(prev => ({ ...prev, stats: false }));
-    }
-  }, [getAuthToken]);
+    },
+    [getAuthToken],
+  );
 
-  const fetchUserContributions = useCallback(async (currentUserId: string) => {
-    console.log(`🏆 Fetching contributions for user ID: ${currentUserId}`);
-    setLoading(prev => ({ ...prev, contributions: true }));
+  const fetchDailyStats = useCallback(
+    async (currentUserId: string) => {
+      console.log(`📊 Fetching daily stats for user ID: ${currentUserId}`);
+      setLoading((prev) => ({ ...prev, stats: true }));
 
-    try {
-      const token = getAuthToken();
-      const baseUrl = 'https://backend2.swecha.org/api/v1';
-      const apiUrl = `${baseUrl}/users/${currentUserId}/contributions`;
+      try {
+        const token = getAuthToken();
+        const response = await fetch(BACKEND_URL + `/users/${currentUserId}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-      console.log(`🌐 Making contributions API call to: ${apiUrl}`);
+        console.log(`📡 Daily stats API response status: ${response.status}`);
 
-      const response = await fetch(apiUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch daily stats: ${response.status}`);
+        }
 
-      console.log(`📡 Contributions API response status: ${response.status}`);
+        const data = await response.json();
+        console.log('📦 Daily stats response:', data);
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch contributions: ${response.status}`);
+        if (data.success) {
+          setDailyStats({
+            uploads_today: data.data.uploads_today || 0,
+            total_uploads: data.data.total_uploads || 0,
+            last_upload_date: data.data.last_upload_date || '',
+            streak_days: data.data.streak_days || 0,
+          });
+          console.log('✅ Daily stats loaded successfully');
+        }
+      } catch (err) {
+        console.error('💥 Daily stats fetch error:', err);
+        setDailyStats({
+          uploads_today: 0,
+          total_uploads: 0,
+          last_upload_date: '',
+          streak_days: 0,
+        });
+      } finally {
+        setLoading((prev) => ({ ...prev, stats: false }));
       }
+    },
+    [getAuthToken],
+  );
 
-      const data = await response.json();
-      console.log('📦 Contributions response:', data);
+  const fetchUserContributions = useCallback(
+    async (currentUserId: string) => {
+      console.log(`🏆 Fetching contributions for user ID: ${currentUserId}`);
+      setLoading((prev) => ({ ...prev, contributions: true }));
 
-      // Map the API response to your contributions structure
-      setContributions({
-        totalContributions: data.total_contributions || 0,
-        contributionsByType: data.contributions_by_media_type || {
-          text: 0,
-          audio: 0,
-          image: 0,
-          video: 0
-        },
-        audioContributions: data.audio_contributions || [],
-        videoContributions: data.video_contributions || [],
-        textContributions: data.text_contributions || [],
-        imageContributions: data.image_contributions || [],
-      });
-      console.log('✅ Contributions loaded successfully');
+      try {
+        const token = getAuthToken();
+        const baseUrl = BACKEND_URL;
+        const apiUrl = `${baseUrl}/users/${currentUserId}/contributions`;
 
-    } catch (err) {
-      console.error('💥 Contributions fetch error:', err);
-      setContributions({
-        totalContributions: 0,
-        contributionsByType: {
-          text: 0,
-          audio: 0,
-          image: 0,
-          video: 0
-        },
-        audioContributions: [],
-        videoContributions: [],
-        textContributions: [],
-        imageContributions: [],
-      });
-    } finally {
-      setLoading(prev => ({ ...prev, contributions: false }));
-    }
-  }, [getAuthToken]);
+        console.log(`🌐 Making contributions API call to: ${apiUrl}`);
 
+        const response = await fetch(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log(`📡 Contributions API response status: ${response.status}`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch contributions: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('📦 Contributions response:', data);
+
+        // Map the API response to your contributions structure
+        setContributions({
+          totalContributions: data.total_contributions || 0,
+          contributionsByType: data.contributions_by_media_type || {
+            text: 0,
+            audio: 0,
+            image: 0,
+            video: 0,
+          },
+          audioContributions: data.audio_contributions || [],
+          videoContributions: data.video_contributions || [],
+          textContributions: data.text_contributions || [],
+          imageContributions: data.image_contributions || [],
+        });
+        console.log('✅ Contributions loaded successfully');
+      } catch (err) {
+        console.error('💥 Contributions fetch error:', err);
+        setContributions({
+          totalContributions: 0,
+          contributionsByType: {
+            text: 0,
+            audio: 0,
+            image: 0,
+            video: 0,
+          },
+          audioContributions: [],
+          videoContributions: [],
+          textContributions: [],
+          imageContributions: [],
+        });
+      } finally {
+        setLoading((prev) => ({ ...prev, contributions: false }));
+      }
+    },
+    [getAuthToken],
+  );
 
   const requestExport = useCallback(async () => {
     console.log('📤 Requesting data export...');
@@ -473,7 +528,7 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
       const response = await fetch(`/api/users/${currentUserId}/export`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -502,7 +557,12 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
     } else {
       console.log('❌ Cannot refetch - no user ID available');
     }
-  }, [getCurrentUserId, fetchUserProfile, fetchDailyStats, fetchUserContributions]);
+  }, [
+    getCurrentUserId,
+    fetchUserProfile,
+    fetchDailyStats,
+    fetchUserContributions,
+  ]);
 
   // Initial data fetch with comprehensive debug
   useEffect(() => {
@@ -522,7 +582,12 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
       setError('No user ID found. Please log in again.');
       setLoading({ profile: false, stats: false, contributions: false });
     }
-  }, [getCurrentUserId, fetchUserProfile, fetchDailyStats, fetchUserContributions]);
+  }, [
+    getCurrentUserId,
+    fetchUserProfile,
+    fetchDailyStats,
+    fetchUserContributions,
+  ]);
 
   return {
     profile,
@@ -537,9 +602,14 @@ const useUserProfile = (userId?: string, shouldReset?: boolean): UseUserProfileR
 };
 
 // Main Component (unchanged from your original)
-const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack }) => {
-  const navigate = useNavigate(); 
-  
+const UserProfile: React.FC<UserProfileProps> = ({
+  user,
+  token,
+  onLogout,
+  onBack,
+}) => {
+  const navigate = useNavigate();
+
   const {
     profile: currentUser,
     dailyStats,
@@ -548,13 +618,15 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
     error,
     refetch,
     exportData,
-    requestExport
+    requestExport,
   } = useUserProfile();
 
   const [isEmailRevealed, setIsEmailRevealed] = useState(false);
   const [isPhoneRevealed, setIsPhoneRevealed] = useState(false);
 
-  const [selectedMediaType, setSelectedMediaType] = useState<'text' | 'audio' | 'video' | 'image'>('text');
+  const [selectedMediaType, setSelectedMediaType] = useState<
+    'text' | 'audio' | 'video' | 'image'
+  >('text');
 
   // Utility functions
   const formatDate = (dateString: string) => {
@@ -563,7 +635,7 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       });
     } catch {
       return 'Invalid date';
@@ -599,7 +671,7 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
         profile: currentUser,
         contributions: contributions,
         exportedAt: new Date().toISOString(),
-        exportedBy: currentUser?.name || 'Unknown User'
+        exportedBy: currentUser?.name || 'Unknown User',
       };
 
       // Convert to JSON string with formatting
@@ -631,7 +703,6 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
     }
   };
 
-
   const handleExportCSV = () => {
     try {
       // Prepare CSV data
@@ -656,7 +727,7 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
 
       // Convert to CSV string
       const csvString = csvData
-        .map(row => row.map(field => `"${field}"`).join(','))
+        .map((row) => row.map((field) => `"${field}"`).join(','))
         .join('\n');
 
       // Create blob and download
@@ -678,14 +749,18 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
     }
   };
 
-
   const handleRefresh = () => {
     refetch();
   };
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   const getStatusColor = (isActive: boolean) => {
@@ -757,9 +832,13 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
                 {getInitials(currentUser.name)}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{currentUser.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {currentUser.name}
+                </h1>
                 <p className="text-gray-600">@{currentUser.id}</p>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(currentUser.isActive)}`}>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(currentUser.isActive)}`}
+                >
                   {getStatusText(currentUser.isActive)}
                 </span>
               </div>
@@ -782,7 +861,6 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
             </div>
           </div>
         </div>
-
         {/* Privacy Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex items-center space-x-2">
@@ -792,10 +870,11 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
             </p>
           </div>
         </div>
-
         {/* Profile Information */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Profile Information
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
@@ -803,7 +882,9 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
                 <div>
                   <p className="text-sm font-medium text-gray-900">Email</p>
                   <p className="text-sm text-gray-600">
-                    {isEmailRevealed ? currentUser.email : maskEmail(currentUser.email)}
+                    {isEmailRevealed
+                      ? currentUser.email
+                      : maskEmail(currentUser.email)}
                   </p>
                 </div>
               </div>
@@ -821,7 +902,9 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
                 <div>
                   <p className="text-sm font-medium text-gray-900">Phone</p>
                   <p className="text-sm text-gray-600">
-                    {isPhoneRevealed ? currentUser.phone : maskPhone(currentUser.phone)}
+                    {isPhoneRevealed
+                      ? currentUser.phone
+                      : maskPhone(currentUser.phone)}
                   </p>
                 </div>
               </div>
@@ -847,8 +930,12 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <Calendar size={16} className="text-gray-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Date of Birth</p>
-                  <p className="text-sm text-gray-600">{formatDate(currentUser.dateOfBirth)}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    Date of Birth
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {formatDate(currentUser.dateOfBirth)}
+                  </p>
                 </div>
               </div>
             )}
@@ -864,107 +951,130 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
             )}
           </div>
         </div>
-
         {contributions && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Contributions by Media Type</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Contributions by Media Type
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <Activity size={24} className="text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-600">{contributions.contributionsByType.text}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {contributions.contributionsByType.text}
+                </p>
                 <p className="text-sm text-gray-600">Text Contributions</p>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <TrendingUp size={24} className="text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-green-600">{contributions.contributionsByType.audio}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {contributions.contributionsByType.audio}
+                </p>
                 <p className="text-sm text-gray-600">Audio Contributions</p>
               </div>
               <div className="text-center p-4 bg-orange-50 rounded-lg">
                 <Award size={24} className="text-orange-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-orange-600">{contributions.contributionsByType.image}</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {contributions.contributionsByType.image}
+                </p>
                 <p className="text-sm text-gray-600">Image Contributions</p>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <Calendar size={24} className="text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-purple-600">{contributions.contributionsByType.video}</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {contributions.contributionsByType.video}
+                </p>
                 <p className="text-sm text-gray-600">Video Contributions</p>
               </div>
             </div>
 
             {/* Total Contributions Summary */}
             <div className="mt-6 text-center p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Contributions</h3>
-              <p className="text-3xl font-bold text-indigo-600">{contributions.totalContributions}</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Total Contributions
+              </h3>
+              <p className="text-3xl font-bold text-indigo-600">
+                {contributions.totalContributions}
+              </p>
             </div>
           </div>
         )}
+        {/* New section for detailed contributions */}
+        <div className="detailed-contributions">
+          <h2 className="mt-6 text-2xl font-semibold text-center p-4 bg-gray-100 rounded-lg">
+            My Contributions
+          </h2>
 
-         {/* New section for detailed contributions */}
-      <div className="detailed-contributions">
-        <h2 className= "mt-6 text-2xl font-semibold text-center p-4 bg-gray-100 rounded-lg" >My Contributions</h2>
-        
-        {/* Media type selector */}
-        <div className="media-type-selector">
-          <button 
-            onClick={() => setSelectedMediaType('text')}
-            className={selectedMediaType === 'text' ? 'active' : ''}
-          >
-            Text
-          </button>
-          <button 
-            onClick={() => setSelectedMediaType('audio')}
-            className={selectedMediaType === 'audio' ? 'active' : ''}
-          >
-            Audio
-          </button>
-          <button 
-            onClick={() => setSelectedMediaType('video')}
-            className={selectedMediaType === 'video' ? 'active' : ''}
-          >
-            Video
-          </button>
-          <button 
-            onClick={() => setSelectedMediaType('image')}
-            className={selectedMediaType === 'image' ? 'active' : ''}
-          >
-            Image
-          </button>
+          {/* Media type selector */}
+          <div className="media-type-selector">
+            <button
+              onClick={() => setSelectedMediaType('text')}
+              className={selectedMediaType === 'text' ? 'active' : ''}
+            >
+              Text
+            </button>
+            <button
+              onClick={() => setSelectedMediaType('audio')}
+              className={selectedMediaType === 'audio' ? 'active' : ''}
+            >
+              Audio
+            </button>
+            <button
+              onClick={() => setSelectedMediaType('video')}
+              className={selectedMediaType === 'video' ? 'active' : ''}
+            >
+              Video
+            </button>
+            <button
+              onClick={() => setSelectedMediaType('image')}
+              className={selectedMediaType === 'image' ? 'active' : ''}
+            >
+              Image
+            </button>
+          </div>
+
+          {/* Display contributions for selected media type */}
+          <UserContributions
+            userId={currentUser.id}
+            mediaType={selectedMediaType}
+            authToken={token}
+          />
         </div>
-
-        {/* Display contributions for selected media type */}
-        <UserContributions 
-          userId={currentUser.id}
-          mediaType={selectedMediaType}
-          authToken={token}
-        />
-      </div>
-
-        {/* Account Information */}        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h2>
+        {/* Account Information */}{' '}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Account Information
+          </h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Member Since</span>
-              <span className="text-sm font-medium text-gray-900">{formatDate(currentUser.createdAt)}</span>
+              <span className="text-sm font-medium text-gray-900">
+                {formatDate(currentUser.createdAt)}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Last Updated</span>
-              <span className="text-sm font-medium text-gray-900">{formatDate(currentUser.updatedAt)}</span>
+              <span className="text-sm font-medium text-gray-900">
+                {formatDate(currentUser.updatedAt)}
+              </span>
             </div>
             {currentUser.lastLoginAt && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Last Login</span>
-                <span className="text-sm font-medium text-gray-900">{formatDate(currentUser.lastLoginAt)}</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {formatDate(currentUser.lastLoginAt)}
+                </span>
               </div>
             )}
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Consent Given</span>
-              <span className={`text-sm font-medium ${currentUser.hasGivenConsent ? 'text-green-600' : 'text-red-600'}`}>
+              <span
+                className={`text-sm font-medium ${currentUser.hasGivenConsent ? 'text-green-600' : 'text-red-600'}`}
+              >
                 {currentUser.hasGivenConsent ? 'Yes' : 'No'}
               </span>
             </div>
           </div>
         </div>
-
         {/* Export Section */}
         <div className="flex space-x-2">
           <button
@@ -984,7 +1094,6 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
             <span>Export CSV</span>
           </button>
         </div>
-
       </div>
     </div>
   );
