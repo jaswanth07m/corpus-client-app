@@ -270,9 +270,9 @@ All colors MUST be HSL.
   color: #155724;
 }
 
-.contribution-status.pending {
+.contribution-status.uploaded {
   background: #fff3cd;
-  color: #856404;
+  color: #097d03;
 }
 
 .loading, .error, .no-contributions {
