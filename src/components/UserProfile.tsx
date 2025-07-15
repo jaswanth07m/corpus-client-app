@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Eye, EyeOff, Download, RefreshCw, User, Calendar, MapPin, Phone, Mail, Activity, TrendingUp, Award, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import UserContributions from './UserContributions';
 
 // Types
 interface UserProfile {
@@ -553,6 +554,8 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
   const [isEmailRevealed, setIsEmailRevealed] = useState(false);
   const [isPhoneRevealed, setIsPhoneRevealed] = useState(false);
 
+  const [selectedMediaType, setSelectedMediaType] = useState<'text' | 'audio' | 'video' | 'image'>('text');
+
   // Utility functions
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never';
@@ -896,8 +899,47 @@ const UserProfile:  React.FC<UserProfileProps> = ({user, token, onLogout, onBack
           </div>
         )}
 
-        {/* Account Information */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+         {/* New section for detailed contributions */}
+      <div className="detailed-contributions">
+        <h2 className= "mt-6 text-2xl font-semibold text-center p-4 bg-gray-100 rounded-lg" >My Contributions</h2>
+        
+        {/* Media type selector */}
+        <div className="media-type-selector">
+          <button 
+            onClick={() => setSelectedMediaType('text')}
+            className={selectedMediaType === 'text' ? 'active' : ''}
+          >
+            Text
+          </button>
+          <button 
+            onClick={() => setSelectedMediaType('audio')}
+            className={selectedMediaType === 'audio' ? 'active' : ''}
+          >
+            Audio
+          </button>
+          <button 
+            onClick={() => setSelectedMediaType('video')}
+            className={selectedMediaType === 'video' ? 'active' : ''}
+          >
+            Video
+          </button>
+          <button 
+            onClick={() => setSelectedMediaType('image')}
+            className={selectedMediaType === 'image' ? 'active' : ''}
+          >
+            Image
+          </button>
+        </div>
+
+        {/* Display contributions for selected media type */}
+        <UserContributions 
+          userId={currentUser.id}
+          mediaType={selectedMediaType}
+          authToken={token}
+        />
+      </div>
+
+        {/* Account Information */}        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
