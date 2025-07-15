@@ -40,7 +40,7 @@ interface ContentInputProps {
   token: string;
   userId: string;
   onBack: () => void;
-  onUpload: () => void;
+  onUpload: (file: File) => Promise<void>;
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -448,10 +448,29 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }, 200);
   };
 
-  const handleUploadWithProgress = () => {
-    simulateUploadProgress();
-    onUpload();
-  };
+  const handleUploadWithProgress = async () => {
+  if (selectedFiles.length === 0) return;
+
+  setUploadingFiles(true);
+  setUploadProgress(0);
+
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const file = selectedFiles[i];
+
+    try {
+      await onUpload(file); // ✅ file passed directly
+      setUploadProgress(((i + 1) / selectedFiles.length) * 100);
+    } catch (err) {
+      console.error("Upload failed for", file.name, err);
+      toast.error(`Upload failed: ${file.name}`);
+    }
+  }
+
+  setUploadingFiles(false);
+  toast.success("All uploads complete");
+};
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
