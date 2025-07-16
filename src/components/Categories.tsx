@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 
-const decodeJWTToken = (token: string): any => {
+const decodeJWTToken = (token: string): Record<string, unknown> | null => {
   try {
     // JWT tokens have 3 parts separated by dots: header.payload.signature
     const parts = token.split('.');
@@ -87,7 +87,7 @@ const Categories: React.FC<CategoriesProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null,
+    null
   );
   const [showUploadOptions, setShowUploadOptions] = useState(false);
   const [uploadMode, setUploadMode] = useState<
@@ -97,7 +97,7 @@ const Categories: React.FC<CategoriesProps> = ({
   const [textContent, setTextContent] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
-    null,
+    null
   );
   const [uploading, setUploading] = useState(false);
   const [locationError, setLocationError] = useState('');
@@ -145,7 +145,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
   // Helper function to handle session expiration
   const handleSessionExpiration = (
-    message: string = 'Session expired. Please login again.',
+    message: string = 'Session expired. Please login again.'
   ) => {
     toast.error(message);
     // Clear any stored auth data
@@ -175,9 +175,13 @@ const Categories: React.FC<CategoriesProps> = ({
         console.log('JWT Token payload:', tokenPayload);
 
         // Check if token is expired
-        if (tokenPayload.exp && Date.now() >= tokenPayload.exp * 1000) {
+        if (
+          tokenPayload.exp &&
+          typeof tokenPayload.exp === 'number' &&
+          Date.now() >= tokenPayload.exp * 1000
+        ) {
           handleSessionExpiration(
-            'Your session has expired. Please login again.',
+            'Your session has expired. Please login again.'
           );
           return;
         }
@@ -205,7 +209,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
       if (isSessionExpired(response)) {
         handleSessionExpiration(
-          'Your session has expired. Please login again.',
+          'Your session has expired. Please login again.'
         );
         return;
       }
@@ -228,13 +232,13 @@ const Categories: React.FC<CategoriesProps> = ({
         const errorData = await response.json().catch(() => ({}));
         console.error('Profile fetch error:', errorData);
         toast.error(
-          'Failed to get user information. Please try logging in again.',
+          'Failed to get user information. Please try logging in again.'
         );
       }
     } catch (error) {
       console.error('User profile error:', error);
       toast.error(
-        'Failed to get user information. Please try logging in again.',
+        'Failed to get user information. Please try logging in again.'
       );
     }
   };
@@ -250,7 +254,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
       if (isSessionExpired(response)) {
         handleSessionExpiration(
-          'Your session has expired. Please login again.',
+          'Your session has expired. Please login again.'
         );
         return;
       }
@@ -363,7 +367,7 @@ const Categories: React.FC<CategoriesProps> = ({
         enableHighAccuracy: true,
         timeout: 15000,
         maximumAge: 60000,
-      },
+      }
     );
   };
 
@@ -399,7 +403,7 @@ const Categories: React.FC<CategoriesProps> = ({
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (file?: File | null) => {
     if (!selectedCategory || !title.trim()) {
       toast.error('Please provide a title');
       return;
@@ -407,7 +411,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
     if (!location) {
       toast.error(
-        'Location is required. Please enable location access or enter manually.',
+        'Location is required. Please enable location access or enter manually.'
       );
       if (!showManualLocation) {
         setShowManualLocation(true);
@@ -421,7 +425,7 @@ const Categories: React.FC<CategoriesProps> = ({
     }
 
     // For text uploads, create a text file
-    let fileToUpload = selectedFile;
+    let fileToUpload = file || selectedFile;
     if (uploadMode === 'text') {
       if (!textContent.trim()) {
         toast.error('Please enter text content');
@@ -432,7 +436,7 @@ const Categories: React.FC<CategoriesProps> = ({
       fileToUpload = new File([textBlob], 'text-content.txt', {
         type: 'text/plain',
       });
-    } else if (!selectedFile) {
+    } else if (!fileToUpload) {
       toast.error('Please select a file');
       return;
     }
@@ -483,7 +487,7 @@ const Categories: React.FC<CategoriesProps> = ({
         toast.error(
           errorData.detail ||
             errorData.message ||
-            'Upload failed. Please try again.',
+            'Upload failed. Please try again.'
         );
       }
     } catch (error) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Eye,
@@ -78,6 +79,8 @@ interface UserContributions {
     reviewed: boolean;
     title: string;
   }>;
+  audioDuration: number;
+  videoDuration: number;
 }
 
 interface UserProfileProps {
@@ -105,12 +108,12 @@ interface UseUserProfileReturn {
 // Custom Hook with Debug Statements
 const useUserProfile = (
   userId?: string,
-  shouldReset?: boolean,
+  shouldReset?: boolean
 ): UseUserProfileReturn => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [contributions, setContributions] = useState<UserContributions | null>(
-    null,
+    null
   );
   const [loading, setLoading] = useState({
     profile: true,
@@ -180,7 +183,7 @@ const useUserProfile = (
       console.log('🔍 Available localStorage keys:', Object.keys(localStorage));
       console.log(
         '🔍 Available sessionStorage keys:',
-        Object.keys(sessionStorage),
+        Object.keys(sessionStorage)
       );
     }
 
@@ -201,14 +204,14 @@ const useUserProfile = (
 
       if (parts.length !== 3) {
         console.error(
-          '❌ Invalid JWT format - should have 3 parts separated by dots',
+          '❌ Invalid JWT format - should have 3 parts separated by dots'
         );
         return null;
       }
 
       console.log(
         '📋 JWT parts lengths:',
-        parts.map((p) => p.length),
+        parts.map((p) => p.length)
       );
 
       let payload = parts[1];
@@ -253,7 +256,7 @@ const useUserProfile = (
         if (payloadObj[field]) {
           console.log(
             `✅ Found user ID in field '${field}':`,
-            payloadObj[field],
+            payloadObj[field]
           );
           return payloadObj[field].toString();
         }
@@ -262,7 +265,7 @@ const useUserProfile = (
       console.log('❌ No user ID found in any expected field');
       console.log(
         '💡 Try checking these available fields manually:',
-        Object.keys(payloadObj),
+        Object.keys(payloadObj)
       );
 
       return null;
@@ -329,12 +332,12 @@ const useUserProfile = (
         console.log(`📡 API Response status: ${response.status}`);
         console.log(
           `📡 API Response headers:`,
-          Object.fromEntries(response.headers.entries()),
+          Object.fromEntries(response.headers.entries())
         );
 
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch profile: ${response.status} ${response.statusText}`,
+            `Failed to fetch profile: ${response.status} ${response.statusText}`
           );
         }
 
@@ -394,14 +397,14 @@ const useUserProfile = (
         } else {
           console.log('❌ No cached profile available');
           setError(
-            err instanceof Error ? err.message : 'Failed to fetch profile',
+            err instanceof Error ? err.message : 'Failed to fetch profile'
           );
         }
       } finally {
         setLoading((prev) => ({ ...prev, profile: false }));
       }
     },
-    [getAuthToken],
+    [getAuthToken]
   );
 
   const fetchDailyStats = useCallback(
@@ -448,7 +451,7 @@ const useUserProfile = (
         setLoading((prev) => ({ ...prev, stats: false }));
       }
     },
-    [getAuthToken],
+    [getAuthToken]
   );
 
   const fetchUserContributions = useCallback(
@@ -493,6 +496,8 @@ const useUserProfile = (
           videoContributions: data.video_contributions || [],
           textContributions: data.text_contributions || [],
           imageContributions: data.image_contributions || [],
+          audioDuration: data.audio_duration || 0,
+          videoDuration: data.video_duration || 0,
         });
         console.log('✅ Contributions loaded successfully');
       } catch (err) {
@@ -509,12 +514,14 @@ const useUserProfile = (
           videoContributions: [],
           textContributions: [],
           imageContributions: [],
+          audioDuration: 0,
+          videoDuration: 0,
         });
       } finally {
         setLoading((prev) => ({ ...prev, contributions: false }));
       }
     },
-    [getAuthToken],
+    [getAuthToken]
   );
 
   const requestExport = useCallback(async () => {
@@ -646,14 +653,18 @@ const UserProfile: React.FC<UserProfileProps> = ({
     if (!email) return '';
     const [username, domain] = email.split('@');
     if (!username || !domain) return email;
-    return `${username.substring(0, 2)}${'*'.repeat(Math.max(0, username.length - 2))}@${domain}`;
+    return `${username.substring(0, 2)}${'*'.repeat(
+      Math.max(0, username.length - 2)
+    )}@${domain}`;
   };
 
   const maskPhone = (phone: string) => {
     if (!phone) return '';
     const cleaned = phone.replace(/\D/g, '');
     if (cleaned.length < 4) return phone;
-    return `${cleaned.substring(0, 2)}${'*'.repeat(Math.max(0, cleaned.length - 4))}${cleaned.substring(cleaned.length - 2)}`;
+    return `${cleaned.substring(0, 2)}${'*'.repeat(
+      Math.max(0, cleaned.length - 4)
+    )}${cleaned.substring(cleaned.length - 2)}`;
   };
 
   const toggleEmailReveal = () => {
@@ -685,7 +696,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       // Create temporary link element
       const link = document.createElement('a');
-      link.download = `profile-data-${currentUser?.name?.replace(/\s+/g, '-') || 'user'}-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `profile-data-${
+        currentUser?.name?.replace(/\s+/g, '-') || 'user'
+      }-${new Date().toISOString().split('T')[0]}.json`;
       link.href = url;
 
       // Trigger download
@@ -734,7 +747,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
       const blob = new Blob([csvString], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.download = `profile-data-${currentUser?.name?.replace(/\s+/g, '-') || 'user'}-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `profile-data-${
+        currentUser?.name?.replace(/\s+/g, '-') || 'user'
+      }-${new Date().toISOString().split('T')[0]}.csv`;
       link.href = url;
 
       document.body.appendChild(link);
@@ -837,7 +852,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 </h1>
                 <p className="text-gray-600">@{currentUser.id}</p>
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(currentUser.isActive)}`}
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                    currentUser.isActive
+                  )}`}
                 >
                   {getStatusText(currentUser.isActive)}
                 </span>
@@ -970,6 +987,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   {contributions.contributionsByType.audio}
                 </p>
                 <p className="text-sm text-gray-600">Audio Contributions</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {contributions.audioDuration > 0
+                    ? `${(contributions.audioDuration / 3600).toFixed(1)} hours`
+                    : '0 hours'}
+                </p>
               </div>
               <div className="text-center p-4 bg-orange-50 rounded-lg">
                 <Award size={24} className="text-orange-600 mx-auto mb-2" />
@@ -984,6 +1006,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   {contributions.contributionsByType.video}
                 </p>
                 <p className="text-sm text-gray-600">Video Contributions</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {contributions.videoDuration > 0
+                    ? `${(contributions.videoDuration / 3600).toFixed(1)} hours`
+                    : '0 hours'}
+                </p>
               </div>
             </div>
 
@@ -1068,7 +1095,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Consent Given</span>
               <span
-                className={`text-sm font-medium ${currentUser.hasGivenConsent ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-sm font-medium ${
+                  currentUser.hasGivenConsent
+                    ? 'text-green-600'
+                    : 'text-red-600'
+                }`}
               >
                 {currentUser.hasGivenConsent ? 'Yes' : 'No'}
               </span>
