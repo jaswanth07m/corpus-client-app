@@ -1,28 +1,10 @@
 // Pause Button Added In Audio/Video + Camera Switch Function + Progress
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  ArrowLeft,
-  MapPin,
-  Type,
-  Mic,
-  Video,
-  Image,
-  X,
-  Check,
-  AlertCircle,
-  Camera,
-  Square,
-  Play,
-  Pause,
-  RotateCcw,
-  RefreshCw,
-  Upload,
-  Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, MapPin, Type, Mic, Video, Image, X, Check, AlertCircle, Camera, Square, Play, Pause, RotateCcw, RefreshCw, Upload, Trash2 } from 'lucide-react';
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -44,8 +26,8 @@ interface ContentInputProps {
   setTextContent: (content: string) => void;
   selectedFile: File | null;
   setSelectedFile: (file: File | null) => void;
-  location: { lat: number; lng: number } | null;
-  setLocation: (location: { lat: number; lng: number } | null) => void;
+  location: { lat: number, lng: number } | null;
+  setLocation: (location: { lat: number, lng: number } | null) => void;
   locationError: string;
   setLocationError: (error: string) => void;
   showManualLocation: boolean;
@@ -58,7 +40,7 @@ interface ContentInputProps {
   token: string;
   userId: string;
   onBack: () => void;
-  onUpload: (file?: File | null) => Promise<void>;
+  onUpload: (file: File) => Promise<void>;
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -90,16 +72,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
   onUpload,
   requestLocation,
   handleManualLocationSubmit,
-  handleFileSelect,
+  handleFileSelect
 }) => {
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null
-  );
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -126,35 +106,35 @@ const ContentInput: React.FC<ContentInputProps> = ({
       icon: <Type className="w-6 h-6" />,
       title: 'Text Input',
       description: 'Type your content',
-      accept: '',
+      accept: ''
     },
     {
       type: 'audio' as const,
       icon: <Mic className="w-6 h-6" />,
       title: 'Audio Recording',
       description: 'Record your voice',
-      accept: 'audio/*',
+      accept: 'audio/*'
     },
     {
       type: 'video' as const,
       icon: <Video className="w-6 h-6" />,
       title: 'Video Content',
       description: 'Record or upload video',
-      accept: 'video/*',
+      accept: 'video/*'
     },
     {
       type: 'image' as const,
       icon: <Image className="w-6 h-6" />,
       title: 'Photo Capture',
       description: 'Take or upload photos',
-      accept: 'image/*',
-    },
+      accept: 'image/*'
+    }
   ];
 
   useEffect(() => {
     if (isRecording && !isPaused) {
       recordingInterval.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
+        setRecordingTime(prev => prev + 1);
       }, 1000);
     } else {
       if (recordingInterval.current) {
@@ -171,13 +151,13 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const switchCamera = async () => {
     const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
     setFacingMode(newFacingMode);
-
+    
     // Stop current stream
     if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream.getTracks().forEach(track => track.stop());
     }
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
+      stream.getTracks().forEach(track => track.stop());
     }
 
     try {
@@ -189,12 +169,12 @@ const ContentInput: React.FC<ContentInputProps> = ({
         const wasRecording = isRecording;
         const wasPaused = isPaused;
         const currentTime = recordingTime;
-
+        
         // Stop current recording
         if (mediaRecorder) {
           mediaRecorder.stop();
         }
-
+        
         // Start new recording with new camera
         setTimeout(() => {
           startRecording('video', newFacingMode);
@@ -206,10 +186,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
           }
         }, 100);
       }
-
-      toast.success(
-        `Switched to ${newFacingMode === 'user' ? 'front' : 'rear'} camera`
-      );
+      
+      toast.success(`Switched to ${newFacingMode === 'user' ? 'front' : 'rear'} camera`);
     } catch (error) {
       console.error('Camera switch error:', error);
       toast.error('Failed to switch camera');
@@ -218,27 +196,21 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }
   };
 
-  const startRecording = async (
-    type: 'audio' | 'video',
-    customFacingMode?: 'user' | 'environment'
-  ) => {
+  const startRecording = async (type: 'audio' | 'video', customFacingMode?: 'user' | 'environment') => {
     try {
       const currentFacingMode = customFacingMode || facingMode;
-      const constraints =
-        type === 'audio'
-          ? { audio: true }
-          : {
-              audio: true,
-              video: {
-                facingMode: currentFacingMode,
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-              },
-            };
+      const constraints = type === 'audio'
+        ? { audio: true }
+        : {
+          audio: true,
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(
-        constraints
-      );
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
 
       if (type === 'video' && videoRecordingRef.current) {
@@ -249,7 +221,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
         video.playsInline = true;
 
         video.onloadedmetadata = () => {
-          video.play().catch((error) => {
+          video.play().catch(error => {
             console.error('Video play error:', error);
             toast.error('Failed to start video preview');
           });
@@ -262,17 +234,17 @@ const ContentInput: React.FC<ContentInputProps> = ({
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunks.push(event.data);
-          setRecordedChunks((prev) => [...prev, event.data]);
+          setRecordedChunks(prev => [...prev, event.data]);
         }
       };
 
       recorder.onstop = () => {
         const blob = new Blob(chunks, {
-          type: type === 'audio' ? 'audio/webm' : 'video/webm',
+          type: type === 'audio' ? 'audio/webm' : 'video/webm'
         });
         setRecordedBlob(blob);
         const file = new File([blob], `recorded-${type}.webm`, {
-          type: blob.type,
+          type: blob.type
         });
         setSelectedFile(file);
         setSelectedFiles([file]);
@@ -290,14 +262,10 @@ const ContentInput: React.FC<ContentInputProps> = ({
       setIsPaused(false);
       setRecordingTime(0);
       setRecordedChunks([]);
-      toast.success(
-        `${type === 'audio' ? 'Audio' : 'Video'} recording started`
-      );
+      toast.success(`${type === 'audio' ? 'Audio' : 'Video'} recording started`);
     } catch (error) {
       console.error('Recording error:', error);
-      toast.error(
-        `Failed to start ${type} recording. Please check permissions.`
-      );
+      toast.error(`Failed to start ${type} recording. Please check permissions.`);
     }
   };
 
@@ -318,15 +286,12 @@ const ContentInput: React.FC<ContentInputProps> = ({
   };
 
   const stopRecording = () => {
-    if (
-      mediaRecorder &&
-      (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')
-    ) {
+    if (mediaRecorder && (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')) {
       mediaRecorder.stop();
     }
 
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
+      stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
 
@@ -343,8 +308,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
         video: {
           facingMode: currentFacingMode,
           width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+          height: { ideal: 720 }
+        }
       });
 
       setCameraStream(mediaStream);
@@ -361,48 +326,35 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
         await new Promise((resolve, reject) => {
           video.onloadedmetadata = () => {
-            video
-              .play()
-              .then(() => {
-                setTimeout(() => {
-                  try {
-                    canvas.width = video.videoWidth || 640;
-                    canvas.height = video.videoHeight || 480;
-                    const ctx = canvas.getContext('2d');
+            video.play().then(() => {
+              setTimeout(() => {
+                try {
+                  canvas.width = video.videoWidth || 640;
+                  canvas.height = video.videoHeight || 480;
+                  const ctx = canvas.getContext('2d');
 
-                    if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
-                      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                  if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                      canvas.toBlob(
-                        (blob) => {
-                          if (blob) {
-                            const file = new File(
-                              [blob],
-                              'captured-photo.jpg',
-                              { type: 'image/jpeg' }
-                            );
-                            setSelectedFile(file);
-                            setSelectedFiles([file]);
-                            toast.success(
-                              'Photo captured! Click "Stop Camera" when done.'
-                            );
-                            resolve(blob);
-                          } else {
-                            reject(new Error('Failed to create blob'));
-                          }
-                        },
-                        'image/jpeg',
-                        0.9
-                      );
-                    } else {
-                      reject(new Error('Video not ready'));
-                    }
-                  } catch (error) {
-                    reject(error);
+                    canvas.toBlob((blob) => {
+                      if (blob) {
+                        const file = new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' });
+                        setSelectedFile(file);
+                        setSelectedFiles([file]);
+                        toast.success('Photo captured! Click "Stop Camera" when done.');
+                        resolve(blob);
+                      } else {
+                        reject(new Error('Failed to create blob'));
+                      }
+                    }, 'image/jpeg', 0.9);
+                  } else {
+                    reject(new Error('Video not ready'));
                   }
-                }, 1000);
-              })
-              .catch(reject);
+                } catch (error) {
+                  reject(error);
+                }
+              }, 1000);
+            }).catch(reject);
           };
           video.onerror = reject;
         });
@@ -415,7 +367,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   const stopCamera = () => {
     if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream.getTracks().forEach(track => track.stop());
       setCameraStream(null);
       setIsCameraActive(false);
       if (videoRef.current) {
@@ -450,20 +402,18 @@ const ContentInput: React.FC<ContentInputProps> = ({
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   };
 
-  const handleSingleFileSelect = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setSelectedFiles([file]); // keep compatibility with existing logic
-      setRecordedBlob(null);
-      setAudioUrl(null);
-      setVideoUrl(null);
-      toast.success(`File selected: ${file.name}`);
-      handleFileSelect(event);
-    }
-  };
+  const handleSingleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    setSelectedFile(file);
+    setSelectedFiles([file]); // keep compatibility with existing logic
+    setRecordedBlob(null);
+    setAudioUrl(null);
+    setVideoUrl(null);
+    toast.success(`File selected: ${file.name}`);
+    handleFileSelect(event);
+  }
+};
 
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
@@ -476,18 +426,16 @@ const ContentInput: React.FC<ContentInputProps> = ({
     toast.success('File removed');
   };
 
-  const handleFileSelectInternal = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    handleSingleFileSelect(event);
-  };
+  const handleFileSelectInternal = (event: React.ChangeEvent<HTMLInputElement>) => {
+  handleSingleFileSelect(event);
+};
 
   const simulateUploadProgress = () => {
     setUploadingFiles(true);
     setUploadProgress(0);
-
+    
     const interval = setInterval(() => {
-      setUploadProgress((prev) => {
+      setUploadProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval);
           setUploadingFiles(false);
@@ -499,47 +447,28 @@ const ContentInput: React.FC<ContentInputProps> = ({
   };
 
   const handleUploadWithProgress = async () => {
-    // For text content, we don't need to create a file - just call onUpload with null
-    // The handleUpload function in Categories.tsx will handle text file creation
-    if (uploadMode === 'text') {
-      setUploadingFiles(true);
-      setUploadProgress(0);
+  if (selectedFiles.length === 0) return;
 
-      try {
-        setUploadProgress(50);
-        // Pass null as file - handleUpload will create the text file from textContent
-        await onUpload(null as File);
-        setUploadProgress(100);
-      } catch (err) {
-        console.error('Text upload failed:', err);
-        toast.error('Failed to upload text content');
-      }
+  setUploadingFiles(true);
+  setUploadProgress(0);
 
-      setUploadingFiles(false);
-      return;
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const file = selectedFiles[i];
+
+    try {
+      await onUpload(file); // ✅ file passed directly
+      setUploadProgress(((i + 1) / selectedFiles.length) * 100);
+    } catch (err) {
+      console.error("Upload failed for", file.name, err);
+      toast.error(`Upload failed: ${file.name}`);
     }
+  }
 
-    // For file-based uploads (audio, video, image)
-    if (selectedFiles.length === 0) return;
+  setUploadingFiles(false);
+  toast.success("upload complete");
+};
 
-    setUploadingFiles(true);
-    setUploadProgress(0);
 
-    for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
-
-      try {
-        await onUpload(file);
-        setUploadProgress(((i + 1) / selectedFiles.length) * 100);
-      } catch (err) {
-        console.error('Upload failed for', file.name, err);
-        toast.error(`Upload failed: ${file.name}`);
-      }
-    }
-
-    setUploadingFiles(false);
-    toast.success('Upload complete');
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -556,11 +485,11 @@ const ContentInput: React.FC<ContentInputProps> = ({
           <ArrowLeft className="w-4 h-4 md:mr-2" />
           <span className="hidden md:inline">Back</span>
         </Button>
-
+        
         {/* Center Content */}
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold">
-            {uploadOptions.find((opt) => opt.type === uploadMode)?.title}
+            {uploadOptions.find(opt => opt.type === uploadMode)?.title}
           </h1>
           <p className="text-purple-100 text-sm mt-1">
             {selectedCategory.title}
@@ -575,15 +504,11 @@ const ContentInput: React.FC<ContentInputProps> = ({
             {/* Upload Form Header */}
             <div className="flex items-center mb-8">
               <div className="bg-purple-100 p-3 rounded-lg mr-4">
-                {uploadOptions.find((opt) => opt.type === uploadMode)?.icon}
+                {uploadOptions.find(opt => opt.type === uploadMode)?.icon}
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Upload Content
-                </h2>
-                <p className="text-gray-600">
-                  Choose how you'd like to contribute
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900">Upload Content</h2>
+                <p className="text-gray-600">Choose how you'd like to contribute</p>
               </div>
             </div>
 
@@ -591,16 +516,12 @@ const ContentInput: React.FC<ContentInputProps> = ({
             {uploadingFiles && (
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    Uploading...
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {Math.round(uploadProgress)}%
-                  </span>
+                  <span className="text-sm font-medium text-gray-700">Uploading...</span>
+                  <span className="text-sm text-gray-500">{Math.round(uploadProgress)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                  <div 
+                    className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
@@ -625,16 +546,13 @@ const ContentInput: React.FC<ContentInputProps> = ({
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <div className="flex items-center gap-2 mb-2">
                 <MapPin className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">
-                  Location
-                </span>
+                <span className="text-sm font-medium text-gray-700">Location</span>
               </div>
               {location ? (
                 <div className="flex items-center gap-2 text-green-600">
                   <Check className="w-4 h-4" />
                   <span className="text-sm">
-                    Location: {location.lat.toFixed(4)},{' '}
-                    {location.lng.toFixed(4)}
+                    Location: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
                   </span>
                 </div>
               ) : locationError ? (
@@ -674,9 +592,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
             {showManualLocation && (
               <Card className="border-orange-200 bg-orange-50 mb-6">
                 <CardContent className="p-4">
-                  <h3 className="font-medium text-gray-800 mb-3">
-                    Enter Location Manually
-                  </h3>
+                  <h3 className="font-medium text-gray-800 mb-3">Enter Location Manually</h3>
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -826,6 +742,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="audio/*"
+                      
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
@@ -841,23 +758,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 {/* Selected Files List */}
                 {selectedFiles.length > 0 && !recordedBlob && (
                   <div className="mt-4 space-y-2">
-                    <h4 className="font-medium text-gray-700">
-                      Selected File:
-                    </h4>
+                    <h4 className="font-medium text-gray-700">Selected File:</h4>
                     {selectedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <Mic className="w-4 h-4 text-gray-500" />
                           <div>
-                            <div className="font-medium text-sm">
-                              {file.name}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatFileSize(file.size)}
-                            </div>
+                            <div className="font-medium text-sm">{file.name}</div>
+                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
                           </div>
                         </div>
                         <Button
@@ -891,13 +799,12 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       className="bg-white/80 hover:bg-white/90 text-gray-700"
                     >
                       <RefreshCw className="w-4 h-4 mr-2" />
-                      Switch to {facingMode === 'user' ? 'Rear' : 'Front'}{' '}
-                      Camera
+                      Switch to {facingMode === 'user' ? 'Rear' : 'Front'} Camera
                     </Button>
                   </div>
                 )}
 
-                {/* Video preview - show during recording */}
+               {/* Video preview - show during recording */}
                 <video
                   ref={videoRecordingRef}
                   style={{
@@ -906,7 +813,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                     display: isRecording ? 'block' : 'none',
                     margin: '0 auto',
                     borderRadius: '8px',
-                    backgroundColor: '#000',
+                    backgroundColor: '#000'
                   }}
                   muted
                   playsInline
@@ -977,11 +884,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                         Record Again
                       </Button>
                     </div>
-                    <video
-                      controls
-                      className="w-full"
-                      style={{ maxWidth: '400px', margin: '0 auto' }}
-                    >
+                    <video controls className="w-full" style={{ maxWidth: '400px', margin: '0 auto' }}>
                       <source src={videoUrl} type="video/webm" />
                       Your browser does not support the video element.
                     </video>
@@ -995,6 +898,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="video/*"
+                      
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
@@ -1010,23 +914,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 {/* Selected Files List */}
                 {selectedFiles.length > 0 && !recordedBlob && (
                   <div className="mt-4 space-y-2">
-                    <h4 className="font-medium text-gray-700">
-                      Selected Files:
-                    </h4>
+                    <h4 className="font-medium text-gray-700">Selected Files:</h4>
                     {selectedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <Video className="w-4 h-4 text-gray-500" />
                           <div>
-                            <div className="font-medium text-sm">
-                              {file.name}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatFileSize(file.size)}
-                            </div>
+                            <div className="font-medium text-sm">{file.name}</div>
+                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
                           </div>
                         </div>
                         <Button
@@ -1060,8 +955,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       className="bg-white/80 hover:bg-white/90 text-gray-700"
                     >
                       <RefreshCw className="w-4 h-4 mr-2" />
-                      Switch to {facingMode === 'user' ? 'Rear' : 'Front'}{' '}
-                      Camera
+                      Switch to {facingMode === 'user' ? 'Rear' : 'Front'} Camera
                     </Button>
                   </div>
                 )}
@@ -1075,7 +969,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                     display: isCameraActive ? 'block' : 'none',
                     margin: '0 auto',
                     borderRadius: '8px',
-                    backgroundColor: '#000',
+                    backgroundColor: '#000'
                   }}
                   autoPlay
                   muted
@@ -1083,7 +977,10 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   className="mb-4"
                 />
 
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
+                <canvas
+                  ref={canvasRef}
+                  style={{ display: 'none' }}
+                />
 
                 {!isCameraActive && !selectedFile && (
                   <Button
@@ -1151,6 +1048,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
+                      
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
@@ -1166,23 +1064,14 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 {/* Selected Files List */}
                 {selectedFiles.length > 0 && !selectedFile && (
                   <div className="mt-4 space-y-2">
-                    <h4 className="font-medium text-gray-700">
-                      Selected Files:
-                    </h4>
+                    <h4 className="font-medium text-gray-700">Selected Files:</h4>
                     {selectedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <Image className="w-4 h-4 text-gray-500" />
                           <div>
-                            <div className="font-medium text-sm">
-                              {file.name}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatFileSize(file.size)}
-                            </div>
+                            <div className="font-medium text-sm">{file.name}</div>
+                            <div className="text-xs text-gray-500">{formatFileSize(file.size)}</div>
                           </div>
                         </div>
                         <Button
@@ -1204,21 +1093,12 @@ const ContentInput: React.FC<ContentInputProps> = ({
             <div className="flex justify-center pt-6">
               <Button
                 onClick={handleUploadWithProgress}
-                disabled={
-                  uploading ||
-                  uploadingFiles ||
-                  !title ||
-                  !location ||
+                disabled={uploading || uploadingFiles || !title || !location || 
                   (uploadMode === 'text' && !textContent) ||
-                  (uploadMode !== 'text' &&
-                    !selectedFile &&
-                    selectedFiles.length === 0)
-                }
+                  (uploadMode !== 'text' && !selectedFile && selectedFiles.length === 0)}
                 className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium text-lg"
               >
-                {uploading || uploadingFiles
-                  ? 'Uploading...'
-                  : 'Upload Content'}
+                {uploading || uploadingFiles ? 'Uploading...' : 'Upload Content'}
               </Button>
             </div>
           </CardContent>
@@ -1229,3 +1109,4 @@ const ContentInput: React.FC<ContentInputProps> = ({
 };
 
 export default ContentInput;
+                    

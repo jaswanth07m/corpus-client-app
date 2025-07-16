@@ -11,7 +11,8 @@
     "preview": "vite preview"
   },
   "prettier": {
-    "singleQuote": true
+    "singleQuote": true,
+    "trailingComma": "all"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

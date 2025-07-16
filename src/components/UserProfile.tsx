@@ -108,12 +108,12 @@ interface UseUserProfileReturn {
 // Custom Hook with Debug Statements
 const useUserProfile = (
   userId?: string,
-  shouldReset?: boolean
+  shouldReset?: boolean,
 ): UseUserProfileReturn => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [contributions, setContributions] = useState<UserContributions | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState({
     profile: true,
@@ -183,7 +183,7 @@ const useUserProfile = (
       console.log('🔍 Available localStorage keys:', Object.keys(localStorage));
       console.log(
         '🔍 Available sessionStorage keys:',
-        Object.keys(sessionStorage)
+        Object.keys(sessionStorage),
       );
     }
 
@@ -204,14 +204,14 @@ const useUserProfile = (
 
       if (parts.length !== 3) {
         console.error(
-          '❌ Invalid JWT format - should have 3 parts separated by dots'
+          '❌ Invalid JWT format - should have 3 parts separated by dots',
         );
         return null;
       }
 
       console.log(
         '📋 JWT parts lengths:',
-        parts.map((p) => p.length)
+        parts.map((p) => p.length),
       );
 
       let payload = parts[1];
@@ -256,7 +256,7 @@ const useUserProfile = (
         if (payloadObj[field]) {
           console.log(
             `✅ Found user ID in field '${field}':`,
-            payloadObj[field]
+            payloadObj[field],
           );
           return payloadObj[field].toString();
         }
@@ -265,7 +265,7 @@ const useUserProfile = (
       console.log('❌ No user ID found in any expected field');
       console.log(
         '💡 Try checking these available fields manually:',
-        Object.keys(payloadObj)
+        Object.keys(payloadObj),
       );
 
       return null;
@@ -332,12 +332,12 @@ const useUserProfile = (
         console.log(`📡 API Response status: ${response.status}`);
         console.log(
           `📡 API Response headers:`,
-          Object.fromEntries(response.headers.entries())
+          Object.fromEntries(response.headers.entries()),
         );
 
         if (!response.ok) {
           throw new Error(
-            `Failed to fetch profile: ${response.status} ${response.statusText}`
+            `Failed to fetch profile: ${response.status} ${response.statusText}`,
           );
         }
 
@@ -397,14 +397,14 @@ const useUserProfile = (
         } else {
           console.log('❌ No cached profile available');
           setError(
-            err instanceof Error ? err.message : 'Failed to fetch profile'
+            err instanceof Error ? err.message : 'Failed to fetch profile',
           );
         }
       } finally {
         setLoading((prev) => ({ ...prev, profile: false }));
       }
     },
-    [getAuthToken]
+    [getAuthToken],
   );
 
   const fetchDailyStats = useCallback(
@@ -451,7 +451,7 @@ const useUserProfile = (
         setLoading((prev) => ({ ...prev, stats: false }));
       }
     },
-    [getAuthToken]
+    [getAuthToken],
   );
 
   const fetchUserContributions = useCallback(
@@ -521,7 +521,7 @@ const useUserProfile = (
         setLoading((prev) => ({ ...prev, contributions: false }));
       }
     },
-    [getAuthToken]
+    [getAuthToken],
   );
 
   const requestExport = useCallback(async () => {
@@ -654,7 +654,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     const [username, domain] = email.split('@');
     if (!username || !domain) return email;
     return `${username.substring(0, 2)}${'*'.repeat(
-      Math.max(0, username.length - 2)
+      Math.max(0, username.length - 2),
     )}@${domain}`;
   };
 
@@ -663,7 +663,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     const cleaned = phone.replace(/\D/g, '');
     if (cleaned.length < 4) return phone;
     return `${cleaned.substring(0, 2)}${'*'.repeat(
-      Math.max(0, cleaned.length - 4)
+      Math.max(0, cleaned.length - 4),
     )}${cleaned.substring(cleaned.length - 2)}`;
   };
 
@@ -853,7 +853,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <p className="text-gray-600">@{currentUser.id}</p>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                    currentUser.isActive
+                    currentUser.isActive,
                   )}`}
                 >
                   {getStatusText(currentUser.isActive)}
