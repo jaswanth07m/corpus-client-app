@@ -151,7 +151,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const switchCamera = async () => {
     const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
     setFacingMode(newFacingMode);
-    
+
     // Stop current stream
     if (cameraStream) {
       cameraStream.getTracks().forEach(track => track.stop());
@@ -169,12 +169,12 @@ const ContentInput: React.FC<ContentInputProps> = ({
         const wasRecording = isRecording;
         const wasPaused = isPaused;
         const currentTime = recordingTime;
-        
+
         // Stop current recording
         if (mediaRecorder) {
           mediaRecorder.stop();
         }
-        
+
         // Start new recording with new camera
         setTimeout(() => {
           startRecording('video', newFacingMode);
@@ -186,7 +186,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
           }
         }, 100);
       }
-      
+
       toast.success(`Switched to ${newFacingMode === 'user' ? 'front' : 'rear'} camera`);
     } catch (error) {
       console.error('Camera switch error:', error);
@@ -246,7 +246,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
         const file = new File([blob], `recorded-${type}.webm`, {
           type: blob.type
         });
-        setSelectedFile(file);
+         
         setSelectedFiles([file]);
         const url = URL.createObjectURL(blob);
         if (type === 'audio') {
@@ -339,7 +339,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                     canvas.toBlob((blob) => {
                       if (blob) {
                         const file = new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' });
-                        setSelectedFile(file);
+                         
                         setSelectedFiles([file]);
                         toast.success('Photo captured! Click "Stop Camera" when done.');
                         resolve(blob);
@@ -392,7 +392,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   const resetRecording = () => {
     setRecordedBlob(null);
-    setSelectedFile(null);
+    // setSelectedFile(null);
     setSelectedFiles([]);
     setRecordingTime(0);
     setRecordedChunks([]);
@@ -403,37 +403,37 @@ const ContentInput: React.FC<ContentInputProps> = ({
   };
 
   const handleSingleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const file = event.target.files?.[0];
-  if (file) {
-    setSelectedFile(file);
-    setSelectedFiles([file]); // keep compatibility with existing logic
-    setRecordedBlob(null);
-    setAudioUrl(null);
-    setVideoUrl(null);
-    toast.success(`File selected: ${file.name}`);
-    handleFileSelect(event);
-  }
-};
+    const file = event.target.files?.[0];
+    if (file) {
+       
+      setSelectedFiles([file]); // keep compatibility with existing logic
+      setRecordedBlob(null);
+      setAudioUrl(null);
+      setVideoUrl(null);
+      toast.success(`File selected: ${file.name}`);
+      handleFileSelect(event);
+    }
+  };
 
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
     setSelectedFiles(newFiles);
-    if (newFiles.length === 0) {
-      setSelectedFile(null);
-    } else if (newFiles.length === 1) {
-      setSelectedFile(newFiles[0]);
-    }
+    // if (newFiles.length === 0) {
+    //   setSelectedFile(null);
+    // } else if (newFiles.length === 1) {
+    //   setSelectedFile(newFiles[0]);
+    // }
     toast.success('File removed');
   };
 
   const handleFileSelectInternal = (event: React.ChangeEvent<HTMLInputElement>) => {
-  handleSingleFileSelect(event);
-};
+    handleSingleFileSelect(event);
+  };
 
   const simulateUploadProgress = () => {
     setUploadingFiles(true);
     setUploadProgress(0);
-    
+
     const interval = setInterval(() => {
       setUploadProgress(prev => {
         if (prev >= 100) {
@@ -445,28 +445,40 @@ const ContentInput: React.FC<ContentInputProps> = ({
       });
     }, 200);
   };
-
+  
   const handleUploadWithProgress = async () => {
-  if (selectedFiles.length === 0) return;
+    if (selectedFiles.length === 0) return;
 
-  setUploadingFiles(true);
-  setUploadProgress(0);
+    setUploadingFiles(true);
+    setUploadProgress(0);
 
-  for (let i = 0; i < selectedFiles.length; i++) {
-    const file = selectedFiles[i];
+    let successCount = 0;
+    let failCount = 0;
 
-    try {
-      await onUpload(file); // ✅ file passed directly
-      setUploadProgress(((i + 1) / selectedFiles.length) * 100);
-    } catch (err) {
-      console.error("Upload failed for", file.name, err);
-      toast.error(`Upload failed: ${file.name}`);
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      try {
+        await onUpload(file);
+        successCount++;
+        setUploadProgress(((i + 1) / selectedFiles.length) * 100);
+      } catch (err) {
+        failCount++;
+        toast.error(`Upload failed: ${file.name}`);
+      }
     }
-  }
 
-  setUploadingFiles(false);
-  toast.success("upload complete");
-};
+    setUploadingFiles(false);
+
+    // Only show success if ALL uploads succeeded
+    if (failCount === 0) {
+      toast.success("All uploads completed successfully");
+    } else if (successCount > 0) {
+      toast.warning(`${successCount} uploads succeeded, ${failCount} failed`);
+    } else {
+      toast.error("All uploads failed");
+    }
+  };
+
 
 
 
@@ -485,7 +497,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
           <ArrowLeft className="w-4 h-4 md:mr-2" />
           <span className="hidden md:inline">Back</span>
         </Button>
-        
+
         {/* Center Content */}
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold">
@@ -520,8 +532,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   <span className="text-sm text-gray-500">{Math.round(uploadProgress)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                  <div
+                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
@@ -742,7 +754,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="audio/*"
-                      
+
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
@@ -804,7 +816,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   </div>
                 )}
 
-               {/* Video preview - show during recording */}
+                {/* Video preview - show during recording */}
                 <video
                   ref={videoRecordingRef}
                   style={{
@@ -898,7 +910,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="video/*"
-                      
+
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
@@ -982,7 +994,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   style={{ display: 'none' }}
                 />
 
-                {!isCameraActive && !selectedFile && (
+                {!isCameraActive &&  selectedFiles.length === 0 && (
                   <Button
                     onClick={() => capturePhoto()}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg"
@@ -1013,15 +1025,15 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   </div>
                 )}
 
-                {selectedFile && (
+                {selectedFiles.length > 0 && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                       <span className="text-green-700 font-medium">
-                        Photo captured: {selectedFile.name}
+                        Photo captured: {selectedFiles[0].name}
                       </span>
                       <Button
                         onClick={() => {
-                          setSelectedFile(null);
+                          // setSelectedFile(null);
                           setSelectedFiles([]);
                         }}
                         variant="outline"
@@ -1033,7 +1045,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                     </div>
                     <div className="text-center">
                       <img
-                        src={URL.createObjectURL(selectedFile)}
+                        src={URL.createObjectURL(selectedFiles[0])}
                         alt="Captured photo"
                         className="max-w-full max-h-64 mx-auto rounded-lg border"
                       />
@@ -1048,7 +1060,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
-                      
+
                       onChange={handleFileSelectInternal}
                       className="hidden"
                     />
@@ -1062,7 +1074,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 </div>
 
                 {/* Selected Files List */}
-                {selectedFiles.length > 0 && !selectedFile && (
+                {selectedFiles.length > 0 &&  !recordedBlob && (
                   <div className="mt-4 space-y-2">
                     <h4 className="font-medium text-gray-700">Selected Files:</h4>
                     {selectedFiles.map((file, index) => (
@@ -1093,9 +1105,9 @@ const ContentInput: React.FC<ContentInputProps> = ({
             <div className="flex justify-center pt-6">
               <Button
                 onClick={handleUploadWithProgress}
-                disabled={uploading || uploadingFiles || !title || !location || 
+                disabled={uploading || uploadingFiles || !title || !location ||
                   (uploadMode === 'text' && !textContent) ||
-                  (uploadMode !== 'text' && !selectedFile && selectedFiles.length === 0)}
+                  (uploadMode !== 'text' &&  selectedFiles.length === 0 && selectedFiles.length === 0)}
                 className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium text-lg"
               >
                 {uploading || uploadingFiles ? 'Uploading...' : 'Upload Content'}
@@ -1109,4 +1121,3 @@ const ContentInput: React.FC<ContentInputProps> = ({
 };
 
 export default ContentInput;
-                    
