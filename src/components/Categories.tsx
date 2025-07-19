@@ -1,29 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   ArrowLeft,
   LogOut,
-  Grid3X3,
-  Calendar,
   User,
-  FileText,
-  Upload,
-  MapPin,
   Type,
   Mic,
   Video,
-  Image,
-  X,
-  Check,
-  AlertCircle,
   Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 
-const decodeJWTToken = (token: string): any => {
+const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
     // JWT tokens have 3 parts separated by dots: header.payload.signature
     const parts = token.split('.');
@@ -182,12 +173,7 @@ const Categories: React.FC<CategoriesProps> = ({
           return;
         }
 
-        // Common JWT payload fields for user ID
-        const userId =
-          tokenPayload.sub ||
-          tokenPayload.user_id ||
-          tokenPayload.id ||
-          tokenPayload.uid;
+        const userId = tokenPayload.sub;
         if (userId) {
           console.log('User ID from token:', userId);
           setUserId(userId.toString());
