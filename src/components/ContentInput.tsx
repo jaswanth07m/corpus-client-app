@@ -517,7 +517,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
     }
 
     setUploadingFiles(false);
-    toast.success('upload complete');
   };
 
   return (
