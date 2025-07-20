@@ -1,25 +1,27 @@
-## Description
+##  Default Template
+
+**Description:**
 
 Briefly describe your changes.
 
-## Type of Change
+**Type of Change:**
 
 - [ ] Bug Fix
 - [ ] Feature Development
 - [ ] Documentation
 
 
-## Testing
+**Testing:**
 
 - [ ] Tested on desktop
 - [ ] Tested on mobile
 - [ ] Tested in different browsers
 
-## Screenshots (if applicable)
+**Screenshots (if applicable):**
 
 _Add screenshots for UI changes._
 
-## Checklist
+**Checklist:**
 
 - [ ] Code follows project style guidelines
 - [ ] Self-review completed
