@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   ArrowLeft,
   MapPin,
+  Pencil,
   Type,
   Mic,
   Video,
@@ -632,16 +633,19 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   <Button
                     onClick={requestLocation}
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className={ !showManualLocation ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                    variant={ !showManualLocation ? "default" : "outline"}
                   >
                     <MapPin className="w-4 h-4 mr-1" />
                     Get Location
                   </Button>
                   <Button
                     onClick={() => setShowManualLocation(!showManualLocation)}
-                    variant="outline"
+                    variant={showManualLocation ? "default" : "outline"}
                     size="sm"
+                    className={ showManualLocation ? 'bg-purple-600 hover:bg-purple-700' : ''  }
                   >
+                    <Pencil className="w-4 h-4 mr-1" />
                     Manual
                   </Button>
                 </div>

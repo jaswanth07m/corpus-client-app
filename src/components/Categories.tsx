@@ -301,7 +301,6 @@ const Categories: React.FC<CategoriesProps> = ({
   const requestLocation = () => {
     setLocationError('');
     setLocationRequested(true);
-
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by this browser.');
       toast.error('Geolocation not supported');
@@ -328,7 +327,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage += 'Please allow location access or enter manually.';
+            errorMessage += 'Please allow location access in your browser settings, reload the page, or enter your location manually.';
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage += 'Location information is unavailable.';
