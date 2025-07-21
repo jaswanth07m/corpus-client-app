@@ -481,6 +481,7 @@ const Categories: React.FC<CategoriesProps> = ({
       console.error('Upload error:', error);
       toast.error('Network error. Please check your connection and try again.');
       posthog.capture('upload_error');
+      posthog.captureException(error);
     }
 
     setUploading(false);
