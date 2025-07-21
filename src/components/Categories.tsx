@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
+import posthog from 'posthog-js';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
@@ -327,7 +328,8 @@ const Categories: React.FC<CategoriesProps> = ({
 
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage += 'Please allow location access in your browser settings, reload the page, or enter your location manually.';
+            errorMessage +=
+              'Please allow location access in your browser settings, reload the page, or enter your location manually.';
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage += 'Location information is unavailable.';
@@ -460,7 +462,11 @@ const Categories: React.FC<CategoriesProps> = ({
         console.log('Upload successful:', result);
         toast.success('Content uploaded successfully!');
         handleBack();
+        posthog.capture('upload_success');
       } else {
+        posthog.capture('upload_server_error', {
+          status: response.status,
+        });
         const errorData = await response
           .json()
           .catch(() => ({ detail: 'Upload failed' }));
@@ -474,6 +480,7 @@ const Categories: React.FC<CategoriesProps> = ({
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Network error. Please check your connection and try again.');
+      posthog.capture('upload_error');
     }
 
     setUploading(false);
