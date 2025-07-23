@@ -15,7 +15,6 @@ import {
   MapPin,
   UserPlus,
   LogIn,
-  FileSignature,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
