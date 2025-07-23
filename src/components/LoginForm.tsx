@@ -15,6 +15,7 @@ import {
   MapPin,
   UserPlus,
   LogIn,
+  FileSignature,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
@@ -24,6 +25,31 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+
+  //validation states
+  const [validatePhone, setValidatePhone] = useState('border-gray-200');
+  const [errorPhoneDisplay, setErrorPhoneDisplay] = useState('hidden');
+  const [validateName, setValidateName] = useState('border-gray-200');
+  const [errorNameDisplay, setErrorNameDisplay] = useState('hidden');
+  const [validateEmail, setValidateEmail] = useState('border-gray-200');
+  const [errorEmailDisplay, setErrorEmailDisplay] = useState('hidden');
+  const [maxDate, setMaxDate] = useState(() => {
+    const today = new Date();
+    const thirteenYearsAgo = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
+    return thirteenYearsAgo.toISOString().split('T')[0];
+  });
+  const [minDate, setMinDate] = useState(() => {
+    const today = new Date();
+    const eightyYearsAgo = new Date(today.getFullYear() - 80, today.getMonth(), today.getDate());
+    return eightyYearsAgo.toISOString().split('T')[0];
+  });
+  const [validatePlace, setValidatePlace] = useState('border-gray-200');
+  const [errorPlaceDisplay, setErrorPlaceDisplay] = useState('hidden');
+  const [validatePassword, setValidatePassword] = useState('border-gray-200');
+  const [errorPasswordDisplay, setErrorPasswordDisplay] = useState('hidden');
+  const [errorPasswordRequirementsDisplay, setErrorPasswordRequirementsDisplay] = useState('hidden');
+  const [formValidationErrors, setFormValidationErrors] = useState(false);
+
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('otp');
   const [phoneDigits, setPhoneDigits] = useState('');
@@ -78,7 +104,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   const isValidPhoneNumber = () => {
-    return phoneDigits.length === 10;
+    return phoneDigits.length === 10 && parseInt(phoneDigits[0]) > 5;
   };
 
   const isValidEmail = (email: string) => {
@@ -295,11 +321,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    if (signupData.password !== signupData.confirmPassword) {
-      toast.error("Passwords don't match");
-      return;
-    }
-
     if (!signupData.has_given_consent) {
       toast.error('Please agree to the terms and conditions');
       return;
@@ -460,11 +481,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
             <Button
               variant={mode === 'login' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${
-                mode === 'login'
-                  ? 'gradient-purple text-white shadow-lg'
-                  : 'hover:bg-gray-200 text-gray-700'
-              }`}
+              className={`flex-1 rounded-lg transition-all duration-300 ${mode === 'login'
+                ? 'gradient-purple text-white shadow-lg'
+                : 'hover:bg-gray-200 text-gray-700'
+                }`}
               onClick={() => {
                 setMode('login');
                 resetForm();
@@ -475,11 +495,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             </Button>
             <Button
               variant={mode === 'signup' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${
-                mode === 'signup'
-                  ? 'gradient-purple text-white shadow-lg'
-                  : 'hover:bg-gray-200 text-gray-700'
-              }`}
+              className={`flex-1 rounded-lg transition-all duration-300 ${mode === 'signup'
+                ? 'gradient-purple text-white shadow-lg'
+                : 'hover:bg-gray-200 text-gray-700'
+                }`}
               onClick={() => {
                 setMode('signup');
                 resetForm();
@@ -497,11 +516,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
                 <Button
                   variant={loginMethod === 'otp' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${
-                    loginMethod === 'otp'
-                      ? 'gradient-purple text-white shadow-lg'
-                      : 'hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`flex-1 rounded-lg transition-all duration-300 ${loginMethod === 'otp'
+                    ? 'gradient-purple text-white shadow-lg'
+                    : 'hover:bg-gray-200 text-gray-700'
+                    }`}
                   onClick={() => {
                     setLoginMethod('otp');
                     setShowOtpInput(false);
@@ -514,11 +532,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 </Button>
                 <Button
                   variant={loginMethod === 'password' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${
-                    loginMethod === 'password'
-                      ? 'gradient-purple text-white shadow-lg'
-                      : 'hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`flex-1 rounded-lg transition-all duration-300 ${loginMethod === 'password'
+                    ? 'gradient-purple text-white shadow-lg'
+                    : 'hover:bg-gray-200 text-gray-700'
+                    }`}
                   onClick={() => setLoginMethod('password')}
                 >
                   Login with Password
@@ -547,16 +564,29 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       onChange={(e) =>
                         setPhoneDigits(formatPhoneNumber(e.target.value))
                       }
+                      onFocus={() => {
+                        setValidatePhone('border-gray-500');
+                        setErrorPhoneDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        if (parseInt(phoneDigits[0]) <= 5) {
+                          setValidatePhone('border-rose-800');
+                          setErrorPhoneDisplay('block');
+                        }
+                      }}
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
                       {phoneDigits.length}/10 digits
                     </div>
+                    <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`} >
+                      *Phone number is invalid
+                    </div>
                   </div>
 
                   <Button
                     onClick={handleSendOTP}
-                    disabled={loading || !isValidPhoneNumber()}
+                    disabled={loading || !isValidPhoneNumber() }
                     className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
@@ -657,10 +687,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       onChange={(e) =>
                         setPhoneDigits(formatPhoneNumber(e.target.value))
                       }
+                      onFocus={() => {
+                        setValidatePhone('border-gray-500');
+                        setErrorPhoneDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        if (parseInt(phoneDigits[0]) <= 5) {
+                          setValidatePhone('border-rose-800');
+                          setErrorPhoneDisplay('block');
+                        }
+                      }}
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
                       {phoneDigits.length}/10 digits
+                    </div>
+                    <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`} >
+                      *Phone number is invalid
                     </div>
                   </div>
 
@@ -720,10 +763,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={(e) =>
                     setPhoneDigits(formatPhoneNumber(e.target.value))
                   }
-                  className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                  onFocus={() => {
+                    setValidatePhone('border-gray-500');
+                    setErrorPhoneDisplay('hidden');
+                  }}
+                  onBlur={(e) => {
+                    if (parseInt(phoneDigits[0]) <= 5) {
+                      setValidatePhone('border-rose-800');
+                      setErrorPhoneDisplay('block');
+                      setFormValidationErrors(true);
+                    }
+                    else {
+                      setFormValidationErrors(false);
+                    }
+                  }}
+                  className={`pl-20 h-14 border-2 ${validatePhone} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                 />
                 <div className="text-xs text-gray-500 mt-1 ml-1">
                   {phoneDigits.length}/10 digits
+                </div>
+                <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`} >
+                  *Phone number is invalid
                 </div>
               </div>
 
@@ -737,8 +797,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={(e) =>
                     handleSignupInputChange('name', e.target.value)
                   }
-                  className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                  onFocus={() => {
+                    setValidateName('border-gray-500');
+                    setErrorNameDisplay('hidden');
+                  }}
+                  onBlur={(e) => {
+                    const nameRegex = /^[A-Za-z\s]+$/;
+                    if (!nameRegex.test(signupData.name.trim())) {
+                      setValidateName('border-rose-800');
+                      setErrorNameDisplay('block');
+                      setFormValidationErrors(true);
+                    }
+                    else {
+                      setFormValidationErrors(false);
+                    }
+                  }}
+                  className={`pl-12 h-14 border-2 ${validateName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                 />
+                <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorNameDisplay}`} >
+                  *Name should have characters only
+                </div>
               </div>
 
               {/* Email */}
@@ -751,8 +829,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={(e) =>
                     handleSignupInputChange('email', e.target.value)
                   }
-                  className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                  onFocus={() => {
+                    setValidateEmail('border-gray-500');
+                    setErrorEmailDisplay('hidden');
+                  }}
+                  onBlur={(e) => {
+                    const emailRegex = /^[^+\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(signupData.email.trim())) {
+                      setValidateEmail('border-rose-800');
+                      setErrorEmailDisplay('block');
+                      setFormValidationErrors(true);
+                    }
+                    else {
+                      setFormValidationErrors(false);
+                    }
+                  }}
+                  className={`pl-12 h-14 border-2 ${validateEmail} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                 />
+                <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`} >
+                  *Email is invalid
+                </div>
               </div>
 
               {/* Gender */}
@@ -781,6 +877,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 <Input
                   type="date"
                   placeholder="Date of Birth"
+                  min={minDate}
+                  max={maxDate}
                   value={signupData.date_of_birth}
                   onChange={(e) =>
                     handleSignupInputChange('date_of_birth', e.target.value)
@@ -799,8 +897,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={(e) =>
                     handleSignupInputChange('place', e.target.value)
                   }
-                  className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                  onFocus={() => {
+                    setValidatePlace('border-gray-500');
+                    setErrorPlaceDisplay('hidden');
+                  }}
+                  onBlur={(e) => {
+                    const placeRegex = /^[A-Za-z\s]+$/;
+                    if (!placeRegex.test(signupData.place.trim())) {
+                      setValidatePlace('border-rose-800');
+                      setErrorPlaceDisplay('block');
+                      setFormValidationErrors(true);
+                    }
+                    else {
+                      setFormValidationErrors(false);
+                    }
+                  }}
+                  className={`pl-12 h-14 border-2 ${validatePlace} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                 />
+                <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`} >
+                  *Place should have characters only
+                </div>
               </div>
 
               {/* Password */}
@@ -812,7 +928,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={(e) =>
                     handleSignupInputChange('password', e.target.value)
                   }
-                  className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                  onFocus={() => {
+                    setErrorPasswordRequirementsDisplay('block');
+                  }}
+                  onBlur={(e) => {
+                    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(signupData.password) && signupData.password.length >= 8) {
+                      setFormValidationErrors(false);
+                    }
+                    else {
+                      setFormValidationErrors(true);
+                    }
+                    setErrorPasswordRequirementsDisplay('hidden');
+                  }}
+                  className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                 />
                 <button
                   type="button"
@@ -825,6 +953,67 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Eye className="h-5 w-5" />
                   )}
                 </button>
+                <div className={`mt-3 ${errorPasswordRequirementsDisplay}`}>
+                  <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${!signupData.password
+                        ? 'w-0'
+                        : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
+                          signupData.password
+                        )
+                          ? 'w-full bg-green-500'
+                          : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(signupData.password)
+                            ? 'w-2/3 bg-yellow-500'
+                            : 'w-1/3 bg-red-500'
+                        }`}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Password Strength: {' '}
+                    <span className={
+                      !signupData.password
+                        ? 'text-gray-500'
+                        : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(signupData.password)
+                          ? 'text-green-500'
+                          : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(signupData.password)
+                            ? 'text-yellow-500'
+                            : 'text-red-500'
+                    }>
+                      {!signupData.password
+                        ? 'Enter Password'
+                        : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(signupData.password)
+                          ? 'Strong'
+                          : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(signupData.password)
+                            ? 'Medium'
+                            : 'Weak'}
+                    </span>
+
+                    <div className={"font-medium text-xs text-gray-800"}> Password should contain :
+                      <ul className="mb-2 text-xs">
+                        <li className={`flex items-center ${/[A-Z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}>
+                          <span className="mr-2">{/[A-Z]/.test(signupData.password) ? '✓' : '○'}</span>
+                          One uppercase letter
+                        </li>
+                        <li className={`flex items-center ${/[a-z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}>
+                          <span className="mr-2">{/[a-z]/.test(signupData.password) ? '✓' : '○'}</span>
+                          One lowercase letter
+                        </li>
+                        <li className={`flex items-center ${/\d/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}>
+                          <span className="mr-2">{/\d/.test(signupData.password) ? '✓' : '○'}</span>
+                          One number
+                        </li>
+                        <li className={`flex items-center ${/[!@#$%^&*(),.?":{}|<>]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}>
+                          <span className="mr-2">{/[!@#$%^&*(),.?":{}|<>]/.test(signupData.password) ? '✓' : '○'}</span>
+                          One special character
+                        </li>
+                        <li className={`flex items-center ${signupData.password.length >= 8 ? 'text-green-500' : 'text-gray-500'}`}>
+                          <span className="mr-2">{signupData.password.length >= 8 ? '✓' : '○'}</span>
+                          Minimum 8 characters
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Confirm Password */}
@@ -836,7 +1025,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={(e) =>
                     handleSignupInputChange('confirmPassword', e.target.value)
                   }
-                  className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                  onFocus={() => {
+                    setValidatePassword('border-gray-500');
+                    setErrorPasswordDisplay('hidden');
+                  }}
+                  onBlur={(e) => {
+                    if (signupData.password !== signupData.confirmPassword) {
+                      setValidatePassword('border-rose-800');
+                      setErrorPasswordDisplay('block');
+                      setFormValidationErrors(true);
+                    }
+                    else {
+                      setFormValidationErrors(false);
+                    }
+                  }}
+                  className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                 />
                 <button
                   type="button"
@@ -849,6 +1052,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Eye className="h-5 w-5" />
                   )}
                 </button>
+                <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPasswordDisplay}`} >
+                  *Passwords do not match
+                </div>
               </div>
 
               {/* Consent Checkbox */}
@@ -890,7 +1096,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   !isValidEmail(signupData.email) ||
                   !signupData.password ||
                   signupData.password !== signupData.confirmPassword ||
-                  !signupData.has_given_consent
+                  !signupData.has_given_consent ||
+                  formValidationErrors
                 }
                 className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
               >
