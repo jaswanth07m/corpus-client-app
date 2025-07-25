@@ -63,6 +63,9 @@ interface ContentInputProps {
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  // Phase 4: Chunked upload progress props
+  chunkedUploadProgress?: number;
+  isChunkedUploading?: boolean;
 }
 
 const ContentInput: React.FC<ContentInputProps> = ({
@@ -92,6 +95,9 @@ const ContentInput: React.FC<ContentInputProps> = ({
   requestLocation,
   handleManualLocationSubmit,
   handleFileSelect,
+  // Phase 4: Chunked upload progress props
+  chunkedUploadProgress = 0,
+  isChunkedUploading = false,
 }) => {
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -111,7 +117,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
 
   // Multiple file upload states
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -483,34 +488,16 @@ const ContentInput: React.FC<ContentInputProps> = ({
     handleSingleFileSelect(event);
   };
 
-  const simulateUploadProgress = () => {
-    setUploadingFiles(true);
-    setUploadProgress(0);
-
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setUploadingFiles(false);
-          return 100;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 200);
-  };
-
   const handleUploadWithProgress = async () => {
     if (selectedFiles.length === 0) return;
 
     setUploadingFiles(true);
-    setUploadProgress(0);
 
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
 
       try {
         await onUpload(file); // ✅ file passed directly
-        setUploadProgress(((i + 1) / selectedFiles.length) * 100);
       } catch (err) {
         console.error('Upload failed for', file.name, err);
         toast.error(`Upload failed: ${file.name}`);
@@ -567,20 +554,22 @@ const ContentInput: React.FC<ContentInputProps> = ({
             </div>
 
             {/* Upload Progress Bar */}
-            {uploadingFiles && (
+            {isChunkedUploading && (
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">
                     Uploading...
                   </span>
                   <span className="text-sm text-gray-500">
-                    {Math.round(uploadProgress)}%
+                    {Math.round(chunkedUploadProgress)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
+                    style={{
+                      width: `${chunkedUploadProgress}%`,
+                    }}
                   ></div>
                 </div>
               </div>
@@ -633,17 +622,25 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   <Button
                     onClick={requestLocation}
                     size="sm"
-                    className={ !showManualLocation ? 'bg-purple-600 hover:bg-purple-700' : ''}
-                    variant={ !showManualLocation ? "default" : "outline"}
+                    className={
+                      !showManualLocation
+                        ? 'bg-purple-600 hover:bg-purple-700'
+                        : ''
+                    }
+                    variant={!showManualLocation ? 'default' : 'outline'}
                   >
                     <MapPin className="w-4 h-4 mr-1" />
                     Get Location
                   </Button>
                   <Button
                     onClick={() => setShowManualLocation(!showManualLocation)}
-                    variant={showManualLocation ? "default" : "outline"}
+                    variant={showManualLocation ? 'default' : 'outline'}
                     size="sm"
-                    className={ showManualLocation ? 'bg-purple-600 hover:bg-purple-700' : ''  }
+                    className={
+                      showManualLocation
+                        ? 'bg-purple-600 hover:bg-purple-700'
+                        : ''
+                    }
                   >
                     <Pencil className="w-4 h-4 mr-1" />
                     Manual

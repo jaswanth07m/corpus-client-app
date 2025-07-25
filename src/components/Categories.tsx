@@ -695,6 +695,9 @@ const Categories: React.FC<CategoriesProps> = ({
         requestLocation={requestLocation}
         handleManualLocationSubmit={handleManualLocationSubmit}
         handleFileSelect={handleFileSelect}
+        // Phase 4: Chunked upload progress props
+        chunkedUploadProgress={uploadProgress}
+        isChunkedUploading={isUploading}
       />
     );
   }
