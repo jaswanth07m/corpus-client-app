@@ -88,8 +88,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
   manualLng,
   setManualLng,
   uploading,
-  token,
-  userId,
   onBack,
   onUpload,
   requestLocation,
@@ -112,7 +110,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [recordedChunks, setRecordedChunks] = useState<BlobPart[]>([]);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
 
   // Multiple file upload states
@@ -120,7 +117,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const videoCaptureRef = useRef<HTMLVideoElement>(null);
   const videoRecordingRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recordingInterval = useRef<NodeJS.Timeout | null>(null);
@@ -268,7 +264,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunks.push(event.data);
-          setRecordedChunks((prev) => [...prev, event.data]);
         }
       };
 
@@ -295,7 +290,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
       setIsRecording(true);
       setIsPaused(false);
       setRecordingTime(0);
-      setRecordedChunks([]);
       toast.success(
         `${type === 'audio' ? 'Audio' : 'Video'} recording started`,
       );
@@ -449,7 +443,6 @@ const ContentInput: React.FC<ContentInputProps> = ({
     setSelectedFile(null);
     setSelectedFiles([]);
     setRecordingTime(0);
-    setRecordedChunks([]);
     setAudioUrl(null);
     setVideoUrl(null);
     if (audioUrl) URL.revokeObjectURL(audioUrl);
