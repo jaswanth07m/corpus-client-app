@@ -99,6 +99,17 @@ const Categories: React.FC<CategoriesProps> = ({
   const [manualLng, setManualLng] = useState('');
   const [userId, setUserId] = useState<string>('');
 
+  // Upload configuration
+  const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB maximum per chunk
+  const MAX_RETRY_ATTEMPTS = 5; // Maximum retry attempts per chunk
+  const RETRY_DELAY_MS = 1000; // Base delay for exponential backoff
+
+  // Upload state management
+  const [uploadUuid, setUploadUuid] = useState<string>('');
+  const [uploadedChunks, setUploadedChunks] = useState<Set<number>>(new Set());
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
   const uploadOptions: UploadOption[] = [
     {
       type: 'text',
@@ -386,7 +397,160 @@ const Categories: React.FC<CategoriesProps> = ({
     }
   };
 
+  // Step 2.1: Create Chunk Upload Function
+  const uploadChunk = async (
+    chunk: Blob,
+    chunkIndex: number,
+    totalChunks: number,
+    uploadUuid: string,
+    filename: string,
+  ): Promise<boolean> => {
+    const maxRetries = MAX_RETRY_ATTEMPTS;
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+      try {
+        const formData = new FormData();
+        formData.append('chunk', chunk);
+        formData.append('filename', filename);
+        formData.append('chunk_index', chunkIndex.toString());
+        formData.append('total_chunks', totalChunks.toString());
+        formData.append('upload_uuid', uploadUuid);
+
+        const response = await fetch(`${BACKEND_URL}/records/upload/chunk`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (response.ok) {
+          return true;
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error(`Upload failed (attempt ${attempt + 1}):`, errorData);
+
+          if (response.status === 401 || response.status === 403) {
+            handleSessionExpiration(
+              'Session expired during upload. Please login again.',
+            );
+            return false;
+          }
+        }
+      } catch (error) {
+        console.error(`Upload error (attempt ${attempt + 1}):`, error);
+      }
+
+      attempt++;
+      if (attempt < maxRetries) {
+        // Exponential backoff
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return false;
+  };
+
+  // Step 2.2: Create Lazy Chunk Reading Function
+  const readChunk = async (file: File, chunkIndex: number): Promise<Blob> => {
+    const start = chunkIndex * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
+    return file.slice(start, end);
+  };
+
+  const getTotalChunks = (file: File): number => {
+    return Math.ceil(file.size / CHUNK_SIZE);
+  };
+
+  // Step 2.3: Create Upload Finalization Function
+  const finalizeUpload = async (uploadUuid: string): Promise<boolean> => {
+    try {
+      const formData = new FormData();
+      formData.append('upload_uuid', uploadUuid);
+      formData.append('title', title);
+      formData.append('category_id', selectedCategory!.id);
+      formData.append('user_id', userId);
+      formData.append('media_type', uploadMode || '');
+      formData.append('latitude', location!.lat.toString());
+      formData.append('longitude', location!.lng.toString());
+      formData.append('use_uid_filename', 'false');
+
+      const response = await fetch(`${BACKEND_URL}/records/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Upload finalized successfully:', result);
+        return true;
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Upload finalization failed:', errorData);
+        return false;
+      }
+    } catch (error) {
+      console.error('Upload finalization error:', error);
+      return false;
+    }
+  };
+
+  // Step 3.2: Implement Lazy Chunk Upload Sequence
+  const uploadChunksSequentially = async (
+    file: File,
+    uploadUuid: string,
+  ): Promise<boolean> => {
+    const totalChunks = getTotalChunks(file);
+    let allChunksSuccessful = true;
+
+    for (let i = 0; i < totalChunks; i++) {
+      // Skip already uploaded chunks
+      if (uploadedChunks.has(i)) {
+        continue;
+      }
+
+      // Read chunk lazily only when needed
+      const chunk = await readChunk(file, i);
+
+      const success = await uploadChunk(
+        chunk,
+        i,
+        totalChunks,
+        uploadUuid,
+        file.name,
+      );
+
+      if (success) {
+        setUploadedChunks((prev) => new Set([...prev, i]));
+        // Update progress state
+        const progress = ((i + 1) / totalChunks) * 100;
+        setUploadProgress(progress);
+      } else {
+        allChunksSuccessful = false;
+        break; // Stop on first failure, allow retry
+      }
+    }
+
+    return allChunksSuccessful;
+  };
+
+  // Reset upload state function
+  const resetUploadState = () => {
+    // Reset Categories component upload state
+    setUploadUuid('');
+    setUploadedChunks(new Set());
+    setUploadProgress(0);
+    setIsUploading(false);
+  };
+
+  // Step 3.1: Modify handleUpload Function
   const handleUpload = async () => {
+    // Validation checks (existing logic)
     if (!selectedCategory || !title.trim()) {
       toast.error('Please provide a title');
       return;
@@ -407,14 +571,13 @@ const Categories: React.FC<CategoriesProps> = ({
       return;
     }
 
-    // For text uploads, create a text file
+    // Prepare file for upload
     let fileToUpload = selectedFile;
     if (uploadMode === 'text') {
       if (!textContent.trim()) {
         toast.error('Please enter text content');
         return;
       }
-      // Create a text file from the content
       const textBlob = new Blob([textContent], { type: 'text/plain' });
       fileToUpload = new File([textBlob], 'text-content.txt', {
         type: 'text/plain',
@@ -424,67 +587,44 @@ const Categories: React.FC<CategoriesProps> = ({
       return;
     }
 
-    setUploading(true);
+    // Initialize upload state
+    const newUploadUuid = uploadUuid || crypto.randomUUID();
+    setUploadUuid(newUploadUuid);
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('category_id', selectedCategory.id);
-      formData.append('user_id', userId);
-      formData.append('media_type', uploadMode || '');
-      formData.append('latitude', location.lat.toString());
-      formData.append('longitude', location.lng.toString());
-      formData.append('use_uid_filename', 'false');
+      // Upload chunks sequentially with lazy reading
+      const success = await uploadChunksSequentially(
+        fileToUpload!,
+        newUploadUuid,
+      );
 
-      if (fileToUpload) {
-        formData.append('file', fileToUpload);
-      }
-
-      // Use the single upload endpoint
-      const endpoint = `${BACKEND_URL}/records/upload`;
-
-      console.log('Uploading to:', endpoint);
-      console.log('Form data entries:');
-      for (const [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Upload successful:', result);
-        toast.success('Content uploaded successfully!');
-        handleBack();
-        posthog.capture('upload_success');
+      if (success) {
+        // Finalize upload
+        const finalized = await finalizeUpload(newUploadUuid);
+        if (finalized) {
+          toast.success('Content uploaded successfully!');
+          resetUploadState();
+          handleBack();
+          posthog.capture('upload_success');
+        } else {
+          toast.error('Upload finalization failed. Please try again.');
+          resetUploadState();
+        }
       } else {
-        posthog.capture('upload_server_error', {
-          status: response.status,
-        });
-        const errorData = await response
-          .json()
-          .catch(() => ({ detail: 'Upload failed' }));
-        console.error('Upload failed:', errorData);
-        toast.error(
-          errorData.detail ||
-            errorData.message ||
-            'Upload failed. Please try again.',
-        );
+        toast.error('Upload failed. Please try again.');
+        resetUploadState();
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Network error. Please check your connection and try again.');
+      resetUploadState();
       posthog.capture('upload_error');
       posthog.captureException(error);
     }
 
-    setUploading(false);
+    setIsUploading(false);
   };
 
   const handleBack = () => {
