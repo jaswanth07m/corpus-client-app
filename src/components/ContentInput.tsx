@@ -551,7 +551,9 @@ const ContentInput: React.FC<ContentInputProps> = ({
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">
-                    Uploading...
+                    {Math.round(chunkedUploadProgress) === 100
+                      ? 'Uploaded. Analyzing your upload...'
+                      : 'Uploading...'}
                   </span>
                   <span className="text-sm text-gray-500">
                     {Math.round(chunkedUploadProgress)}%
