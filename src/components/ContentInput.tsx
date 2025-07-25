@@ -114,6 +114,9 @@ const ContentInput: React.FC<ContentInputProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
+  //title validation
+  const [titleError, setTitleError] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoCaptureRef = useRef<HTMLVideoElement>(null);
   const videoRecordingRef = useRef<HTMLVideoElement>(null);
@@ -594,10 +597,26 @@ const ContentInput: React.FC<ContentInputProps> = ({
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  let title = e.target.value;
+                  if (title.trim().length <= 8) {
+                    setTitleError(true);
+                    console.log("title is invalid ", title.length );
+                  }
+                  else {
+                    console.log("title is valid ", title.length );
+                    setTitleError(false);
+                  }
+                  setTitle(title);
+                }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Enter a title for your content"
               />
+              {titleError && (
+                <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                  *Title should be at least 8 characters
+                </div>
+              )}
             </div>
 
             {/* Location Status */}
@@ -1190,6 +1209,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                   uploading ||
                   uploadingFiles ||
                   !title ||
+                  title.trim().length <= 8 ||
                   !location ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&
