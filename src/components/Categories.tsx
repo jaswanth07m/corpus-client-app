@@ -465,7 +465,15 @@ const Categories: React.FC<CategoriesProps> = ({
   };
 
   // Step 2.3: Create Upload Finalization Function
-  const finalizeUpload = async (uploadUuid: string): Promise<boolean> => {
+  const finalizeUpload = async ({
+    uploadUuid,
+    totalChunks,
+    filename,
+  }: {
+    uploadUuid: string;
+    totalChunks: number;
+    filename: string;
+  }): Promise<boolean> => {
     try {
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
@@ -476,6 +484,8 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('latitude', location!.lat.toString());
       formData.append('longitude', location!.lng.toString());
       formData.append('use_uid_filename', 'false');
+      formData.append('total_chunks', totalChunks.toString());
+      formData.append('filename', filename);
 
       const response = await fetch(`${BACKEND_URL}/records/upload`, {
         method: 'POST',
@@ -601,8 +611,13 @@ const Categories: React.FC<CategoriesProps> = ({
       );
 
       if (success) {
+        const totalChunks = getTotalChunks(fileToUpload!);
         // Finalize upload
-        const finalized = await finalizeUpload(newUploadUuid);
+        const finalized = await finalizeUpload({
+          uploadUuid: newUploadUuid,
+          totalChunks: totalChunks,
+          filename: fileToUpload!.name,
+        });
         if (finalized) {
           toast.success('Content uploaded successfully!');
           resetUploadState();
