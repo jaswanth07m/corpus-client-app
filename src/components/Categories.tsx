@@ -410,7 +410,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
     while (attempt < maxRetries) {
       await new Promise((resolve) =>
-        setTimeout(resolve, attempt * 1.5 ** attempt * 1000),
+        setTimeout(resolve, attempt * 1.1 ** attempt * 1000),
       );
       try {
         const formData = new FormData();
