@@ -526,6 +526,8 @@ const Categories: React.FC<CategoriesProps> = ({
     for (let i = 0; i < totalChunks; i++) {
       // Skip already uploaded chunks
       if (uploadedChunks.has(i)) {
+        const progress = ((i + 1) / totalChunks) * 100;
+        setUploadProgress(progress);
         continue;
       }
 
