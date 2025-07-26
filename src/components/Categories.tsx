@@ -101,7 +101,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
   // Upload configuration
   const CHUNK_SIZE = 5 * 1024 * 1024; // 40MB maximum per chunk
-  const MAX_RETRY_ATTEMPTS = 5; // Maximum retry attempts per chunk
+  const MAX_RETRY_ATTEMPTS = 10; // Maximum retry attempts per chunk
   const RETRY_DELAY_MS = 1000; // Base delay for exponential backoff
 
   // Upload state management
@@ -409,6 +409,9 @@ const Categories: React.FC<CategoriesProps> = ({
     let attempt = 0;
 
     while (attempt < maxRetries) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, attempt * 1.5 ** attempt * 1000),
+      );
       try {
         const formData = new FormData();
         formData.append('chunk', chunk);
