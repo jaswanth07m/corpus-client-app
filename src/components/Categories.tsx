@@ -624,10 +624,12 @@ const Categories: React.FC<CategoriesProps> = ({
           handleBack();
           posthog.capture('upload_success');
         } else {
+          posthog.capture('upload_finalization_failed');
           toast.error('Upload finalization failed. Please try again.');
           resetUploadState();
         }
       } else {
+        posthog.capture('upload_error');
         toast.error('Upload failed. Please try again.');
         resetUploadState();
       }
