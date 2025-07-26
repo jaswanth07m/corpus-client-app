@@ -303,6 +303,7 @@ const Categories: React.FC<CategoriesProps> = ({
   };
 
   const handleUploadOptionSelect = (option: UploadOption) => {
+    resetUploadState();
     setUploadMode(option.type);
     setShowUploadOptions(false);
     if (!locationRequested && !location) {
@@ -392,6 +393,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    resetUploadState();
     if (file) {
       setSelectedFile(file);
     }
@@ -561,6 +563,11 @@ const Categories: React.FC<CategoriesProps> = ({
     setIsUploading(false);
   };
 
+  const partialResetUploadState = () => {
+    setUploadProgress(0);
+    setIsUploading(false);
+  };
+
   // Step 3.1: Modify handleUpload Function
   const handleUpload = async () => {
     // Validation checks (existing logic)
@@ -629,17 +636,17 @@ const Categories: React.FC<CategoriesProps> = ({
         } else {
           posthog.capture('upload_finalization_failed');
           toast.error('Upload finalization failed. Please try again.');
-          resetUploadState();
+          partialResetUploadState();
         }
       } else {
         posthog.capture('upload_error');
         toast.error('Upload failed. Please try again.');
-        resetUploadState();
+        partialResetUploadState();
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Network error. Please check your connection and try again.');
-      resetUploadState();
+      partialResetUploadState();
       posthog.capture('upload_error');
       posthog.captureException(error);
     }
