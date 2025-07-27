@@ -1,4 +1,4 @@
-##  Default Template
+## Default Template
 
 **Description:**
 
@@ -9,7 +9,6 @@ Briefly describe your changes.
 - [ ] Bug Fix
 - [ ] Feature Development
 - [ ] Documentation
-
 
 **Testing:**
 

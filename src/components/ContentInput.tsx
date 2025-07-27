@@ -238,9 +238,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
               },
             };
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(
-        constraints,
-      );
+      const mediaStream =
+        await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
 
       if (type === 'video' && videoRecordingRef.current) {

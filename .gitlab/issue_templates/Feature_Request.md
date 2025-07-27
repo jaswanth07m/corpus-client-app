@@ -34,4 +34,3 @@ _Are there any possible downsides or complications from implementing this?_
 _Links, screenshots, or GitLab issues that this is related to._
 
 ---
-

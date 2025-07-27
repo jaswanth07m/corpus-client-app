@@ -9,4 +9,3 @@ posthog.init('phc_1EenA4y8XyMZm2fe7pYmlovFJ06lSJFiw3XccyJOnPe', {
 });
 
 createRoot(document.getElementById('root')!).render(<App />);
-

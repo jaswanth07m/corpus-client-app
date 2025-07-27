@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -48,7 +47,12 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    --purple-gradient: linear-gradient(135deg, hsl(270, 95%, 75%) 0%, hsl(260, 90%, 70%) 50%, hsl(250, 85%, 65%) 100%);
+    --purple-gradient: linear-gradient(
+      135deg,
+      hsl(270, 95%, 75%) 0%,
+      hsl(260, 90%, 70%) 50%,
+      hsl(250, 85%, 65%) 100%
+    );
     --purple-light: 270 95% 85%;
     --purple-dark: 270 95% 65%;
   }
@@ -91,7 +95,9 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter',
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -101,7 +107,7 @@ All colors MUST be HSL.
   .gradient-purple {
     background: var(--purple-gradient);
   }
-  
+
   .text-gradient {
     background: var(--purple-gradient);
     -webkit-background-clip: text;
@@ -156,7 +162,8 @@ All colors MUST be HSL.
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -182,7 +189,9 @@ All colors MUST be HSL.
 
 /* Smooth transitions for all interactive elements */
 * {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    opacity, box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
@@ -192,7 +201,7 @@ All colors MUST be HSL.
   width: 8px;
 }
 
-::-webkit-scrollbar-Track {
+::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
@@ -275,7 +284,9 @@ All colors MUST be HSL.
   color: #097d03;
 }
 
-.loading, .error, .no-contributions {
+.loading,
+.error,
+.no-contributions {
   text-align: center;
   padding: 2rem;
   color: #666;
@@ -299,7 +310,8 @@ All colors MUST be HSL.
   padding: 1rem;
 }
 
-.load-more-button, .show-less-button {
+.load-more-button,
+.show-less-button {
   padding: 0.75rem 1.5rem;
   background: #007bff;
   color: white;
@@ -314,7 +326,8 @@ All colors MUST be HSL.
   gap: 0.5rem;
 }
 
-.load-more-button:hover, .show-less-button:hover {
+.load-more-button:hover,
+.show-less-button:hover {
   background: #0056b3;
 }
 
@@ -333,8 +346,12 @@ All colors MUST be HSL.
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .show-less-button {

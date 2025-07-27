@@ -6,6 +6,7 @@ _A concise description of the bug._
 ---
 
 **Steps to Reproduce:**
+
 1. Go to '...'
 2. Click on '...'
 3. Scroll down to '...'
@@ -27,6 +28,7 @@ _If applicable, add screenshots or error logs to help explain your problem._
 ---
 
 **Environment:**
+
 - Operating System: `Windows/Linux/macOS`
 - Browser: `Chrome/Firefox/Edge`
 
@@ -36,5 +38,3 @@ _If applicable, add screenshots or error logs to help explain your problem._
 _Add any other context about the problem here._
 
 ---
-
-
