@@ -599,14 +599,8 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 value={title}
                 onChange={(e) => {
                   let title = e.target.value;
-                  if (title.trim().length <= 8) {
-                    setTitleError(true);
-                    console.log("title is invalid ", title.length );
-                  }
-                  else {
-                    console.log("title is valid ", title.length );
-                    setTitleError(false);
-                  }
+                  if (title.trim().length <= 8) setTitleError(true);
+                  else setTitleError(false);
                   setTitle(title);
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
