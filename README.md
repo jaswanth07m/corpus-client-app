@@ -19,10 +19,7 @@ Follow these steps to run the project locally:
    - cd frontend
    
 2. **Install dependencies**
-
-npm install
+   - npm install
 
 3. **Run the development server**
-
->>>>>>> 7d26793faa7b22f23fe7be1527f72618f5f1c6d4
-npm run dev
+   -  npm run dev
