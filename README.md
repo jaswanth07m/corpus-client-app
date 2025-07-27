@@ -1,4 +1,3 @@
-
 # 🌐 Corpus Collection Web App
 
 A responsive website built using React, showcasing Swecha's mission, vision, and activities.
@@ -14,14 +13,13 @@ A responsive website built using React, showcasing Swecha's mission, vision, and
 Follow these steps to run the project locally:
 
 1. **Clone the repository**
-   
    - git clone https://code.swecha.org/corpus/frontend.git
    - cd frontend
 
-   **NOTE**: For Personal Access token please refer the README.md at https://code.swecha.org/developers/devsprints/  
+   **NOTE**: For Personal Access token please refer the README.md at https://code.swecha.org/developers/devsprints/
 
 2. **Install dependencies**
    - npm install
 
 3. **Run the development server**
-   -  npm run dev
+   - npm run dev
