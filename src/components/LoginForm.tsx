@@ -39,8 +39,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   });
   const [minDate, setMinDate] = useState(() => {
     const today = new Date();
-    const eightyYearsAgo = new Date(today.getFullYear() - 80, today.getMonth(), today.getDate());
-    return eightyYearsAgo.toISOString().split('T')[0];
+    const hundredYearsAgo = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+    return hundredYearsAgo.toISOString().split('T')[0];
   });
   const [validatePlace, setValidatePlace] = useState('border-gray-200');
   const [errorPlaceDisplay, setErrorPlaceDisplay] = useState('hidden');
@@ -901,7 +901,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     setErrorPlaceDisplay('hidden');
                   }}
                   onBlur={(e) => {
-                    const placeRegex = /^[A-Za-z\s]+$/;
+                    const placeRegex = /^[A-Za-z\s,]+$/;
                     if (!placeRegex.test(signupData.place.trim())) {
                       setValidatePlace('border-rose-800');
                       setErrorPlaceDisplay('block');
@@ -914,7 +914,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   className={`pl-12 h-14 border-2 ${validatePlace} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                 />
                 <div className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`} >
-                  *Place should have characters only
+                  *Place should have characters ( , is allowed)
                 </div>
               </div>
 
