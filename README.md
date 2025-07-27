@@ -15,9 +15,11 @@ Follow these steps to run the project locally:
 
 1. **Clone the repository**
    
-   - git clone git@code.swecha.org:corpus/frontend.git
+   - git clone https://code.swecha.org/corpus/frontend.git
    - cd frontend
-   
+
+   **NOTE**: For Personal Access token please refer the README.md at https://code.swecha.org/developers/devsprints/  
+
 2. **Install dependencies**
    - npm install
 
