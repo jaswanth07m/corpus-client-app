@@ -60,7 +60,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [formValidationErrors, setFormValidationErrors] = useState(false);
 
   const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('password');
+  const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>(
+    'password',
+  );
   const [phoneDigits, setPhoneDigits] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
@@ -571,9 +573,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   {/* Login with Password */}
                   <div className="font-medium text-gray-800">
-                    No Mobile Nearby ? <button className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200" onClick={() => {
-                      setLoginMethod('password');
-                    }}>Login with Password</button>
+                    No Mobile Nearby ?{' '}
+                    <button
+                      className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
+                      onClick={() => {
+                        setLoginMethod('password');
+                      }}
+                    >
+                      Login with Password
+                    </button>
                   </div>
 
                   <Button
@@ -724,13 +732,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   {/* forgot password ? Login with OTP */}
                   <div className="font-medium text-gray-800">
-                    Forgot Password ? <button className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200" onClick={() => {
-                      setLoginMethod('otp');
-                      setShowOtpInput(false);
-                      setOtp('');
-                      setResendTimer(0);
-                      setCanResend(false);
-                    }}>Login with OTP</button>
+                    Forgot Password ?{' '}
+                    <button
+                      className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
+                      onClick={() => {
+                        setLoginMethod('otp');
+                        setShowOtpInput(false);
+                        setOtp('');
+                        setResendTimer(0);
+                        setCanResend(false);
+                      }}
+                    >
+                      Login with OTP
+                    </button>
                   </div>
 
                   <Button
