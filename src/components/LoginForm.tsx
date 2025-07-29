@@ -60,7 +60,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [formValidationErrors, setFormValidationErrors] = useState(false);
 
   const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>('otp');
+  const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>(
+    'password',
+  );
   const [phoneDigits, setPhoneDigits] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
@@ -525,38 +527,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           {/* LOGIN MODE */}
           {mode === 'login' && (
             <>
-              {/* Login Method Toggle */}
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
-                <Button
-                  variant={loginMethod === 'otp' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${
-                    loginMethod === 'otp'
-                      ? 'gradient-purple text-white shadow-lg'
-                      : 'hover:bg-gray-200 text-gray-700'
-                  }`}
-                  onClick={() => {
-                    setLoginMethod('otp');
-                    setShowOtpInput(false);
-                    setOtp('');
-                    setResendTimer(0);
-                    setCanResend(false);
-                  }}
-                >
-                  Login with OTP
-                </Button>
-                <Button
-                  variant={loginMethod === 'password' ? 'default' : 'ghost'}
-                  className={`flex-1 rounded-lg transition-all duration-300 ${
-                    loginMethod === 'password'
-                      ? 'gradient-purple text-white shadow-lg'
-                      : 'hover:bg-gray-200 text-gray-700'
-                  }`}
-                  onClick={() => setLoginMethod('password')}
-                >
-                  Login with Password
-                </Button>
-              </div>
-
               {/* OTP Login Flow */}
               {loginMethod === 'otp' && !showOtpInput && (
                 <div className="space-y-5 animate-fade-in-up">
@@ -599,6 +569,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     >
                       *Phone number is invalid
                     </div>
+                  </div>
+
+                  {/* Login with Password */}
+                  <div className="font-medium text-gray-800">
+                    No Mobile Nearby ?{' '}
+                    <button
+                      className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
+                      onClick={() => {
+                        setLoginMethod('password');
+                      }}
+                    >
+                      Login with Password
+                    </button>
                   </div>
 
                   <Button
@@ -744,6 +727,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       ) : (
                         <Eye className="h-5 w-5" />
                       )}
+                    </button>
+                  </div>
+
+                  {/* forgot password ? Login with OTP */}
+                  <div className="font-medium text-gray-800">
+                    Forgot Password ?{' '}
+                    <button
+                      className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
+                      onClick={() => {
+                        setLoginMethod('otp');
+                        setShowOtpInput(false);
+                        setOtp('');
+                        setResendTimer(0);
+                        setCanResend(false);
+                      }}
+                    >
+                      Login with OTP
                     </button>
                   </div>
 
