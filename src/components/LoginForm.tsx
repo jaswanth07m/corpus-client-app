@@ -1138,17 +1138,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   className="text-sm text-gray-700 leading-relaxed"
                 >
                   I agree to the{' '}
-                  <a 
+                  <a
                     href="https://swecha.org/terms-and-conditions"
                     className="text-purple-600 hover:text-purple-700 cursor-pointer underline"
-                    target="_blank">
+                    target="_blank"
+                  >
                     Terms of Service
                   </a>{' '}
                   and{' '}
                   <a
                     href="https://swecha.org/privacy-policy"
                     className="text-purple-600 hover:text-purple-700 cursor-pointer underline"
-                    target="_blank">
+                    target="_blank"
+                  >
                     Privacy Policy
                   </a>
                 </label>
