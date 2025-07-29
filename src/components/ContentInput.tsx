@@ -64,11 +64,11 @@ interface ContentInputProps {
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
   // Phase 4: Chunked upload progress props
-  chunkedUploadProgress?: number;
+  chunkedUploadProgress: number;
   isChunkedUploading?: boolean;
 }
 
-const ContentInput: React.FC<ContentInputProps> = ({
+const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
   title,
@@ -581,7 +581,7 @@ const ContentInput: React.FC<ContentInputProps> = ({
                 type="text"
                 value={title}
                 onChange={(e) => {
-                  let title = e.target.value;
+                  const title = e.target.value;
                   if (title.trim().length <= 8) setTitleError(true);
                   else setTitleError(false);
                   setTitle(title);

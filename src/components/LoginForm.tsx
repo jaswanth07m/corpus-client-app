@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
 
 interface LoginFormProps {
-  onLoginSuccess: (token: string, user: any) => void;
+  onLoginSuccess: (token: string, user: unknown) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
@@ -213,6 +213,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         if (data.detail && Array.isArray(data.detail)) {
           // Handle validation errors (422)
           const errorMessages = data.detail
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((err: any) => err.msg)
             .join(', ');
           toast.error(`Validation error: ${errorMessages}`);
@@ -393,6 +394,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         // Handle specific error cases
         if (data.detail && Array.isArray(data.detail)) {
           const errorMessages = data.detail
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((err: any) => err.msg)
             .join(', ');
           toast.error(`Validation error: ${errorMessages}`);

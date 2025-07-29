@@ -1,14 +1,12 @@
 # GitLab CI/CD configuration for corpus-frontend
-# This pipeline includes format checks, linting, and building for the React/Vite project
+# This pipeline includes format checks, linting, TypeScript checking, and building for the React/Vite project
 
 stages:
-  - format
-  - lint
   - build
 
-# Format check job - ensures code is properly formatted
-format-check-job:
-  stage: format
+# Combined job that runs format check, lint check, TypeScript check, and build
+build-job:
+  stage: build
   image: node:18-alpine
   cache:
     paths:
@@ -19,31 +17,15 @@ format-check-job:
     - echo "Checking code formatting with Prettier..."
     - npm run format:check
     - echo "Code formatting check completed successfully."
-
-# Lint check job - ensures code follows linting rules
-lint-check-job:
-  stage: lint
-  image: node:18-alpine
-  cache:
-    paths:
-      - node_modules/
-  before_script:
-    - npm ci
-  script:
+    - echo ""
     - echo "Running ESLint checks..."
     - npm run lint
     - echo "Linting completed successfully."
-
-# Build job - builds the React application
-build-job:
-  stage: build
-  image: node:18-alpine
-  cache:
-    paths:
-      - node_modules/
-  before_script:
-    - npm ci
-  script:
+    - echo ""
+    - echo "Running TypeScript type checks..."
+    - npx tsc --noEmit
+    - echo "TypeScript type checks completed successfully."
+    - echo ""
     - echo "Building the React application..."
     - npm run build
     - echo "Build completed successfully."

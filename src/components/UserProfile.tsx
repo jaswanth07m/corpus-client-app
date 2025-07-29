@@ -594,6 +594,7 @@ const useUserProfile = (
     fetchUserProfile,
     fetchDailyStats,
     fetchUserContributions,
+    userId,
   ]);
 
   return {

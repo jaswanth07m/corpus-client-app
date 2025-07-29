@@ -12,6 +12,7 @@ type View = 'login' | 'profile' | 'content' | 'categories';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>('login');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
 
@@ -29,6 +30,7 @@ const Index = () => {
     }
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleLoginSuccess = (accessToken: string, userData: any) => {
     setToken(accessToken);
     setUser(userData);

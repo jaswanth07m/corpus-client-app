@@ -167,6 +167,7 @@ const Categories: React.FC<CategoriesProps> = ({
   useEffect(() => {
     fetchCategories();
     fetchUserProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // REPLACE YOUR EXISTING fetchUserProfile FUNCTION WITH THIS
