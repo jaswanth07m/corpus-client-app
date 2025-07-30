@@ -1,5 +1,3 @@
-## Default Template
-
 **Description:**
 
 Briefly describe your changes.
@@ -19,6 +17,14 @@ Briefly describe your changes.
 **Screenshots (if applicable):**
 
 _Add screenshots for UI changes._
+
+**Video Demo**
+
+_Add a link to the demo of the PR_ 
+
+If you have used AI create this PR, please also record video of yourself explaining the changes.
+
+_Link to code walkthrough_
 
 **Checklist:**
 
