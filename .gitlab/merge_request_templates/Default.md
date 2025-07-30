@@ -20,7 +20,7 @@ _Add screenshots for UI changes._
 
 **Video Demo**
 
-_Add a link to the demo of the PR_ 
+_Add a link to the demo of the PR_
 
 If you have used AI create this PR, please also record video of yourself explaining the changes.
 
