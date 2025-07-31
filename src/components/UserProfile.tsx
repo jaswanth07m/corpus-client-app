@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
+
 import {
   Eye,
   EyeOff,
@@ -18,8 +19,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
 import { BACKEND_URL } from '@/lib/constants';
+import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
 
-// Types
 interface UserProfile {
   id: string;
   username: string;
@@ -43,6 +44,22 @@ interface DailyStats {
   streak_days: number;
 }
 
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface ContributionItem {
+  id: string;
+  size: number;
+  category_id: string;
+  reviewed: boolean;
+  title: string;
+  duration?: number;
+  timestamp?: string;
+  location?: Coordinates;
+}
+
 interface UserContributions {
   totalContributions: number;
   contributionsByType: {
@@ -51,34 +68,10 @@ interface UserContributions {
     image: number;
     video: number;
   };
-  audioContributions: Array<{
-    id: string;
-    size: number;
-    category_id: string;
-    reviewed: boolean;
-    title: string;
-  }>;
-  videoContributions: Array<{
-    id: string;
-    size: number;
-    category_id: string;
-    reviewed: boolean;
-    title: string;
-  }>;
-  textContributions: Array<{
-    id: string;
-    size: number;
-    category_id: string;
-    reviewed: boolean;
-    title: string;
-  }>;
-  imageContributions: Array<{
-    id: string;
-    size: number;
-    category_id: string;
-    reviewed: boolean;
-    title: string;
-  }>;
+  audioContributions: ContributionItem[];
+  videoContributions: ContributionItem[];
+  textContributions: ContributionItem[];
+  imageContributions: ContributionItem[];
   audioDuration: number;
   videoDuration: number;
 }
@@ -105,7 +98,6 @@ interface UseUserProfileReturn {
   requestExport: () => Promise<void>;
 }
 
-// Custom Hook with Debug Statements
 const useUserProfile = (
   userId?: string,
   shouldReset?: boolean,
@@ -129,13 +121,11 @@ const useUserProfile = (
       setError(null);
       setLoading({ profile: true, stats: true, contributions: true });
 
-      // Clear cached data
       localStorage.removeItem('cachedProfile');
     }
   }, [shouldReset]);
   const [exportData, setExportData] = useState<any>(null);
 
-  // Enhanced token retrieval with debug
   const getAuthToken = useCallback(() => {
     console.log('🔍 Searching for auth token...');
 
@@ -153,7 +143,6 @@ const useUserProfile = (
     let token = null;
     let foundKey = '';
 
-    // Check localStorage first
     for (const key of possibleKeys) {
       const localToken = localStorage.getItem(key);
       if (localToken) {
@@ -163,7 +152,6 @@ const useUserProfile = (
       }
     }
 
-    // Check sessionStorage if not found in localStorage
     if (!token) {
       for (const key of possibleKeys) {
         const sessionToken = sessionStorage.getItem(key);
@@ -190,12 +178,10 @@ const useUserProfile = (
     return token;
   }, []);
 
-  // Enhanced JWT decoding with comprehensive debug
   const decodeUserIdFromToken = useCallback((token: string): string | null => {
     console.log('🔓 Starting JWT token decoding...');
 
     try {
-      // Remove 'Bearer ' prefix if present
       const cleanToken = token.replace(/^Bearer\s+/i, '');
       console.log(`📝 Clean token length: ${cleanToken.length}`);
 
@@ -217,7 +203,6 @@ const useUserProfile = (
       let payload = parts[1];
       console.log(`📦 Raw payload: ${payload}`);
 
-      // Fix base64 padding
       payload = payload.replace(/-/g, '+').replace(/_/g, '/');
       while (payload.length % 4 !== 0) {
         payload += '=';
@@ -232,7 +217,6 @@ const useUserProfile = (
       console.log('🎯 Decoded JWT payload:', payloadObj);
       console.log('🔑 Available fields in token:', Object.keys(payloadObj));
 
-      // Check multiple possible user ID fields
       const possibleFields = [
         'user_id',
         'userId',
@@ -279,7 +263,6 @@ const useUserProfile = (
     }
   }, []);
 
-  // Enhanced user ID retrieval with debug
   const getCurrentUserId = useCallback(() => {
     console.log('🆔 Getting current user ID...');
 
@@ -307,7 +290,6 @@ const useUserProfile = (
     return decodedUserId;
   }, [userId, getAuthToken, decodeUserIdFromToken]);
 
-  // Enhanced profile fetching with debug
   const fetchUserProfile = useCallback(
     async (currentUserId: string) => {
       console.log(`👤 Fetching profile for user ID: ${currentUserId}`);
@@ -368,7 +350,6 @@ const useUserProfile = (
       } catch (err) {
         console.error('💥 Profile fetch error:', err);
 
-        // Try to load from cache
         const cachedProfile = localStorage.getItem('cachedProfile');
         if (cachedProfile) {
           try {
@@ -483,7 +464,6 @@ const useUserProfile = (
         const data = await response.json();
         console.log('📦 Contributions response:', data);
 
-        // Map the API response to your contributions structure
         setContributions({
           totalContributions: data.total_contributions || 0,
           contributionsByType: data.contributions_by_media_type || {
@@ -571,7 +551,6 @@ const useUserProfile = (
     fetchUserContributions,
   ]);
 
-  // Initial data fetch with comprehensive debug
   useEffect(() => {
     console.log('🚀 UserProfile hook initializing...');
     console.log('📋 Hook parameters:', { userId });
@@ -590,11 +569,11 @@ const useUserProfile = (
       setLoading({ profile: false, stats: false, contributions: false });
     }
   }, [
+    userId,
     getCurrentUserId,
     fetchUserProfile,
     fetchDailyStats,
     fetchUserContributions,
-    userId,
   ]);
 
   return {
@@ -609,7 +588,6 @@ const useUserProfile = (
   };
 };
 
-// Main Component (unchanged from your original)
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
   token,
@@ -636,7 +614,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
     'text' | 'audio' | 'video' | 'image'
   >('text');
 
-  // Utility functions
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never';
     try {
@@ -678,7 +655,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const handleExport = () => {
     try {
-      // Prepare the data to export
       const exportData = {
         profile: currentUser,
         contributions: contributions,
@@ -686,27 +662,21 @@ const UserProfile: React.FC<UserProfileProps> = ({
         exportedBy: currentUser?.name || 'Unknown User',
       };
 
-      // Convert to JSON string with formatting
       const fileData = JSON.stringify(exportData, null, 2);
 
-      // Create blob with JSON data
       const blob = new Blob([fileData], { type: 'application/json' });
 
-      // Create download URL
       const url = URL.createObjectURL(blob);
 
-      // Create temporary link element
       const link = document.createElement('a');
       link.download = `profile-data-${
         currentUser?.name?.replace(/\s+/g, '-') || 'user'
       }-${new Date().toISOString().split('T')[0]}.json`;
       link.href = url;
 
-      // Trigger download
       document.body.appendChild(link);
       link.click();
 
-      // Cleanup
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
@@ -719,7 +689,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const handleExportCSV = () => {
     try {
-      // Prepare CSV data
       const csvData = [
         ['Field', 'Value'],
         ['Name', currentUser?.name || ''],
@@ -739,12 +708,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
         ['Total Contributions', contributions?.totalContributions || 0],
       ];
 
-      // Convert to CSV string
       const csvString = csvData
         .map((row) => row.map((field) => `"${field}"`).join(','))
         .join('\n');
 
-      // Create blob and download
       const blob = new Blob([csvString], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -838,7 +805,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
-                onClick={onBack} // or whatever your categories route is
+                onClick={onBack}
                 className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Back to Categories"
               >
@@ -876,6 +843,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               >
                 <Download size={20} />
               </button>
+              {/* Edit Profile Button removed from header, now only in Profile Information section */}
             </div>
           </div>
         </div>
@@ -888,86 +856,87 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </p>
           </div>
         </div>
-        {/* Profile Information */}
+        {/* Profile Information or Edit Form */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Profile Information
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Mail size={16} className="text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Email</p>
-                  <p className="text-sm text-gray-600">
-                    {isEmailRevealed
-                      ? currentUser.email
-                      : maskEmail(currentUser.email)}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={toggleEmailReveal}
-                className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                {isEmailRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Phone size={16} className="text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Phone</p>
-                  <p className="text-sm text-gray-600">
-                    {isPhoneRevealed
-                      ? currentUser.phone
-                      : maskPhone(currentUser.phone)}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={togglePhoneReveal}
-                className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                {isPhoneRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-
-            {currentUser.gender && (
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <User size={16} className="text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Gender</p>
-                  <p className="text-sm text-gray-600">{currentUser.gender}</p>
-                </div>
-              </div>
-            )}
-
-            {currentUser.dateOfBirth && (
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <Calendar size={16} className="text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Date of Birth
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {formatDate(currentUser.dateOfBirth)}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {currentUser.place && (
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <MapPin size={16} className="text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Location</p>
-                  <p className="text-sm text-gray-600">{currentUser.place}</p>
-                </div>
-              </div>
-            )}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-normal text-center w-full p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
+              <span className="font-sans">Profile Information</span>
+            </h2>
           </div>
+
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  key: 'email',
+                  icon: <Mail size={18} className="text-gray-500" />,
+                  title: 'Email',
+                  value: isEmailRevealed
+                    ? currentUser.email
+                    : maskEmail(currentUser.email),
+                  hasButton: true,
+                  buttonAction: toggleEmailReveal,
+                  buttonIcon: isEmailRevealed ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  ),
+                  buttonTitle: 'Reveal Email',
+                },
+                {
+                  key: 'phone',
+                  icon: <Phone size={18} className="text-gray-500" />,
+                  title: 'Phone',
+                  value: isPhoneRevealed
+                    ? currentUser.phone
+                    : maskPhone(currentUser.phone),
+                  hasButton: true,
+                  buttonAction: togglePhoneReveal,
+                  buttonIcon: isPhoneRevealed ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  ),
+                  buttonTitle: 'Reveal Phone',
+                },
+                ...(currentUser.gender
+                  ? [
+                      {
+                        key: 'gender',
+                        icon: <User size={18} className="text-gray-500" />,
+                        title: 'Gender',
+                        value: currentUser.gender,
+                        hasButton: false,
+                      },
+                    ]
+                  : []),
+                ...(currentUser.dateOfBirth
+                  ? [
+                      {
+                        key: 'dateOfBirth',
+                        icon: <Calendar size={18} className="text-gray-500" />,
+                        title: 'Date of Birth',
+                        value: formatDate(currentUser.dateOfBirth),
+                        hasButton: false,
+                      },
+                    ]
+                  : []),
+                ...(currentUser.place
+                  ? [
+                      {
+                        key: 'place',
+                        icon: <MapPin size={18} className="text-gray-500" />,
+                        title: 'Location',
+                        value: currentUser.place,
+                        hasButton: false,
+                      },
+                    ]
+                  : []),
+              ].map((item) => (
+                <ProfileDetail key={item.key} {...item} />
+              ))}
+            </div>
+          </>
         </div>
         {contributions && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -1028,46 +997,29 @@ const UserProfile: React.FC<UserProfileProps> = ({
         )}
         {/* New section for detailed contributions */}
         <div className="detailed-contributions">
-          <h2 className="mt-6 text-2xl font-semibold text-center p-4 bg-gray-100 rounded-lg">
-            My Contributions
+          <h2 className="mt-6 text-2xl font-normal text-center p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
+            <span className="font-sans">MY CONTRIBUTIONS</span>
           </h2>
 
-          {/* Media type selector */}
-          <div className="media-type-selector">
-            <button
-              onClick={() => setSelectedMediaType('text')}
-              className={selectedMediaType === 'text' ? 'active' : ''}
-            >
-              Text
-            </button>
-            <button
-              onClick={() => setSelectedMediaType('audio')}
-              className={selectedMediaType === 'audio' ? 'active' : ''}
-            >
-              Audio
-            </button>
-            <button
-              onClick={() => setSelectedMediaType('video')}
-              className={selectedMediaType === 'video' ? 'active' : ''}
-            >
-              Video
-            </button>
-            <button
-              onClick={() => setSelectedMediaType('image')}
-              className={selectedMediaType === 'image' ? 'active' : ''}
-            >
-              Image
-            </button>
+          {/* Media type selector - improved layout and style */}
+          <div className="flex justify-center gap-4 my-4">
+            {(['text', 'audio', 'video', 'image'] as const).map((type) => (
+              <ContributionTypeButton
+                type={type}
+                selectedMediaType={selectedMediaType}
+                setSelectedMediaType={setSelectedMediaType}
+              />
+            ))}
           </div>
-
-          {/* Display contributions for selected media type */}
-          <UserContributions
-            userId={currentUser.id}
-            mediaType={selectedMediaType}
-            authToken={token}
-          />
+          {/* Modernized display of contributions for selected media type */}
+          <div className="max-w-2xl mx-auto">
+            <ContributionsList
+              contributions={contributions}
+              selectedMediaType={selectedMediaType}
+            />
+          </div>
         </div>
-        {/* Account Information */}{' '}
+        {/* Account Information */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Account Information
@@ -1130,5 +1082,209 @@ const UserProfile: React.FC<UserProfileProps> = ({
     </div>
   );
 };
+
+const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+function ContributionTypeButton({
+  type,
+  selectedMediaType,
+  setSelectedMediaType,
+}: {
+  type: 'text' | 'audio' | 'video' | 'image';
+  selectedMediaType: 'text' | 'audio' | 'video' | 'image';
+  setSelectedMediaType: (type: 'text' | 'audio' | 'video' | 'image') => void;
+}) {
+  return (
+    <button
+      key={type}
+      onClick={() => setSelectedMediaType(type)}
+      className={`px-4 py-2 rounded-lg font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400
+        ${
+          selectedMediaType === type
+            ? 'bg-blue-600 text-white border-blue-600'
+            : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+        }`}
+    >
+      {capitalize(type)}
+    </button>
+  );
+}
+
+interface ContributionsListProps {
+  contributions: UserContributions | null;
+  selectedMediaType: 'text' | 'audio' | 'video' | 'image';
+}
+
+const ContributionsList: React.FC<ContributionsListProps> = ({
+  contributions,
+  selectedMediaType,
+}) => {
+  let items: ContributionItem[] = [];
+  if (!contributions) return null;
+  if (selectedMediaType === 'text') items = contributions.textContributions;
+  if (selectedMediaType === 'audio') items = contributions.audioContributions;
+  if (selectedMediaType === 'video') items = contributions.videoContributions;
+  if (selectedMediaType === 'image') items = contributions.imageContributions;
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="text-center text-gray-400 py-8 text-lg font-medium">
+        No{' '}
+        {selectedMediaType.charAt(0).toUpperCase() + selectedMediaType.slice(1)}{' '}
+        contributions yet.
+      </div>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-gray-200">
+      {items.map((item, idx) => (
+        <li
+          key={item.id || idx}
+          className="flex flex-col md:flex-row md:items-center justify-between py-4 px-2 hover:bg-gray-50 rounded-lg transition group"
+        >
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
+                  ${selectedMediaType === 'text' && 'bg-blue-100 text-blue-700'}
+                  ${selectedMediaType === 'audio' && 'bg-green-100 text-green-700'}
+                  ${selectedMediaType === 'video' && 'bg-purple-100 text-purple-700'}
+                  ${selectedMediaType === 'image' && 'bg-orange-100 text-orange-700'}
+                `}
+              >
+                {capitalize(selectedMediaType)}
+              </span>
+              <span className="ml-2 text-base font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                {item.title || 'Untitled'}
+              </span>
+              {item.reviewed && (
+                <span className="ml-2 px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-xs font-bold uppercase tracking-wide">
+                  Reviewed
+                </span>
+              )}
+            </div>
+            <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
+              <span className="flex flex-row flex-wrap gap-2 w-full">
+                <span
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[24ch] max-w-full overflow-x-auto italic shadow-none"
+                  title={
+                    item.timestamp
+                      ? new Date(item.timestamp).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })
+                      : '-'
+                  }
+                >
+                  <span className="font-semibold mr-1 italic">Timestamp:</span>{' '}
+                  {item.timestamp
+                    ? new Date(item.timestamp).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })
+                    : '-'}
+                </span>
+                <span
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[18ch] max-w-full overflow-x-auto italic shadow-none"
+                  title={
+                    item.location &&
+                    typeof item.location.latitude === 'number' &&
+                    typeof item.location.longitude === 'number'
+                      ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                      : '-'
+                  }
+                >
+                  <span className="font-semibold mr-1 italic">Location:</span>{' '}
+                  {item.location &&
+                  typeof item.location.latitude === 'number' &&
+                  typeof item.location.longitude === 'number'
+                    ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                    : '-'}
+                </span>
+                {/* Size badge */}
+                <span
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
+                  style={{
+                    display: 'inline-flex',
+                    minWidth: '60px',
+                    fontStyle: 'italic',
+                    borderWidth: '1px',
+                    boxShadow: 'none',
+                    background: 'rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <span className="font-semibold mr-1 italic">Size:</span>{' '}
+                  {item.size ? formatSizeMB(item.size) : '-'}
+                </span>
+                {/* Duration badge */}
+                {selectedMediaType === 'audio' ||
+                selectedMediaType === 'video' ? (
+                  <span
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
+                    style={{
+                      display: 'inline-flex',
+                      minWidth: '60px',
+                      fontStyle: 'italic',
+                      borderWidth: '1px',
+                      boxShadow: 'none',
+                      background: 'rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    <span className="font-semibold mr-1 italic">Duration:</span>{' '}
+                    {item.duration ? formatDuration(item.duration) : '-'}
+                  </span>
+                ) : null}
+              </span>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+function ProfileDetail(item: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  hasButton: boolean;
+  buttonAction?: () => void;
+  buttonTitle?: string;
+  buttonIcon?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-sm border border-gray-200">
+      <div className="flex items-center space-x-3">
+        {item.icon}
+        <div>
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+            {item.title}
+          </p>
+          <p className="text-base text-gray-800 font-mono">{item.value}</p>
+        </div>
+      </div>
+      {item.hasButton && (
+        <button
+          onClick={item.buttonAction}
+          className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+          title={item.buttonTitle}
+        >
+          {item.buttonIcon}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default UserProfile;
