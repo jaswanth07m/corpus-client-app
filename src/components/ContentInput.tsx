@@ -58,8 +58,12 @@ interface ContentInputProps {
   uploading: boolean;
   token: string;
   userId: string;
+  description: string; // Added
+  setDescription: (description: string) => void; // Added
+  descriptionError: boolean; // Added
+  setDescriptionError: (error: boolean) => void; // Added
   onBack: () => void;
-  onUpload: (file: File) => Promise<void>;
+  onUpload: (file: File, description: string) => Promise<void>; // Modified: Added description parameter
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -116,8 +120,10 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
-  //title validation
+  // Title and Description validation
   const [titleError, setTitleError] = useState(false);
+  const [description, setDescription] = useState(''); // New state for description
+  const [descriptionError, setDescriptionError] = useState(false); // New state for description error
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoRecordingRef = useRef<HTMLVideoElement>(null);
@@ -492,7 +498,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       const file = selectedFiles[i];
 
       try {
-        await onUpload(file); // ✅ file passed directly
+        await onUpload(file, description); // Modified: Pass description
       } catch (err) {
         console.error('Upload failed for', file.name, err);
         toast.error(`Upload failed: ${file.name}`);
@@ -592,6 +598,29 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               {titleError && (
                 <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
                   *Title should be at least 8 characters
+                </div>
+              )}
+            </div>
+
+            {/* Description Input */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description *
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => {
+                  const desc = e.target.value;
+                  if (desc.trim().length < 32) setDescriptionError(true);
+                  else setDescriptionError(false);
+                  setDescription(desc);
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
+                placeholder="Provide a detailed description (minimum 32 characters)"
+              />
+              {descriptionError && (
+                <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                  *Description must be at least 32 characters
                 </div>
               )}
             </div>
@@ -1195,6 +1224,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   uploadingFiles ||
                   !title ||
                   title.trim().length <= 8 ||
+                  !description || // Added description validation
+                  description.trim().length < 32 || // Added description length validation
                   !location ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&

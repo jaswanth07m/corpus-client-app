@@ -98,6 +98,8 @@ const Categories: React.FC<CategoriesProps> = ({
   const [manualLat, setManualLat] = useState('');
   const [manualLng, setManualLng] = useState('');
   const [userId, setUserId] = useState<string>('');
+  const [description, setDescription] = useState(''); // New state for description
+  const [descriptionError, setDescriptionError] = useState(false); // New state for description error
 
   // Upload configuration
   const CHUNK_SIZE = 5 * 1024 * 1024; // 40MB maximum per chunk
@@ -484,6 +486,7 @@ const Categories: React.FC<CategoriesProps> = ({
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
       formData.append('title', title);
+      formData.append('description', description); // Added description
       formData.append('category_id', selectedCategory!.id);
       formData.append('user_id', userId);
       formData.append('media_type', uploadMode || '');
@@ -720,6 +723,10 @@ const Categories: React.FC<CategoriesProps> = ({
         uploading={uploading}
         token={token}
         userId={userId}
+        description={description} // Pass description
+        setDescription={setDescription} // Pass setDescription
+        descriptionError={descriptionError} // Pass descriptionError
+        setDescriptionError={setDescriptionError} // Pass setDescriptionError
         onBack={handleBack}
         onUpload={handleUpload}
         requestLocation={requestLocation}
