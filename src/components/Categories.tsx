@@ -99,6 +99,10 @@ const Categories: React.FC<CategoriesProps> = ({
   const [manualLng, setManualLng] = useState('');
   const [userId, setUserId] = useState<string>('');
 
+  // releaseRights
+  const [releaseRights, setreleaseRights] = useState('');
+  const [internetSourceError, setInternetSourceError] = useState('');
+
   // Upload configuration
   const CHUNK_SIZE = 5 * 1024 * 1024; // 40MB maximum per chunk
   const MAX_RETRY_ATTEMPTS = 5; // Maximum retry attempts per chunk
@@ -594,6 +598,17 @@ const Categories: React.FC<CategoriesProps> = ({
       return;
     }
 
+    if (!releaseRights) {
+      toast.error('Release Rights not found. Check for release rights');
+      return;
+    }
+
+    if (releaseRights == 'internet') {
+      toast.error(
+        'Upload any works created by you or you can upload works of your family members/friends with their permission.',
+      );
+    }
+
     // Prepare file for upload
     let fileToUpload = selectedFile;
     if (uploadMode === 'text') {
@@ -728,6 +743,10 @@ const Categories: React.FC<CategoriesProps> = ({
         // Phase 4: Chunked upload progress props
         chunkedUploadProgress={uploadProgress}
         isChunkedUploading={isUploading}
+        releaseRights={releaseRights}
+        setreleaseRights={setreleaseRights}
+        internetSourceError={internetSourceError}
+        setInternetSourceError={setInternetSourceError}
       />
     );
   }

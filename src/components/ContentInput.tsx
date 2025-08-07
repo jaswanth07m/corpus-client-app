@@ -66,6 +66,12 @@ interface ContentInputProps {
   // Phase 4: Chunked upload progress props
   chunkedUploadProgress: number;
   isChunkedUploading?: boolean;
+
+  // Release Rights
+  releaseRights: string;
+  setreleaseRights: (releaseRights: string) => void;
+  internetSourceError: string;
+  setInternetSourceError: (internetSourceError: string) => void;
 }
 
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
@@ -88,6 +94,14 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   manualLng,
   setManualLng,
   uploading,
+
+  //release rights
+
+  releaseRights,
+  setreleaseRights,
+  internetSourceError,
+  setInternetSourceError,
+
   onBack,
   onUpload,
   requestLocation,
@@ -118,11 +132,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
   //title validation
   const [titleError, setTitleError] = useState(false);
-
-  // Add this state at the top of your component
-  const [corpusSource, setCorpusSource] = React.useState<string>('');
-  const [internetSourceError, setInternetSourceError] =
-    React.useState<string>('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoRecordingRef = useRef<HTMLVideoElement>(null);
@@ -1191,49 +1200,55 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
-            {/* How was the corpus collected? */}
+            {/* Release Rights */}
             <div className="mb-6">
-              <label className="block font-medium mb-2">
-                How was the corpus collected? *
-              </label>
+              <label className="block font-medium mb-2">Release Rights *</label>
               <div className="flex flex-col gap-2">
                 <label>
                   <input
-                    type="checkbox"
-                    checked={corpusSource === 'recorded'}
-                    required
+                    type="radio"
+                    name="releaseRight_Options"
+                    checked={releaseRights === 'recorded'}
                     onChange={() => {
-                      setCorpusSource('recorded');
-                      setInternetSourceError('');
-                    }}
-                  />
-                  <span className="ml-2">Recorded by me at the source</span>
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={corpusSource === 'collected'}
-                    onChange={() => {
-                      setCorpusSource('collected');
+                      setreleaseRights('recorded');
                       setInternetSourceError('');
                     }}
                   />
                   <span className="ml-2">
-                    Collected directly from friends/family/neighbours/relatives.
+                    This work is created by me and anyone is free to use it.
                   </span>
                 </label>
                 <label>
                   <input
-                    type="checkbox"
-                    checked={corpusSource === 'internet'}
+                    type="radio"
+                    name="releaseRight_Options"
+                    checked={releaseRights === 'collected'}
                     onChange={() => {
-                      setCorpusSource('internet');
+                      setreleaseRights('collected');
+                      setInternetSourceError('');
+                    }}
+                  />
+                  <span className="ml-2">
+                    This work is created by my family/friends and I took
+                    permission to upload their work.
+                  </span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="releaseRight_Options"
+                    checked={releaseRights === 'internet'}
+                    onChange={() => {
+                      setreleaseRights('internet');
                       setInternetSourceError(
-                        'Data sourced from Internet cannot be uploaded.',
+                        'Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.',
                       );
                     }}
                   />
-                  <span className="ml-2">From internet</span>
+                  <span className="ml-2">
+                    I downloaded this from the internet and/or I don't know if
+                    it is free to share.
+                  </span>
                 </label>
               </div>
               {internetSourceError && (
@@ -1253,8 +1268,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   !title ||
                   title.trim().length <= 8 ||
                   !location ||
-                  !corpusSource ||
-                  corpusSource == 'internet' ||
+                  !releaseRights ||
+                  releaseRights == 'internet' ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&
                     !selectedFile &&
