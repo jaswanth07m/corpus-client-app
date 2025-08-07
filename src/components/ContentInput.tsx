@@ -70,8 +70,6 @@ interface ContentInputProps {
   // Release Rights
   releaseRights: string;
   setreleaseRights: (releaseRights: string) => void;
-  internetSourceError: string;
-  setInternetSourceError: (internetSourceError: string) => void;
 }
 
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
@@ -99,8 +97,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
   releaseRights,
   setreleaseRights,
-  internetSourceError,
-  setInternetSourceError,
 
   onBack,
   onUpload,
@@ -1211,7 +1207,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     checked={releaseRights === 'recorded'}
                     onChange={() => {
                       setreleaseRights('recorded');
-                      setInternetSourceError('');
                     }}
                   />
                   <span className="ml-2">
@@ -1225,7 +1220,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     checked={releaseRights === 'collected'}
                     onChange={() => {
                       setreleaseRights('collected');
-                      setInternetSourceError('');
                     }}
                   />
                   <span className="ml-2">
@@ -1240,7 +1234,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     checked={releaseRights === 'internet'}
                     onChange={() => {
                       setreleaseRights('internet');
-                      setInternetSourceError(
+                      toast.error(
                         'Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.',
                       );
                     }}
@@ -1251,11 +1245,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   </span>
                 </label>
               </div>
-              {internetSourceError && (
-                <div className="text-red-600 mt-2 font-medium">
-                  {internetSourceError}
-                </div>
-              )}
             </div>
 
             {/* Submit Button */}

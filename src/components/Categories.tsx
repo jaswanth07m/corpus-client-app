@@ -101,7 +101,6 @@ const Categories: React.FC<CategoriesProps> = ({
 
   // releaseRights
   const [releaseRights, setreleaseRights] = useState('');
-  const [internetSourceError, setInternetSourceError] = useState('');
 
   // Upload configuration
   const CHUNK_SIZE = 5 * 1024 * 1024; // 40MB maximum per chunk
@@ -745,8 +744,6 @@ const Categories: React.FC<CategoriesProps> = ({
         isChunkedUploading={isUploading}
         releaseRights={releaseRights}
         setreleaseRights={setreleaseRights}
-        internetSourceError={internetSourceError}
-        setInternetSourceError={setInternetSourceError}
       />
     );
   }

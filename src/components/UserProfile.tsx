@@ -58,7 +58,7 @@ interface ContributionItem {
   duration?: number;
   timestamp?: string;
   location?: Coordinates;
-  releaseRights: string;
+  release_rights: string;
 }
 
 interface UserContributions {
@@ -1246,10 +1246,10 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     {item.duration ? formatDuration(item.duration) : '-'}
                   </span>
                 ) : null}
-                {/* Display releaseRights directly from the data */}
+                {/* Display release_rights directly from the data */}
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
                   <span className="font-semibold mr-1 italic">Rights:</span>{' '}
-                  {item.releaseRights || 'N/A'}
+                  {item.release_rights || 'N/A'}
                 </span>
               </span>
             </div>
