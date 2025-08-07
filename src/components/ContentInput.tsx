@@ -119,6 +119,11 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   //title validation
   const [titleError, setTitleError] = useState(false);
 
+  // Add this state at the top of your component
+  const [corpusSource, setCorpusSource] = React.useState<string>('');
+  const [internetSourceError, setInternetSourceError] =
+    React.useState<string>('');
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoRecordingRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1186,6 +1191,58 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
+            {/* How was the corpus collected? */}
+            <div className="mb-6">
+              <label className="block font-medium mb-2">
+                How was the corpus collected? *
+              </label>
+              <div className="flex flex-col gap-2">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={corpusSource === 'recorded'}
+                    required
+                    onChange={() => {
+                      setCorpusSource('recorded');
+                      setInternetSourceError('');
+                    }}
+                  />
+                  <span className="ml-2">Recorded by me at the source</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={corpusSource === 'collected'}
+                    onChange={() => {
+                      setCorpusSource('collected');
+                      setInternetSourceError('');
+                    }}
+                  />
+                  <span className="ml-2">
+                    Collected directly from friends/family/neighbours/relatives.
+                  </span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={corpusSource === 'internet'}
+                    onChange={() => {
+                      setCorpusSource('internet');
+                      setInternetSourceError(
+                        'Data sourced from Internet cannot be uploaded.',
+                      );
+                    }}
+                  />
+                  <span className="ml-2">From internet</span>
+                </label>
+              </div>
+              {internetSourceError && (
+                <div className="text-red-600 mt-2 font-medium">
+                  {internetSourceError}
+                </div>
+              )}
+            </div>
+
             {/* Submit Button */}
             <div className="flex justify-center pt-6">
               <Button
@@ -1196,6 +1253,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   !title ||
                   title.trim().length <= 8 ||
                   !location ||
+                  !corpusSource ||
+                  corpusSource == 'internet' ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&
                     !selectedFile &&
