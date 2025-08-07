@@ -70,6 +70,10 @@ interface ContentInputProps {
   // Phase 4: Chunked upload progress props
   chunkedUploadProgress: number;
   isChunkedUploading?: boolean;
+
+  // Release Rights
+  releaseRights: string;
+  setreleaseRights: (releaseRights: string) => void;
 }
 
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
@@ -92,6 +96,12 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   manualLng,
   setManualLng,
   uploading,
+
+  //release rights
+
+  releaseRights,
+  setreleaseRights,
+
   onBack,
   onUpload,
   requestLocation,
@@ -1215,6 +1225,57 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
+            {/* Release Rights */}
+            <div className="mb-6">
+              <label className="block font-medium mb-2">Release Rights *</label>
+              <div className="flex flex-col gap-2">
+                <label>
+                  <input
+                    type="radio"
+                    name="releaseRight_Options"
+                    checked={releaseRights === 'recorded'}
+                    onChange={() => {
+                      setreleaseRights('recorded');
+                    }}
+                  />
+                  <span className="ml-2">
+                    This work is created by me and anyone is free to use it.
+                  </span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="releaseRight_Options"
+                    checked={releaseRights === 'collected'}
+                    onChange={() => {
+                      setreleaseRights('collected');
+                    }}
+                  />
+                  <span className="ml-2">
+                    This work is created by my family/friends and I took
+                    permission to upload their work.
+                  </span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="releaseRight_Options"
+                    checked={releaseRights === 'internet'}
+                    onChange={() => {
+                      setreleaseRights('internet');
+                      toast.error(
+                        'Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.',
+                      );
+                    }}
+                  />
+                  <span className="ml-2">
+                    I downloaded this from the internet and/or I don't know if
+                    it is free to share.
+                  </span>
+                </label>
+              </div>
+            </div>
+
             {/* Submit Button */}
             <div className="flex justify-center pt-6">
               <Button
@@ -1227,6 +1288,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   !description || // Added description validation
                   description.trim().length < 32 || // Added description length validation
                   !location ||
+                  !releaseRights ||
+                  releaseRights == 'internet' ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&
                     !selectedFile &&
