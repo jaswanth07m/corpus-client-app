@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
 
 import {
@@ -16,643 +15,35 @@ import {
   Award,
   ArrowLeft,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import UserContributions from './UserContributions';
-import { BACKEND_URL } from '@/lib/constants';
-import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
 
-interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  phone: string;
-  name: string;
-  gender?: string;
-  dateOfBirth?: string;
-  place?: string;
-  isActive: boolean;
-  hasGivenConsent: boolean;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginAt?: string;
-}
-
-interface DailyStats {
-  uploads_today: number;
-  total_uploads: number;
-  last_upload_date: string;
-  streak_days: number;
-}
-
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
-interface ContributionItem {
-  id: string;
-  size: number;
-  category_id: string;
-  reviewed: boolean;
-  title: string;
-  duration?: number;
-  timestamp?: string;
-  location?: Coordinates;
-  release_rights: string;
-}
-
-interface UserContributions {
-  totalContributions: number;
-  contributionsByType: {
-    text: number;
-    audio: number;
-    image: number;
-    video: number;
-  };
-  audioContributions: ContributionItem[];
-  videoContributions: ContributionItem[];
-  textContributions: ContributionItem[];
-  imageContributions: ContributionItem[];
-  audioDuration: number;
-  videoDuration: number;
-}
-
+import { useUserProfile } from './UserProfile/hooks/useUserProfile';
+import { ContributionsList } from './UserProfile/components/ContributionsList';
+import { ProfileDetail } from './UserProfile/components/ProfileDetail';
+import { ContributionTypeButton } from './UserProfile/components/ContributionTypeButton';
+import { MediaType } from './UserProfile/types';
+import {
+  formatDate,
+  getInitials,
+  maskEmail,
+  maskPhone,
+} from './UserProfile/utils';
 interface UserProfileProps {
-  user: any;
-  token: string;
-  onLogout: () => void;
   onBack: () => void;
 }
 
-interface UseUserProfileReturn {
-  profile: UserProfile | null;
-  dailyStats: DailyStats | null;
-  contributions: UserContributions | null;
-  loading: {
-    profile: boolean;
-    stats: boolean;
-    contributions: boolean;
-  };
-  error: string | null;
-  refetch: () => void;
-  exportData: any;
-  requestExport: () => Promise<void>;
-}
-
-const useUserProfile = (
-  userId?: string,
-  shouldReset?: boolean,
-): UseUserProfileReturn => {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
-  const [contributions, setContributions] = useState<UserContributions | null>(
-    null,
-  );
-  const [loading, setLoading] = useState({
-    profile: true,
-    stats: true,
-    contributions: true,
-  });
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (shouldReset) {
-      console.log('🔄 Resetting profile data...');
-      setProfile(null);
-      setContributions(null);
-      setError(null);
-      setLoading({ profile: true, stats: true, contributions: true });
-
-      localStorage.removeItem('cachedProfile');
-    }
-  }, [shouldReset]);
-  const [exportData, setExportData] = useState<any>(null);
-
-  const getAuthToken = useCallback(() => {
-    console.log('🔍 Searching for auth token...');
-
-    const possibleKeys = [
-      'authToken',
-      'token',
-      'access_token',
-      'accessToken',
-      'jwt',
-      'jwtToken',
-      'authorization',
-      'bearer',
-    ];
-
-    let token = null;
-    let foundKey = '';
-
-    for (const key of possibleKeys) {
-      const localToken = localStorage.getItem(key);
-      if (localToken) {
-        token = localToken;
-        foundKey = `localStorage.${key}`;
-        break;
-      }
-    }
-
-    if (!token) {
-      for (const key of possibleKeys) {
-        const sessionToken = sessionStorage.getItem(key);
-        if (sessionToken) {
-          token = sessionToken;
-          foundKey = `sessionStorage.${key}`;
-          break;
-        }
-      }
-    }
-
-    if (token) {
-      console.log(`✅ Token found in: ${foundKey}`);
-      console.log(`📝 Token preview: ${token.substring(0, 50)}...`);
-    } else {
-      console.log('❌ No token found in storage');
-      console.log('🔍 Available localStorage keys:', Object.keys(localStorage));
-      console.log(
-        '🔍 Available sessionStorage keys:',
-        Object.keys(sessionStorage),
-      );
-    }
-
-    return token;
-  }, []);
-
-  const decodeUserIdFromToken = useCallback((token: string): string | null => {
-    console.log('🔓 Starting JWT token decoding...');
-
-    try {
-      const cleanToken = token.replace(/^Bearer\s+/i, '');
-      console.log(`📝 Clean token length: ${cleanToken.length}`);
-
-      const parts = cleanToken.split('.');
-      console.log(`🔧 JWT parts count: ${parts.length}`);
-
-      if (parts.length !== 3) {
-        console.error(
-          '❌ Invalid JWT format - should have 3 parts separated by dots',
-        );
-        return null;
-      }
-
-      console.log(
-        '📋 JWT parts lengths:',
-        parts.map((p) => p.length),
-      );
-
-      let payload = parts[1];
-      console.log(`📦 Raw payload: ${payload}`);
-
-      payload = payload.replace(/-/g, '+').replace(/_/g, '/');
-      while (payload.length % 4 !== 0) {
-        payload += '=';
-      }
-
-      console.log(`🔧 Padded payload: ${payload}`);
-
-      const decodedBytes = atob(payload);
-      console.log(`📄 Decoded bytes length: ${decodedBytes.length}`);
-
-      const payloadObj = JSON.parse(decodedBytes);
-      console.log('🎯 Decoded JWT payload:', payloadObj);
-      console.log('🔑 Available fields in token:', Object.keys(payloadObj));
-
-      const possibleFields = [
-        'user_id',
-        'userId',
-        'sub',
-        'id',
-        'uid',
-        'user',
-        'user_pk',
-        'pk',
-        'user_id_pk',
-        'userID',
-        'USER_ID',
-        'username',
-        'email',
-        'user_name',
-      ];
-
-      console.log('🔍 Checking for user ID in fields:', possibleFields);
-
-      for (const field of possibleFields) {
-        if (payloadObj[field]) {
-          console.log(
-            `✅ Found user ID in field '${field}':`,
-            payloadObj[field],
-          );
-          return payloadObj[field].toString();
-        }
-      }
-
-      console.log('❌ No user ID found in any expected field');
-      console.log(
-        '💡 Try checking these available fields manually:',
-        Object.keys(payloadObj),
-      );
-
-      return null;
-    } catch (error) {
-      console.error('💥 Token decoding error:', error);
-      console.error('🔍 Error details:', {
-        message: error.message,
-        stack: error.stack,
-      });
-      return null;
-    }
-  }, []);
-
-  const getCurrentUserId = useCallback(() => {
-    console.log('🆔 Getting current user ID...');
-
-    if (userId) {
-      console.log(`✅ Using provided userId: ${userId}`);
-      return userId;
-    }
-
-    console.log('🔍 No userId provided, attempting to decode from token...');
-    const token = getAuthToken();
-
-    if (!token) {
-      console.log('❌ No token available for decoding');
-      return null;
-    }
-
-    const decodedUserId = decodeUserIdFromToken(token);
-
-    if (decodedUserId) {
-      console.log(`✅ Successfully decoded user ID: ${decodedUserId}`);
-    } else {
-      console.log('❌ Failed to decode user ID from token');
-    }
-
-    return decodedUserId;
-  }, [userId, getAuthToken, decodeUserIdFromToken]);
-
-  const fetchUserProfile = useCallback(
-    async (currentUserId: string) => {
-      console.log(`👤 Fetching profile for user ID: ${currentUserId}`);
-      setLoading((prev) => ({ ...prev, profile: true }));
-
-      try {
-        const token = getAuthToken();
-        if (!token) {
-          throw new Error('No authentication token available');
-        }
-
-        const apiUrl = BACKEND_URL + '/auth/me';
-        console.log(`🌐 Making API call to: ${apiUrl}`);
-
-        const response = await fetch(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        console.log(`📡 API Response status: ${response.status}`);
-        console.log(
-          `📡 API Response headers:`,
-          Object.fromEntries(response.headers.entries()),
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch profile: ${response.status} ${response.statusText}`,
-          );
-        }
-
-        const userData = await response.json();
-        console.log('📦 Profile API response:', userData);
-
-        console.log('✅ Profile data received:', userData);
-
-        const profileData = {
-          id: userData.id || currentUserId,
-          username: userData.username || '',
-          email: userData.email || '',
-          phone: userData.phone || '',
-          name: userData.name || userData.username || '',
-          gender: userData.gender,
-          dateOfBirth: userData.date_of_birth,
-          place: userData.place,
-          isActive: userData.is_active !== false,
-          hasGivenConsent: userData.has_given_consent === true,
-          createdAt: userData.created_at || '',
-          updatedAt: userData.updated_at || '',
-          lastLoginAt: userData.last_login_at,
-        };
-
-        setProfile(profileData);
-        localStorage.setItem('cachedProfile', JSON.stringify(userData));
-        console.log('💾 Profile cached successfully');
-      } catch (err) {
-        console.error('💥 Profile fetch error:', err);
-
-        const cachedProfile = localStorage.getItem('cachedProfile');
-        if (cachedProfile) {
-          try {
-            console.log('🔄 Loading profile from cache...');
-            const userData = JSON.parse(cachedProfile);
-            setProfile({
-              id: userData.id || currentUserId,
-              username: userData.username || '',
-              email: userData.email || '',
-              phone: userData.phone || '',
-              name: userData.name || userData.username || '',
-              gender: userData.gender,
-              dateOfBirth: userData.date_of_birth,
-              place: userData.place,
-              isActive: userData.is_active !== false,
-              hasGivenConsent: userData.has_given_consent === true,
-              createdAt: userData.created_at || '',
-              updatedAt: userData.updated_at || '',
-              lastLoginAt: userData.last_login_at,
-            });
-            console.log('✅ Profile loaded from cache');
-          } catch (cacheError) {
-            console.error('💥 Cache loading error:', cacheError);
-            setError('Failed to load profile data');
-          }
-        } else {
-          console.log('❌ No cached profile available');
-          setError(
-            err instanceof Error ? err.message : 'Failed to fetch profile',
-          );
-        }
-      } finally {
-        setLoading((prev) => ({ ...prev, profile: false }));
-      }
-    },
-    [getAuthToken],
-  );
-
-  const fetchDailyStats = useCallback(
-    async (currentUserId: string) => {
-      console.log(`📊 Fetching daily stats for user ID: ${currentUserId}`);
-      setLoading((prev) => ({ ...prev, stats: true }));
-
-      try {
-        const token = getAuthToken();
-        const response = await fetch(BACKEND_URL + `/users/${currentUserId}/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        console.log(`📡 Daily stats API response status: ${response.status}`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch daily stats: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('📦 Daily stats response:', data);
-
-        if (data.success) {
-          setDailyStats({
-            uploads_today: data.data.uploads_today || 0,
-            total_uploads: data.data.total_uploads || 0,
-            last_upload_date: data.data.last_upload_date || '',
-            streak_days: data.data.streak_days || 0,
-          });
-          console.log('✅ Daily stats loaded successfully');
-        }
-      } catch (err) {
-        console.error('💥 Daily stats fetch error:', err);
-        setDailyStats({
-          uploads_today: 0,
-          total_uploads: 0,
-          last_upload_date: '',
-          streak_days: 0,
-        });
-      } finally {
-        setLoading((prev) => ({ ...prev, stats: false }));
-      }
-    },
-    [getAuthToken],
-  );
-
-  const fetchUserContributions = useCallback(
-    async (currentUserId: string) => {
-      console.log(`🏆 Fetching contributions for user ID: ${currentUserId}`);
-      setLoading((prev) => ({ ...prev, contributions: true }));
-
-      try {
-        const token = getAuthToken();
-        const baseUrl = BACKEND_URL;
-        const apiUrl = `${baseUrl}/users/${currentUserId}/contributions`;
-
-        console.log(`🌐 Making contributions API call to: ${apiUrl}`);
-
-        const response = await fetch(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-
-        console.log(`📡 Contributions API response status: ${response.status}`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch contributions: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('📦 Contributions response:', data);
-
-        setContributions({
-          totalContributions: data.total_contributions || 0,
-          contributionsByType: data.contributions_by_media_type || {
-            text: 0,
-            audio: 0,
-            image: 0,
-            video: 0,
-          },
-          audioContributions: data.audio_contributions || [],
-          videoContributions: data.video_contributions || [],
-          textContributions: data.text_contributions || [],
-          imageContributions: data.image_contributions || [],
-          audioDuration: data.audio_duration || 0,
-          videoDuration: data.video_duration || 0,
-        });
-        console.log('✅ Contributions loaded successfully');
-      } catch (err) {
-        console.error('💥 Contributions fetch error:', err);
-        setContributions({
-          totalContributions: 0,
-          contributionsByType: {
-            text: 0,
-            audio: 0,
-            image: 0,
-            video: 0,
-          },
-          audioContributions: [],
-          videoContributions: [],
-          textContributions: [],
-          imageContributions: [],
-          audioDuration: 0,
-          videoDuration: 0,
-        });
-      } finally {
-        setLoading((prev) => ({ ...prev, contributions: false }));
-      }
-    },
-    [getAuthToken],
-  );
-
-  const requestExport = useCallback(async () => {
-    console.log('📤 Requesting data export...');
-
-    try {
-      const currentUserId = getCurrentUserId();
-      if (!currentUserId) throw new Error('User ID not found');
-
-      const token = getAuthToken();
-      const response = await fetch(`/api/users/${currentUserId}/export`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Export request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setExportData(data);
-      console.log('✅ Export request successful:', data);
-    } catch (err) {
-      console.error('💥 Export request error:', err);
-      setError(err instanceof Error ? err.message : 'Export request failed');
-    }
-  }, [getCurrentUserId, getAuthToken]);
-
-  const refetch = useCallback(() => {
-    console.log('🔄 Refetching all data...');
-    const currentUserId = getCurrentUserId();
-    if (currentUserId) {
-      setError(null);
-      fetchUserProfile(currentUserId);
-      fetchDailyStats(currentUserId);
-      fetchUserContributions(currentUserId);
-    } else {
-      console.log('❌ Cannot refetch - no user ID available');
-    }
-  }, [
-    getCurrentUserId,
-    fetchUserProfile,
-    fetchDailyStats,
-    fetchUserContributions,
-  ]);
-
-  useEffect(() => {
-    console.log('🚀 UserProfile hook initializing...');
-    console.log('📋 Hook parameters:', { userId });
-
-    const currentUserId = getCurrentUserId();
-    console.log('🆔 Current user ID:', currentUserId);
-
-    if (currentUserId) {
-      console.log('✅ User ID found, fetching data...');
-      fetchUserProfile(currentUserId);
-      fetchDailyStats(currentUserId);
-      fetchUserContributions(currentUserId);
-    } else {
-      console.log('❌ No user ID found, setting error state');
-      setError('No user ID found. Please log in again.');
-      setLoading({ profile: false, stats: false, contributions: false });
-    }
-  }, [
-    userId,
-    getCurrentUserId,
-    fetchUserProfile,
-    fetchDailyStats,
-    fetchUserContributions,
-  ]);
-
-  return {
-    profile,
-    dailyStats,
-    contributions,
-    loading,
-    error,
-    refetch,
-    exportData,
-    requestExport,
-  };
-};
-
-const UserProfile: React.FC<UserProfileProps> = ({
-  user,
-  token,
-  onLogout,
-  onBack,
-}) => {
-  const navigate = useNavigate();
-
+const UserProfile: React.FC<UserProfileProps> = ({ onBack }) => {
   const {
     profile: currentUser,
-    dailyStats,
     contributions,
     loading,
     error,
     refetch,
-    exportData,
-    requestExport,
   } = useUserProfile();
-
   const [isEmailRevealed, setIsEmailRevealed] = useState(false);
   const [isPhoneRevealed, setIsPhoneRevealed] = useState(false);
+  const [selectedMediaType, setSelectedMediaType] = useState<MediaType>('text');
 
-  const [selectedMediaType, setSelectedMediaType] = useState<
-    'text' | 'audio' | 'video' | 'image'
-  >('text');
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'Never';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return 'Invalid date';
-    }
-  };
-
-  const maskEmail = (email: string) => {
-    if (!email) return '';
-    const [username, domain] = email.split('@');
-    if (!username || !domain) return email;
-    return `${username.substring(0, 2)}${'*'.repeat(
-      Math.max(0, username.length - 2),
-    )}@${domain}`;
-  };
-
-  const maskPhone = (phone: string) => {
-    if (!phone) return '';
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length < 4) return phone;
-    return `${cleaned.substring(0, 2)}${'*'.repeat(
-      Math.max(0, cleaned.length - 4),
-    )}${cleaned.substring(cleaned.length - 2)}`;
-  };
-
-  const toggleEmailReveal = () => {
-    setIsEmailRevealed(!isEmailRevealed);
-  };
-
-  const togglePhoneReveal = () => {
-    setIsPhoneRevealed(!isPhoneRevealed);
-  };
+  console.log('Current User Data at Render:', currentUser);
 
   const handleExport = () => {
     try {
@@ -696,12 +87,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
         ['Email', currentUser?.email || ''],
         ['Phone', currentUser?.phone || ''],
         ['Gender', currentUser?.gender || ''],
-        ['Date of Birth', currentUser?.dateOfBirth || ''],
+        ['Date of Birth', currentUser?.date_of_birth || ''],
         ['Place', currentUser?.place || ''],
-        ['Status', currentUser?.isActive ? 'Active' : 'Inactive'],
-        ['Consent Given', currentUser?.hasGivenConsent ? 'Yes' : 'No'],
-        ['Member Since', formatDate(currentUser?.createdAt || '')],
-        ['Last Login', formatDate(currentUser?.lastLoginAt || '')],
+        ['Status', currentUser?.is_active ? 'Active' : 'Inactive'],
+        ['Consent Given', currentUser?.has_given_consent ? 'Yes' : 'No'],
+        ['Member Since', formatDate(currentUser?.created_at || '')],
+        ['Last Login', formatDate(currentUser?.last_login_at || '')],
         ['Text Contributions', contributions?.contributionsByType?.text || 0],
         ['Audio Contributions', contributions?.contributionsByType?.audio || 0],
         ['Image Contributions', contributions?.contributionsByType?.image || 0],
@@ -733,29 +124,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     }
   };
 
-  const handleRefresh = () => {
-    refetch();
-  };
-
-  const getInitials = (name: string) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getStatusColor = (isActive: boolean) => {
-    return isActive ? 'text-green-600' : 'text-red-600';
-  };
-
-  const getStatusText = (isActive: boolean) => {
-    return isActive ? 'Active' : 'Inactive';
-  };
-
-  if (loading.profile) {
+  if (loading && !currentUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -769,11 +138,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-lg mb-4">{error}</div>
+        <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="text-red-700 font-semibold mb-4">{error}</div>
           <button
-            onClick={handleRefresh}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={refetch}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Try Again
           </button>
@@ -785,15 +154,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No user data available</p>
-          <button
-            onClick={handleRefresh}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Refresh
-          </button>
-        </div>
+        <div className="text-center">No user data could be loaded.</div>
       </div>
     );
   }
@@ -801,14 +162,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Back to Categories"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+                title="Back"
               >
                 <ArrowLeft size={20} />
               </button>
@@ -819,207 +179,114 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <h1 className="text-2xl font-bold text-gray-900">
                   {currentUser.name}
                 </h1>
+                {/* THE FIX: Your log confirmed 'id' exists, so this is correct. */}
                 <p className="text-gray-600">@{currentUser.id}</p>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                    currentUser.isActive,
-                  )}`}
-                >
-                  {getStatusText(currentUser.isActive)}
-                </span>
               </div>
             </div>
             <div className="flex space-x-2">
               <button
-                onClick={handleRefresh}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={refetch}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full"
                 title="Refresh"
               >
                 <RefreshCw size={20} />
               </button>
-              <button
-                onClick={handleExport}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Export Data"
-              >
-                <Download size={20} />
-              </button>
-              {/* Edit Profile Button removed from header, now only in Profile Information section */}
             </div>
           </div>
         </div>
-        {/* Privacy Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center space-x-2">
-            <Eye size={16} className="text-blue-600" />
-            <p className="text-sm text-blue-800">
-              Tap the eye icon to reveal sensitive information
-            </p>
-          </div>
-        </div>
-        {/* Profile Information or Edit Form */}
+
+        {/* Profile Information Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-normal text-center w-full p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
-              <span className="font-sans">Profile Information</span>
-            </h2>
-          </div>
-
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                {
-                  key: 'email',
-                  icon: <Mail size={18} className="text-gray-500" />,
-                  title: 'Email',
-                  value: isEmailRevealed
-                    ? currentUser.email
-                    : maskEmail(currentUser.email),
-                  hasButton: true,
-                  buttonAction: toggleEmailReveal,
-                  buttonIcon: isEmailRevealed ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  ),
-                  buttonTitle: 'Reveal Email',
-                },
-                {
-                  key: 'phone',
-                  icon: <Phone size={18} className="text-gray-500" />,
-                  title: 'Phone',
-                  value: isPhoneRevealed
-                    ? currentUser.phone
-                    : maskPhone(currentUser.phone),
-                  hasButton: true,
-                  buttonAction: togglePhoneReveal,
-                  buttonIcon: isPhoneRevealed ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  ),
-                  buttonTitle: 'Reveal Phone',
-                },
-                ...(currentUser.gender
-                  ? [
-                      {
-                        key: 'gender',
-                        icon: <User size={18} className="text-gray-500" />,
-                        title: 'Gender',
-                        value: currentUser.gender,
-                        hasButton: false,
-                      },
-                    ]
-                  : []),
-                ...(currentUser.dateOfBirth
-                  ? [
-                      {
-                        key: 'dateOfBirth',
-                        icon: <Calendar size={18} className="text-gray-500" />,
-                        title: 'Date of Birth',
-                        value: formatDate(currentUser.dateOfBirth),
-                        hasButton: false,
-                      },
-                    ]
-                  : []),
-                ...(currentUser.place
-                  ? [
-                      {
-                        key: 'place',
-                        icon: <MapPin size={18} className="text-gray-500" />,
-                        title: 'Location',
-                        value: currentUser.place,
-                        hasButton: false,
-                      },
-                    ]
-                  : []),
-              ].map((item) => (
-                <ProfileDetail key={item.key} {...item} />
-              ))}
-            </div>
-          </>
-        </div>
-        {contributions && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Contributions by Media Type
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <Activity size={24} className="text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-600">
-                  {contributions.contributionsByType.text}
-                </p>
-                <p className="text-sm text-gray-600">Text Contributions</p>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <TrendingUp size={24} className="text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-green-600">
-                  {contributions.contributionsByType.audio}
-                </p>
-                <p className="text-sm text-gray-600">Audio Contributions</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {contributions.audioDuration > 0
-                    ? `${(contributions.audioDuration / 3600).toFixed(1)} hours`
-                    : '0 hours'}
-                </p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <Award size={24} className="text-orange-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-orange-600">
-                  {contributions.contributionsByType.image}
-                </p>
-                <p className="text-sm text-gray-600">Image Contributions</p>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <Calendar size={24} className="text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-purple-600">
-                  {contributions.contributionsByType.video}
-                </p>
-                <p className="text-sm text-gray-600">Video Contributions</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {contributions.videoDuration > 0
-                    ? `${(contributions.videoDuration / 3600).toFixed(1)} hours`
-                    : '0 hours'}
-                </p>
-              </div>
-            </div>
-
-            {/* Total Contributions Summary */}
-            <div className="mt-6 text-center p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Total Contributions
-              </h3>
-              <p className="text-3xl font-bold text-indigo-600">
-                {contributions.totalContributions}
-              </p>
-            </div>
-          </div>
-        )}
-        {/* New section for detailed contributions */}
-        <div className="detailed-contributions">
-          <h2 className="mt-6 text-2xl font-normal text-center p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
-            <span className="font-sans">MY CONTRIBUTIONS</span>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            Profile Information
           </h2>
-
-          {/* Media type selector - improved layout and style */}
-          <div className="flex justify-center gap-4 my-4">
-            {(['text', 'audio', 'video', 'image'] as const).map((type) => (
-              <ContributionTypeButton
-                type={type}
-                selectedMediaType={selectedMediaType}
-                setSelectedMediaType={setSelectedMediaType}
-              />
-            ))}
-          </div>
-          {/* Modernized display of contributions for selected media type */}
-          <div className="max-w-2xl mx-auto">
-            <ContributionsList
-              contributions={contributions}
-              selectedMediaType={selectedMediaType}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ProfileDetail
+              icon={<Mail size={18} />}
+              title="Email"
+              value={
+                isEmailRevealed
+                  ? currentUser.email
+                  : maskEmail(currentUser.email)
+              }
+              hasButton
+              buttonAction={() => setIsEmailRevealed(!isEmailRevealed)}
+              buttonIcon={
+                isEmailRevealed ? <EyeOff size={18} /> : <Eye size={18} />
+              }
             />
+            <ProfileDetail
+              icon={<Phone size={18} />}
+              title="Phone"
+              value={
+                isPhoneRevealed
+                  ? currentUser.phone
+                  : maskPhone(currentUser.phone)
+              }
+              hasButton
+              buttonAction={() => setIsPhoneRevealed(!isPhoneRevealed)}
+              buttonIcon={
+                isPhoneRevealed ? <EyeOff size={18} /> : <Eye size={18} />
+              }
+            />
+            {currentUser.gender && (
+              <ProfileDetail
+                icon={<User size={18} />}
+                title="Gender"
+                value={currentUser.gender}
+              />
+            )}
+            {currentUser.date_of_birth && (
+              <ProfileDetail
+                icon={<Calendar size={18} />}
+                title="Date of Birth"
+                value={formatDate(currentUser.date_of_birth)}
+              />
+            )}
+            {currentUser.place && (
+              <ProfileDetail
+                icon={<MapPin size={18} />}
+                title="Location"
+                value={currentUser.place}
+              />
+            )}
           </div>
         </div>
+
+        {/* Contributions Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            My Contributions
+          </h2>
+          {loading ? (
+            <div className="text-center py-10">Loading contributions...</div>
+          ) : contributions ? (
+            <>
+              <div className="flex justify-center gap-2 md:gap-4 my-4 border-b pb-4">
+                {(['text', 'audio', 'video', 'image'] as MediaType[]).map(
+                  (type) => (
+                    <ContributionTypeButton
+                      key={type}
+                      type={type}
+                      selectedMediaType={selectedMediaType}
+                      setSelectedMediaType={setSelectedMediaType}
+                    />
+                  ),
+                )}
+              </div>
+              <ContributionsList
+                contributions={contributions}
+                selectedMediaType={selectedMediaType}
+                onUpdate={refetch}
+              />
+            </>
+          ) : (
+            <div className="text-center text-gray-500 py-10">
+              Could not load contribution data for this user.
+            </div>
+          )}
+        </div>
+
         {/* Account Information */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -1029,20 +296,24 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Member Since</span>
               <span className="text-sm font-medium text-gray-900">
-                {formatDate(currentUser.createdAt)}
+                {currentUser.created_at
+                  ? formatDate(currentUser.created_at)
+                  : 'N/A'}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Last Updated</span>
               <span className="text-sm font-medium text-gray-900">
-                {formatDate(currentUser.updatedAt)}
+                {currentUser.updated_at
+                  ? formatDate(currentUser.updated_at)
+                  : 'NA'}
               </span>
             </div>
-            {currentUser.lastLoginAt && (
+            {currentUser.last_login_at && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Last Login</span>
                 <span className="text-sm font-medium text-gray-900">
-                  {formatDate(currentUser.lastLoginAt)}
+                  {formatDate(currentUser.last_login_at)}
                 </span>
               </div>
             )}
@@ -1050,12 +321,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <span className="text-sm text-gray-600">Consent Given</span>
               <span
                 className={`text-sm font-medium ${
-                  currentUser.hasGivenConsent
+                  currentUser.has_given_consent
                     ? 'text-green-600'
                     : 'text-red-600'
                 }`}
               >
-                {currentUser.hasGivenConsent ? 'Yes' : 'No'}
+                {currentUser.has_given_consent ? 'Yes' : 'No'}
               </span>
             </div>
           </div>
@@ -1083,214 +354,5 @@ const UserProfile: React.FC<UserProfileProps> = ({
     </div>
   );
 };
-
-const capitalize = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-function ContributionTypeButton({
-  type,
-  selectedMediaType,
-  setSelectedMediaType,
-}: {
-  type: 'text' | 'audio' | 'video' | 'image';
-  selectedMediaType: 'text' | 'audio' | 'video' | 'image';
-  setSelectedMediaType: (type: 'text' | 'audio' | 'video' | 'image') => void;
-}) {
-  return (
-    <button
-      key={type}
-      onClick={() => setSelectedMediaType(type)}
-      className={`px-4 py-2 rounded-lg font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400
-        ${
-          selectedMediaType === type
-            ? 'bg-blue-600 text-white border-blue-600'
-            : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
-        }`}
-    >
-      {capitalize(type)}
-    </button>
-  );
-}
-
-interface ContributionsListProps {
-  contributions: UserContributions | null;
-  selectedMediaType: 'text' | 'audio' | 'video' | 'image';
-}
-
-const ContributionsList: React.FC<ContributionsListProps> = ({
-  contributions,
-  selectedMediaType,
-}) => {
-  let items: ContributionItem[] = [];
-  if (!contributions) return null;
-  if (selectedMediaType === 'text') items = contributions.textContributions;
-  if (selectedMediaType === 'audio') items = contributions.audioContributions;
-  if (selectedMediaType === 'video') items = contributions.videoContributions;
-  if (selectedMediaType === 'image') items = contributions.imageContributions;
-
-  if (!items || items.length === 0) {
-    return (
-      <div className="text-center text-gray-400 py-8 text-lg font-medium">
-        No{' '}
-        {selectedMediaType.charAt(0).toUpperCase() + selectedMediaType.slice(1)}{' '}
-        contributions yet.
-      </div>
-    );
-  }
-
-  return (
-    <ul className="divide-y divide-gray-200">
-      {items.map((item, idx) => (
-        <li
-          key={item.id || idx}
-          className="flex flex-col md:flex-row md:items-center justify-between py-4 px-2 hover:bg-gray-50 rounded-lg transition group"
-        >
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span
-                className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
-                  ${selectedMediaType === 'text' && 'bg-blue-100 text-blue-700'}
-                  ${selectedMediaType === 'audio' && 'bg-green-100 text-green-700'}
-                  ${selectedMediaType === 'video' && 'bg-purple-100 text-purple-700'}
-                  ${selectedMediaType === 'image' && 'bg-orange-100 text-orange-700'}
-                `}
-              >
-                {capitalize(selectedMediaType)}
-              </span>
-              <span className="ml-2 text-base font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
-                {item.title || 'Untitled'}
-              </span>
-              {item.reviewed && (
-                <span className="ml-2 px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-xs font-bold uppercase tracking-wide">
-                  Reviewed
-                </span>
-              )}
-            </div>
-            <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
-              <span className="flex flex-row flex-wrap gap-2 w-full">
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[24ch] max-w-full overflow-x-auto italic shadow-none"
-                  title={
-                    item.timestamp
-                      ? new Date(item.timestamp).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })
-                      : '-'
-                  }
-                >
-                  <span className="font-semibold mr-1 italic">Timestamp:</span>{' '}
-                  {item.timestamp
-                    ? new Date(item.timestamp).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })
-                    : '-'}
-                </span>
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[18ch] max-w-full overflow-x-auto italic shadow-none"
-                  title={
-                    item.location &&
-                    typeof item.location.latitude === 'number' &&
-                    typeof item.location.longitude === 'number'
-                      ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
-                      : '-'
-                  }
-                >
-                  <span className="font-semibold mr-1 italic">Location:</span>{' '}
-                  {item.location &&
-                  typeof item.location.latitude === 'number' &&
-                  typeof item.location.longitude === 'number'
-                    ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
-                    : '-'}
-                </span>
-                {/* Size badge */}
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
-                  style={{
-                    display: 'inline-flex',
-                    minWidth: '60px',
-                    fontStyle: 'italic',
-                    borderWidth: '1px',
-                    boxShadow: 'none',
-                    background: 'rgba(0,0,0,0.02)',
-                  }}
-                >
-                  <span className="font-semibold mr-1 italic">Size:</span>{' '}
-                  {item.size ? formatSizeMB(item.size) : '-'}
-                </span>
-                {/* Duration badge */}
-                {selectedMediaType === 'audio' ||
-                selectedMediaType === 'video' ? (
-                  <span
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
-                    style={{
-                      display: 'inline-flex',
-                      minWidth: '60px',
-                      fontStyle: 'italic',
-                      borderWidth: '1px',
-                      boxShadow: 'none',
-                      background: 'rgba(0,0,0,0.02)',
-                    }}
-                  >
-                    <span className="font-semibold mr-1 italic">Duration:</span>{' '}
-                    {item.duration ? formatDuration(item.duration) : '-'}
-                  </span>
-                ) : null}
-                {/* Display release_rights directly from the data */}
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
-                  <span className="font-semibold mr-1 italic">Rights:</span>{' '}
-                  {item.release_rights || 'N/A'}
-                </span>
-              </span>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-function ProfileDetail(item: {
-  icon: React.ReactNode;
-  title: string;
-  value: string;
-  hasButton: boolean;
-  buttonAction?: () => void;
-  buttonTitle?: string;
-  buttonIcon?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-sm border border-gray-200">
-      <div className="flex items-center space-x-3">
-        {item.icon}
-        <div>
-          <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-            {item.title}
-          </p>
-          <p className="text-base text-gray-800 font-mono">{item.value}</p>
-        </div>
-      </div>
-      {item.hasButton && (
-        <button
-          onClick={item.buttonAction}
-          className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
-          title={item.buttonTitle}
-        >
-          {item.buttonIcon}
-        </button>
-      )}
-    </div>
-  );
-}
 
 export default UserProfile;
