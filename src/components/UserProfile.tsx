@@ -16,20 +16,354 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
-import { useUserProfile } from './UserProfile/hooks/useUserProfile';
-import { ContributionsList } from './UserProfile/components/ContributionsList';
-import { ProfileDetail } from './UserProfile/components/ProfileDetail';
-import { ContributionTypeButton } from './UserProfile/components/ContributionTypeButton';
-import { MediaType } from './UserProfile/types';
-import {
-  formatDate,
-  getInitials,
-  maskEmail,
-  maskPhone,
-} from './UserProfile/utils';
+import { getAuthToken, decodeUserIdFromToken } from '@/lib/auth';
+import { BACKEND_URL } from '@/lib/constants';
+import { formatSizeMB, formatDuration } from '@/lib/utils';
+
+interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  phone: string;
+  name: string;
+  gender?: string;
+  date_of_birth?: string;
+  place?: string;
+  is_active: boolean;
+  has_given_consent: boolean;
+  created_at: string;
+  updated_at: string;
+  last_login_at?: string;
+}
+
+interface DailyStats {
+  uploads_today: number;
+  total_uploads: number;
+  last_upload_date: string;
+  streak_days: number;
+}
+
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface ContributionItem {
+  id: string;
+  size: number;
+  category_id: string;
+  reviewed: boolean;
+  title: string;
+  duration?: number;
+  timestamp?: string;
+  location?: Coordinates;
+}
+
+interface UserContributions {
+  totalContributions: number;
+  contributionsByType: {
+    text: number;
+    audio: number;
+    image: number;
+    video: number;
+  };
+  audioContributions: ContributionItem[];
+  videoContributions: ContributionItem[];
+  textContributions: ContributionItem[];
+  imageContributions: ContributionItem[];
+  audioDuration: number;
+  videoDuration: number;
+}
+
+interface ContributionItemProps {
+  item: ContributionItem;
+  mediaType: MediaType;
+}
+
+type MediaType = 'text' | 'audio' | 'video' | 'image';
+
 interface UserProfileProps {
   onBack: () => void;
 }
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return 'N/A';
+  try {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return 'Invalid Date';
+  }
+};
+
+const maskEmail = (email?: string) => {
+  if (!email) return '';
+  const [username, domain] = email.split('@');
+  if (!username || !domain) return email;
+  return `${username.substring(0, 2)}${'*'.repeat(Math.max(0, username.length - 2))}@${domain}`;
+};
+
+const maskPhone = (phone?: string) => {
+  if (!phone) return '';
+  const cleaned = phone.replace(/\D/g, '');
+  if (cleaned.length < 4) return phone;
+  return `**-****-${cleaned.substring(cleaned.length - 4)}`;
+};
+
+const getInitials = (name?: string) => {
+  if (!name) return 'U';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const capitalize = (str: string) => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+const useUserProfile = (userId?: string) => {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
+  const [contributions, setContributions] = useState<UserContributions | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAllData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const token = getAuthToken();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    const currentUserId = userId || decodeUserIdFromToken(token);
+    if (!currentUserId) {
+      setLoading(false);
+      return;
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+    const userProfileUrl = `${BACKEND_URL}/users/${currentUserId}`;
+
+    const profileRes = await fetch(userProfileUrl, { headers });
+
+    const [statsRes, contributionsRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/auth/me`, { headers }),
+      fetch(`${BACKEND_URL}/users/${currentUserId}/contributions`, { headers }),
+    ]);
+
+    const profileData = await profileRes.json();
+    const statsData = await statsRes.json();
+    const contributionsData = await contributionsRes.json();
+
+    setProfile(profileData);
+    setDailyStats(statsData.data);
+    setContributions(contributionsData);
+
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
+  return {
+    profile,
+    dailyStats,
+    contributions,
+    loading,
+    error,
+    refetch: fetchAllData,
+  };
+};
+
+interface ContributionTypeButtonProps {
+  type: MediaType;
+  selectedMediaType: MediaType;
+  setSelectedMediaType: (type: MediaType) => void;
+}
+
+const ContributionTypeButton: React.FC<ContributionTypeButtonProps> = ({
+  type,
+  selectedMediaType,
+  setSelectedMediaType,
+}) => (
+  <button
+    key={type}
+    onClick={() => setSelectedMediaType(type)}
+    className={`px-4 py-2 rounded-lg font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400
+      ${
+        selectedMediaType === type
+          ? 'bg-blue-600 text-white border-blue-600'
+          : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+      }`}
+  >
+    {capitalize(type)}
+  </button>
+);
+
+interface ContributionsListProps {
+  contributions: UserContributions | null;
+  selectedMediaType: MediaType;
+  onUpdate: () => void;
+}
+
+const ContributionsList: React.FC<ContributionsListProps> = ({
+  contributions,
+  selectedMediaType,
+}) => {
+  if (!contributions) {
+    return (
+      <div className="text-center text-red-500 py-10">
+        Error: Contribution data is missing.
+      </div>
+    );
+  }
+
+  const propertyKey = `${selectedMediaType}_contributions`;
+  const items: ContributionItem[] = (contributions?.[
+    propertyKey as keyof UserContributions
+  ] ?? []) as ContributionItem[];
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-10">
+        No {selectedMediaType} contributions yet.
+      </div>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-gray-200">
+      {items.map((item) => (
+        <ContributionItem
+          key={item.id}
+          item={item}
+          mediaType={selectedMediaType}
+        />
+      ))}
+    </ul>
+  );
+};
+
+const ContributionItem: React.FC<ContributionItemProps> = ({
+  item,
+  mediaType,
+}) => {
+  const typeColorClasses = {
+    text: 'bg-blue-100 text-blue-700',
+    audio: 'bg-green-100 text-green-700',
+    video: 'bg-purple-100 text-purple-700',
+    image: 'bg-orange-100 text-orange-700',
+  };
+
+  return (
+    <li
+      className={`
+    flex flex-row items-center 
+    py-4 px-2 rounded-lg transition
+  `}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${typeColorClasses[mediaType]}`}
+          >
+            {capitalize(mediaType)}
+          </span>
+          <span className="ml-2 text-base font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+            {item.title || (
+              <span className="text-gray-400 italic">Untitled</span>
+            )}
+          </span>
+          {item.reviewed && (
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-xs font-bold uppercase tracking-wide">
+              Reviewed
+            </span>
+          )}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
+          {item.timestamp && (
+            <span className="font-mono text-xs">
+              📅 {new Date(item.timestamp).toLocaleDateString()}
+            </span>
+          )}
+          {item.location && (
+            <span className="font-mono text-xs">
+              📍 {item.location.latitude.toFixed(2)},{' '}
+              {item.location.longitude.toFixed(2)}
+            </span>
+          )}
+          <span className="font-mono text-xs">
+            💾 {item.size ? formatSizeMB(item.size) : '-'}
+          </span>
+          {(mediaType === 'audio' || mediaType === 'video') && (
+            <span className="font-mono text-xs">
+              ⏱️ {item.duration ? formatDuration(item.duration) : '-'}
+            </span>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+};
+
+interface ProfileDetailProps {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  hasButton?: boolean;
+  buttonAction?: () => void;
+  buttonTitle?: string;
+  buttonIcon?: React.ReactNode;
+}
+
+const ProfileDetail: React.FC<ProfileDetailProps> = ({
+  icon,
+  title,
+  value,
+  hasButton,
+  buttonAction,
+  buttonTitle,
+  buttonIcon,
+}) => (
+  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-sm border border-gray-200">
+    <div className="flex items-center space-x-3">
+      {icon}
+      <div>
+        <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+          {title}
+        </p>
+        <p className="text-base text-gray-800 font-mono">
+          {value || 'Not Provided'}
+        </p>
+      </div>
+    </div>
+    {hasButton && (
+      <button
+        onClick={buttonAction}
+        className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+        title={buttonTitle}
+      >
+        {buttonIcon}
+      </button>
+    )}
+  </div>
+);
 
 const UserProfile: React.FC<UserProfileProps> = ({ onBack }) => {
   const {
