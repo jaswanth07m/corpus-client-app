@@ -228,11 +228,6 @@ const useUserProfile = (
     }
 
     const decodedUserId = decodeUserIdFromToken(token);
-
-    if (!decodedUserId) {
-      alert('Invalid token');
-    }
-
     return decodedUserId;
   }, [userId, getAuthToken, decodeUserIdFromToken]);
 
