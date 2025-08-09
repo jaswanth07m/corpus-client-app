@@ -116,7 +116,6 @@ const useUserProfile = (
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (shouldReset) {
-      console.log('🔄 Resetting profile data...');
       setProfile(null);
       setContributions(null);
       setError(null);
@@ -128,7 +127,6 @@ const useUserProfile = (
   const [exportData, setExportData] = useState<any>(null);
 
   const getAuthToken = useCallback(() => {
-    console.log('🔍 Searching for auth token...');
 
     const possibleKeys = [
       'authToken',
@@ -164,59 +162,28 @@ const useUserProfile = (
       }
     }
 
-    if (token) {
-      console.log(`✅ Token found in: ${foundKey}`);
-      console.log(`📝 Token preview: ${token.substring(0, 50)}...`);
-    } else {
-      console.log('❌ No token found in storage');
-      console.log('🔍 Available localStorage keys:', Object.keys(localStorage));
-      console.log(
-        '🔍 Available sessionStorage keys:',
-        Object.keys(sessionStorage),
-      );
-    }
-
     return token;
   }, []);
 
   const decodeUserIdFromToken = useCallback((token: string): string | null => {
-    console.log('🔓 Starting JWT token decoding...');
 
     try {
       const cleanToken = token.replace(/^Bearer\s+/i, '');
-      console.log(`📝 Clean token length: ${cleanToken.length}`);
-
       const parts = cleanToken.split('.');
-      console.log(`🔧 JWT parts count: ${parts.length}`);
 
       if (parts.length !== 3) {
-        console.error(
-          '❌ Invalid JWT format - should have 3 parts separated by dots',
-        );
         return null;
       }
 
-      console.log(
-        '📋 JWT parts lengths:',
-        parts.map((p) => p.length),
-      );
-
       let payload = parts[1];
-      console.log(`📦 Raw payload: ${payload}`);
 
       payload = payload.replace(/-/g, '+').replace(/_/g, '/');
       while (payload.length % 4 !== 0) {
         payload += '=';
       }
 
-      console.log(`🔧 Padded payload: ${payload}`);
-
       const decodedBytes = atob(payload);
-      console.log(`📄 Decoded bytes length: ${decodedBytes.length}`);
-
       const payloadObj = JSON.parse(decodedBytes);
-      console.log('🎯 Decoded JWT payload:', payloadObj);
-      console.log('🔑 Available fields in token:', Object.keys(payloadObj));
 
       const possibleFields = [
         'user_id',
@@ -235,27 +202,15 @@ const useUserProfile = (
         'user_name',
       ];
 
-      console.log('🔍 Checking for user ID in fields:', possibleFields);
 
       for (const field of possibleFields) {
         if (payloadObj[field]) {
-          console.log(
-            `✅ Found user ID in field '${field}':`,
-            payloadObj[field],
-          );
           return payloadObj[field].toString();
         }
       }
 
-      console.log('❌ No user ID found in any expected field');
-      console.log(
-        '💡 Try checking these available fields manually:',
-        Object.keys(payloadObj),
-      );
-
       return null;
     } catch (error) {
-      console.error('💥 Token decoding error:', error);
       console.error('🔍 Error details:', {
         message: error.message,
         stack: error.stack,
@@ -265,27 +220,21 @@ const useUserProfile = (
   }, []);
 
   const getCurrentUserId = useCallback(() => {
-    console.log('🆔 Getting current user ID...');
 
     if (userId) {
-      console.log(`✅ Using provided userId: ${userId}`);
       return userId;
     }
 
-    console.log('🔍 No userId provided, attempting to decode from token...');
     const token = getAuthToken();
 
     if (!token) {
-      console.log('❌ No token available for decoding');
       return null;
     }
 
     const decodedUserId = decodeUserIdFromToken(token);
 
-    if (decodedUserId) {
-      console.log(`✅ Successfully decoded user ID: ${decodedUserId}`);
-    } else {
-      console.log('❌ Failed to decode user ID from token');
+    if (!decodedUserId) {
+	    alert("Invalid token")
     }
 
     return decodedUserId;
@@ -293,7 +242,6 @@ const useUserProfile = (
 
   const fetchUserProfile = useCallback(
     async (currentUserId: string) => {
-      console.log(`👤 Fetching profile for user ID: ${currentUserId}`);
       setLoading((prev) => ({ ...prev, profile: true }));
 
       try {
@@ -303,7 +251,6 @@ const useUserProfile = (
         }
 
         const apiUrl = BACKEND_URL + '/auth/me';
-        console.log(`🌐 Making API call to: ${apiUrl}`);
 
         const response = await fetch(apiUrl, {
           headers: {
@@ -312,12 +259,6 @@ const useUserProfile = (
           },
         });
 
-        console.log(`📡 API Response status: ${response.status}`);
-        console.log(
-          `📡 API Response headers:`,
-          Object.fromEntries(response.headers.entries()),
-        );
-
         if (!response.ok) {
           throw new Error(
             `Failed to fetch profile: ${response.status} ${response.statusText}`,
@@ -325,9 +266,6 @@ const useUserProfile = (
         }
 
         const userData = await response.json();
-        console.log('📦 Profile API response:', userData);
-
-        console.log('✅ Profile data received:', userData);
 
         const profileData = {
           id: userData.id || currentUserId,
@@ -347,14 +285,11 @@ const useUserProfile = (
 
         setProfile(profileData);
         localStorage.setItem('cachedProfile', JSON.stringify(userData));
-        console.log('💾 Profile cached successfully');
       } catch (err) {
-        console.error('💥 Profile fetch error:', err);
 
         const cachedProfile = localStorage.getItem('cachedProfile');
         if (cachedProfile) {
           try {
-            console.log('🔄 Loading profile from cache...');
             const userData = JSON.parse(cachedProfile);
             setProfile({
               id: userData.id || currentUserId,
@@ -371,13 +306,10 @@ const useUserProfile = (
               updatedAt: userData.updated_at || '',
               lastLoginAt: userData.last_login_at,
             });
-            console.log('✅ Profile loaded from cache');
           } catch (cacheError) {
-            console.error('💥 Cache loading error:', cacheError);
             setError('Failed to load profile data');
           }
         } else {
-          console.log('❌ No cached profile available');
           setError(
             err instanceof Error ? err.message : 'Failed to fetch profile',
           );
@@ -391,7 +323,6 @@ const useUserProfile = (
 
   const fetchDailyStats = useCallback(
     async (currentUserId: string) => {
-      console.log(`📊 Fetching daily stats for user ID: ${currentUserId}`);
       setLoading((prev) => ({ ...prev, stats: true }));
 
       try {
@@ -403,14 +334,12 @@ const useUserProfile = (
           },
         });
 
-        console.log(`📡 Daily stats API response status: ${response.status}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch daily stats: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📦 Daily stats response:', data);
 
         if (data.success) {
           setDailyStats({
@@ -419,10 +348,8 @@ const useUserProfile = (
             last_upload_date: data.data.last_upload_date || '',
             streak_days: data.data.streak_days || 0,
           });
-          console.log('✅ Daily stats loaded successfully');
         }
       } catch (err) {
-        console.error('💥 Daily stats fetch error:', err);
         setDailyStats({
           uploads_today: 0,
           total_uploads: 0,
@@ -438,7 +365,6 @@ const useUserProfile = (
 
   const fetchUserContributions = useCallback(
     async (currentUserId: string) => {
-      console.log(`🏆 Fetching contributions for user ID: ${currentUserId}`);
       setLoading((prev) => ({ ...prev, contributions: true }));
 
       try {
@@ -446,7 +372,6 @@ const useUserProfile = (
         const baseUrl = BACKEND_URL;
         const apiUrl = `${baseUrl}/users/${currentUserId}/contributions`;
 
-        console.log(`🌐 Making contributions API call to: ${apiUrl}`);
 
         const response = await fetch(apiUrl, {
           headers: {
@@ -456,14 +381,12 @@ const useUserProfile = (
           },
         });
 
-        console.log(`📡 Contributions API response status: ${response.status}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch contributions: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📦 Contributions response:', data);
 
         setContributions({
           totalContributions: data.total_contributions || 0,
@@ -480,9 +403,7 @@ const useUserProfile = (
           audioDuration: data.audio_duration || 0,
           videoDuration: data.video_duration || 0,
         });
-        console.log('✅ Contributions loaded successfully');
       } catch (err) {
-        console.error('💥 Contributions fetch error:', err);
         setContributions({
           totalContributions: 0,
           contributionsByType: {
@@ -506,7 +427,6 @@ const useUserProfile = (
   );
 
   const requestExport = useCallback(async () => {
-    console.log('📤 Requesting data export...');
 
     try {
       const currentUserId = getCurrentUserId();
@@ -527,15 +447,12 @@ const useUserProfile = (
 
       const data = await response.json();
       setExportData(data);
-      console.log('✅ Export request successful:', data);
     } catch (err) {
-      console.error('💥 Export request error:', err);
       setError(err instanceof Error ? err.message : 'Export request failed');
     }
   }, [getCurrentUserId, getAuthToken]);
 
   const refetch = useCallback(() => {
-    console.log('🔄 Refetching all data...');
     const currentUserId = getCurrentUserId();
     if (currentUserId) {
       setError(null);
@@ -543,7 +460,6 @@ const useUserProfile = (
       fetchDailyStats(currentUserId);
       fetchUserContributions(currentUserId);
     } else {
-      console.log('❌ Cannot refetch - no user ID available');
     }
   }, [
     getCurrentUserId,
@@ -553,19 +469,14 @@ const useUserProfile = (
   ]);
 
   useEffect(() => {
-    console.log('🚀 UserProfile hook initializing...');
-    console.log('📋 Hook parameters:', { userId });
 
     const currentUserId = getCurrentUserId();
-    console.log('🆔 Current user ID:', currentUserId);
 
     if (currentUserId) {
-      console.log('✅ User ID found, fetching data...');
       fetchUserProfile(currentUserId);
       fetchDailyStats(currentUserId);
       fetchUserContributions(currentUserId);
     } else {
-      console.log('❌ No user ID found, setting error state');
       setError('No user ID found. Please log in again.');
       setLoading({ profile: false, stats: false, contributions: false });
     }
@@ -681,9 +592,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log('✅ Profile data exported successfully');
     } catch (err) {
-      console.error('💥 Export failed:', err);
       alert('Failed to export profile data');
     }
   };
@@ -726,9 +635,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log('✅ Profile data exported as CSV successfully');
     } catch (err) {
-      console.error('💥 CSV export failed:', err);
       alert('Failed to export profile data as CSV');
     }
   };
