@@ -127,7 +127,6 @@ const useUserProfile = (
   const [exportData, setExportData] = useState<any>(null);
 
   const getAuthToken = useCallback(() => {
-
     const possibleKeys = [
       'authToken',
       'token',
@@ -166,7 +165,6 @@ const useUserProfile = (
   }, []);
 
   const decodeUserIdFromToken = useCallback((token: string): string | null => {
-
     try {
       const cleanToken = token.replace(/^Bearer\s+/i, '');
       const parts = cleanToken.split('.');
@@ -202,7 +200,6 @@ const useUserProfile = (
         'user_name',
       ];
 
-
       for (const field of possibleFields) {
         if (payloadObj[field]) {
           return payloadObj[field].toString();
@@ -220,7 +217,6 @@ const useUserProfile = (
   }, []);
 
   const getCurrentUserId = useCallback(() => {
-
     if (userId) {
       return userId;
     }
@@ -234,7 +230,7 @@ const useUserProfile = (
     const decodedUserId = decodeUserIdFromToken(token);
 
     if (!decodedUserId) {
-	    alert("Invalid token")
+      alert('Invalid token');
     }
 
     return decodedUserId;
@@ -286,7 +282,6 @@ const useUserProfile = (
         setProfile(profileData);
         localStorage.setItem('cachedProfile', JSON.stringify(userData));
       } catch (err) {
-
         const cachedProfile = localStorage.getItem('cachedProfile');
         if (cachedProfile) {
           try {
@@ -334,7 +329,6 @@ const useUserProfile = (
           },
         });
 
-
         if (!response.ok) {
           throw new Error(`Failed to fetch daily stats: ${response.status}`);
         }
@@ -372,7 +366,6 @@ const useUserProfile = (
         const baseUrl = BACKEND_URL;
         const apiUrl = `${baseUrl}/users/${currentUserId}/contributions`;
 
-
         const response = await fetch(apiUrl, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -380,7 +373,6 @@ const useUserProfile = (
             'Content-Type': 'application/json',
           },
         });
-
 
         if (!response.ok) {
           throw new Error(`Failed to fetch contributions: ${response.status}`);
@@ -427,7 +419,6 @@ const useUserProfile = (
   );
 
   const requestExport = useCallback(async () => {
-
     try {
       const currentUserId = getCurrentUserId();
       if (!currentUserId) throw new Error('User ID not found');
@@ -459,7 +450,6 @@ const useUserProfile = (
       fetchUserProfile(currentUserId);
       fetchDailyStats(currentUserId);
       fetchUserContributions(currentUserId);
-    } else {
     }
   }, [
     getCurrentUserId,
@@ -469,7 +459,6 @@ const useUserProfile = (
   ]);
 
   useEffect(() => {
-
     const currentUserId = getCurrentUserId();
 
     if (currentUserId) {
@@ -591,7 +580,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
     } catch (err) {
       alert('Failed to export profile data');
     }
@@ -634,7 +622,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
     } catch (err) {
       alert('Failed to export profile data as CSV');
     }
