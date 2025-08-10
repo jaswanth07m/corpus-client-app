@@ -15,6 +15,8 @@ import {
   TrendingUp,
   Award,
   ArrowLeft,
+  Pencil,
+  AlertTriangle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
@@ -484,6 +486,27 @@ const useUserProfile = (
   };
 };
 
+enum ReleaseRights {
+  Creator = 'creator',
+  FamilyOrFriend = 'family_or_friend',
+  downloaded = 'downloaded',
+}
+
+const releaseRightsMap: Record<ReleaseRights, string> = {
+  [ReleaseRights.Creator]:
+    'This work is created by me and anyone is allowed to use it',
+  [ReleaseRights.FamilyOrFriend]:
+    'This work is created by my family/friends and I took permission to upload their work.',
+  [ReleaseRights.downloaded]:
+    "I downloaded this from the internet and/or I don't know if it is free to share.",
+};
+
+const getRightsKeyFromValue = (value: string) => {
+  return Object.keys(releaseRightsMap).find(
+    (key) => releaseRightsMap[key] === value,
+  );
+};
+
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
   token,
@@ -547,6 +570,42 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const togglePhoneReveal = () => {
     setIsPhoneRevealed(!isPhoneRevealed);
+  };
+
+  const handleUpdate = async (updatedItem: ContributionItem) => {
+    if (!token) {
+      alert('Authentication Error. Cannot save changes.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/records/${updatedItem.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: updatedItem.title,
+          release_rights: updatedItem.release_rights,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || `Failed to update: ${response.status}`,
+        );
+      }
+
+      alert('Contribution updated successfully!');
+      refetch(); // Use the existing refetch function to update the UI
+    } catch (error) {
+      console.error('Update failed:', error);
+      alert(
+        error instanceof Error ? error.message : 'An unknown error occurred.',
+      );
+    }
   };
 
   const handleExport = () => {
@@ -906,6 +965,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <ContributionsList
               contributions={contributions}
               selectedMediaType={selectedMediaType}
+              onUpdate={refetch}
+              handleUpdate={handleUpdate}
             />
           </div>
         </div>
@@ -982,6 +1043,7 @@ function ContributionTypeButton({
   selectedMediaType,
   setSelectedMediaType,
 }: {
+  key: { key };
   type: 'text' | 'audio' | 'video' | 'image';
   selectedMediaType: 'text' | 'audio' | 'video' | 'image';
   setSelectedMediaType: (type: 'text' | 'audio' | 'video' | 'image') => void;
@@ -1005,12 +1067,17 @@ function ContributionTypeButton({
 interface ContributionsListProps {
   contributions: UserContributions | null;
   selectedMediaType: 'text' | 'audio' | 'video' | 'image';
+  onUpdate: () => void;
+  handleUpdate: (item: ContributionItem) => Promise<void>;
 }
 
 const ContributionsList: React.FC<ContributionsListProps> = ({
   contributions,
   selectedMediaType,
+  onUpdate,
+  handleUpdate,
 }) => {
+  const [editingItem, setEditingItem] = useState<ContributionItem | null>(null);
   let items: ContributionItem[] = [];
   if (!contributions) return null;
   if (selectedMediaType === 'text') items = contributions.textContributions;
@@ -1030,13 +1097,43 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
 
   return (
     <ul className="divide-y divide-gray-200">
-      {items.map((item, idx) => (
-        <li
-          key={item.id || idx}
-          className="flex flex-col md:flex-row md:items-center justify-between py-4 px-2 hover:bg-gray-50 rounded-lg transition group"
-        >
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+      {items.map((item, idx) => {
+        const getValidationWarnings = (): string[] => {
+          const warnings: string[] = [];
+          if (!item.title || item.title.trim().length < 8) {
+            warnings.push(
+              'Title is missing or is less than 8 characters long.',
+            );
+          }
+          const rights = item.release_rights;
+          if (
+            !rights ||
+            ['na', 'n/a', ''].includes(rights.trim().toLowerCase())
+          ) {
+            warnings.push('Release rights have not been set.');
+          }
+          return warnings;
+        };
+        const validationWarnings = getValidationWarnings();
+        const hasWarnings = validationWarnings.length > 0;
+        return editingItem?.id === item.id ? (
+          <EditableContributionItem
+            key={item.id}
+            item={editingItem}
+            onSave={async (updatedItem) => {
+              await handleUpdate(updatedItem);
+              setEditingItem(null);
+            }}
+            onCancel={() => setEditingItem(null)}
+          />
+        ) : (
+          <li
+            key={item.id}
+            className={`flex flex-col  py-4 px-2 rounded-lg transition ${
+              hasWarnings ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex gap-2">
               <span
                 className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
                   ${selectedMediaType === 'text' && 'bg-blue-100 text-blue-700'}
@@ -1056,12 +1153,28 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 </span>
               )}
             </div>
-            <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
-              <span className="flex flex-row flex-wrap gap-2 w-full">
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[24ch] max-w-full overflow-x-auto italic shadow-none"
-                  title={
-                    item.timestamp
+            <div className="flex">
+              <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
+                <span className="flex flex-row flex-wrap gap-2 w-full">
+                  <span
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[24ch] max-w-full overflow-x-auto italic shadow-none"
+                    title={
+                      item.timestamp
+                        ? new Date(item.timestamp).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })
+                        : '-'
+                    }
+                  >
+                    <span className="font-semibold mr-1 italic">
+                      Timestamp:
+                    </span>{' '}
+                    {item.timestamp
                       ? new Date(item.timestamp).toLocaleString('en-US', {
                           year: 'numeric',
                           month: 'short',
@@ -1070,56 +1183,26 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                           minute: '2-digit',
                           second: '2-digit',
                         })
-                      : '-'
-                  }
-                >
-                  <span className="font-semibold mr-1 italic">Timestamp:</span>{' '}
-                  {item.timestamp
-                    ? new Date(item.timestamp).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })
-                    : '-'}
-                </span>
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[18ch] max-w-full overflow-x-auto italic shadow-none"
-                  title={
-                    item.location &&
+                      : '-'}
+                  </span>
+                  <span
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[18ch] max-w-full overflow-x-auto italic shadow-none"
+                    title={
+                      item.location &&
+                      typeof item.location.latitude === 'number' &&
+                      typeof item.location.longitude === 'number'
+                        ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                        : '-'
+                    }
+                  >
+                    <span className="font-semibold mr-1 italic">Location:</span>{' '}
+                    {item.location &&
                     typeof item.location.latitude === 'number' &&
                     typeof item.location.longitude === 'number'
                       ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
-                      : '-'
-                  }
-                >
-                  <span className="font-semibold mr-1 italic">Location:</span>{' '}
-                  {item.location &&
-                  typeof item.location.latitude === 'number' &&
-                  typeof item.location.longitude === 'number'
-                    ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
-                    : '-'}
-                </span>
-                {/* Size badge */}
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
-                  style={{
-                    display: 'inline-flex',
-                    minWidth: '60px',
-                    fontStyle: 'italic',
-                    borderWidth: '1px',
-                    boxShadow: 'none',
-                    background: 'rgba(0,0,0,0.02)',
-                  }}
-                >
-                  <span className="font-semibold mr-1 italic">Size:</span>{' '}
-                  {item.size ? formatSizeMB(item.size) : '-'}
-                </span>
-                {/* Duration badge */}
-                {selectedMediaType === 'audio' ||
-                selectedMediaType === 'video' ? (
+                      : '-'}
+                  </span>
+                  {/* Size badge */}
                   <span
                     className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
                     style={{
@@ -1131,20 +1214,59 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                       background: 'rgba(0,0,0,0.02)',
                     }}
                   >
-                    <span className="font-semibold mr-1 italic">Duration:</span>{' '}
-                    {item.duration ? formatDuration(item.duration) : '-'}
+                    <span className="font-semibold mr-1 italic">Size:</span>{' '}
+                    {item.size ? formatSizeMB(item.size) : '-'}
                   </span>
-                ) : null}
-                {/* Display release_rights directly from the data */}
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
-                  <span className="font-semibold mr-1 italic">Rights:</span>{' '}
-                  {item.release_rights || 'N/A'}
+                  {/* Duration badge */}
+                  {selectedMediaType === 'audio' ||
+                  selectedMediaType === 'video' ? (
+                    <span
+                      className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
+                      style={{
+                        display: 'inline-flex',
+                        minWidth: '60px',
+                        fontStyle: 'italic',
+                        borderWidth: '1px',
+                        boxShadow: 'none',
+                        background: 'rgba(0,0,0,0.02)',
+                      }}
+                    >
+                      <span className="font-semibold mr-1 italic">
+                        Duration:
+                      </span>{' '}
+                      {item.duration ? formatDuration(item.duration) : '-'}
+                    </span>
+                  ) : null}
+                  {/* Display release_rights directly from the data */}
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
+                    <span className="font-semibold mr-1 italic">Rights:</span>{' '}
+                    {releaseRightsMap[item.release_rights] || 'N/A'}
+                  </span>
                 </span>
-              </span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
+                <button
+                  onClick={() => setEditingItem(item)}
+                  className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
+                  title="Edit Contribution"
+                >
+                  <Pencil size={18} />
+                </button>
+                {hasWarnings && (
+                  <div className="relative group flex items-center">
+                    <AlertTriangle className="text-yellow-500" size={18} />
+                    <div className="absolute top-1/2 -translate-y-1/2 right-full mr-3 w-max max-w-xs bg-gray-800 text-white text-xs rounded-md shadow-lg py-1.5 px-3 z-10 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-opacity duration-200">
+                      {validationWarnings.map((warning, index) => (
+                        <div key={index}>{warning}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 };
@@ -1181,5 +1303,86 @@ function ProfileDetail(item: {
     </div>
   );
 }
+
+const EditableContributionItem: React.FC<{
+  item: ContributionItem;
+  onSave: (updatedItem: ContributionItem) => void;
+  onCancel: () => void;
+}> = ({ item, onSave, onCancel }) => {
+  const [title, setTitle] = useState(item.title || '');
+  const initialRightsKey =
+    getRightsKeyFromValue(item.release_rights) || 'UNKNOWN';
+  const [rightsKey, setRightsKey] = useState('');
+
+  const handleSave = () => {
+    onSave({
+      ...item,
+      title,
+      release_rights: rightsKey,
+    });
+  };
+
+  return (
+    <li className="flex flex-col py-4 px-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+      <div>
+        <label
+          htmlFor="title"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Title
+        </label>
+        <input
+          type="text"
+          name="title"
+          id="title"
+          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter a title for the contribution"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="release_rights"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Release Rights
+        </label>
+        <select
+          name="release_rights"
+          id="release_rights"
+          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          value={rightsKey}
+          onChange={(e) => setRightsKey(e.target.value)}
+        >
+          <option value="" disabled>
+            -- Select the release rights for this record --
+          </option>
+          {Object.entries(releaseRightsMap).map(([key, value]) => (
+            <option key={key} value={key}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex items-center space-x-2 pt-2">
+        <button
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          onClick={handleSave}
+        >
+          Save
+        </button>
+        <button
+          className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      </div>
+    </li>
+  );
+};
 
 export default UserProfile;
