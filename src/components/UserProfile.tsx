@@ -486,11 +486,18 @@ const useUserProfile = (
   };
 };
 
-const releaseRightsMap: { [key: string]: string } = {
-  creator: 'This work is created by me and anyone is allowed to use it',
-  family_or_friend:
+enum ReleaseRights {
+  Creator = 'creator',
+  FamilyOrFriend = 'family_or_friend',
+  downloaded = 'downloaded',
+}
+
+const releaseRightsMap: Record<ReleaseRights, string> = {
+  [ReleaseRights.Creator]:
+    'This work is created by me and anyone is allowed to use it',
+  [ReleaseRights.FamilyOrFriend]:
     'This work is created by my family/friends and I took permission to upload their work.',
-  others:
+  [ReleaseRights.downloaded]:
     "I downloaded this from the internet and/or I don't know if it is free to share.",
 };
 
@@ -1233,7 +1240,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                   {/* Display release_rights directly from the data */}
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
                     <span className="font-semibold mr-1 italic">Rights:</span>{' '}
-                    {item.release_rights || 'N/A'}
+                    {releaseRightsMap[item.release_rights] || 'N/A'}
                   </span>
                 </span>
               </div>
@@ -1311,7 +1318,7 @@ const EditableContributionItem: React.FC<{
     onSave({
       ...item,
       title,
-      release_rights: releaseRightsMap[rightsKey], // Send the full text value
+      release_rights: rightsKey,
     });
   };
 
