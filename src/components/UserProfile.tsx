@@ -1312,7 +1312,7 @@ const EditableContributionItem: React.FC<{
   const [title, setTitle] = useState(item.title || '');
   const initialRightsKey =
     getRightsKeyFromValue(item.release_rights) || 'UNKNOWN';
-  const [rightsKey, setRightsKey] = useState(initialRightsKey);
+  const [rightsKey, setRightsKey] = useState('');
 
   const handleSave = () => {
     onSave({
@@ -1356,6 +1356,9 @@ const EditableContributionItem: React.FC<{
           value={rightsKey}
           onChange={(e) => setRightsKey(e.target.value)}
         >
+          <option value="" disabled>
+            -- Select the release rights for this record --
+          </option>
           {Object.entries(releaseRightsMap).map(([key, value]) => (
             <option key={key} value={key}>
               {value}
