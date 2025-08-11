@@ -574,6 +574,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     }
 
     try {
+      console.log(updatedItem.location);
       const response = await fetch(`${BACKEND_URL}/records/${updatedItem.id}`, {
         method: 'PATCH',
         headers: {
@@ -584,6 +585,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           title: updatedItem.title,
           description: updatedItem.description,
           release_rights: updatedItem.release_rights,
+          location: updatedItem.location,
         }),
       });
 
@@ -1313,11 +1315,60 @@ const EditableContributionItem: React.FC<{
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights);
 
+  const [latitude, setLatitude] = useState(
+    item.location?.latitude.toString() || '',
+  );
+  const [longitude, setLongitude] = useState(
+    item.location?.longitude.toString() || '',
+  );
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const handleGetLocation = () => {
+    setLocationError(null); // Clear previous errors
+
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // On success, update the input fields
+        setLatitude(position.coords.latitude.toString());
+        setLongitude(position.coords.longitude.toString());
+      },
+      (error) => {
+        // On error, display a helpful message
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationError('You denied the request for Geolocation.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setLocationError('Location information is unavailable.');
+            break;
+          case error.TIMEOUT:
+            setLocationError('The request to get user location timed out.');
+            break;
+          default:
+            setLocationError('An unknown error occurred.');
+            break;
+        }
+      },
+    );
+  };
+
   const handleSave = () => {
+    const newLat = parseFloat(latitude);
+    const newLng = parseFloat(longitude);
+
     onSave({
       ...item,
       title,
       description,
+      location:
+        !isNaN(newLat) && !isNaN(newLng)
+          ? { latitude: newLat, longitude: newLng }
+          : null,
       release_rights: rightsKey,
     });
   };
@@ -1358,6 +1409,44 @@ const EditableContributionItem: React.FC<{
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Enter the contribution description"
         />
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-1">
+          <label className="block text-sm font-medium text-gray-700">
+            Location
+          </label>
+          <button
+            onClick={handleGetLocation}
+            className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            <MapPin className="w-4 h-4 mr-1" />
+            Get Current Location
+          </button>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="number"
+            name="latitude"
+            className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={latitude}
+            onChange={(e) => setLatitude(e.target.value)}
+            placeholder="Latitude"
+            step="any"
+          />
+          <input
+            type="number"
+            name="longitude"
+            className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={longitude}
+            onChange={(e) => setLongitude(e.target.value)}
+            placeholder="Longitude"
+            step="any"
+          />
+        </div>
+        {locationError && (
+          <p className="text-xs text-red-600 mt-1">{locationError}</p>
+        )}
       </div>
 
       <div>
