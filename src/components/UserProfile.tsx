@@ -57,6 +57,7 @@ interface ContributionItem {
   category_id: string;
   reviewed: boolean;
   title: string;
+  description: string;
   duration?: number;
   timestamp?: string;
   location?: Coordinates;
@@ -487,24 +488,18 @@ const useUserProfile = (
 };
 
 enum ReleaseRights {
-  Creator = 'creator',
-  FamilyOrFriend = 'family_or_friend',
+  creator = 'creator',
+  family_or_friend = 'family_or_friend',
   downloaded = 'downloaded',
 }
 
 const releaseRightsMap: Record<ReleaseRights, string> = {
-  [ReleaseRights.Creator]:
+  [ReleaseRights.creator]:
     'This work is created by me and anyone is allowed to use it',
-  [ReleaseRights.FamilyOrFriend]:
+  [ReleaseRights.family_or_friend]:
     'This work is created by my family/friends and I took permission to upload their work.',
   [ReleaseRights.downloaded]:
     "I downloaded this from the internet and/or I don't know if it is free to share.",
-};
-
-const getRightsKeyFromValue = (value: string) => {
-  return Object.keys(releaseRightsMap).find(
-    (key) => releaseRightsMap[key] === value,
-  );
 };
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -587,6 +582,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         },
         body: JSON.stringify({
           title: updatedItem.title,
+          description: updatedItem.description,
           release_rights: updatedItem.release_rights,
         }),
       });
@@ -1101,8 +1097,11 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
         const getValidationWarnings = (): string[] => {
           const warnings: string[] = [];
           if (!item.title || item.title.trim().length < 8) {
+            warnings.push('Title is missing or is less than 8 characters.');
+          }
+          if (!item.description || item.description.trim().length < 32) {
             warnings.push(
-              'Title is missing or is less than 8 characters long.',
+              'Description is missing or is less than 32 characters.',
             );
           }
           const rights = item.release_rights;
@@ -1310,14 +1309,15 @@ const EditableContributionItem: React.FC<{
   onCancel: () => void;
 }> = ({ item, onSave, onCancel }) => {
   const [title, setTitle] = useState(item.title || '');
-  const initialRightsKey =
-    getRightsKeyFromValue(item.release_rights) || 'UNKNOWN';
-  const [rightsKey, setRightsKey] = useState('');
+  const [description, setDescription] = useState(item.description || '');
+  console.log(description);
+  const [rightsKey, setRightsKey] = useState(item.release_rights);
 
   const handleSave = () => {
     onSave({
       ...item,
       title,
+      description,
       release_rights: rightsKey,
     });
   };
@@ -1344,6 +1344,24 @@ const EditableContributionItem: React.FC<{
 
       <div>
         <label
+          htmlFor="description"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Description
+        </label>
+        <input
+          type="description"
+          name="description"
+          id="description"
+          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Enter the contribution description"
+        />
+      </div>
+
+      <div>
+        <label
           htmlFor="release_rights"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
@@ -1356,7 +1374,7 @@ const EditableContributionItem: React.FC<{
           value={rightsKey}
           onChange={(e) => setRightsKey(e.target.value)}
         >
-          <option value="" disabled>
+          <option value="NA" disabled>
             -- Select the release rights for this record --
           </option>
           {Object.entries(releaseRightsMap).map(([key, value]) => (
