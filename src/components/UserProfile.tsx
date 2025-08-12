@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 import {
   Eye,
@@ -57,6 +58,7 @@ interface ContributionItem {
   category_id: string;
   reviewed: boolean;
   title: string;
+  description: string;
   duration?: number;
   timestamp?: string;
   location?: Coordinates;
@@ -487,24 +489,18 @@ const useUserProfile = (
 };
 
 enum ReleaseRights {
-  Creator = 'creator',
-  FamilyOrFriend = 'family_or_friend',
+  creator = 'creator',
+  familyOrFriend = 'family_or_friend',
   downloaded = 'downloaded',
 }
 
 const releaseRightsMap: Record<ReleaseRights, string> = {
-  [ReleaseRights.Creator]:
+  [ReleaseRights.creator]:
     'This work is created by me and anyone is allowed to use it',
-  [ReleaseRights.FamilyOrFriend]:
+  [ReleaseRights.familyOrFriend]:
     'This work is created by my family/friends and I took permission to upload their work.',
   [ReleaseRights.downloaded]:
     "I downloaded this from the internet and/or I don't know if it is free to share.",
-};
-
-const getRightsKeyFromValue = (value: string) => {
-  return Object.keys(releaseRightsMap).find(
-    (key) => releaseRightsMap[key] === value,
-  );
 };
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -578,6 +574,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
       return;
     }
 
+    console.log(' update iterm:' + updatedItem.release_rights);
+
     try {
       const response = await fetch(`${BACKEND_URL}/records/${updatedItem.id}`, {
         method: 'PATCH',
@@ -587,19 +585,27 @@ const UserProfile: React.FC<UserProfileProps> = ({
         },
         body: JSON.stringify({
           title: updatedItem.title,
+          description: updatedItem.description,
           release_rights: updatedItem.release_rights,
+          location: updatedItem.location,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.detail || `Failed to update: ${response.status}`,
-        );
+        let errorMessage = `Failed to update: ${response.status}`; // Default error message
+
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          const specificMessages = errorData.detail.map((err) => err.msg);
+          errorMessage = specificMessages.join('\n');
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+        throw new Error(errorMessage);
       }
 
       alert('Contribution updated successfully!');
-      refetch(); // Use the existing refetch function to update the UI
+      refetch();
     } catch (error) {
       console.error('Update failed:', error);
       alert(
@@ -954,6 +960,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <div className="flex justify-center gap-4 my-4">
             {(['text', 'audio', 'video', 'image'] as const).map((type) => (
               <ContributionTypeButton
+                key={type}
                 type={type}
                 selectedMediaType={selectedMediaType}
                 setSelectedMediaType={setSelectedMediaType}
@@ -1043,7 +1050,6 @@ function ContributionTypeButton({
   selectedMediaType,
   setSelectedMediaType,
 }: {
-  key: { key };
   type: 'text' | 'audio' | 'video' | 'image';
   selectedMediaType: 'text' | 'audio' | 'video' | 'image';
   setSelectedMediaType: (type: 'text' | 'audio' | 'video' | 'image') => void;
@@ -1099,10 +1105,15 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     <ul className="divide-y divide-gray-200">
       {items.map((item, idx) => {
         const getValidationWarnings = (): string[] => {
+          console.log('rendered item' + item.release_rights);
+
           const warnings: string[] = [];
           if (!item.title || item.title.trim().length < 8) {
+            warnings.push('Title is missing or is less than 8 characters.');
+          }
+          if (!item.description || item.description.trim().length < 32) {
             warnings.push(
-              'Title is missing or is less than 8 characters long.',
+              'Description is missing or is less than 32 characters.',
             );
           }
           const rights = item.release_rights;
@@ -1310,14 +1321,65 @@ const EditableContributionItem: React.FC<{
   onCancel: () => void;
 }> = ({ item, onSave, onCancel }) => {
   const [title, setTitle] = useState(item.title || '');
-  const initialRightsKey =
-    getRightsKeyFromValue(item.release_rights) || 'UNKNOWN';
-  const [rightsKey, setRightsKey] = useState('');
+  const [description, setDescription] = useState(item.description || '');
+  console.log(description);
+  const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
+  const {
+    latitude,
+    longitude,
+    error: locationError,
+    loading: locationLoading,
+    getCurrentLocation,
+    setLatitude,
+    setLongitude,
+  } = useGeolocation(
+    item.location?.latitude.toString() || '',
+    item.location?.longitude.toString() || '',
+  );
+
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+    // Validate title: must be at least 8 characters
+    const isTitleValid = title.trim().length >= 8;
+
+    // Validate description: must be at least 32 characters
+    const isDescriptionValid = description.trim().length >= 32;
+
+    // Validate location: must be valid numbers within the correct range
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const isLocationValid =
+      !isNaN(lat) &&
+      !isNaN(lon) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      lon >= -180 &&
+      lon <= 180;
+
+    // Validate release rights: cannot be the default placeholder or the 'downloaded' option
+    const areRightsValid = rightsKey !== 'NA';
+
+    // Update the overall form validity state
+    setIsFormValid(
+      isTitleValid && isDescriptionValid && isLocationValid && areRightsValid,
+    );
+  }, [title, description, latitude, longitude, rightsKey]); // Dependency Array
 
   const handleSave = () => {
+    if (!isFormValid) {
+      alert('Please correct the errors before saving.');
+      return;
+    }
+
     onSave({
       ...item,
       title,
+      description,
+      location: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+      },
       release_rights: rightsKey,
     });
   };
@@ -1342,6 +1404,75 @@ const EditableContributionItem: React.FC<{
         />
       </div>
 
+      {title.length < 8 && (
+        <p className="text-xs text-red-600 mt-1">
+          Title must be at least 8 characters long.
+        </p>
+      )}
+
+      <div>
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Description
+        </label>
+        <input
+          type="description"
+          name="description"
+          id="description"
+          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Enter the contribution description"
+        />
+      </div>
+
+      {description.length < 32 && (
+        <p className="text-xs text-red-600 mt-1">
+          Description must be at least 32 characters long.
+        </p>
+      )}
+
+      <div>
+        <div className="flex justify-between items-center mb-1">
+          <label className="block text-sm font-medium text-gray-700">
+            Location
+          </label>
+          <button
+            onClick={getCurrentLocation}
+            disabled={locationLoading}
+            className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            <MapPin className="w-4 h-4 mr-1" />
+            Get Current Location
+          </button>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="number"
+            name="latitude"
+            className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={latitude}
+            onChange={(e) => setLatitude(e.target.value)}
+            placeholder="Latitude"
+            step="any"
+          />
+          <input
+            type="number"
+            name="longitude"
+            className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={longitude}
+            onChange={(e) => setLongitude(e.target.value)}
+            placeholder="Longitude"
+            step="any"
+          />
+        </div>
+        {locationError && (
+          <p className="text-xs text-red-600 mt-1">{locationError}</p>
+        )}
+      </div>
+
       <div>
         <label
           htmlFor="release_rights"
@@ -1356,7 +1487,7 @@ const EditableContributionItem: React.FC<{
           value={rightsKey}
           onChange={(e) => setRightsKey(e.target.value)}
         >
-          <option value="" disabled>
+          <option value="NA" disabled>
             -- Select the release rights for this record --
           </option>
           {Object.entries(releaseRightsMap).map(([key, value]) => (
@@ -1366,6 +1497,18 @@ const EditableContributionItem: React.FC<{
           ))}
         </select>
       </div>
+      {rightsKey == 'NA' && (
+        <p className="text-xs text-red-600 mt-1">
+          Pleae Select a Releae Record
+        </p>
+      )}
+
+      {rightsKey == 'downloaded' && (
+        <p className="text-xs text-red-600 mt-1">
+          Marked For deletion, please submit only original contnet with full
+          rights
+        </p>
+      )}
 
       <div className="flex items-center space-x-2 pt-2">
         <button
@@ -1377,6 +1520,7 @@ const EditableContributionItem: React.FC<{
         <button
           className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
           onClick={onCancel}
+          disabled={!isFormValid}
         >
           Cancel
         </button>
