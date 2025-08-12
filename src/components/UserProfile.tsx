@@ -490,14 +490,14 @@ const useUserProfile = (
 
 enum ReleaseRights {
   creator = 'creator',
-  family_or_friend = 'family_or_friend',
+  familyOrFriend = 'family_or_friend',
   downloaded = 'downloaded',
 }
 
 const releaseRightsMap: Record<ReleaseRights, string> = {
   [ReleaseRights.creator]:
     'This work is created by me and anyone is allowed to use it',
-  [ReleaseRights.family_or_friend]:
+  [ReleaseRights.familyOrFriend]:
     'This work is created by my family/friends and I took permission to upload their work.',
   [ReleaseRights.downloaded]:
     "I downloaded this from the internet and/or I don't know if it is free to share.",
