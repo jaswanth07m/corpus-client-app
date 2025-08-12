@@ -574,6 +574,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
       return;
     }
 
+    console.log(' update iterm:' + updatedItem.release_rights);
+
     try {
       const response = await fetch(`${BACKEND_URL}/records/${updatedItem.id}`, {
         method: 'PATCH',
@@ -593,18 +595,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
         const errorData = await response.json();
         let errorMessage = `Failed to update: ${response.status}`; // Default error message
 
-        // --- START OF THE NEW LOGIC ---
-
-        // Check if errorData.detail exists and is an array (this is the structure from FastAPI)
         if (errorData.detail && Array.isArray(errorData.detail)) {
-          // Use .map() to extract the 'msg' from each error object in the array
           const specificMessages = errorData.detail.map((err) => err.msg);
-
-          // Join the specific messages with a newline character for clean formatting
           errorMessage = specificMessages.join('\n');
-        }
-        // This handles cases where 'detail' is just a string (another common FastAPI pattern)
-        else if (errorData.detail) {
+        } else if (errorData.detail) {
           errorMessage = errorData.detail;
         }
         throw new Error(errorMessage);
@@ -1111,6 +1105,8 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     <ul className="divide-y divide-gray-200">
       {items.map((item, idx) => {
         const getValidationWarnings = (): string[] => {
+          console.log('rendered item' + item.release_rights);
+
           const warnings: string[] = [];
           if (!item.title || item.title.trim().length < 8) {
             warnings.push('Title is missing or is less than 8 characters.');
@@ -1327,7 +1323,7 @@ const EditableContributionItem: React.FC<{
   const [title, setTitle] = useState(item.title || '');
   const [description, setDescription] = useState(item.description || '');
   console.log(description);
-  const [rightsKey, setRightsKey] = useState(item.release_rights);
+  const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
   const {
     latitude,
     longitude,
@@ -1362,7 +1358,7 @@ const EditableContributionItem: React.FC<{
       lon <= 180;
 
     // Validate release rights: cannot be the default placeholder or the 'downloaded' option
-    const areRightsValid = rightsKey !== 'NA' && rightsKey !== 'downloaded';
+    const areRightsValid = rightsKey !== 'NA';
 
     // Update the overall form validity state
     setIsFormValid(
