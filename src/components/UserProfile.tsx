@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 import {
   Eye,
@@ -952,6 +953,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <div className="flex justify-center gap-4 my-4">
             {(['text', 'audio', 'video', 'image'] as const).map((type) => (
               <ContributionTypeButton
+                key={type}
                 type={type}
                 selectedMediaType={selectedMediaType}
                 setSelectedMediaType={setSelectedMediaType}
@@ -1041,7 +1043,6 @@ function ContributionTypeButton({
   selectedMediaType,
   setSelectedMediaType,
 }: {
-  key: { key };
   type: 'text' | 'audio' | 'video' | 'image';
   selectedMediaType: 'text' | 'audio' | 'video' | 'image';
   setSelectedMediaType: (type: 'text' | 'audio' | 'video' | 'image') => void;
@@ -1315,51 +1316,34 @@ const EditableContributionItem: React.FC<{
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights);
 
-  const [latitude, setLatitude] = useState(
+  const {
+    latitude,
+    longitude,
+    error: locationError,
+    loading: locationLoading,
+    getCurrentLocation,
+    setLatitude,
+    setLongitude,
+  } = useGeolocation(
     item.location?.latitude.toString() || '',
-  );
-  const [longitude, setLongitude] = useState(
     item.location?.longitude.toString() || '',
   );
-  const [locationError, setLocationError] = useState<string | null>(null);
-
-  const handleGetLocation = () => {
-    setLocationError(null); // Clear previous errors
-
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser.');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        // On success, update the input fields
-        setLatitude(position.coords.latitude.toString());
-        setLongitude(position.coords.longitude.toString());
-      },
-      (error) => {
-        // On error, display a helpful message
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setLocationError('You denied the request for Geolocation.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setLocationError('Location information is unavailable.');
-            break;
-          case error.TIMEOUT:
-            setLocationError('The request to get user location timed out.');
-            break;
-          default:
-            setLocationError('An unknown error occurred.');
-            break;
-        }
-      },
-    );
-  };
 
   const handleSave = () => {
     const newLat = parseFloat(latitude);
     const newLng = parseFloat(longitude);
+
+    if (isNaN(newLat) || isNaN(newLng)) {
+      alert(
+        'Invalid input. Please enter valid numbers for latitude and longitude.',
+      );
+      return;
+    }
+
+    if (newLat < -90 || newLat > 90 || newLng < -180 || newLng > 180) {
+      alert('Invalid location. Please enter a valid coordinates');
+      return;
+    }
 
     onSave({
       ...item,
@@ -1393,6 +1377,12 @@ const EditableContributionItem: React.FC<{
         />
       </div>
 
+      {title.length < 32 && (
+        <p className="text-xs text-red-600 mt-1">
+          Title must be at least 8 characters long.
+        </p>
+      )}
+
       <div>
         <label
           htmlFor="description"
@@ -1411,13 +1401,20 @@ const EditableContributionItem: React.FC<{
         />
       </div>
 
+      {description.length < 32 && (
+        <p className="text-xs text-red-600 mt-1">
+          Description must be at least 32 characters long.
+        </p>
+      )}
+
       <div>
         <div className="flex justify-between items-center mb-1">
           <label className="block text-sm font-medium text-gray-700">
             Location
           </label>
           <button
-            onClick={handleGetLocation}
+            onClick={getCurrentLocation}
+            disabled={locationLoading}
             className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
             <MapPin className="w-4 h-4 mr-1" />
@@ -1473,6 +1470,18 @@ const EditableContributionItem: React.FC<{
           ))}
         </select>
       </div>
+      {rightsKey == 'NA' && (
+        <p className="text-xs text-red-600 mt-1">
+          Pleae Select a Releae Record
+        </p>
+      )}
+
+      {rightsKey == 'downloaded' && (
+        <p className="text-xs text-red-600 mt-1">
+          Marked For deletion, please submit only original contnet with full
+          rights
+        </p>
+      )}
 
       <div className="flex items-center space-x-2 pt-2">
         <button
