@@ -575,7 +575,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
     }
 
     try {
-      console.log(updatedItem.location);
       const response = await fetch(`${BACKEND_URL}/records/${updatedItem.id}`, {
         method: 'PATCH',
         headers: {
@@ -592,13 +591,27 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.detail || `Failed to update: ${response.status}`,
-        );
+        let errorMessage = `Failed to update: ${response.status}`; // Default error message
+
+        // --- START OF THE NEW LOGIC ---
+
+        // Check if errorData.detail exists and is an array (this is the structure from FastAPI)
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          // Use .map() to extract the 'msg' from each error object in the array
+          const specificMessages = errorData.detail.map((err) => err.msg);
+
+          // Join the specific messages with a newline character for clean formatting
+          errorMessage = specificMessages.join('\n');
+        }
+        // This handles cases where 'detail' is just a string (another common FastAPI pattern)
+        else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+        throw new Error(errorMessage);
       }
 
       alert('Contribution updated successfully!');
-      refetch(); // Use the existing refetch function to update the UI
+      refetch();
     } catch (error) {
       console.error('Update failed:', error);
       alert(
@@ -1315,7 +1328,6 @@ const EditableContributionItem: React.FC<{
   const [description, setDescription] = useState(item.description || '');
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights);
-
   const {
     latitude,
     longitude,
@@ -1329,19 +1341,38 @@ const EditableContributionItem: React.FC<{
     item.location?.longitude.toString() || '',
   );
 
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+    // Validate title: must be at least 8 characters
+    const isTitleValid = title.trim().length >= 8;
+
+    // Validate description: must be at least 32 characters
+    const isDescriptionValid = description.trim().length >= 32;
+
+    // Validate location: must be valid numbers within the correct range
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const isLocationValid =
+      !isNaN(lat) &&
+      !isNaN(lon) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      lon >= -180 &&
+      lon <= 180;
+
+    // Validate release rights: cannot be the default placeholder or the 'downloaded' option
+    const areRightsValid = rightsKey !== 'NA' && rightsKey !== 'downloaded';
+
+    // Update the overall form validity state
+    setIsFormValid(
+      isTitleValid && isDescriptionValid && isLocationValid && areRightsValid,
+    );
+  }, [title, description, latitude, longitude, rightsKey]); // Dependency Array
+
   const handleSave = () => {
-    const newLat = parseFloat(latitude);
-    const newLng = parseFloat(longitude);
-
-    if (isNaN(newLat) || isNaN(newLng)) {
-      alert(
-        'Invalid input. Please enter valid numbers for latitude and longitude.',
-      );
-      return;
-    }
-
-    if (newLat < -90 || newLat > 90 || newLng < -180 || newLng > 180) {
-      alert('Invalid location. Please enter a valid coordinates');
+    if (!isFormValid) {
+      alert('Please correct the errors before saving.');
       return;
     }
 
@@ -1349,10 +1380,10 @@ const EditableContributionItem: React.FC<{
       ...item,
       title,
       description,
-      location:
-        !isNaN(newLat) && !isNaN(newLng)
-          ? { latitude: newLat, longitude: newLng }
-          : null,
+      location: {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+      },
       release_rights: rightsKey,
     });
   };
@@ -1377,7 +1408,7 @@ const EditableContributionItem: React.FC<{
         />
       </div>
 
-      {title.length < 32 && (
+      {title.length < 8 && (
         <p className="text-xs text-red-600 mt-1">
           Title must be at least 8 characters long.
         </p>
@@ -1493,6 +1524,7 @@ const EditableContributionItem: React.FC<{
         <button
           className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
           onClick={onCancel}
+          disabled={!isFormValid}
         >
           Cancel
         </button>
