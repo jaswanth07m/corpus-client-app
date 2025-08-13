@@ -1117,6 +1117,10 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
               'Description is missing or is less than 32 characters.',
             );
           }
+          if (!item.location) {
+            warnings.push('location is missing');
+          }
+
           const rights = item.release_rights;
           if (
             !rights ||
