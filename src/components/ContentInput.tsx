@@ -1233,9 +1233,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   <input
                     type="radio"
                     name="releaseRight_Options"
-                    checked={releaseRights === 'recorded'}
+                    checked={releaseRights === 'creator'}
                     onChange={() => {
-                      setreleaseRights('recorded');
+                      setreleaseRights('creator');
                     }}
                   />
                   <span className="ml-2">
@@ -1246,9 +1246,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   <input
                     type="radio"
                     name="releaseRight_Options"
-                    checked={releaseRights === 'collected'}
+                    checked={releaseRights === 'family_or_friend'}
                     onChange={() => {
-                      setreleaseRights('collected');
+                      setreleaseRights('family_or_friend');
                     }}
                   />
                   <span className="ml-2">
@@ -1260,9 +1260,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   <input
                     type="radio"
                     name="releaseRight_Options"
-                    checked={releaseRights === 'internet'}
+                    checked={releaseRights === 'downloaded'}
                     onChange={() => {
-                      setreleaseRights('internet');
+                      setreleaseRights('downloaded');
                       toast.error(
                         'Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.',
                       );

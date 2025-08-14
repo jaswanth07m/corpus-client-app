@@ -489,7 +489,7 @@ const Categories: React.FC<CategoriesProps> = ({
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
       formData.append('title', title);
-      formData.append('description', description); // Added description
+      formData.append('description', description);
       formData.append('category_id', selectedCategory!.id);
       formData.append('user_id', userId);
       formData.append('media_type', uploadMode || '');
@@ -498,6 +498,7 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('use_uid_filename', 'false');
       formData.append('total_chunks', totalChunks.toString());
       formData.append('filename', filename);
+      formData.append('release_rights', releaseRights.toString());
 
       const response = await fetch(`${BACKEND_URL}/records/upload`, {
         method: 'POST',
@@ -737,7 +738,7 @@ const Categories: React.FC<CategoriesProps> = ({
         uploading={uploading}
         token={token}
         userId={userId}
-        description={description} // Pass description
+        description={description}
         setDescription={setDescription} // Pass setDescription
         descriptionError={descriptionError} // Pass descriptionError
         setDescriptionError={setDescriptionError} // Pass setDescriptionError
