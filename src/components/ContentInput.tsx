@@ -85,6 +85,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   setTextContent,
   selectedFile,
   setSelectedFile,
+  description,
+  setDescription,
   location,
   setLocation,
   locationError,
@@ -132,7 +134,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
   // Title and Description validation
   const [titleError, setTitleError] = useState(false);
-  const [description, setDescription] = useState(''); // New state for description
   const [descriptionError, setDescriptionError] = useState(false); // New state for description error
 
   const videoRef = useRef<HTMLVideoElement>(null);
