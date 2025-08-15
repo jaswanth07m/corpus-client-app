@@ -181,8 +181,6 @@ const Categories: React.FC<CategoriesProps> = ({
       // First try to decode user ID from JWT token
       const tokenPayload = decodeJWTToken(token);
       if (tokenPayload) {
-        console.log('JWT Token payload:', tokenPayload);
-
         // Check if token is expired
         if (tokenPayload.exp && Date.now() >= tokenPayload.exp * 1000) {
           handleSessionExpiration(
@@ -193,7 +191,6 @@ const Categories: React.FC<CategoriesProps> = ({
 
         const userId = tokenPayload.sub;
         if (userId) {
-          console.log('User ID from token:', userId);
           setUserId(userId.toString());
           return; // Exit early if we got the user ID from token
         }
@@ -216,7 +213,6 @@ const Categories: React.FC<CategoriesProps> = ({
 
       if (response.ok) {
         const userData = await response.json();
-        console.log('User profile response:', userData);
 
         // Try multiple possible field names for user ID
         const userId =
@@ -261,7 +257,6 @@ const Categories: React.FC<CategoriesProps> = ({
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Categories Response:', data);
         const publishedCategories = data
           .filter((cat: Category) => cat.published)
           .sort((a: Category, b: Category) => a.rank - b.rank);
@@ -331,7 +326,6 @@ const Categories: React.FC<CategoriesProps> = ({
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log('Location obtained:', position.coords);
         setLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
@@ -498,7 +492,7 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('use_uid_filename', 'false');
       formData.append('total_chunks', totalChunks.toString());
       formData.append('filename', filename);
-      formData.append('release_rights', releaseRights.toString());
+      formData.append('release_rights', releaseRights);
 
       const response = await fetch(`${BACKEND_URL}/records/upload`, {
         method: 'POST',
@@ -510,11 +504,11 @@ const Categories: React.FC<CategoriesProps> = ({
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Upload finalized successfully:', result);
         return true;
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Upload finalization failed:', errorData);
+        toast.error(errorData.detail);
         return false;
       }
     } catch (error) {
@@ -656,7 +650,6 @@ const Categories: React.FC<CategoriesProps> = ({
           posthog.capture('upload_success');
         } else {
           posthog.capture('upload_finalization_failed');
-          toast.error('Upload finalization failed. Please try again.');
           partialResetUploadState();
         }
       } else {
