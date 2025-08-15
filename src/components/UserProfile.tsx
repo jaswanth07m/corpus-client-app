@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   Pencil,
   AlertTriangle,
+  X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
@@ -500,7 +501,7 @@ const releaseRightsMap: Record<ReleaseRights, string> = {
   [ReleaseRights.familyOrFriend]:
     'This work is created by my family/friends and I took permission to upload their work.',
   [ReleaseRights.downloaded]:
-    "I downloaded this from the internet and/or I don't know if it is free to share.",
+    'I downloaded this from the internet OR This is AI generted contnet',
 };
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -1116,6 +1117,10 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
               'Description is missing or is less than 32 characters.',
             );
           }
+          if (!item.location) {
+            warnings.push('location is missing');
+          }
+
           const rights = item.release_rights;
           if (
             !rights ||
@@ -1263,6 +1268,16 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 >
                   <Pencil size={18} />
                 </button>
+
+                {item.release_rights == 'downloaded' && (
+                  <div className="relative group flex items-center">
+                    <X className="text-red-500" size={18} />
+                    <div className="absolute top-1/2 -translate-y-1/2 right-full mr-3 w-max max-w-xs bg-gray-800 text-white text-xs rounded-md shadow-lg py-1.5 px-3 z-10 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-opacity duration-200">
+                      Marked as Invalid
+                    </div>
+                  </div>
+                )}
+
                 {hasWarnings && (
                   <div className="relative group flex items-center">
                     <AlertTriangle className="text-yellow-500" size={18} />
@@ -1468,8 +1483,8 @@ const EditableContributionItem: React.FC<{
             step="any"
           />
         </div>
-        {locationError && (
-          <p className="text-xs text-red-600 mt-1">{locationError}</p>
+        {(!latitude || !longitude) && (
+          <p className="text-xs text-red-600 mt-1">please enter location</p>
         )}
       </div>
 
@@ -1488,7 +1503,7 @@ const EditableContributionItem: React.FC<{
           onChange={(e) => setRightsKey(e.target.value)}
         >
           <option value="NA" disabled>
-            -- Select the release rights for this record --
+            -- please declare the release rights for this record --
           </option>
           {Object.entries(releaseRightsMap).map(([key, value]) => (
             <option key={key} value={key}>
@@ -1499,14 +1514,14 @@ const EditableContributionItem: React.FC<{
       </div>
       {rightsKey == 'NA' && (
         <p className="text-xs text-red-600 mt-1">
-          Pleae Select a Releae Record
+          Pleae declare release rights
         </p>
       )}
 
       {rightsKey == 'downloaded' && (
         <p className="text-xs text-red-600 mt-1">
-          Marked For deletion, please submit only original contnet with full
-          rights
+          Marked as invalid submission, please submit only content created by
+          you or content you have permission to upload
         </p>
       )}
 
@@ -1514,13 +1529,13 @@ const EditableContributionItem: React.FC<{
         <button
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
           onClick={handleSave}
+          disabled={!isFormValid}
         >
           Save
         </button>
         <button
           className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
           onClick={onCancel}
-          disabled={!isFormValid}
         >
           Cancel
         </button>
