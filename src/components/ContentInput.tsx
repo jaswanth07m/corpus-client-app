@@ -501,15 +501,38 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   };
 
   const handleUploadWithProgress = async () => {
-    if (selectedFiles.length === 0) return;
-
     setUploadingFiles(true);
+
+    if (uploadMode === 'text') {
+      if (!textContent || !description) {
+        setUploadingFiles(false);
+        return;
+      }
+      // Create a file from textContent
+      const textBlob = new Blob([textContent], { type: 'text/plain' });
+      const textFile = new File([textBlob], 'text-content.txt', {
+        type: 'text/plain',
+      });
+      try {
+        await onUpload(textFile, description);
+      } catch (err) {
+        console.error('Text upload failed', err);
+        toast.error('Text upload failed');
+      }
+      setUploadingFiles(false);
+      return;
+    }
+
+    // For other modes, upload selected files
+    if (selectedFiles.length === 0) {
+      setUploadingFiles(false);
+      return;
+    }
 
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
-
       try {
-        await onUpload(file, description); // Modified: Pass description
+        await onUpload(file, description);
       } catch (err) {
         console.error('Upload failed for', file.name, err);
         toast.error(`Upload failed: ${file.name}`);

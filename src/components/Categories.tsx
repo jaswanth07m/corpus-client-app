@@ -604,6 +604,7 @@ const Categories: React.FC<CategoriesProps> = ({
       toast.error(
         'Upload any works created by you or you can upload works of your family members/friends with their permission.',
       );
+      return; // <-- Add return here to block upload if releaseRights is 'internet'
     }
 
     // Prepare file for upload
