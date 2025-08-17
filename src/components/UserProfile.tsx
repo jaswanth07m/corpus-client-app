@@ -64,6 +64,7 @@ interface ContributionItem {
   timestamp?: string;
   location?: Coordinates;
   release_rights: string;
+  language: string;
 }
 
 interface UserContributions {
@@ -504,6 +505,56 @@ const releaseRightsMap: Record<ReleaseRights, string> = {
     'I downloaded this from the internet OR This is AI generted contnet',
 };
 
+enum SelectedLanguage {
+  assamese = 'assamese',
+  bengali = 'bengali',
+  bodo = 'bodo',
+  dogri = 'dogri',
+  gujarati = 'gujarati',
+  hindi = 'hindi',
+  kannada = 'kannada',
+  kashmiri = 'kashmiri',
+  konkani = 'konkani',
+  maithili = 'maithili',
+  malayalam = 'malayalam',
+  marathi = 'marathi',
+  meitei = 'meitei',
+  nepali = 'nepali',
+  odia = 'odia',
+  punjabi = 'punjabi',
+  sanskrit = 'sanskrit',
+  santali = 'santali',
+  sindhi = 'sindhi',
+  tamil = 'tamil',
+  telugu = 'telugu',
+  urdu = 'urdu',
+}
+
+const selectedLanguageMap: Record<SelectedLanguage, string> = {
+  [SelectedLanguage.assamese]: 'Assamese',
+  [SelectedLanguage.bengali]: 'Bengali',
+  [SelectedLanguage.bodo]: 'Bodo',
+  [SelectedLanguage.dogri]: 'Dogri',
+  [SelectedLanguage.gujarati]: 'Gujarati',
+  [SelectedLanguage.hindi]: 'Hindi',
+  [SelectedLanguage.kannada]: 'Kannada',
+  [SelectedLanguage.kashmiri]: 'Kashmiri',
+  [SelectedLanguage.konkani]: 'Konkani',
+  [SelectedLanguage.maithili]: 'Maithili',
+  [SelectedLanguage.malayalam]: 'Malayalam',
+  [SelectedLanguage.marathi]: 'Marathi',
+  [SelectedLanguage.meitei]: 'Meitei',
+  [SelectedLanguage.nepali]: 'Nepali',
+  [SelectedLanguage.odia]: 'Odia',
+  [SelectedLanguage.punjabi]: 'Punjabi',
+  [SelectedLanguage.sanskrit]: 'Sanskrit',
+  [SelectedLanguage.santali]: 'Santali',
+  [SelectedLanguage.sindhi]: 'Sindhi',
+  [SelectedLanguage.tamil]: 'Tamil',
+  [SelectedLanguage.telugu]: 'Telugu',
+  [SelectedLanguage.urdu]: 'Urdu',
+};
+
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
   token,
@@ -589,6 +640,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           description: updatedItem.description,
           release_rights: updatedItem.release_rights,
           location: updatedItem.location,
+          language: updatedItem.language,
         }),
       });
 
@@ -1128,8 +1180,16 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
           ) {
             warnings.push('Release rights have not been set.');
           }
+
+          if (
+            !item.language ||
+            ['na', 'n/a', ''].includes(rights.trim().toLowerCase())
+          ) {
+            warnings.push('Language has not been selected.');
+          }
           return warnings;
         };
+
         const validationWarnings = getValidationWarnings();
         const hasWarnings = validationWarnings.length > 0;
         return editingItem?.id === item.id ? (
@@ -1258,6 +1318,12 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     <span className="font-semibold mr-1 italic">Rights:</span>{' '}
                     {releaseRightsMap[item.release_rights] || 'N/A'}
                   </span>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
+                    <span className="font-semibold mr-1 italic">Language:</span>{' '}
+                    {selectedLanguageMap[
+                      item.language as keyof typeof selectedLanguageMap
+                    ] || 'N/A'}
+                  </span>
                 </span>
               </div>
               <div className="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
@@ -1339,6 +1405,7 @@ const EditableContributionItem: React.FC<{
   const [description, setDescription] = useState(item.description || '');
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
+  const [language, setLanguage] = useState(item.language || 'NA');
   const {
     latitude,
     longitude,
@@ -1375,11 +1442,17 @@ const EditableContributionItem: React.FC<{
     // Validate release rights: cannot be the default placeholder or the 'downloaded' option
     const areRightsValid = rightsKey !== 'NA';
 
+    const isLanguageValid = language !== 'NA';
+
     // Update the overall form validity state
     setIsFormValid(
-      isTitleValid && isDescriptionValid && isLocationValid && areRightsValid,
+      isTitleValid &&
+        isDescriptionValid &&
+        isLocationValid &&
+        areRightsValid &&
+        isLanguageValid,
     );
-  }, [title, description, latitude, longitude, rightsKey]); // Dependency Array
+  }, [title, description, latitude, longitude, rightsKey, language]); // Dependency Array
 
   const handleSave = () => {
     if (!isFormValid) {
@@ -1396,6 +1469,7 @@ const EditableContributionItem: React.FC<{
         longitude: parseFloat(longitude),
       },
       release_rights: rightsKey,
+      language: language,
     });
   };
 
@@ -1522,6 +1596,36 @@ const EditableContributionItem: React.FC<{
         <p className="text-xs text-red-600 mt-1">
           Marked as invalid submission, please submit only content created by
           you or content you have permission to upload
+        </p>
+      )}
+
+      <div>
+        <label
+          htmlFor="language"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Language
+        </label>
+        <select
+          name="language"
+          id="language"
+          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+        >
+          <option value="NA" disabled>
+            -- please select the language --
+          </option>
+          {Object.entries(selectedLanguageMap).map(([key, value]) => (
+            <option key={key} value={key}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+      {language == 'NA' && (
+        <p className="text-xs text-red-600 mt-1">
+          Pleae Select the Contribution Language
         </p>
       )}
 
