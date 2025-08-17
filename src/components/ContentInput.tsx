@@ -58,22 +58,24 @@ interface ContentInputProps {
   uploading: boolean;
   token: string;
   userId: string;
-  description: string; // Added
-  setDescription: (description: string) => void; // Added
-  descriptionError: boolean; // Added
-  setDescriptionError: (error: boolean) => void; // Added
+  description: string;
+  setDescription: (description: string) => void;
+  descriptionError: boolean;
+  setDescriptionError: (error: boolean) => void;
+  releaseRights: string;
+  setreleaseRights: (releaseRights: string) => void;
+  selectedLanguage: string;
+  setSelectedLangugae: (selectedLanguage: string) => void;
+
   onBack: () => void;
-  onUpload: (file: File, description: string) => Promise<void>; // Modified: Added description parameter
+  onUpload: (file: File, description: string) => Promise<void>;
+
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  // Phase 4: Chunked upload progress props
+
   chunkedUploadProgress: number;
   isChunkedUploading?: boolean;
-
-  // Release Rights
-  releaseRights: string;
-  setreleaseRights: (releaseRights: string) => void;
 }
 
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
@@ -99,10 +101,10 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   setManualLng,
   uploading,
 
-  //release rights
-
   releaseRights,
   setreleaseRights,
+  selectedLanguage,
+  setSelectedLangugae,
 
   onBack,
   onUpload,
@@ -171,6 +173,31 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       description: 'Take or upload photos',
       accept: 'image/*',
     },
+  ];
+
+  const languages = [
+    'assamese',
+    'bengali',
+    'bodo',
+    'dogri',
+    'gujarati',
+    'hindi',
+    'kannada',
+    'kashmiri',
+    'konkani',
+    'maithili',
+    'malayalam',
+    'marathi',
+    'meitei',
+    'nepali',
+    'odia',
+    'punjabi',
+    'sanskrit',
+    'santali',
+    'sindhi',
+    'tamil',
+    'telugu',
+    'urdu',
   ];
 
   useEffect(() => {
@@ -1226,6 +1253,24 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
+            <div className="mb-6">
+              <label className="block font-medium mb-2">
+                Select Language *
+              </label>
+              <select
+                className="border rounded px-3 py-2 w-full"
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLangugae(e.target.value)}
+              >
+                <option value="">-- Select a language --</option>
+                {languages.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Release Rights */}
             <div className="mb-6">
               <label className="block font-medium mb-2">Release Rights *</label>
@@ -1290,7 +1335,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   description.trim().length < 32 || // Added description length validation
                   !location ||
                   !releaseRights ||
-                  releaseRights == 'internet' ||
+                  releaseRights == 'downloaded' ||
+                  !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&
                     !selectedFile &&

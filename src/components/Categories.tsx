@@ -101,15 +101,13 @@ const Categories: React.FC<CategoriesProps> = ({
   const [description, setDescription] = useState(''); // New state for description
   const [descriptionError, setDescriptionError] = useState(false); // New state for description error
 
-  // releaseRights
   const [releaseRights, setreleaseRights] = useState('');
+  const [selectedLanguage, setSelectedLangugae] = useState('');
 
-  // Upload configuration
   const CHUNK_SIZE = 5 * 1024 * 1024; // 40MB maximum per chunk
   const MAX_RETRY_ATTEMPTS = 5; // Maximum retry attempts per chunk
   const RETRY_DELAY_MS = 1000; // Base delay for exponential backoff
 
-  // Upload state management
   const [uploadUuid, setUploadUuid] = useState<string>('');
   const [uploadedChunks, setUploadedChunks] = useState<Set<number>>(new Set());
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -493,6 +491,7 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('total_chunks', totalChunks.toString());
       formData.append('filename', filename);
       formData.append('release_rights', releaseRights);
+      formData.append('language', selectedLanguage);
 
       const response = await fetch(`${BACKEND_URL}/records/upload`, {
         method: 'POST',
@@ -600,10 +599,14 @@ const Categories: React.FC<CategoriesProps> = ({
       return;
     }
 
-    if (releaseRights == 'internet') {
+    if (releaseRights == 'downloaded') {
       toast.error(
         'Upload any works created by you or you can upload works of your family members/friends with their permission.',
       );
+    }
+
+    if (!selectedLanguage) {
+      toast.error('Select a Langauge');
     }
 
     // Prepare file for upload
@@ -673,6 +676,10 @@ const Categories: React.FC<CategoriesProps> = ({
     setShowUploadOptions(false);
     setUploadMode(null);
     setTitle('');
+    setDescription('');
+    setDescriptionError(false);
+    setSelectedLangugae('');
+    setreleaseRights('');
     setTextContent('');
     setSelectedFile(null);
     setLocationRequested(false);
@@ -745,6 +752,8 @@ const Categories: React.FC<CategoriesProps> = ({
         isChunkedUploading={isUploading}
         releaseRights={releaseRights}
         setreleaseRights={setreleaseRights}
+        selectedLanguage={selectedLanguage}
+        setSelectedLangugae={setSelectedLangugae}
       />
     );
   }
