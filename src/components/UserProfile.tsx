@@ -65,6 +65,8 @@ interface ContributionItem {
   location?: Coordinates;
   release_rights: string;
   language: string;
+  file_hash: string;
+  snr_frequency: number;
 }
 
 interface UserContributions {
@@ -1190,6 +1192,17 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
           return warnings;
         };
 
+        const getSnrLabel = (snr) => {
+          const value = parseFloat(snr);
+          if (isNaN(value)) return 'N/A';
+
+          if (value >= 40) return `${value} db (Excellent)`;
+          if (value >= 25) return `${value} db (Good)`;
+          if (value >= 15) return `${value} db (Acceptable)`;
+          if (value >= 10) return `${value} db (Unreliable)`;
+          return `${value} db (Probably unusable)`;
+        };
+
         const validationWarnings = getValidationWarnings();
         const hasWarnings = validationWarnings.length > 0;
         return editingItem?.id === item.id ? (
@@ -1323,6 +1336,20 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     {selectedLanguageMap[
                       item.language as keyof typeof selectedLanguageMap
                     ] || 'N/A'}
+                  </span>
+
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
+                    <span className="font-semibold mr-1 italic">
+                      File Hash:
+                    </span>{' '}
+                    {item.file_hash || 'N/A'}
+                  </span>
+
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
+                    <span className="font-semibold mr-1 italic">
+                      SNR Frequency:
+                    </span>{' '}
+                    {getSnrLabel(item.snr_frequency)}
                   </span>
                 </span>
               </div>
