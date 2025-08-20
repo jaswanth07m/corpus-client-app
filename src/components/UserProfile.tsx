@@ -959,6 +959,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 </p>
                 <p className="text-sm text-gray-600">Text Contributions</p>
               </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <Award size={24} className="text-orange-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-orange-600">
+                  {contributions.contributionsByType.image}
+                </p>
+                <p className="text-sm text-gray-600">Image Contributions</p>
+              </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <TrendingUp size={24} className="text-green-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-green-600">
@@ -971,13 +978,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                     : '0 hours'}
                 </p>
               </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <Award size={24} className="text-orange-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-orange-600">
-                  {contributions.contributionsByType.image}
-                </p>
-                <p className="text-sm text-gray-600">Image Contributions</p>
-              </div>
+
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <Calendar size={24} className="text-purple-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-purple-600">
@@ -1011,7 +1012,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
           {/* Media type selector - improved layout and style */}
           <div className="flex justify-center gap-4 my-4">
-            {(['text', 'audio', 'video', 'image'] as const).map((type) => (
+            {(['text', 'image', 'audio', 'video'] as const).map((type) => (
               <ContributionTypeButton
                 key={type}
                 type={type}
@@ -1103,9 +1104,9 @@ function ContributionTypeButton({
   selectedMediaType,
   setSelectedMediaType,
 }: {
-  type: 'text' | 'audio' | 'video' | 'image';
-  selectedMediaType: 'text' | 'audio' | 'video' | 'image';
-  setSelectedMediaType: (type: 'text' | 'audio' | 'video' | 'image') => void;
+  type: 'text' | 'image' | 'video' | 'audio';
+  selectedMediaType: 'text' | 'image' | 'video' | 'audio';
+  setSelectedMediaType: (type: 'text' | 'image' | 'video' | 'audio') => void;
 }) {
   return (
     <button
