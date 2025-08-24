@@ -43,8 +43,8 @@ This is the frontend application for the Corpus project. It allows users to cont
 
 1.  Clone the repository:
     ```bash
-    git clone https://code.swecha.org/Vamanakhil/corpusapp-frontend.git
-    cd corpusapp-frontend
+    git clone https://code.swecha.org/corpus/frontend.git
+    cd frontend
     ```
 2.  Install dependencies:
     ```bash
