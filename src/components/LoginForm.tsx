@@ -133,7 +133,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       console.log('Sending OTP to:', getFullPhoneNumber());
 
-      const response = await fetch(`${BACKEND_URL}/auth/send-otp`, {
+      const response = await fetch(`${BACKEND_URL}/auth/login/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       console.log('Verifying OTP:', otp, 'for phone:', getFullPhoneNumber());
 
-      const response = await fetch(`${BACKEND_URL}/auth/verify-otp`, {
+      const response = await fetch(`${BACKEND_URL}/auth/login/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
