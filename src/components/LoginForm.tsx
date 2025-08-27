@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
+import { Link } from 'react-router-dom';
 
 interface LoginFormProps {
   onLoginSuccess: (token: string, user: unknown) => void;
@@ -732,7 +733,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   {/* forgot password ? Login with OTP */}
                   <div className="font-medium text-gray-800">
-                    Forgot Password ?{' '}
+                    Forgot Password?{' '}
+                    <Link
+                      to="/forgot-password"
+                      className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
+                    >
+                      Reset Here
+                    </Link>
+                  </div>
+                  <div className="font-medium text-gray-800">
+                    No Mobile Nearby ?{' '}
                     <button
                       className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
                       onClick={() => {

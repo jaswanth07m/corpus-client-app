@@ -1,0 +1,259 @@
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
+import { initiatePasswordReset, confirmPasswordReset } from '@/lib/auth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+
+const initiateSchema = z.object({
+  phone_number: z.string().min(10, 'Phone number must be at least 10 digits'),
+});
+
+const confirmSchema = z
+  .object({
+    phone_number: z.string().min(10, 'Phone number must be at least 10 digits'),
+    otp_code: z.string().min(6, 'OTP must be 6 digits'),
+    new_password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Password must contain at least one number')
+      .regex(
+        /[^a-zA-Z0-9]/,
+        'Password must contain at least one special character',
+      ),
+    confirm_password: z
+      .string()
+      .min(8, 'Confirm password must be at least 8 characters'),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: "Passwords don't match",
+    path: ['confirm_password'],
+  });
+
+const ForgotPassword = () => {
+  const { toast } = useToast();
+  const [step, setStep] = useState<'initiate' | 'confirm'>('initiate');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const initiateForm = useForm<z.infer<typeof initiateSchema>>({
+    resolver: zodResolver(initiateSchema),
+    defaultValues: {
+      phone_number: '',
+    },
+  });
+
+  const confirmForm = useForm<z.infer<typeof confirmSchema>>({
+    resolver: zodResolver(confirmSchema),
+    defaultValues: {
+      phone_number: '',
+      otp_code: '',
+      new_password: '',
+      confirm_password: '',
+    },
+  });
+
+  const onSubmitInitiate = async (values: z.infer<typeof initiateSchema>) => {
+    setIsLoading(true);
+    try {
+      await initiatePasswordReset(values.phone_number);
+      toast({
+        title: 'OTP Sent',
+        description: 'A one-time password has been sent to your phone.',
+      });
+      confirmForm.setValue('phone_number', values.phone_number);
+      setStep('confirm');
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred.';
+      toast({
+        title: 'Error',
+        description: errorMessage || 'Failed to send OTP.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onSubmitConfirm = async (values: z.infer<typeof confirmSchema>) => {
+    setIsLoading(true);
+    try {
+      await confirmPasswordReset(
+        values.phone_number,
+        values.otp_code,
+        values.new_password,
+        values.confirm_password,
+      );
+      toast({
+        title: 'Password Reset Successful',
+        description: 'Your password has been reset successfully.',
+      });
+      // Optionally redirect to login page
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred.';
+      toast({
+        title: 'Error',
+        description: errorMessage || 'Failed to reset password.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center">Forgot Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {step === 'initiate' ? (
+            <Form {...initiateForm}>
+              <form
+                onSubmit={initiateForm.handleSubmit(onSubmitInitiate)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={initiateForm.control}
+                  name="phone_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter your phone number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Send OTP
+                </Button>
+              </form>
+            </Form>
+          ) : (
+            <Form {...confirmForm}>
+              <form
+                onSubmit={confirmForm.handleSubmit(onSubmitConfirm)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={confirmForm.control}
+                  name="phone_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter your phone number"
+                          {...field}
+                          disabled
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={confirmForm.control}
+                  name="otp_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>OTP Code</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter OTP" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={confirmForm.control}
+                  name="new_password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter new password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <div className="text-xs text-gray-500 mt-1">
+                        Password must be at least 8 characters and contain:
+                        <ul className="list-disc list-inside ml-2">
+                          <li>One uppercase letter</li>
+                          <li>One lowercase letter</li>
+                          <li>One number</li>
+                          <li>One special character</li>
+                        </ul>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={confirmForm.control}
+                  name="confirm_password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Confirm new password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Reset Password
+                </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full"
+                  onClick={() => setStep('initiate')}
+                  disabled={isLoading}
+                >
+                  Back to Initiate
+                </Button>
+              </form>
+            </Form>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default ForgotPassword;
