@@ -9,6 +9,7 @@ import {
   Mic,
   Video,
   Camera,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ContentInput from './ContentInput';
@@ -61,7 +62,7 @@ interface CategoriesProps {
 }
 
 interface UploadOption {
-  type: 'text' | 'audio' | 'video' | 'image';
+  type: 'text' | 'audio' | 'video' | 'image' | 'document';
   icon: React.ReactNode;
   title: string;
   description: string;
@@ -83,7 +84,7 @@ const Categories: React.FC<CategoriesProps> = ({
   );
   const [showUploadOptions, setShowUploadOptions] = useState(false);
   const [uploadMode, setUploadMode] = useState<
-    'text' | 'audio' | 'video' | 'image' | null
+    'text' | 'audio' | 'video' | 'image' | 'document' | null
   >(null);
   const [title, setTitle] = useState('');
   const [textContent, setTextContent] = useState('');
@@ -141,6 +142,13 @@ const Categories: React.FC<CategoriesProps> = ({
       title: 'Photo Capture',
       description: 'Take or upload photos',
       accept: 'image/*',
+    },
+    {
+      type: 'document' as const,
+      icon: <FileText className="w-6 h-6" />,
+      title: 'Document Upload',
+      description: 'Upload document files (PDF, DOCX, etc.)',
+      accept: '.pdf,.doc,.docx,.txt',
     },
   ];
 
