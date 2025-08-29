@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import PropTypes from 'prop-types';
 
 import {
   Eye,
@@ -19,6 +20,7 @@ import {
   Pencil,
   AlertTriangle,
   X,
+  Loader2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
@@ -1030,6 +1032,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               selectedMediaType={selectedMediaType}
               onUpdate={refetch}
               handleUpdate={handleUpdate}
+              token={token}
             />
           </div>
         </div>
@@ -1131,6 +1134,7 @@ interface ContributionsListProps {
   selectedMediaType: 'text' | 'audio' | 'video' | 'image';
   onUpdate: () => void;
   handleUpdate: (item: ContributionItem) => Promise<void>;
+  token: string;
 }
 
 const ContributionsList: React.FC<ContributionsListProps> = ({
@@ -1138,6 +1142,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   selectedMediaType,
   onUpdate,
   handleUpdate,
+  token,
 }) => {
   const [editingItem, setEditingItem] = useState<ContributionItem | null>(null);
   let items: ContributionItem[] = [];
@@ -1355,6 +1360,12 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 </span>
               </div>
               <div className="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
+                {(selectedMediaType === 'audio' ||
+                  selectedMediaType === 'video' ||
+                  selectedMediaType === 'image') && (
+                  <SecureViewButton recordId={item.id} apiToken={token} />
+                )}
+
                 <button
                   onClick={() => setEditingItem(item)}
                   className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
@@ -1423,6 +1434,88 @@ function ProfileDetail(item: {
     </div>
   );
 }
+
+interface SecureViewButtonProps {
+  recordId: string;
+  apiToken: string;
+}
+
+const SecureViewButton: React.FC<SecureViewButtonProps> = ({
+  recordId,
+  apiToken,
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleViewFile = async () => {
+    if (!recordId || !apiToken) {
+      setError('Missing required data to fetch file.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Call your FastAPI endpoint to get the Record URL
+      const response = await fetch(
+        `${BACKEND_URL}/records/${recordId}/record-url?expires_minutes=10`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to get Record URL.');
+      }
+
+      const data = await response.json();
+
+      // 2. Open the received URL in a new browser tab
+      if (data.record_url) {
+        window.open(data.record_url, '_blank', 'noopener,noreferrer');
+      } else {
+        throw new Error('API did not return a valid URL.');
+      }
+    } catch (err) {
+      console.error('Failed to fetch Record URL:', err);
+      setError(
+        err instanceof Error ? err.message : 'An unknown error occurred.',
+      );
+      // Optionally, show an alert to the user
+      alert(
+        `Error: ${err instanceof Error ? err.message : 'Could not load file.'}`,
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleViewFile}
+      disabled={isLoading}
+      className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      title="View File Securely"
+    >
+      {isLoading ? (
+        <Loader2 size={18} className="animate-spin" />
+      ) : (
+        <Eye size={18} />
+      )}
+    </button>
+  );
+};
+
+SecureViewButton.propTypes = {
+  recordId: PropTypes.string.isRequired,
+  apiToken: PropTypes.string.isRequired,
+};
 
 const EditableContributionItem: React.FC<{
   item: ContributionItem;
