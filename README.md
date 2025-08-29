@@ -1,6 +1,6 @@
-# Corpus Frontend
+# Corpus Client App
 
-This is the frontend application for the Corpus project. It allows users to contribute various types of content (text, audio, video, images) to a corpus, manage their profiles, and track their contributions.
+This is the corpus-client-app application for the Corpus project. It allows users to contribute various types of content (text, audio, video, images) to a corpus, manage their profiles, and track their contributions.
 
 ## Features
 
@@ -21,7 +21,7 @@ This is the frontend application for the Corpus project. It allows users to cont
 
 ## Technologies Used
 
-- **React:** Frontend library for building user interfaces.
+- **React:** Front-end library for building user interfaces.
 - **TypeScript:** Superset of JavaScript for type-safe development.
 - **Vite:** Fast build tool for modern web projects.
 - **Tailwind CSS:** Utility-first CSS framework for rapid UI development.
@@ -43,8 +43,8 @@ This is the frontend application for the Corpus project. It allows users to cont
 
 1.  Clone the repository:
     ```bash
-    git clone https://code.swecha.org/corpus/frontend.git
-    cd frontend
+    git clone https://code.swecha.org/corpus/corpus-client-app.git
+    cd corpus-client-app
     ```
 2.  Install dependencies:
     ```bash
