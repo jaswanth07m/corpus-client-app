@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -45,6 +46,7 @@ const confirmSchema = z
   });
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [step, setStep] = useState<'initiate' | 'confirm'>('initiate');
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +104,10 @@ const ForgotPassword = () => {
         title: 'Password Reset Successful',
         description: 'Your password has been reset successfully.',
       });
-      // Optionally redirect to login page
+      // Redirect to login page after successful reset
+      setTimeout(() => {
+        navigate('/');
+      }, 1200); // 1.2s delay for user to see toast
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -114,6 +119,13 @@ const ForgotPassword = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handler to allow only numbers and max 10 digits
+  const handlePhoneInput = (e: React.FormEvent<HTMLInputElement>) => {
+    let value = e.currentTarget.value.replace(/\D/g, '');
+    if (value.length > 10) value = value.slice(0, 10);
+    initiateForm.setValue('phone_number', value);
   };
 
   return (
@@ -136,10 +148,25 @@ const ForgotPassword = () => {
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Enter your phone number"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium select-none">
+                            +91
+                          </span>
+                          <Input
+                            type="tel"
+                            pattern="[0-9]*"
+                            inputMode="numeric"
+                            placeholder="Enter your phone number"
+                            value={field.value}
+                            maxLength={10}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/\D/g, '');
+                              if (value.length > 10) value = value.slice(0, 10);
+                              field.onChange(value);
+                            }}
+                            className="pl-14"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -150,6 +177,14 @@ const ForgotPassword = () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
                   Send OTP
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/')}
+                >
+                  Back to Login
                 </Button>
               </form>
             </Form>
