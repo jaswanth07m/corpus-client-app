@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Upload,
   Trash2,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -37,7 +38,7 @@ interface Category {
 }
 
 interface ContentInputProps {
-  uploadMode: 'text' | 'audio' | 'video' | 'image' | null;
+  uploadMode: 'text' | 'audio' | 'video' | 'image' | 'document' | null;
   selectedCategory: Category;
   title: string;
   setTitle: (title: string) => void;
@@ -172,6 +173,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       title: 'Photo Capture',
       description: 'Take or upload photos',
       accept: 'image/*',
+    },
+    {
+      type: 'document' as const,
+      icon: <FileText className="w-6 h-6" />,
+      title: 'Document Upload',
+      description: 'Upload document files (PDF, DOCX, etc.)',
+      accept: '.pdf,.doc,.docx,.txt',
     },
   ];
 
@@ -636,6 +644,64 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     }}
                   ></div>
                 </div>
+              </div>
+            )}
+
+            {uploadMode === 'document' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Document Upload *
+                </label>
+                <label className="block">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    onChange={handleFileSelectInternal}
+                    className="hidden"
+                  />
+                  <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <span className="text-gray-600">
+                      Upload Document Files (PDF, DOCX, TXT)
+                    </span>
+                  </div>
+                </label>
+
+                {/* Selected Files List */}
+                {selectedFiles.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className="font-medium text-gray-700">
+                      Selected File:
+                    </h4>
+                    {selectedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <div className="font-medium text-sm">
+                              {file.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {formatFileSize(file.size)}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => removeFile(index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

@@ -78,11 +78,13 @@ interface UserContributions {
     audio: number;
     image: number;
     video: number;
+    document: number;
   };
   audioContributions: ContributionItem[];
   videoContributions: ContributionItem[];
   textContributions: ContributionItem[];
   imageContributions: ContributionItem[];
+  documentContributions: ContributionItem[];
   audioDuration: number;
   videoDuration: number;
 }
@@ -392,11 +394,13 @@ const useUserProfile = (
             audio: 0,
             image: 0,
             video: 0,
+            document: 0,
           },
           audioContributions: data.audio_contributions || [],
           videoContributions: data.video_contributions || [],
           textContributions: data.text_contributions || [],
           imageContributions: data.image_contributions || [],
+          documentContributions: data.document_contributions || [],
           audioDuration: data.audio_duration || 0,
           videoDuration: data.video_duration || 0,
         });
@@ -408,11 +412,13 @@ const useUserProfile = (
             audio: 0,
             image: 0,
             video: 0,
+            document: 0,
           },
           audioContributions: [],
           videoContributions: [],
           textContributions: [],
           imageContributions: [],
+          documentContributions: [],
           audioDuration: 0,
           videoDuration: 0,
         });
@@ -582,7 +588,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [isPhoneRevealed, setIsPhoneRevealed] = useState(false);
 
   const [selectedMediaType, setSelectedMediaType] = useState<
-    'text' | 'audio' | 'video' | 'image'
+    'text' | 'audio' | 'video' | 'image' | 'document'
   >('text');
 
   const formatDate = (dateString: string) => {
@@ -720,6 +726,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
         ['Audio Contributions', contributions?.contributionsByType?.audio || 0],
         ['Image Contributions', contributions?.contributionsByType?.image || 0],
         ['Video Contributions', contributions?.contributionsByType?.video || 0],
+        [
+          'Document Contributions',
+          contributions?.contributionsByType?.document || 0,
+        ],
         ['Total Contributions', contributions?.totalContributions || 0],
       ];
 
@@ -970,6 +980,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 </p>
                 <p className="text-sm text-gray-600">Image Contributions</p>
               </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <Award size={24} className="text-orange-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-orange-600">
+                  {contributions.contributionsByType.document}
+                </p>
+                <p className="text-sm text-gray-600">Document Contributions</p>
+              </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <TrendingUp size={24} className="text-green-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-green-600">
@@ -1016,14 +1033,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
           {/* Media type selector - improved layout and style */}
           <div className="flex justify-center gap-4 my-4">
-            {(['text', 'image', 'audio', 'video'] as const).map((type) => (
-              <ContributionTypeButton
-                key={type}
-                type={type}
-                selectedMediaType={selectedMediaType}
-                setSelectedMediaType={setSelectedMediaType}
-              />
-            ))}
+            {(['text', 'image', 'audio', 'video', 'document'] as const).map(
+              (type) => (
+                <ContributionTypeButton
+                  key={type}
+                  type={type}
+                  selectedMediaType={selectedMediaType}
+                  setSelectedMediaType={setSelectedMediaType}
+                />
+              ),
+            )}
           </div>
           {/* Modernized display of contributions for selected media type */}
           <div className="max-w-2xl mx-auto">
@@ -1109,9 +1128,11 @@ function ContributionTypeButton({
   selectedMediaType,
   setSelectedMediaType,
 }: {
-  type: 'text' | 'image' | 'video' | 'audio';
-  selectedMediaType: 'text' | 'image' | 'video' | 'audio';
-  setSelectedMediaType: (type: 'text' | 'image' | 'video' | 'audio') => void;
+  type: 'text' | 'image' | 'video' | 'audio' | 'document';
+  selectedMediaType: 'text' | 'image' | 'video' | 'audio' | 'document';
+  setSelectedMediaType: (
+    type: 'text' | 'image' | 'video' | 'audio' | 'document',
+  ) => void;
 }) {
   return (
     <button
@@ -1131,7 +1152,7 @@ function ContributionTypeButton({
 
 interface ContributionsListProps {
   contributions: UserContributions | null;
-  selectedMediaType: 'text' | 'audio' | 'video' | 'image';
+  selectedMediaType: 'text' | 'audio' | 'video' | 'image' | 'document';
   onUpdate: () => void;
   handleUpdate: (item: ContributionItem) => Promise<void>;
   token: string;
@@ -1151,6 +1172,8 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   if (selectedMediaType === 'audio') items = contributions.audioContributions;
   if (selectedMediaType === 'video') items = contributions.videoContributions;
   if (selectedMediaType === 'image') items = contributions.imageContributions;
+  if (selectedMediaType === 'document')
+    items = contributions.documentContributions;
 
   if (!items || items.length === 0) {
     return (
@@ -1235,6 +1258,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                   ${selectedMediaType === 'audio' && 'bg-green-100 text-green-700'}
                   ${selectedMediaType === 'video' && 'bg-purple-100 text-purple-700'}
                   ${selectedMediaType === 'image' && 'bg-orange-100 text-orange-700'}
+                  ${selectedMediaType === 'document' && 'bg-orange-100 text-orange-700'}
                 `}
               >
                 {capitalize(selectedMediaType)}
@@ -1362,6 +1386,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
               <div className="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
                 {(selectedMediaType === 'audio' ||
                   selectedMediaType === 'video' ||
+                  selectedMediaType === 'document' ||
                   selectedMediaType === 'image') && (
                   <SecureViewButton recordId={item.id} apiToken={token} />
                 )}
