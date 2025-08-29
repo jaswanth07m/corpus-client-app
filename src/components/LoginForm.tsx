@@ -86,6 +86,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   });
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSignupOtpInput, setShowSignupOtpInput] = useState(false);
+  const [signupOtp, setSignupOtp] = useState('');
 
   // Timer for resend OTP
   useEffect(() => {
@@ -312,7 +314,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setLoading(false);
   };
 
-  const handleSignup = async () => {
+  const handleSignupSendOTP = async () => {
     // Validation
     if (!isValidPhoneNumber()) {
       toast.error('Please enter a valid 10-digit phone number');
@@ -352,6 +354,66 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         place: signupData.place.trim() || undefined,
         password: signupData.password,
         role_ids: [2], // Default role ID as per schema
+        phone_number: getFullPhoneNumber(),
+      };
+
+      const response = await fetch(`${BACKEND_URL}/auth/signup/send-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      console.log('Signup Send OTP Response:', data);
+
+      if (response.ok) {
+        setShowSignupOtpInput(true);
+        setResendTimer(60);
+        setCanResend(false);
+        toast.success('Signup OTP sent successfully!');
+      } else {
+        console.error('Signup Send OTP Error:', data);
+        toast.error(
+          data.message ||
+            data.detail ||
+            data.error ||
+            'Failed to send signup OTP',
+        );
+      }
+    } catch (error) {
+      console.error('Network Error:', error);
+      toast.error('Network error. Please check your connection and try again.');
+    }
+    setLoading(false);
+  };
+
+  const handleSignupVerifyOTP = async () => {
+    if (!signupOtp || signupOtp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log(
+        'Verifying Signup OTP:',
+        signupOtp,
+        'for phone:',
+        getFullPhoneNumber(),
+      );
+
+      const requestBody = {
+        phone_number: getFullPhoneNumber(),
+        otp_code: signupOtp.trim(),
+        name: signupData.name.trim(),
+        email: signupData.email.trim(),
+        gender: signupData.gender || undefined,
+        date_of_birth: signupData.date_of_birth || undefined,
+        place: signupData.place.trim() || undefined,
+        password: signupData.password,
+        role_ids: [2], // Default role ID as per schema
         has_given_consent: signupData.has_given_consent,
       };
 
@@ -362,7 +424,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         }
       });
 
-      const response = await fetch(`${BACKEND_URL}/users/`, {
+      const response = await fetch(`${BACKEND_URL}/auth/signup/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -371,30 +433,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       });
 
       const data = await response.json();
-      console.log('Signup Response:', data);
-      console.log('Response Status:', response.status);
+      console.log('Signup Verify OTP Response:', data);
 
       if (response.ok) {
         toast.success(
-          'Account created successfully! Please login to continue.',
+          'Account created and verified successfully! Please login.',
         );
-        // Switch to login mode
         setMode('login');
-        // Reset signup form
-        setSignupData({
-          name: '',
-          email: '',
-          gender: '',
-          date_of_birth: '',
-          place: '',
-          password: '',
-          confirmPassword: '',
-          has_given_consent: false,
-        });
+        resetForm();
       } else {
-        console.error('Signup Error:', data);
-
-        // Handle specific error cases
+        console.error('Signup Verify OTP Error:', data);
         if (data.detail && Array.isArray(data.detail)) {
           const errorMessages = data.detail
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -408,24 +456,50 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         } else if (data.error) {
           toast.error(data.error);
         } else {
-          switch (response.status) {
-            case 400:
-              toast.error(
-                'Invalid input. Please check your details and try again.',
-              );
-              break;
-            case 409:
-              toast.error(
-                'An account with this phone number or email already exists.',
-              );
-              break;
-            case 422:
-              toast.error('Please check your input and try again.');
-              break;
-            default:
-              toast.error(`Account creation failed (${response.status})`);
-          }
+          toast.error(`Signup OTP verification failed (${response.status})`);
         }
+      }
+    } catch (error) {
+      console.error('Network Error:', error);
+      toast.error('Network error. Please check your connection and try again.');
+    }
+    setLoading(false);
+  };
+
+  const handleSignupResendOTP = async () => {
+    if (!canResend || loading) return;
+
+    setCanResend(false);
+    setSignupOtp(''); // Clear current OTP
+    setLoading(true);
+    try {
+      console.log('Resending Signup OTP to:', getFullPhoneNumber());
+
+      const response = await fetch(`${BACKEND_URL}/auth/signup/resend-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone_number: getFullPhoneNumber(),
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Signup Resend OTP Response:', data);
+
+      if (response.ok) {
+        setResendTimer(60);
+        setCanResend(false);
+        toast.success('Signup OTP resent successfully!');
+      } else {
+        console.error('Signup Resend OTP Error:', data);
+        toast.error(
+          data.message ||
+            data.detail ||
+            data.error ||
+            'Failed to resend signup OTP',
+        );
       }
     } catch (error) {
       console.error('Network Error:', error);
@@ -437,6 +511,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6);
     setOtp(value);
+  };
+
+  const handleSignupOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setSignupOtp(value);
   };
 
   const handleSignupInputChange = (field: string, value: string | boolean) => {
@@ -463,6 +542,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       confirmPassword: '',
       has_given_consent: false,
     });
+    setShowSignupOtpInput(false);
+    setSignupOtp('');
   };
 
   return (
@@ -778,424 +859,507 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
           {/* SIGNUP MODE */}
           {mode === 'signup' && (
-            <div className="space-y-5 animate-fade-in-up">
-              {/* Phone Number */}
-              <div className="relative">
-                <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                <div className="absolute left-12 top-4 text-gray-500 font-medium">
-                  +91
-                </div>
-                <Input
-                  type="tel"
-                  placeholder="Enter 10-digit phone number"
-                  value={phoneDigits}
-                  onChange={(e) =>
-                    setPhoneDigits(formatPhoneNumber(e.target.value))
-                  }
-                  onFocus={() => {
-                    setValidatePhone('border-gray-500');
-                    setErrorPhoneDisplay('hidden');
-                  }}
-                  onBlur={(e) => {
-                    if (parseInt(phoneDigits[0]) <= 5) {
-                      setValidatePhone('border-rose-800');
-                      setErrorPhoneDisplay('block');
-                      setFormValidationErrors(true);
-                    } else {
-                      setFormValidationErrors(false);
-                    }
-                  }}
-                  className={`pl-20 h-14 border-2 ${validatePhone} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                />
-                <div className="text-xs text-gray-500 mt-1 ml-1">
-                  {phoneDigits.length}/10 digits
-                </div>
-                <div
-                  className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
-                >
-                  *Phone number is invalid
-                </div>
-              </div>
-
-              {/* Name */}
-              <div className="relative">
-                <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                <Input
-                  type="text"
-                  placeholder="Full Name *"
-                  value={signupData.name}
-                  onChange={(e) =>
-                    handleSignupInputChange('name', e.target.value)
-                  }
-                  onFocus={() => {
-                    setValidateName('border-gray-500');
-                    setErrorNameDisplay('hidden');
-                  }}
-                  onBlur={(e) => {
-                    const nameRegex = /^[A-Za-z\s]+$/;
-                    if (!nameRegex.test(signupData.name.trim())) {
-                      setValidateName('border-rose-800');
-                      setErrorNameDisplay('block');
-                      setFormValidationErrors(true);
-                    } else {
-                      setFormValidationErrors(false);
-                    }
-                  }}
-                  className={`pl-12 h-14 border-2 ${validateName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                />
-                <div
-                  className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorNameDisplay}`}
-                >
-                  *Name should have characters only
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="relative">
-                <Mail className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                <Input
-                  type="email"
-                  placeholder="Email Address *"
-                  value={signupData.email}
-                  onChange={(e) =>
-                    handleSignupInputChange('email', e.target.value)
-                  }
-                  onFocus={() => {
-                    setValidateEmail('border-gray-500');
-                    setErrorEmailDisplay('hidden');
-                  }}
-                  onBlur={(e) => {
-                    const emailRegex = /^[^+\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(signupData.email.trim())) {
-                      setValidateEmail('border-rose-800');
-                      setErrorEmailDisplay('block');
-                      setFormValidationErrors(true);
-                    } else {
-                      setFormValidationErrors(false);
-                    }
-                  }}
-                  className={`pl-12 h-14 border-2 ${validateEmail} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                />
-                <div
-                  className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`}
-                >
-                  *Email is invalid
-                </div>
-              </div>
-
-              {/* Gender */}
-              <div className="relative">
-                <select
-                  value={signupData.gender}
-                  onChange={(e) =>
-                    handleSignupInputChange('gender', e.target.value)
-                  }
-                  className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                  <option value="Prefer not to say">Prefer not to say</option>
-                </select>
-              </div>
-
-              {/* Date of Birth */}
-              <div className="relative">
-                <label className="text-sm text-gray-700 mb-1 block">
-                  Date of Birth
-                </label>
-                <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
-                <Input
-                  type="date"
-                  placeholder="Date of Birth"
-                  min={minDate}
-                  max={maxDate}
-                  value={signupData.date_of_birth}
-                  onChange={(e) =>
-                    handleSignupInputChange('date_of_birth', e.target.value)
-                  }
-                  className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 mt-1"
-                />
-              </div>
-
-              {/* Place */}
-              <div className="relative">
-                <MapPin className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                <Input
-                  type="text"
-                  placeholder="Place (City, State)"
-                  value={signupData.place}
-                  onChange={(e) =>
-                    handleSignupInputChange('place', e.target.value)
-                  }
-                  onFocus={() => {
-                    setValidatePlace('border-gray-500');
-                    setErrorPlaceDisplay('hidden');
-                  }}
-                  onBlur={(e) => {
-                    const placeRegex = /^[A-Za-z\s,]+$/;
-                    if (!placeRegex.test(signupData.place.trim())) {
-                      setValidatePlace('border-rose-800');
-                      setErrorPlaceDisplay('block');
-                      setFormValidationErrors(true);
-                    } else {
-                      setFormValidationErrors(false);
-                    }
-                  }}
-                  className={`pl-12 h-14 border-2 ${validatePlace} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                />
-                <div
-                  className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`}
-                >
-                  *Place should have characters ( , is allowed)
-                </div>
-              </div>
-
-              {/* Password */}
-              <div className="relative">
-                <Input
-                  type={showSignupPassword ? 'text' : 'password'}
-                  placeholder="Create Password *"
-                  value={signupData.password}
-                  onChange={(e) =>
-                    handleSignupInputChange('password', e.target.value)
-                  }
-                  onFocus={() => {
-                    setErrorPasswordRequirementsDisplay('block');
-                  }}
-                  onBlur={(e) => {
-                    if (
-                      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                        signupData.password,
-                      ) &&
-                      signupData.password.length >= 8
-                    ) {
-                      setFormValidationErrors(false);
-                    } else {
-                      setFormValidationErrors(true);
-                    }
-                    setErrorPasswordRequirementsDisplay('hidden');
-                  }}
-                  className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSignupPassword(!showSignupPassword)}
-                  className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
-                >
-                  {showSignupPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-                <div className={`mt-3 ${errorPasswordRequirementsDisplay}`}>
-                  <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <>
+              {!showSignupOtpInput ? (
+                <div className="space-y-5 animate-fade-in-up">
+                  {/* Phone Number */}
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                    <div className="absolute left-12 top-4 text-gray-500 font-medium">
+                      +91
+                    </div>
+                    <Input
+                      type="tel"
+                      placeholder="Enter 10-digit phone number"
+                      value={phoneDigits}
+                      onChange={(e) =>
+                        setPhoneDigits(formatPhoneNumber(e.target.value))
+                      }
+                      onFocus={() => {
+                        setValidatePhone('border-gray-500');
+                        setErrorPhoneDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        if (parseInt(phoneDigits[0]) <= 5) {
+                          setValidatePhone('border-rose-800');
+                          setErrorPhoneDisplay('block');
+                          setFormValidationErrors(true);
+                        } else {
+                          setFormValidationErrors(false);
+                        }
+                      }}
+                      className={`pl-20 h-14 border-2 ${validatePhone} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <div className="text-xs text-gray-500 mt-1 ml-1">
+                      {phoneDigits.length}/10 digits
+                    </div>
                     <div
-                      className={`h-full transition-all duration-300 ${
-                        !signupData.password
-                          ? 'w-0'
-                          : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                                signupData.password,
-                              )
-                            ? 'w-full bg-green-500'
-                            : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
-                                  signupData.password,
-                                )
-                              ? 'w-2/3 bg-yellow-500'
-                              : 'w-1/3 bg-red-500'
-                      }`}
+                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
+                    >
+                      *Phone number is invalid
+                    </div>
+                  </div>
+
+                  {/* Name */}
+                  <div className="relative">
+                    <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                    <Input
+                      type="text"
+                      placeholder="Full Name *"
+                      value={signupData.name}
+                      onChange={(e) =>
+                        handleSignupInputChange('name', e.target.value)
+                      }
+                      onFocus={() => {
+                        setValidateName('border-gray-500');
+                        setErrorNameDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        const nameRegex = /^[A-Za-z\s]+$/;
+                        if (!nameRegex.test(signupData.name.trim())) {
+                          setValidateName('border-rose-800');
+                          setErrorNameDisplay('block');
+                          setFormValidationErrors(true);
+                        } else {
+                          setFormValidationErrors(false);
+                        }
+                      }}
+                      className={`pl-12 h-14 border-2 ${validateName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <div
+                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorNameDisplay}`}
+                    >
+                      *Name should have characters only
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                    <Input
+                      type="email"
+                      placeholder="Email Address *"
+                      value={signupData.email}
+                      onChange={(e) =>
+                        handleSignupInputChange('email', e.target.value)
+                      }
+                      onFocus={() => {
+                        setValidateEmail('border-gray-500');
+                        setErrorEmailDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        const emailRegex = /^[^+\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(signupData.email.trim())) {
+                          setValidateEmail('border-rose-800');
+                          setErrorEmailDisplay('block');
+                          setFormValidationErrors(true);
+                        } else {
+                          setFormValidationErrors(false);
+                        }
+                      }}
+                      className={`pl-12 h-14 border-2 ${validateEmail} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <div
+                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`}
+                    >
+                      *Email is invalid
+                    </div>
+                  </div>
+
+                  {/* Gender */}
+                  <div className="relative">
+                    <select
+                      value={signupData.gender}
+                      onChange={(e) =>
+                        handleSignupInputChange('gender', e.target.value)
+                      }
+                      className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
+                      aria-label="Select Gender"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  {/* Date of Birth */}
+                  <div className="relative">
+                    <label className="text-sm text-gray-700 mb-1 block">
+                      Date of Birth
+                    </label>
+                    <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
+                    <Input
+                      type="date"
+                      placeholder="Date of Birth"
+                      min={minDate}
+                      max={maxDate}
+                      value={signupData.date_of_birth}
+                      onChange={(e) =>
+                        handleSignupInputChange('date_of_birth', e.target.value)
+                      }
+                      className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 mt-1"
                     />
                   </div>
-                  <div className="text-xs text-gray-500">
-                    Password Strength:{' '}
-                    <span
-                      className={
-                        !signupData.password
-                          ? 'text-gray-500'
-                          : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                                signupData.password,
-                              )
-                            ? 'text-green-500'
-                            : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
+
+                  {/* Place */}
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                    <Input
+                      type="text"
+                      placeholder="Place (City, State)"
+                      value={signupData.place}
+                      onChange={(e) =>
+                        handleSignupInputChange('place', e.target.value)
+                      }
+                      onFocus={() => {
+                        setValidatePlace('border-gray-500');
+                        setErrorPlaceDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        const placeRegex = /^[A-Za-z\s,]+$/;
+                        if (!placeRegex.test(signupData.place.trim())) {
+                          setValidatePlace('border-rose-800');
+                          setErrorPlaceDisplay('block');
+                          setFormValidationErrors(true);
+                        } else {
+                          setFormValidationErrors(false);
+                        }
+                      }}
+                      className={`pl-12 h-14 border-2 ${validatePlace} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <div
+                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`}
+                    >
+                      *Place should have characters ( , is allowed)
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div className="relative">
+                    <Input
+                      type={showSignupPassword ? 'text' : 'password'}
+                      placeholder="Create Password *"
+                      value={signupData.password}
+                      onChange={(e) =>
+                        handleSignupInputChange('password', e.target.value)
+                      }
+                      onFocus={() => {
+                        setErrorPasswordRequirementsDisplay('block');
+                      }}
+                      onBlur={(e) => {
+                        if (
+                          !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
+                            signupData.password,
+                          ) &&
+                          signupData.password.length >= 8
+                        ) {
+                          setFormValidationErrors(false);
+                        } else {
+                          setFormValidationErrors(true);
+                        }
+                        setErrorPasswordRequirementsDisplay('hidden');
+                      }}
+                      className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
+                    >
+                      {showSignupPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                    <div className={`mt-3 ${errorPasswordRequirementsDisplay}`}>
+                      <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            !signupData.password
+                              ? 'w-0'
+                              : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
+                                    signupData.password,
+                                  )
+                                ? 'w-full bg-green-500'
+                                : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
+                                      signupData.password,
+                                    )
+                                  ? 'w-2/3 bg-yellow-500'
+                                  : 'w-1/3 bg-red-500'
+                          }`}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Password Strength:{' '}
+                        <span
+                          className={
+                            !signupData.password
+                              ? 'text-gray-500'
+                              : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
+                                    signupData.password,
+                                  )
+                                ? 'text-green-500'
+                                : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
+                                      signupData.password,
+                                    )
+                                  ? 'text-yellow-500'
+                                  : 'text-red-500'
+                          }
+                        >
+                          {!signupData.password
+                            ? 'Enter Password'
+                            : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
                                   signupData.password,
                                 )
-                              ? 'text-yellow-500'
-                              : 'text-red-500'
+                              ? 'Strong'
+                              : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
+                                    signupData.password,
+                                  )
+                                ? 'Medium'
+                                : 'Weak'}
+                        </span>
+                        <div className={'font-medium text-xs text-gray-800'}>
+                          {' '}
+                          Password should contain :
+                          <ul className="mb-2 text-xs">
+                            <li
+                              className={`flex items-center ${/[A-Z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                            >
+                              <span className="mr-2">
+                                {/[A-Z]/.test(signupData.password) ? '✓' : '○'}
+                              </span>
+                              One uppercase letter
+                            </li>
+                            <li
+                              className={`flex items-center ${/[a-z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                            >
+                              <span className="mr-2">
+                                {/[a-z]/.test(signupData.password) ? '✓' : '○'}
+                              </span>
+                              One lowercase letter
+                            </li>
+                            <li
+                              className={`flex items-center ${/\d/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                            >
+                              <span className="mr-2">
+                                {/\d/.test(signupData.password) ? '✓' : '○'}
+                              </span>
+                              One number
+                            </li>
+                            <li
+                              className={`flex items-center ${/[!@#$%^&*(),.?":{}|<>]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                            >
+                              <span className="mr-2">
+                                {/[!@#$%^&*(),.?":{}|<>]/.test(
+                                  signupData.password,
+                                )
+                                  ? '✓'
+                                  : '○'}
+                              </span>
+                              One special character
+                            </li>
+                            <li
+                              className={`flex items-center ${signupData.password.length >= 8 ? 'text-green-500' : 'text-gray-500'}`}
+                            >
+                              <span className="mr-2">
+                                {signupData.password.length >= 8 ? '✓' : '○'}
+                              </span>
+                              Minimum 8 characters
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Confirm Password *"
+                      value={signupData.confirmPassword}
+                      onChange={(e) =>
+                        handleSignupInputChange(
+                          'confirmPassword',
+                          e.target.value,
+                        )
                       }
+                      onFocus={() => {
+                        setValidatePassword('border-gray-500');
+                        setErrorPasswordDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        if (
+                          signupData.password !== signupData.confirmPassword
+                        ) {
+                          setValidatePassword('border-rose-800');
+                          setErrorPasswordDisplay('block');
+                          setFormValidationErrors(true);
+                        } else {
+                          setFormValidationErrors(false);
+                        }
+                      }}
+                      className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
                     >
-                      {!signupData.password
-                        ? 'Enter Password'
-                        : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                              signupData.password,
-                            )
-                          ? 'Strong'
-                          : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
-                                signupData.password,
-                              )
-                            ? 'Medium'
-                            : 'Weak'}
-                    </span>
-                    <div className={'font-medium text-xs text-gray-800'}>
-                      {' '}
-                      Password should contain :
-                      <ul className="mb-2 text-xs">
-                        <li
-                          className={`flex items-center ${/[A-Z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
-                        >
-                          <span className="mr-2">
-                            {/[A-Z]/.test(signupData.password) ? '✓' : '○'}
-                          </span>
-                          One uppercase letter
-                        </li>
-                        <li
-                          className={`flex items-center ${/[a-z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
-                        >
-                          <span className="mr-2">
-                            {/[a-z]/.test(signupData.password) ? '✓' : '○'}
-                          </span>
-                          One lowercase letter
-                        </li>
-                        <li
-                          className={`flex items-center ${/\d/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
-                        >
-                          <span className="mr-2">
-                            {/\d/.test(signupData.password) ? '✓' : '○'}
-                          </span>
-                          One number
-                        </li>
-                        <li
-                          className={`flex items-center ${/[!@#$%^&*(),.?":{}|<>]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
-                        >
-                          <span className="mr-2">
-                            {/[!@#$%^&*(),.?":{}|<>]/.test(signupData.password)
-                              ? '✓'
-                              : '○'}
-                          </span>
-                          One special character
-                        </li>
-                        <li
-                          className={`flex items-center ${signupData.password.length >= 8 ? 'text-green-500' : 'text-gray-500'}`}
-                        >
-                          <span className="mr-2">
-                            {signupData.password.length >= 8 ? '✓' : '○'}
-                          </span>
-                          Minimum 8 characters
-                        </li>
-                      </ul>
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                    <div
+                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPasswordDisplay}`}
+                    >
+                      *Passwords do not match
+                    </div>
+                  </div>
+
+                  {/* Consent Checkbox */}
+                  <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <input
+                      type="checkbox"
+                      id="consent"
+                      checked={signupData.has_given_consent}
+                      onChange={(e) =>
+                        handleSignupInputChange(
+                          'has_given_consent',
+                          e.target.checked,
+                        )
+                      }
+                      className="mt-1 w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+                    />
+                    <label
+                      htmlFor="consent"
+                      className="text-sm text-gray-700 leading-relaxed"
+                    >
+                      I agree to the{' '}
+                      <a
+                        href="https://swecha.org/terms-and-conditions"
+                        className="text-purple-600 hover:text-purple-700 cursor-pointer underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Terms of Service
+                      </a>{' '}
+                      and{' '}
+                      <a
+                        href="https://swecha.org/privacy-policy"
+                        className="text-purple-600 hover:text-purple-700 cursor-pointer underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Privacy Policy
+                      </a>
+                    </label>
+                  </div>
+
+                  {/* Sign Up Button */}
+                  <Button
+                    onClick={handleSignupSendOTP}
+                    disabled={
+                      loading ||
+                      !isValidPhoneNumber() ||
+                      !signupData.name.trim() ||
+                      !isValidEmail(signupData.email) ||
+                      !signupData.password ||
+                      signupData.password !== signupData.confirmPassword ||
+                      !signupData.has_given_consent ||
+                      formValidationErrors
+                    }
+                    className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Sending OTP...
+                      </div>
+                    ) : (
+                      <>
+                        <UserPlus className="h-5 w-5 mr-2" />
+                        Request OTP for Phone Verification
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-5 animate-fade-in-up">
+                  <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                    <p className="text-sm text-green-700 flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      OTP sent to +91{phoneDigits}
+                    </p>
+                  </div>
+
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Enter 6-digit OTP"
+                      value={signupOtp}
+                      onChange={handleSignupOtpChange}
+                      className="h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-center text-2xl tracking-widest bg-gray-50 focus:bg-white transition-all duration-300"
+                      maxLength={6}
+                    />
+                    <div className="text-xs text-gray-500 mt-1 text-center">
+                      {signupOtp.length}/6 digits
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Button
+                      onClick={handleSignupVerifyOTP}
+                      disabled={loading || signupOtp.length !== 6}
+                      className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
+                    >
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Verifying...
+                        </div>
+                      ) : (
+                        'Verify OTP & Create Account'
+                      )}
+                    </Button>
+
+                    {/* Resend OTP */}
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        onClick={handleSignupResendOTP}
+                        disabled={!canResend || loading}
+                        className="flex items-center gap-2 text-purple-600 hover:bg-purple-50 rounded-xl h-12 transition-all duration-300"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        {resendTimer > 0
+                          ? `Resend in ${resendTimer}s`
+                          : 'Resend OTP'}
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setShowSignupOtpInput(false);
+                          setSignupOtp('');
+                          setResendTimer(0);
+                          setCanResend(false);
+                        }}
+                        className="text-gray-600 hover:bg-gray-50 rounded-xl h-12 transition-all duration-300"
+                      >
+                        Back to Signup Form
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Confirm Password */}
-              <div className="relative">
-                <Input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirm Password *"
-                  value={signupData.confirmPassword}
-                  onChange={(e) =>
-                    handleSignupInputChange('confirmPassword', e.target.value)
-                  }
-                  onFocus={() => {
-                    setValidatePassword('border-gray-500');
-                    setErrorPasswordDisplay('hidden');
-                  }}
-                  onBlur={(e) => {
-                    if (signupData.password !== signupData.confirmPassword) {
-                      setValidatePassword('border-rose-800');
-                      setErrorPasswordDisplay('block');
-                      setFormValidationErrors(true);
-                    } else {
-                      setFormValidationErrors(false);
-                    }
-                  }}
-                  className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-                <div
-                  className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPasswordDisplay}`}
-                >
-                  *Passwords do not match
-                </div>
-              </div>
-
-              {/* Consent Checkbox */}
-              <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <input
-                  type="checkbox"
-                  id="consent"
-                  checked={signupData.has_given_consent}
-                  onChange={(e) =>
-                    handleSignupInputChange(
-                      'has_given_consent',
-                      e.target.checked,
-                    )
-                  }
-                  className="mt-1 w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
-                />
-                <label
-                  htmlFor="consent"
-                  className="text-sm text-gray-700 leading-relaxed"
-                >
-                  I agree to the{' '}
-                  <a
-                    href="https://swecha.org/terms-and-conditions"
-                    className="text-purple-600 hover:text-purple-700 cursor-pointer underline"
-                    target="_blank"
-                  >
-                    Terms of Service
-                  </a>{' '}
-                  and{' '}
-                  <a
-                    href="https://swecha.org/privacy-policy"
-                    className="text-purple-600 hover:text-purple-700 cursor-pointer underline"
-                    target="_blank"
-                  >
-                    Privacy Policy
-                  </a>
-                </label>
-              </div>
-
-              {/* Sign Up Button */}
-              <Button
-                onClick={handleSignup}
-                disabled={
-                  loading ||
-                  !isValidPhoneNumber() ||
-                  !signupData.name.trim() ||
-                  !isValidEmail(signupData.email) ||
-                  !signupData.password ||
-                  signupData.password !== signupData.confirmPassword ||
-                  !signupData.has_given_consent ||
-                  formValidationErrors
-                }
-                className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Creating Account...
-                  </div>
-                ) : (
-                  <>
-                    <UserPlus className="h-5 w-5 mr-2" />
-                    Create Account
-                  </>
-                )}
-              </Button>
-            </div>
+              )}
+            </>
           )}
 
           {/* Footer */}
