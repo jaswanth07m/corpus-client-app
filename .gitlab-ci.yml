@@ -1,18 +1,20 @@
 # GitLab CI/CD configuration for corpus-frontend
-# This pipeline includes format checks, linting, TypeScript checking, and building for the React/Vite project
+# Optimized pipeline with lockfile-based npm caching
 
 stages:
   - build
 
-# Combined job that runs format check, lint check, TypeScript check, and build
 build-job:
   stage: build
   image: node:18-alpine
   cache:
+    key:
+      files:
+        - package-lock.json
     paths:
-      - node_modules/
+      - .npm/
   before_script:
-    - npm ci
+    - npm ci --cache .npm --prefer-offline
   script:
     - echo "Checking code formatting with Prettier..."
     - npm run format:check
