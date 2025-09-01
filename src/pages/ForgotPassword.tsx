@@ -19,12 +19,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
 const initiateSchema = z.object({
-  phone_number: z.string().min(10, 'Phone number must be at least 10 digits'),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
 });
 
 const confirmSchema = z
   .object({
-    phone_number: z.string().min(10, 'Phone number must be at least 10 digits'),
+    phone: z.string().min(10, 'Phone number must be at least 10 digits'),
     otp_code: z.string().min(6, 'OTP must be 6 digits'),
     new_password: z
       .string()
@@ -54,14 +54,14 @@ const ForgotPassword = () => {
   const initiateForm = useForm<z.infer<typeof initiateSchema>>({
     resolver: zodResolver(initiateSchema),
     defaultValues: {
-      phone_number: '',
+      phone: '',
     },
   });
 
   const confirmForm = useForm<z.infer<typeof confirmSchema>>({
     resolver: zodResolver(confirmSchema),
     defaultValues: {
-      phone_number: '',
+      phone: '',
       otp_code: '',
       new_password: '',
       confirm_password: '',
@@ -71,12 +71,12 @@ const ForgotPassword = () => {
   const onSubmitInitiate = async (values: z.infer<typeof initiateSchema>) => {
     setIsLoading(true);
     try {
-      await initiatePasswordReset(values.phone_number);
+      await initiatePasswordReset(values.phone);
       toast({
         title: 'OTP Sent',
         description: 'A one-time password has been sent to your phone.',
       });
-      confirmForm.setValue('phone_number', values.phone_number);
+      confirmForm.setValue('phone', values.phone);
       setStep('confirm');
     } catch (error: unknown) {
       const errorMessage =
@@ -95,7 +95,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
     try {
       await confirmPasswordReset(
-        values.phone_number,
+        values.phone,
         values.otp_code,
         values.new_password,
         values.confirm_password,
@@ -125,7 +125,7 @@ const ForgotPassword = () => {
   const handlePhoneInput = (e: React.FormEvent<HTMLInputElement>) => {
     let value = e.currentTarget.value.replace(/\D/g, '');
     if (value.length > 10) value = value.slice(0, 10);
-    initiateForm.setValue('phone_number', value);
+    initiateForm.setValue('phone', value);
   };
 
   return (
@@ -143,7 +143,7 @@ const ForgotPassword = () => {
               >
                 <FormField
                   control={initiateForm.control}
-                  name="phone_number"
+                  name="phone"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
@@ -196,7 +196,7 @@ const ForgotPassword = () => {
               >
                 <FormField
                   control={confirmForm.control}
-                  name="phone_number"
+                  name="phone"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
