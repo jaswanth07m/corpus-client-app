@@ -515,16 +515,7 @@ const Categories: React.FC<CategoriesProps> = ({
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Upload finalization failed:', errorData);
-
-        // Collect messages
-        let errorMessage = errorData.message || 'Something went wrong';
-        if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-          const detailedMessages = errorData.errors
-            .map((err) => err.message)
-            .join('\n');
-          errorMessage = `${detailedMessages}`;
-        }
-        toast.error(errorMessage);
+        toast.error(errorData.detail);
         return false;
       }
     } catch (error) {
