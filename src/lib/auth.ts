@@ -6,7 +6,7 @@ export const initiatePasswordReset = async (phoneNumber: string) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ phone: phoneNumber }),
+    body: JSON.stringify({ phone_number: phoneNumber }),
   });
 
   if (!response.ok) {
@@ -29,7 +29,7 @@ export const confirmPasswordReset = async (
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      phone: phoneNumber,
+      phone_number: phoneNumber,
       otp_code: otpCode,
       new_password: newPassword,
       confirm_password: confirmPassword,
