@@ -71,7 +71,7 @@ const ForgotPassword = () => {
   const onSubmitInitiate = async (values: z.infer<typeof initiateSchema>) => {
     setIsLoading(true);
     try {
-      await initiatePasswordReset(values.phone);
+      await initiatePasswordReset(`+91${values.phone}`);
       toast({
         title: 'OTP Sent',
         description: 'A one-time password has been sent to your phone.',
@@ -95,7 +95,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
     try {
       await confirmPasswordReset(
-        values.phone,
+        `+91${values.phone_number}`,
         values.otp_code,
         values.new_password,
         values.confirm_password,
