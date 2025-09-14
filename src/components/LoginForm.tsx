@@ -142,7 +142,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone_number: getFullPhoneNumber(),
+          phone: getFullPhoneNumber(),
         }),
       });
 
@@ -185,7 +185,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone_number: getFullPhoneNumber(),
+          phone: getFullPhoneNumber(),
           otp_code: otp.trim(),
           has_given_consent: true,
         }),
@@ -203,7 +203,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           // Create user object from response data
           const user = {
             user_id: data.user_id,
-            phone_number: data.phone_number || getFullPhoneNumber(),
+            phone: data.phone || getFullPhoneNumber(),
             roles: data.roles || [],
           };
           onLoginSuccess(data.access_token, user);
@@ -354,7 +354,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         place: signupData.place.trim() || undefined,
         password: signupData.password,
         role_ids: [2], // Default role ID as per schema
-        phone_number: getFullPhoneNumber(),
       };
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/send-otp`, {
@@ -405,7 +404,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       );
 
       const requestBody = {
-        phone_number: getFullPhoneNumber(),
+        phone: getFullPhoneNumber(),
         otp_code: signupOtp.trim(),
         name: signupData.name.trim(),
         email: signupData.email.trim(),
@@ -481,7 +480,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone_number: getFullPhoneNumber(),
+          phone: getFullPhoneNumber(),
         }),
       });
 

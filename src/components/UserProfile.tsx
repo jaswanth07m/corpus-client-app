@@ -263,6 +263,16 @@ const useUserProfile = (
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error(
+              'Authentication failed. Please log in again. Your session might have expired.',
+            );
+          }
+          if (response.status === 404) {
+            throw new Error(
+              `User profile not found. The user ID ${currentUserId} might not exist.`,
+            );
+          }
           throw new Error(
             `Failed to fetch profile: ${response.status} ${response.statusText}`,
           );
@@ -285,7 +295,7 @@ const useUserProfile = (
           updatedAt: userData.updated_at || '',
           lastLoginAt: userData.last_login_at,
         };
-
+        console.log('🔍 Profile data prepared for state:', profileData);
         setProfile(profileData);
         localStorage.setItem('cachedProfile', JSON.stringify(userData));
       } catch (err) {
@@ -1192,10 +1202,17 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
           console.log('rendered item' + item.release_rights);
 
           const warnings: string[] = [];
-          if (!item.title || item.title.trim().length < 8) {
+          if (
+            !item.title ||
+            (typeof item.title === 'string' && item.title.trim().length < 8)
+          ) {
             warnings.push('Title is missing or is less than 8 characters.');
           }
-          if (!item.description || item.description.trim().length < 32) {
+          if (
+            !item.description ||
+            (typeof item.description === 'string' &&
+              item.description.trim().length < 32)
+          ) {
             warnings.push(
               'Description is missing or is less than 32 characters.',
             );
@@ -1207,14 +1224,17 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
           const rights = item.release_rights;
           if (
             !rights ||
-            ['na', 'n/a', ''].includes(rights.trim().toLowerCase())
+            (typeof rights === 'string' &&
+              ['na', 'n/a', ''].includes(rights.trim().toLowerCase()))
           ) {
             warnings.push('Release rights have not been set.');
           }
 
+          const language = item.language;
           if (
-            !item.language ||
-            ['na', 'n/a', ''].includes(rights.trim().toLowerCase())
+            !language ||
+            (typeof language === 'string' &&
+              ['na', 'n/a', ''].includes(language.trim().toLowerCase()))
           ) {
             warnings.push('Language has not been selected.');
           }
