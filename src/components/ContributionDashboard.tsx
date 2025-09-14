@@ -203,7 +203,37 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
     return streak;
   };
 
+  const calculateUploadsToday = () => {
+    if (!contributions) return 0;
+
+    const allContributions = [
+      ...(contributions.audioContributions || []),
+      ...(contributions.videoContributions || []),
+      ...(contributions.textContributions || []),
+      ...(contributions.imageContributions || []),
+      ...(contributions.documentContributions || []),
+    ].filter((item) => item.timestamp);
+
+    if (allContributions.length === 0) {
+      return 0;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of UTC day
+
+    let uploadsTodayCount = 0;
+    allContributions.forEach((item) => {
+      const itemDate = new Date(item.timestamp);
+      itemDate.setHours(0, 0, 0, 0); // Set to start of UTC day
+      if (itemDate.getTime() === today.getTime()) {
+        uploadsTodayCount++;
+      }
+    });
+    return uploadsTodayCount;
+  };
+
   const contributionStreak = calculateContributionStreak();
+  const uploadsToday = calculateUploadsToday();
 
   return (
     <div className="space-y-6">
@@ -235,7 +265,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
         <DashboardCard
           icon={<Activity size={20} className="text-blue-600" />}
           title="Uploads Today"
-          value={dailyStats?.uploads_today || 0}
+          value={uploadsToday}
           unit="files"
           color="bg-blue-50"
         />
