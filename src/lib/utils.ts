@@ -36,3 +36,15 @@ export function formatDuration(seconds: number): string {
   const s = Math.floor(seconds % 60);
   return [h, m, s].map((v) => v.toString().padStart(2, '0')).join(':');
 }
+
+// Convert a UTC date string to an IST Date object
+export function getISTDate(dateString: string): Date {
+  const date = new Date(dateString);
+  // Get the UTC milliseconds
+  const utcMillis = date.getTime();
+  // IST is UTC+5:30, which is 5.5 hours * 60 minutes/hour * 60 seconds/minute * 1000 milliseconds/second
+  const istOffsetMillis = 5.5 * 60 * 60 * 1000;
+  // Apply the offset to get the IST milliseconds
+  const istMillis = utcMillis + istOffsetMillis;
+  return new Date(istMillis);
+}

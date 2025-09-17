@@ -8,7 +8,7 @@ import {
   Zap,
   Globe,
 } from 'lucide-react';
-import { formatModernTime, formatDuration } from '@/lib/utils';
+import { formatModernTime, formatDuration, getISTDate } from '@/lib/utils';
 
 interface DailyStats {
   uploads_today: number;
@@ -114,10 +114,12 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
 
     allContributions.forEach((item) => {
       if (item.timestamp) {
-        const date = new Date(item.timestamp);
-        const monthYear = `${date.toLocaleString('en-US', {
+        const dateIST = getISTDate(item.timestamp); // Convert UTC timestamp to IST Date object
+        const monthYear = dateIST.toLocaleString('en-US', {
           month: 'short',
-        })} ${date.getFullYear()}`;
+          year: 'numeric',
+          timeZone: 'Asia/Kolkata', // Explicitly set timezone to IST
+        });
         monthlyMap[monthYear] = (monthlyMap[monthYear] || 0) + 1;
       }
     });
@@ -125,11 +127,12 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
     // Sort by year and then month
     return Object.entries(monthlyMap)
       .sort(([monthYearA], [monthYearB]) => {
-        const [monthA, yearA] = monthYearA.split(' ');
-        const [monthB, yearB] = monthYearB.split(' ');
-        const dateA = new Date(`${monthA} 1, ${yearA}`);
-        const dateB = new Date(`${monthB} 1, ${yearB}`);
-        return dateA.getTime() - dateB.getTime();
+        const dateA = new Date(monthYearA);
+        const dateB = new Date(monthYearB);
+        return (
+          dateA.getFullYear() - dateB.getFullYear() ||
+          dateA.getMonth() - dateB.getMonth()
+        );
       })
       .map(([month, count]) => ({ month, count }));
   };
@@ -151,31 +154,35 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
       return 0;
     }
 
-    // Sort by timestamp in descending order
+    // Sort by timestamp in descending order, using IST dates
     allContributions.sort(
       (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        getISTDate(b.timestamp).getTime() - getISTDate(a.timestamp).getTime(),
     );
 
-    const uniqueDates = [
+    const uniqueDatesMillisIST = [
       ...new Set(
-        allContributions.map((c) => new Date(c.timestamp).toDateString()),
+        allContributions.map((c) => {
+          const istDate = getISTDate(c.timestamp);
+          istDate.setHours(0, 0, 0, 0); // Set to start of IST day
+          return istDate.getTime();
+        }),
       ),
     ];
 
-    if (uniqueDates.length === 0) {
+    if (uniqueDatesMillisIST.length === 0) {
       return 0;
     }
 
     let streak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayIST = getISTDate(new Date().toISOString());
+    todayIST.setHours(0, 0, 0, 0); // Set to start of IST day
 
-    // Check if the most recent contribution was today or yesterday
-    const mostRecentDate = new Date(uniqueDates[0]);
-    mostRecentDate.setHours(0, 0, 0, 0);
+    // Check if the most recent contribution was today or yesterday in IST
+    const mostRecentDateMillisIST = uniqueDatesMillisIST[0];
+    const mostRecentDateIST = new Date(mostRecentDateMillisIST); // Recreate Date object from millis
 
-    const diffTime = today.getTime() - mostRecentDate.getTime();
+    const diffTime = todayIST.getTime() - mostRecentDateIST.getTime();
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
     if (diffDays > 1) {
@@ -183,18 +190,17 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
     }
 
     streak = 1;
-    let lastDate = mostRecentDate;
+    let lastDateMillisIST = mostRecentDateMillisIST;
 
-    for (let i = 1; i < uniqueDates.length; i++) {
-      const currentDate = new Date(uniqueDates[i]);
-      currentDate.setHours(0, 0, 0, 0);
+    for (let i = 1; i < uniqueDatesMillisIST.length; i++) {
+      const currentDateMillisIST = uniqueDatesMillisIST[i];
 
-      const timeDiff = lastDate.getTime() - currentDate.getTime();
+      const timeDiff = lastDateMillisIST - currentDateMillisIST;
       const dayDiff = timeDiff / (1000 * 3600 * 24);
 
       if (dayDiff === 1) {
         streak++;
-        lastDate = currentDate;
+        lastDateMillisIST = currentDateMillisIST;
       } else {
         break; // Streak is broken
       }
@@ -218,14 +224,14 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
       return 0;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of UTC day
+    const todayIST = getISTDate(new Date().toISOString()); // Get current date in IST
+    todayIST.setHours(0, 0, 0, 0); // Set to start of IST day
 
     let uploadsTodayCount = 0;
     allContributions.forEach((item) => {
-      const itemDate = new Date(item.timestamp);
-      itemDate.setHours(0, 0, 0, 0); // Set to start of UTC day
-      if (itemDate.getTime() === today.getTime()) {
+      const itemDateIST = getISTDate(item.timestamp); // Convert UTC timestamp to IST Date object
+      itemDateIST.setHours(0, 0, 0, 0); // Set to start of IST day
+      if (itemDateIST.getTime() === todayIST.getTime()) {
         uploadsTodayCount++;
       }
     });
