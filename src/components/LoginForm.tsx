@@ -286,7 +286,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: getFullPhoneNumber(),
+          phone: `+91${getFullPhoneNumber()}`,
           password: password,
         }),
       });
