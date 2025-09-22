@@ -114,7 +114,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   const getFullPhoneNumber = () => {
-    return {phoneDigits};
+    return phoneDigits;
   };
 
   const isValidPhoneNumber = () => {
@@ -412,6 +412,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         date_of_birth: signupData.date_of_birth || undefined,
         place: signupData.place.trim() || undefined,
         password: signupData.password,
+        confirm_password: signupData.confirmPassword,
         role_ids: [2], // Default role ID as per schema
         has_given_consent: signupData.has_given_consent,
       };
@@ -1047,14 +1048,30 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         setErrorPasswordRequirementsDisplay('block');
                       }}
                       onBlur={(e) => {
-                        if (
-                          !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
+                        const isPasswordValid =
+                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
                             signupData.password,
-                          ) &&
-                          signupData.password.length >= 8
+                          );
+                        const isPasswordMedium =
+                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
+                            signupData.password,
+                          );
+
+                        if (
+                          signupData.password.length >= 8 &&
+                          isPasswordValid
                         ) {
+                          setValidatePassword('border-green-500');
+                          setFormValidationErrors(false);
+                        } else if (
+                          signupData.password.length >= 6 &&
+                          isPasswordMedium
+                        ) {
+                          setValidatePassword('border-yellow-500');
                           setFormValidationErrors(false);
                         } else {
+                          setValidatePassword('border-rose-800');
+                          setErrorPasswordDisplay('block');
                           setFormValidationErrors(true);
                         }
                         setErrorPasswordRequirementsDisplay('hidden');
