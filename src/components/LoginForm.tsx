@@ -114,7 +114,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   const getFullPhoneNumber = () => {
-    return `+91${phoneDigits}`;
+    return {phoneDigits};
   };
 
   const isValidPhoneNumber = () => {
