@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import PropTypes from 'prop-types';
+import { toast } from 'sonner';
 
 import {
   Eye,
@@ -672,7 +673,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        let errorMessage = `Failed to update: ${response.status}`; // Default error message
+        let errorMessage = `Failed to update: ${response.statusText}`; // Default error message
 
         if (errorData.detail && Array.isArray(errorData.detail)) {
           const specificMessages = errorData.detail.map((err) => err.msg);
@@ -680,14 +681,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
         } else if (errorData.detail) {
           errorMessage = errorData.detail;
         }
+
         throw new Error(errorMessage);
       }
 
-      alert('Contribution updated successfully!');
+      toast.success('Contribution updated successfully!');
       refetch();
     } catch (error) {
       console.error('Update failed:', error);
-      alert(
+
+      toast.error(
         error instanceof Error ? error.message : 'An unknown error occurred.',
       );
     }
@@ -723,7 +726,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
-      alert('Failed to export profile data');
+      toast.error('Failed to export profile data');
     }
   };
 
@@ -769,7 +772,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
-      alert('Failed to export profile data as CSV');
+      toast.error('Failed to export profile data as CSV');
     }
   };
 
@@ -1582,7 +1585,7 @@ const SecureViewButton: React.FC<SecureViewButtonProps> = ({
         err instanceof Error ? err.message : 'An unknown error occurred.',
       );
       // Optionally, show an alert to the user
-      alert(
+      toast.error(
         `Error: ${err instanceof Error ? err.message : 'Could not load file.'}`,
       );
     } finally {
