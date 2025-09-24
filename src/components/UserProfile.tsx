@@ -1867,6 +1867,15 @@ const EditHistoryModal: React.FC<EditHistoryModalProps> = ({
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const formatFieldName = (fieldName: string) => {
+    return fieldName
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -1914,28 +1923,64 @@ const EditHistoryModal: React.FC<EditHistoryModalProps> = ({
           <ul className="space-y-4">
             {history.map((entry) => (
               <li key={entry.uid} className="border-b pb-4">
-                <p>
-                  <strong>Version:</strong> {entry.version_number}
-                </p>
-                <p>
-                  <strong>Changed At:</strong>{' '}
-                  {new Date(entry.created_at).toLocaleString()}
-                </p>
-                <p>
-                  <strong>Changed By:</strong> {entry.changed_by}
-                </p>
-                <p>
-                  <strong>Change Type:</strong> {entry.change_type}
-                </p>
-                <p>
-                  <strong>Change Source:</strong> {entry.change_source}
-                </p>
-                <div>
-                  <strong>Changes:</strong>
-                  <pre className="bg-gray-100 p-2 rounded mt-2 text-sm">
-                    {JSON.stringify(entry.field_changes, null, 2)}
-                  </pre>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <p>
+                    <strong className="text-gray-700">Version:</strong>{' '}
+                    <span className="font-medium text-gray-900">
+                      {entry.version_number}
+                    </span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Changed At:</strong>{' '}
+                    <span className="font-medium text-gray-900">
+                      {new Date(entry.created_at).toLocaleString()}
+                    </span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Changed By:</strong>{' '}
+                    <span className="font-medium text-gray-900">
+                      {entry.changed_by || 'N/A'}
+                    </span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Change Type:</strong>{' '}
+                    <span className="font-medium text-gray-900">
+                      {entry.change_type || 'N/A'}
+                    </span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Change Source:</strong>{' '}
+                    <span className="font-medium text-gray-900">
+                      {entry.change_source || 'N/A'}
+                    </span>
+                  </p>
                 </div>
+                {entry.field_changes &&
+                  Object.keys(entry.field_changes).length > 0 && (
+                    <div className="mt-3">
+                      <strong className="text-gray-700">Changes:</strong>
+                      <ul className="list-disc list-inside bg-gray-50 p-3 rounded-md mt-1 text-sm space-y-1">
+                        {Object.entries(entry.field_changes).map(
+                          ([field, change]: [string, any]) => (
+                            <li key={field}>
+                              <span className="font-medium text-gray-800">
+                                {formatFieldName(field)}:
+                              </span>{' '}
+                              <span className="text-green-600">
+                                {JSON.stringify(change.new_value)}
+                              </span>
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                {(!entry.field_changes ||
+                  Object.keys(entry.field_changes).length === 0) && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    No specific field changes recorded for this version.
+                  </p>
+                )}
               </li>
             ))}
           </ul>
