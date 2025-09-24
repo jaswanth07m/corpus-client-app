@@ -103,6 +103,7 @@ const Categories: React.FC<CategoriesProps> = ({
   const [descriptionError, setDescriptionError] = useState(false); // New state for description error
 
   const [releaseRights, setreleaseRights] = useState('');
+  const [creator, setCreator] = useState('');
   const [selectedLanguage, setSelectedLangugae] = useState('');
 
   const CHUNK_SIZE = 5 * 1024 * 1024; // 40MB maximum per chunk
@@ -499,6 +500,9 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('total_chunks', totalChunks.toString());
       formData.append('filename', filename);
       formData.append('release_rights', releaseRights);
+      if (releaseRights === 'others') {
+        formData.append('creator', creator);
+      }
       formData.append('language', selectedLanguage);
 
       const response = await fetch(`${BACKEND_URL}/records/upload`, {
@@ -689,6 +693,7 @@ const Categories: React.FC<CategoriesProps> = ({
     setDescriptionError(false);
     setSelectedLangugae('');
     setreleaseRights('');
+    setCreator('');
     setTextContent('');
     setSelectedFile(null);
     setLocationRequested(false);
@@ -761,6 +766,8 @@ const Categories: React.FC<CategoriesProps> = ({
         isChunkedUploading={isUploading}
         releaseRights={releaseRights}
         setreleaseRights={setreleaseRights}
+        creator={creator}
+        setCreator={setCreator}
         selectedLanguage={selectedLanguage}
         setSelectedLangugae={setSelectedLangugae}
       />

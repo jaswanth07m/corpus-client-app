@@ -68,6 +68,7 @@ interface ContributionItem {
   timestamp?: string;
   location?: Coordinates;
   release_rights: string;
+  creator: string;
   language: string;
   file_hash: string;
   snr_frequency: number;
@@ -514,15 +515,14 @@ const useUserProfile = (
 
 enum ReleaseRights {
   creator = 'creator',
-  familyOrFriend = 'family_or_friend',
+  others = 'others',
   downloaded = 'downloaded',
 }
 
 const releaseRightsMap: Record<ReleaseRights, string> = {
   [ReleaseRights.creator]:
     'This work is created by me and anyone is allowed to use it',
-  [ReleaseRights.familyOrFriend]:
-    'This work is created by my family/friends and I took permission to upload their work.',
+  [ReleaseRights.others]: 'Others',
   [ReleaseRights.downloaded]:
     'I downloaded this from the internet OR This is AI generted contnet',
 };
@@ -664,6 +664,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           title: updatedItem.title,
           description: updatedItem.description,
           release_rights: updatedItem.release_rights,
+          creator: updatedItem.creator,
           location: updatedItem.location,
           language: updatedItem.language,
         }),
@@ -1415,6 +1416,14 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     <span className="font-semibold mr-1 italic">Rights:</span>{' '}
                     {releaseRightsMap[item.release_rights] || 'N/A'}
                   </span>
+                  {item.release_rights === 'others' && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
+                      <span className="font-semibold mr-1 italic">
+                        Creator:
+                      </span>{' '}
+                      {item.creator || 'N/A'}
+                    </span>
+                  )}
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
                     <span className="font-semibold mr-1 italic">Language:</span>{' '}
                     {selectedLanguageMap[
@@ -1611,6 +1620,7 @@ const EditableContributionItem: React.FC<{
   const [description, setDescription] = useState(item.description || '');
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
+  const [creator, setCreator] = useState(item.creator || '');
   const [language, setLanguage] = useState(item.language || 'NA');
   const {
     latitude,
@@ -1658,7 +1668,7 @@ const EditableContributionItem: React.FC<{
         areRightsValid &&
         isLanguageValid,
     );
-  }, [title, description, latitude, longitude, rightsKey, language]); // Dependency Array
+  }, [title, description, latitude, longitude, rightsKey, language, creator]); // Dependency Array
 
   const handleSave = () => {
     if (!isFormValid) {
@@ -1675,6 +1685,7 @@ const EditableContributionItem: React.FC<{
         longitude: parseFloat(longitude),
       },
       release_rights: rightsKey,
+      creator: creator,
       language: language,
     });
   };
@@ -1792,6 +1803,25 @@ const EditableContributionItem: React.FC<{
           ))}
         </select>
       </div>
+      {rightsKey === 'others' && (
+        <div>
+          <label
+            htmlFor="creator"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Creator
+          </label>
+          <input
+            type="text"
+            name="creator"
+            id="creator"
+            className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={creator}
+            onChange={(e) => setCreator(e.target.value)}
+            placeholder="Enter the creator's name"
+          />
+        </div>
+      )}
       {rightsKey == 'NA' && (
         <p className="text-xs text-red-600 mt-1">
           Pleae declare release rights
