@@ -21,12 +21,14 @@ import {
   AlertTriangle,
   X,
   Loader2,
+  History, // Import History icon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
 
+// ... (keep all the interface definitions as they are) ...
 interface UserProfile {
   id: string;
   username: string;
@@ -574,7 +576,7 @@ const selectedLanguageMap: Record<SelectedLanguage, string> = {
   [SelectedLanguage.telugu]: 'Telugu',
   [SelectedLanguage.urdu]: 'Urdu',
 };
-
+// ... (keep UserProfile component and its helper functions as they are, but add a new state for the history modal) ...
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
   token,
@@ -582,6 +584,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onBack,
 }) => {
   const navigate = useNavigate();
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedRecordForHistory, setSelectedRecordForHistory] =
+    useState<ContributionItem | null>(null);
 
   const {
     profile: currentUser,
@@ -686,7 +691,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
       );
     }
   };
-
+  const handleShowHistory = (item: ContributionItem) => {
+    setSelectedRecordForHistory(item);
+    setIsHistoryModalOpen(true);
+  };
   const handleExport = () => {
     try {
       const exportData = {
@@ -1062,6 +1070,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               onUpdate={refetch}
               handleUpdate={handleUpdate}
               token={token}
+              onShowHistory={handleShowHistory}
             />
           </div>
         </div>
@@ -1125,6 +1134,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </button>
         </div>
       </div>
+      {isHistoryModalOpen && selectedRecordForHistory && (
+        <EditHistoryModal
+          recordId={selectedRecordForHistory.id}
+          token={token}
+          onClose={() => setIsHistoryModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
@@ -1166,6 +1182,7 @@ interface ContributionsListProps {
   onUpdate: () => void;
   handleUpdate: (item: ContributionItem) => Promise<void>;
   token: string;
+  onShowHistory: (item: ContributionItem) => void;
 }
 
 const ContributionsList: React.FC<ContributionsListProps> = ({
@@ -1174,6 +1191,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   onUpdate,
   handleUpdate,
   token,
+  onShowHistory,
 }) => {
   const [editingItem, setEditingItem] = useState<ContributionItem | null>(null);
   let items: ContributionItem[] = [];
@@ -1275,10 +1293,22 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
               <span
                 className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
                   ${selectedMediaType === 'text' && 'bg-blue-100 text-blue-700'}
-                  ${selectedMediaType === 'audio' && 'bg-green-100 text-green-700'}
-                  ${selectedMediaType === 'video' && 'bg-purple-100 text-purple-700'}
-                  ${selectedMediaType === 'image' && 'bg-orange-100 text-orange-700'}
-                  ${selectedMediaType === 'document' && 'bg-orange-100 text-orange-700'}
+                  ${
+                    selectedMediaType === 'audio' &&
+                    'bg-green-100 text-green-700'
+                  }
+                  ${
+                    selectedMediaType === 'video' &&
+                    'bg-purple-100 text-purple-700'
+                  }
+                  ${
+                    selectedMediaType === 'image' &&
+                    'bg-orange-100 text-orange-700'
+                  }
+                  ${
+                    selectedMediaType === 'document' &&
+                    'bg-orange-100 text-orange-700'
+                  }
                 `}
               >
                 {capitalize(selectedMediaType)}
@@ -1330,7 +1360,9 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                       item.location &&
                       typeof item.location.latitude === 'number' &&
                       typeof item.location.longitude === 'number'
-                        ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                        ? `${item.location.latitude.toFixed(
+                            4,
+                          )}, ${item.location.longitude.toFixed(4)}`
                         : '-'
                     }
                   >
@@ -1338,7 +1370,9 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     {item.location &&
                     typeof item.location.latitude === 'number' &&
                     typeof item.location.longitude === 'number'
-                      ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                      ? `${item.location.latitude.toFixed(
+                          4,
+                        )}, ${item.location.longitude.toFixed(4)}`
                       : '-'}
                   </span>
                   {/* Size badge */}
@@ -1418,7 +1452,13 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 >
                   <Pencil size={18} />
                 </button>
-
+                <button
+                  onClick={() => onShowHistory(item)}
+                  className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-100 rounded-full transition-colors"
+                  title="View Edit History"
+                >
+                  <History size={18} />
+                </button>
                 {item.release_rights == 'downloaded' && (
                   <div className="relative group flex items-center">
                     <X className="text-red-500" size={18} />
@@ -1446,7 +1486,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     </ul>
   );
 };
-
+// ... (keep the rest of the components like ProfileDetail, SecureViewButton, EditableContributionItem)
 function ProfileDetail(item: {
   icon: React.ReactNode;
   title: string;
@@ -1813,5 +1853,95 @@ const EditableContributionItem: React.FC<{
     </li>
   );
 };
-
+// Add the new EditHistoryModal component
+interface EditHistoryModalProps {
+  recordId: string;
+  token: string;
+  onClose: () => void;
+}
+const EditHistoryModal: React.FC<EditHistoryModalProps> = ({
+  recordId,
+  token,
+  onClose,
+}) => {
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/history/record/${recordId}/history`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch edit history');
+        }
+        const data = await response.json();
+        setHistory(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'An unknown error occurred.',
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [recordId, token]);
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-900">Edit History</h2>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-600 hover:text-gray-900"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        {loading && <p>Loading history...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {!loading && !error && history.length === 0 && (
+          <p>No edit history found for this record.</p>
+        )}
+        {!loading && !error && history.length > 0 && (
+          <ul className="space-y-4">
+            {history.map((entry) => (
+              <li key={entry.uid} className="border-b pb-4">
+                <p>
+                  <strong>Version:</strong> {entry.version_number}
+                </p>
+                <p>
+                  <strong>Changed At:</strong>{' '}
+                  {new Date(entry.created_at).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Changed By:</strong> {entry.changed_by}
+                </p>
+                <p>
+                  <strong>Change Type:</strong> {entry.change_type}
+                </p>
+                <p>
+                  <strong>Change Source:</strong> {entry.change_source}
+                </p>
+                <div>
+                  <strong>Changes:</strong>
+                  <pre className="bg-gray-100 p-2 rounded mt-2 text-sm">
+                    {JSON.stringify(entry.field_changes, null, 2)}
+                  </pre>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+};
 export default UserProfile;
