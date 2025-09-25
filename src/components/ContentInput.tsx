@@ -582,7 +582,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       {/* Full-width Purple Header Bar */}
       <div className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white px-6 py-6 shadow-lg relative">
         {/* Back Button - Positioned at absolute left */}

@@ -22,14 +22,16 @@ import {
   AlertTriangle,
   X,
   Loader2,
-  History, // Import History icon
+  History,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
 
-// ... (keep all the interface definitions as they are) ...
+// ... (All interface definitions remain the same) ...
 interface UserProfile {
   id: string;
   username: string;
@@ -577,7 +579,7 @@ const selectedLanguageMap: Record<SelectedLanguage, string> = {
   [SelectedLanguage.telugu]: 'Telugu',
   [SelectedLanguage.urdu]: 'Urdu',
 };
-// ... (keep UserProfile component and its helper functions as they are, but add a new state for the history modal) ...
+
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
   token,
@@ -585,9 +587,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onBack,
 }) => {
   const navigate = useNavigate();
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [selectedRecordForHistory, setSelectedRecordForHistory] =
-    useState<ContributionItem | null>(null);
+  // State for modal is removed
+  // const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  // const [selectedRecordForHistory, setSelectedRecordForHistory] = useState<ContributionItem | null>(null);
 
   const {
     profile: currentUser,
@@ -695,10 +697,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
       );
     }
   };
-  const handleShowHistory = (item: ContributionItem) => {
-    setSelectedRecordForHistory(item);
-    setIsHistoryModalOpen(true);
-  };
+
+  // handleShowHistory function is removed as it's now handled inside ContributionsList
+
   const handleExport = () => {
     try {
       const exportData = {
@@ -842,9 +843,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 pt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* ... (Header, Privacy Notice, Profile Info, Contributions by Media Type sections remain the same) ... */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -1074,7 +1075,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
               onUpdate={refetch}
               handleUpdate={handleUpdate}
               token={token}
-              onShowHistory={handleShowHistory}
             />
           </div>
         </div>
@@ -1138,17 +1138,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </button>
         </div>
       </div>
-      {isHistoryModalOpen && selectedRecordForHistory && (
-        <EditHistoryModal
-          recordId={selectedRecordForHistory.id}
-          token={token}
-          onClose={() => setIsHistoryModalOpen(false)}
-        />
-      )}
+      {/* The modal is no longer rendered here */}
     </div>
   );
 };
 
+// ... (ContributionTypeButton remains the same) ...
 const capitalize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
@@ -1186,7 +1181,6 @@ interface ContributionsListProps {
   onUpdate: () => void;
   handleUpdate: (item: ContributionItem) => Promise<void>;
   token: string;
-  onShowHistory: (item: ContributionItem) => void;
 }
 
 const ContributionsList: React.FC<ContributionsListProps> = ({
@@ -1195,9 +1189,17 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   onUpdate,
   handleUpdate,
   token,
-  onShowHistory,
 }) => {
   const [editingItem, setEditingItem] = useState<ContributionItem | null>(null);
+  // NEW: State to track which item's history is visible
+  const [historyVisibleItemId, setHistoryVisibleItemId] = useState<
+    string | null
+  >(null);
+
+  const toggleHistoryVisibility = (itemId: string) => {
+    setHistoryVisibleItemId((prevId) => (prevId === itemId ? null : itemId));
+  };
+
   let items: ContributionItem[] = [];
   if (!contributions) return null;
   if (selectedMediaType === 'text') items = contributions.textContributions;
@@ -1220,6 +1222,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   return (
     <ul className="divide-y divide-gray-200">
       {items.map((item, idx) => {
+        // ... (getValidationWarnings and getSnrLabel functions remain the same)
         const getValidationWarnings = (): string[] => {
           console.log('rendered item' + item.release_rights);
 
@@ -1273,7 +1276,6 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
           if (value >= 10) return `${value} db (Unreliable)`;
           return `${value} db (Probably unusable)`;
         };
-
         const validationWarnings = getValidationWarnings();
         const hasWarnings = validationWarnings.length > 0;
         return editingItem?.id === item.id ? (
@@ -1289,10 +1291,11 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
         ) : (
           <li
             key={item.id}
-            className={`flex flex-col  py-4 px-2 rounded-lg transition ${
+            className={`flex flex-col py-4 px-2 rounded-lg transition ${
               hasWarnings ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
             }`}
           >
+            {/* ... (The main display of the contribution item remains the same) ... */}
             <div className="flex gap-2">
               <span
                 className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
@@ -1465,7 +1468,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                   <Pencil size={18} />
                 </button>
                 <button
-                  onClick={() => onShowHistory(item)}
+                  onClick={() => toggleHistoryVisibility(item.id)}
                   className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-100 rounded-full transition-colors"
                   title="View Edit History"
                 >
@@ -1492,13 +1495,18 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 )}
               </div>
             </div>
+            {/* NEW: Conditionally render the inline history component */}
+            {historyVisibleItemId === item.id && (
+              <InlineEditHistory recordId={item.id} token={token} />
+            )}
           </li>
         );
       })}
     </ul>
   );
 };
-// ... (keep the rest of the components like ProfileDetail, SecureViewButton, EditableContributionItem)
+
+// ... (ProfileDetail, SecureViewButton, EditableContributionItem components remain the same) ...
 function ProfileDetail(item: {
   icon: React.ReactNode;
   title: string;
@@ -1886,20 +1894,21 @@ const EditableContributionItem: React.FC<{
     </li>
   );
 };
-// Add the new EditHistoryModal component
-interface EditHistoryModalProps {
+
+// NEW: Component to show edit history inline
+interface InlineEditHistoryProps {
   recordId: string;
   token: string;
-  onClose: () => void;
 }
-const EditHistoryModal: React.FC<EditHistoryModalProps> = ({
+
+const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
   recordId,
   token,
-  onClose,
 }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
 
   const formatFieldName = (fieldName: string) => {
     return fieldName
@@ -1911,6 +1920,7 @@ const EditHistoryModal: React.FC<EditHistoryModalProps> = ({
 
   useEffect(() => {
     const fetchHistory = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
           `${BACKEND_URL}/history/record/${recordId}/history`,
@@ -1935,90 +1945,116 @@ const EditHistoryModal: React.FC<EditHistoryModalProps> = ({
     };
     fetchHistory();
   }, [recordId, token]);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Edit History</h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-600 hover:text-gray-900"
-          >
-            <X size={24} />
-          </button>
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <h4 className="text-md font-semibold text-gray-700 mb-2">Edit History</h4>
+      {loading && (
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="animate-spin text-blue-500" size={24} />
         </div>
-        {loading && <p>Loading history...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {!loading && !error && history.length === 0 && (
-          <p>No edit history found for this record.</p>
-        )}
-        {!loading && !error && history.length > 0 && (
-          <ul className="space-y-4">
-            {history.map((entry) => (
-              <li key={entry.uid} className="border-b pb-4">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <p>
-                    <strong className="text-gray-700">Version:</strong>{' '}
-                    <span className="font-medium text-gray-900">
-                      {entry.version_number}
-                    </span>
-                  </p>
-                  <p>
-                    <strong className="text-gray-700">Changed At:</strong>{' '}
-                    <span className="font-medium text-gray-900">
-                      {new Date(entry.created_at).toLocaleString()}
-                    </span>
-                  </p>
-                  <p>
-                    <strong className="text-gray-700">Changed By:</strong>{' '}
-                    <span className="font-medium text-gray-900">
-                      {entry.changed_by || 'N/A'}
-                    </span>
-                  </p>
-                  <p>
-                    <strong className="text-gray-700">Change Type:</strong>{' '}
-                    <span className="font-medium text-gray-900">
-                      {entry.change_type || 'N/A'}
-                    </span>
-                  </p>
-                  <p>
-                    <strong className="text-gray-700">Change Source:</strong>{' '}
-                    <span className="font-medium text-gray-900">
-                      {entry.change_source || 'N/A'}
-                    </span>
-                  </p>
-                </div>
-                {entry.field_changes &&
-                  Object.keys(entry.field_changes).length > 0 && (
-                    <div className="mt-3">
-                      <strong className="text-gray-700">Changes:</strong>
-                      <ul className="list-disc list-inside bg-gray-50 p-3 rounded-md mt-1 text-sm space-y-1">
-                        {Object.entries(entry.field_changes).map(
-                          ([field, change]: [string, any]) => (
-                            <li key={field}>
-                              <span className="font-medium text-gray-800">
-                                {formatFieldName(field)}:
-                              </span>{' '}
-                              <span className="text-green-600">
-                                {JSON.stringify(change.new_value)}
-                              </span>
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </div>
+      )}
+      {error && <p className="text-red-500 text-center py-4">{error}</p>}
+      {!loading && !error && history.length === 0 && (
+        <p className="text-gray-500 text-center py-4">
+          No edit history found for this record.
+        </p>
+      )}
+      {!loading && !error && history.length > 0 && (
+        <ul className="space-y-2">
+          {history.map((entry) => {
+            const isExpanded = expandedEntry === entry.uid;
+            return (
+              <li
+                key={entry.uid}
+                className="border rounded-lg overflow-hidden bg-white"
+              >
+                <button
+                  onClick={() =>
+                    setExpandedEntry(isExpanded ? null : entry.uid)
+                  }
+                  className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-800">
+                      Version {entry.version_number}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(entry.created_at).toLocaleString()} by{' '}
+                      <span className="font-medium">
+                        {entry.changed_by || 'N/A'}
+                      </span>
+                    </p>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
                   )}
-                {(!entry.field_changes ||
-                  Object.keys(entry.field_changes).length === 0) && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    No specific field changes recorded for this version.
-                  </p>
+                </button>
+                {isExpanded && (
+                  <div className="p-4 bg-white">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
+                      <p>
+                        <strong className="text-gray-600">Change Type:</strong>{' '}
+                        <span className="font-mono bg-gray-100 px-1 rounded">
+                          {entry.change_type || 'N/A'}
+                        </span>
+                      </p>
+                      <p>
+                        <strong className="text-gray-600">
+                          Change Source:
+                        </strong>{' '}
+                        <span className="font-mono bg-gray-100 px-1 rounded">
+                          {entry.change_source || 'N/A'}
+                        </span>
+                      </p>
+                    </div>
+                    {entry.field_changes &&
+                      Object.keys(entry.field_changes).length > 0 && (
+                        <div>
+                          <strong className="text-base font-semibold text-gray-700">
+                            Field Changes:
+                          </strong>
+                          <ul className="mt-2 space-y-2">
+                            {Object.entries(entry.field_changes).map(
+                              ([field, change]: [string, any]) => (
+                                <li
+                                  key={field}
+                                  className="p-2 border rounded-md bg-gray-50"
+                                >
+                                  <strong className="font-semibold text-gray-800">
+                                    {formatFieldName(field)}
+                                  </strong>
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs font-medium text-red-500 mr-2">
+                                      OLD:
+                                    </span>
+                                    <span className="font-mono text-sm text-red-700 bg-red-50 p-1 rounded line-through">
+                                      {String(change.old_value ?? 'N/A')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs font-medium text-green-500 mr-2">
+                                      NEW:
+                                    </span>
+                                    <span className="font-mono text-sm text-green-700 bg-green-50 p-1 rounded">
+                                      {String(change.new_value ?? 'N/A')}
+                                    </span>
+                                  </div>
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                  </div>
                 )}
               </li>
-            ))}
-          </ul>
-        )}
-      </div>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 };
