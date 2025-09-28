@@ -65,6 +65,8 @@ interface ContentInputProps {
   setDescriptionError: (error: boolean) => void;
   releaseRights: string;
   setreleaseRights: (releaseRights: string) => void;
+  creator: string;
+  setCreator: (creator: string) => void;
   selectedLanguage: string;
   setSelectedLangugae: (selectedLanguage: string) => void;
 
@@ -104,6 +106,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
   releaseRights,
   setreleaseRights,
+  creator,
+  setCreator,
   selectedLanguage,
   setSelectedLangugae,
 
@@ -578,7 +582,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       {/* Full-width Purple Header Bar */}
       <div className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white px-6 py-6 shadow-lg relative">
         {/* Back Button - Positioned at absolute left */}
@@ -1381,16 +1385,26 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   <input
                     type="radio"
                     name="releaseRight_Options"
-                    checked={releaseRights === 'family_or_friend'}
+                    checked={releaseRights === 'others'}
                     onChange={() => {
-                      setreleaseRights('family_or_friend');
+                      setreleaseRights('others');
                     }}
                   />
-                  <span className="ml-2">
-                    This work is created by my family/friends and I took
-                    permission to upload their work.
-                  </span>
+                  <span className="ml-2">Others</span>
                 </label>
+
+                {releaseRights === 'others' && (
+                  <div className="mb-6">
+                    <label className="block font-medium mb-2">Creator *</label>
+                    <input
+                      type="text"
+                      value={creator}
+                      onChange={(e) => setCreator(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Enter a creator for your content"
+                    />
+                  </div>
+                )}
                 <label>
                   <input
                     type="radio"

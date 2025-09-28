@@ -22,12 +22,16 @@ import {
   AlertTriangle,
   X,
   Loader2,
+  History,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
 
+// ... (All interface definitions remain the same) ...
 interface UserProfile {
   id: string;
   username: string;
@@ -67,6 +71,7 @@ interface ContributionItem {
   timestamp?: string;
   location?: Coordinates;
   release_rights: string;
+  creator: string;
   language: string;
   file_hash: string;
   snr_frequency: number;
@@ -513,15 +518,14 @@ const useUserProfile = (
 
 enum ReleaseRights {
   creator = 'creator',
-  familyOrFriend = 'family_or_friend',
+  others = 'others',
   downloaded = 'downloaded',
 }
 
 const releaseRightsMap: Record<ReleaseRights, string> = {
   [ReleaseRights.creator]:
     'This work is created by me and anyone is allowed to use it',
-  [ReleaseRights.familyOrFriend]:
-    'This work is created by my family/friends and I took permission to upload their work.',
+  [ReleaseRights.others]: 'Others',
   [ReleaseRights.downloaded]:
     'I downloaded this from the internet OR This is AI generted contnet',
 };
@@ -583,6 +587,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onBack,
 }) => {
   const navigate = useNavigate();
+  // State for modal is removed
+  // const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  // const [selectedRecordForHistory, setSelectedRecordForHistory] = useState<ContributionItem | null>(null);
 
   const {
     profile: currentUser,
@@ -660,6 +667,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           title: updatedItem.title,
           description: updatedItem.description,
           release_rights: updatedItem.release_rights,
+          creator: updatedItem.creator,
           location: updatedItem.location,
           language: updatedItem.language,
         }),
@@ -689,6 +697,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
       );
     }
   };
+
+  // handleShowHistory function is removed as it's now handled inside ContributionsList
 
   const handleExport = () => {
     try {
@@ -833,9 +843,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 pt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* ... (Header, Privacy Notice, Profile Info, Contributions by Media Type sections remain the same) ... */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -1128,10 +1138,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </button>
         </div>
       </div>
+      {/* The modal is no longer rendered here */}
     </div>
   );
 };
 
+// ... (ContributionTypeButton remains the same) ...
 const capitalize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
@@ -1179,6 +1191,15 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   token,
 }) => {
   const [editingItem, setEditingItem] = useState<ContributionItem | null>(null);
+  // NEW: State to track which item's history is visible
+  const [historyVisibleItemId, setHistoryVisibleItemId] = useState<
+    string | null
+  >(null);
+
+  const toggleHistoryVisibility = (itemId: string) => {
+    setHistoryVisibleItemId((prevId) => (prevId === itemId ? null : itemId));
+  };
+
   let items: ContributionItem[] = [];
   if (!contributions) return null;
   if (selectedMediaType === 'text') items = contributions.textContributions;
@@ -1201,6 +1222,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   return (
     <ul className="divide-y divide-gray-200">
       {items.map((item, idx) => {
+        // ... (getValidationWarnings and getSnrLabel functions remain the same)
         const getValidationWarnings = (): string[] => {
           console.log('rendered item' + item.release_rights);
 
@@ -1254,7 +1276,6 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
           if (value >= 10) return `${value} db (Unreliable)`;
           return `${value} db (Probably unusable)`;
         };
-
         const validationWarnings = getValidationWarnings();
         const hasWarnings = validationWarnings.length > 0;
         return editingItem?.id === item.id ? (
@@ -1270,18 +1291,31 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
         ) : (
           <li
             key={item.id}
-            className={`flex flex-col  py-4 px-2 rounded-lg transition ${
+            className={`flex flex-col py-4 px-2 rounded-lg transition ${
               hasWarnings ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
             }`}
           >
+            {/* ... (The main display of the contribution item remains the same) ... */}
             <div className="flex gap-2">
               <span
                 className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
                   ${selectedMediaType === 'text' && 'bg-blue-100 text-blue-700'}
-                  ${selectedMediaType === 'audio' && 'bg-green-100 text-green-700'}
-                  ${selectedMediaType === 'video' && 'bg-purple-100 text-purple-700'}
-                  ${selectedMediaType === 'image' && 'bg-orange-100 text-orange-700'}
-                  ${selectedMediaType === 'document' && 'bg-orange-100 text-orange-700'}
+                  ${
+                    selectedMediaType === 'audio' &&
+                    'bg-green-100 text-green-700'
+                  }
+                  ${
+                    selectedMediaType === 'video' &&
+                    'bg-purple-100 text-purple-700'
+                  }
+                  ${
+                    selectedMediaType === 'image' &&
+                    'bg-orange-100 text-orange-700'
+                  }
+                  ${
+                    selectedMediaType === 'document' &&
+                    'bg-orange-100 text-orange-700'
+                  }
                 `}
               >
                 {capitalize(selectedMediaType)}
@@ -1333,7 +1367,9 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                       item.location &&
                       typeof item.location.latitude === 'number' &&
                       typeof item.location.longitude === 'number'
-                        ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                        ? `${item.location.latitude.toFixed(
+                            4,
+                          )}, ${item.location.longitude.toFixed(4)}`
                         : '-'
                     }
                   >
@@ -1341,7 +1377,9 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     {item.location &&
                     typeof item.location.latitude === 'number' &&
                     typeof item.location.longitude === 'number'
-                      ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                      ? `${item.location.latitude.toFixed(
+                          4,
+                        )}, ${item.location.longitude.toFixed(4)}`
                       : '-'}
                   </span>
                   {/* Size badge */}
@@ -1384,6 +1422,14 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     <span className="font-semibold mr-1 italic">Rights:</span>{' '}
                     {releaseRightsMap[item.release_rights] || 'N/A'}
                   </span>
+                  {item.release_rights === 'others' && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
+                      <span className="font-semibold mr-1 italic">
+                        Creator:
+                      </span>{' '}
+                      {item.creator || 'N/A'}
+                    </span>
+                  )}
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
                     <span className="font-semibold mr-1 italic">Language:</span>{' '}
                     {selectedLanguageMap[
@@ -1421,7 +1467,13 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 >
                   <Pencil size={18} />
                 </button>
-
+                <button
+                  onClick={() => toggleHistoryVisibility(item.id)}
+                  className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-100 rounded-full transition-colors"
+                  title="View Edit History"
+                >
+                  <History size={18} />
+                </button>
                 {item.release_rights == 'downloaded' && (
                   <div className="relative group flex items-center">
                     <X className="text-red-500" size={18} />
@@ -1443,6 +1495,10 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 )}
               </div>
             </div>
+            {/* NEW: Conditionally render the inline history component */}
+            {historyVisibleItemId === item.id && (
+              <InlineEditHistory recordId={item.id} token={token} />
+            )}
           </li>
         );
       })}
@@ -1450,6 +1506,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   );
 };
 
+// ... (ProfileDetail, SecureViewButton, EditableContributionItem components remain the same) ...
 function ProfileDetail(item: {
   icon: React.ReactNode;
   title: string;
@@ -1574,6 +1631,7 @@ const EditableContributionItem: React.FC<{
   const [description, setDescription] = useState(item.description || '');
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
+  const [creator, setCreator] = useState(item.creator || '');
   const [language, setLanguage] = useState(item.language || 'NA');
   const {
     latitude,
@@ -1621,7 +1679,7 @@ const EditableContributionItem: React.FC<{
         areRightsValid &&
         isLanguageValid,
     );
-  }, [title, description, latitude, longitude, rightsKey, language]); // Dependency Array
+  }, [title, description, latitude, longitude, rightsKey, language, creator]); // Dependency Array
 
   const handleSave = () => {
     if (!isFormValid) {
@@ -1638,6 +1696,7 @@ const EditableContributionItem: React.FC<{
         longitude: parseFloat(longitude),
       },
       release_rights: rightsKey,
+      creator: creator,
       language: language,
     });
   };
@@ -1755,6 +1814,25 @@ const EditableContributionItem: React.FC<{
           ))}
         </select>
       </div>
+      {rightsKey === 'others' && (
+        <div>
+          <label
+            htmlFor="creator"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Creator
+          </label>
+          <input
+            type="text"
+            name="creator"
+            id="creator"
+            className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={creator}
+            onChange={(e) => setCreator(e.target.value)}
+            placeholder="Enter the creator's name"
+          />
+        </div>
+      )}
       {rightsKey == 'NA' && (
         <p className="text-xs text-red-600 mt-1">
           Pleae declare release rights
@@ -1817,4 +1895,167 @@ const EditableContributionItem: React.FC<{
   );
 };
 
+// NEW: Component to show edit history inline
+interface InlineEditHistoryProps {
+  recordId: string;
+  token: string;
+}
+
+const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
+  recordId,
+  token,
+}) => {
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
+
+  const formatFieldName = (fieldName: string) => {
+    return fieldName
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/history/record/${recordId}/history`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch edit history');
+        }
+        const data = await response.json();
+        setHistory(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'An unknown error occurred.',
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [recordId, token]);
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <h4 className="text-md font-semibold text-gray-700 mb-2">Edit History</h4>
+      {loading && (
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="animate-spin text-blue-500" size={24} />
+        </div>
+      )}
+      {error && <p className="text-red-500 text-center py-4">{error}</p>}
+      {!loading && !error && history.length === 0 && (
+        <p className="text-gray-500 text-center py-4">
+          No edit history found for this record.
+        </p>
+      )}
+      {!loading && !error && history.length > 0 && (
+        <ul className="space-y-2">
+          {history.map((entry) => {
+            const isExpanded = expandedEntry === entry.uid;
+            return (
+              <li
+                key={entry.uid}
+                className="border rounded-lg overflow-hidden bg-white"
+              >
+                <button
+                  onClick={() =>
+                    setExpandedEntry(isExpanded ? null : entry.uid)
+                  }
+                  className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-800">
+                      Version {entry.version_number}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(entry.created_at).toLocaleString()} by{' '}
+                      <span className="font-medium">
+                        {entry.changed_by || 'N/A'}
+                      </span>
+                    </p>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </button>
+                {isExpanded && (
+                  <div className="p-4 bg-white">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
+                      <p>
+                        <strong className="text-gray-600">Change Type:</strong>{' '}
+                        <span className="font-mono bg-gray-100 px-1 rounded">
+                          {entry.change_type || 'N/A'}
+                        </span>
+                      </p>
+                      <p>
+                        <strong className="text-gray-600">
+                          Change Source:
+                        </strong>{' '}
+                        <span className="font-mono bg-gray-100 px-1 rounded">
+                          {entry.change_source || 'N/A'}
+                        </span>
+                      </p>
+                    </div>
+                    {entry.field_changes &&
+                      Object.keys(entry.field_changes).length > 0 && (
+                        <div>
+                          <strong className="text-base font-semibold text-gray-700">
+                            Field Changes:
+                          </strong>
+                          <ul className="mt-2 space-y-2">
+                            {Object.entries(entry.field_changes).map(
+                              ([field, change]: [string, any]) => (
+                                <li
+                                  key={field}
+                                  className="p-2 border rounded-md bg-gray-50"
+                                >
+                                  <strong className="font-semibold text-gray-800">
+                                    {formatFieldName(field)}
+                                  </strong>
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs font-medium text-red-500 mr-2">
+                                      OLD:
+                                    </span>
+                                    <span className="font-mono text-sm text-red-700 bg-red-50 p-1 rounded line-through">
+                                      {String(change.old_value ?? 'N/A')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs font-medium text-green-500 mr-2">
+                                      NEW:
+                                    </span>
+                                    <span className="font-mono text-sm text-green-700 bg-green-50 p-1 rounded">
+                                      {String(change.new_value ?? 'N/A')}
+                                    </span>
+                                  </div>
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+};
 export default UserProfile;

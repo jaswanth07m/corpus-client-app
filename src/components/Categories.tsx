@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
   LogOut,
@@ -10,6 +11,7 @@ import {
   Video,
   Camera,
   FileText,
+  FileCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ContentInput from './ContentInput';
@@ -103,6 +105,7 @@ const Categories: React.FC<CategoriesProps> = ({
   const [descriptionError, setDescriptionError] = useState(false); // New state for description error
 
   const [releaseRights, setreleaseRights] = useState('');
+  const [creator, setCreator] = useState('');
   const [selectedLanguage, setSelectedLangugae] = useState('');
 
   const CHUNK_SIZE = 5 * 1024 * 1024; // 40MB maximum per chunk
@@ -499,6 +502,9 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('total_chunks', totalChunks.toString());
       formData.append('filename', filename);
       formData.append('release_rights', releaseRights);
+      if (releaseRights === 'others') {
+        formData.append('creator', creator);
+      }
       formData.append('language', selectedLanguage);
 
       const response = await fetch(`${BACKEND_URL}/records/upload`, {
@@ -689,6 +695,7 @@ const Categories: React.FC<CategoriesProps> = ({
     setDescriptionError(false);
     setSelectedLangugae('');
     setreleaseRights('');
+    setCreator('');
     setTextContent('');
     setSelectedFile(null);
     setLocationRequested(false);
@@ -761,6 +768,8 @@ const Categories: React.FC<CategoriesProps> = ({
         isChunkedUploading={isUploading}
         releaseRights={releaseRights}
         setreleaseRights={setreleaseRights}
+        creator={creator}
+        setCreator={setCreator}
         selectedLanguage={selectedLanguage}
         setSelectedLangugae={setSelectedLangugae}
       />
@@ -827,7 +836,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
   // Main Categories View
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 ">
       {/* Header */}
       <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
         <div className="flex items-center justify-between">
@@ -840,6 +849,15 @@ const Categories: React.FC<CategoriesProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/proofreading">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
+              >
+                <FileCheck className="h-5 w-5" />
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="icon"
