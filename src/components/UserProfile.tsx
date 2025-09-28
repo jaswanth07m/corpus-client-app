@@ -646,14 +646,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   const handleUpdate = async (updatedItem: ContributionItem) => {
+    // 1. Authentification Check (Good to have)
     if (!token) {
-      alert('Authentication Error. Cannot save changes.');
+      toast.error('Authentication Error. Cannot save changes.');
       return;
     }
 
-    console.log(' update iterm:' + updatedItem.release_rights);
-
     try {
+      // 2. Make the API call using fetch
       const response = await fetch(`${BACKEND_URL}/records/${updatedItem.id}`, {
         method: 'PATCH',
         headers: {
@@ -669,27 +669,35 @@ const UserProfile: React.FC<UserProfileProps> = ({
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        let errorMessage = `Failed to update: ${response.statusText}`; // Default error message
+      // 3. Handle the response
+      if (response.ok) {
+        // SUCCESS PATH: The update was successful (status 200-299)
+        toast.success('Contribution updated successfully!');
+        refetch(); // Refresh your data
+      } else {
+        // ERROR PATH: The server responded with an error (status 4xx, 5xx)
+        const errorData = await response.json(); // Get the detailed JSON error body
 
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          const specificMessages = errorData.detail.map((err) => err.msg);
-          errorMessage = specificMessages.join('\n');
-        } else if (errorData.detail) {
-          errorMessage = errorData.detail;
+        // Log the full error to the console for debugging
+        console.error('API Error Response:', errorData);
+
+        // Check for the specific 'errors' array from your API
+        if (errorData.errors && errorData.errors.length > 0) {
+          // Use the message from the first specific error object
+          const specificErrorMessage = errorData.errors[0].message;
+          toast.error(specificErrorMessage);
+        } else {
+          // Fallback for other types of errors
+          toast.error(
+            errorData.message || 'Failed to update. Please try again.',
+          );
         }
-
-        throw new Error(errorMessage);
       }
-
-      toast.success('Contribution updated successfully!');
-      refetch();
     } catch (error) {
-      console.error('Update failed:', error);
-
+      // NETWORK ERROR PATH: This catches failures to connect to the server
+      console.error('Network or other error:', error);
       toast.error(
-        error instanceof Error ? error.message : 'An unknown error occurred.',
+        'Could not connect to the server. Please check your connection.',
       );
     }
   };
