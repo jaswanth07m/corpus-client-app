@@ -580,6 +580,10 @@ const selectedLanguageMap: Record<SelectedLanguage, string> = {
   [SelectedLanguage.urdu]: 'Urdu',
 };
 
+const countMeaningfulWords = (text: string) => {
+  return text.split(/\s+/).filter((word) => word.length > 1).length;
+};
+
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
   token,
@@ -649,14 +653,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   const handleUpdate = async (updatedItem: ContributionItem) => {
+    // 1. Authentification Check (Good to have)
     if (!token) {
-      alert('Authentication Error. Cannot save changes.');
+      toast.error('Authentication Error. Cannot save changes.');
       return;
     }
 
-    console.log(' update iterm:' + updatedItem.release_rights);
-
     try {
+      // 2. Make the API call using fetch
       const response = await fetch(`${BACKEND_URL}/records/${updatedItem.id}`, {
         method: 'PATCH',
         headers: {
@@ -673,27 +677,35 @@ const UserProfile: React.FC<UserProfileProps> = ({
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        let errorMessage = `Failed to update: ${response.statusText}`; // Default error message
+      // 3. Handle the response
+      if (response.ok) {
+        // SUCCESS PATH: The update was successful (status 200-299)
+        toast.success('Contribution updated successfully!');
+        refetch(); // Refresh your data
+      } else {
+        // ERROR PATH: The server responded with an error (status 4xx, 5xx)
+        const errorData = await response.json(); // Get the detailed JSON error body
 
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          const specificMessages = errorData.detail.map((err) => err.msg);
-          errorMessage = specificMessages.join('\n');
-        } else if (errorData.detail) {
-          errorMessage = errorData.detail;
+        // Log the full error to the console for debugging
+        console.error('API Error Response:', errorData);
+
+        // Check for the specific 'errors' array from your API
+        if (errorData.errors && errorData.errors.length > 0) {
+          // Use the message from the first specific error object
+          const specificErrorMessage = errorData.errors[0].message;
+          toast.error(specificErrorMessage);
+        } else {
+          // Fallback for other types of errors
+          toast.error(
+            errorData.message || 'Failed to update. Please try again.',
+          );
         }
-
-        throw new Error(errorMessage);
       }
-
-      toast.success('Contribution updated successfully!');
-      refetch();
     } catch (error) {
-      console.error('Update failed:', error);
-
+      // NETWORK ERROR PATH: This catches failures to connect to the server
+      console.error('Network or other error:', error);
       toast.error(
-        error instanceof Error ? error.message : 'An unknown error occurred.',
+        'Could not connect to the server. Please check your connection.',
       );
     }
   };
@@ -1224,15 +1236,16 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
       {items.map((item, idx) => {
         // ... (getValidationWarnings and getSnrLabel functions remain the same)
         const getValidationWarnings = (): string[] => {
-          console.log('rendered item' + item.release_rights);
-
           const warnings: string[] = [];
           if (
             !item.title ||
             (typeof item.title === 'string' && item.title.trim().length < 8)
           ) {
             warnings.push('Title is missing or is less than 8 characters.');
+          } else if (countMeaningfulWords(item.title) < 2) {
+            warnings.push('Title must contain at least 2 meaningful words.');
           }
+
           if (
             !item.description ||
             (typeof item.description === 'string' &&
@@ -1241,9 +1254,14 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
             warnings.push(
               'Description is missing or is less than 32 characters.',
             );
+          } else if (countMeaningfulWords(item.description) < 10) {
+            warnings.push(
+              'Description must contain at least 10 meaningful words.',
+            );
           }
+
           if (!item.location) {
-            warnings.push('location is missing');
+            warnings.push('Location is missing.');
           }
 
           const rights = item.release_rights;
@@ -1629,6 +1647,8 @@ const EditableContributionItem: React.FC<{
 }> = ({ item, onSave, onCancel }) => {
   const [title, setTitle] = useState(item.title || '');
   const [description, setDescription] = useState(item.description || '');
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
   const [creator, setCreator] = useState(item.creator || '');
@@ -1649,11 +1669,25 @@ const EditableContributionItem: React.FC<{
   const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
-    // Validate title: must be at least 8 characters
-    const isTitleValid = title.trim().length >= 8;
+    // Validate title: must be at least 8 characters and 2 meaningful words
+    if (title.trim().length < 8) {
+      setTitleError('Title must be at least 8 characters long.');
+    } else if (countMeaningfulWords(title) < 2) {
+      setTitleError('Title must contain at least 2 meaningful words.');
+    } else {
+      setTitleError(null);
+    }
 
-    // Validate description: must be at least 32 characters
-    const isDescriptionValid = description.trim().length >= 32;
+    // Validate description: must be at least 32 characters and 10 meaningful words
+    if (description.trim().length < 32) {
+      setDescriptionError('Description must be at least 32 characters long.');
+    } else if (countMeaningfulWords(description) < 10) {
+      setDescriptionError(
+        'Description must contain at least 10 meaningful words.',
+      );
+    } else {
+      setDescriptionError(null);
+    }
 
     // Validate location: must be valid numbers within the correct range
     const lat = parseFloat(latitude);
@@ -1673,13 +1707,22 @@ const EditableContributionItem: React.FC<{
 
     // Update the overall form validity state
     setIsFormValid(
-      isTitleValid &&
-        isDescriptionValid &&
+      !titleError &&
+        !descriptionError &&
         isLocationValid &&
         areRightsValid &&
         isLanguageValid,
     );
-  }, [title, description, latitude, longitude, rightsKey, language, creator]); // Dependency Array
+  }, [
+    title,
+    description,
+    latitude,
+    longitude,
+    rightsKey,
+    language,
+    titleError,
+    descriptionError,
+  ]); // Dependency Array
 
   const handleSave = () => {
     if (!isFormValid) {
@@ -1714,18 +1757,17 @@ const EditableContributionItem: React.FC<{
           type="text"
           name="title"
           id="title"
-          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          className={`w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+            titleError ? 'border-red-500' : ''
+          }`}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Enter a title for the contribution"
         />
+        {titleError && (
+          <p className="text-xs text-red-600 mt-1">{titleError}</p>
+        )}
       </div>
-
-      {title.length < 8 && (
-        <p className="text-xs text-red-600 mt-1">
-          Title must be at least 8 characters long.
-        </p>
-      )}
 
       <div>
         <label
@@ -1738,18 +1780,17 @@ const EditableContributionItem: React.FC<{
           type="description"
           name="description"
           id="description"
-          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          className={`w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+            descriptionError ? 'border-red-500' : ''
+          }`}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Enter the contribution description"
         />
+        {descriptionError && (
+          <p className="text-xs text-red-600 mt-1">{descriptionError}</p>
+        )}
       </div>
-
-      {description.length < 32 && (
-        <p className="text-xs text-red-600 mt-1">
-          Description must be at least 32 characters long.
-        </p>
-      )}
 
       <div>
         <div className="flex justify-between items-center mb-1">
