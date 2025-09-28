@@ -576,6 +576,10 @@ const selectedLanguageMap: Record<SelectedLanguage, string> = {
   [SelectedLanguage.urdu]: 'Urdu',
 };
 
+const countMeaningfulWords = (text: string) => {
+  return text.split(/\s+/).filter((word) => word.length > 1).length;
+};
+
 const UserProfile: React.FC<UserProfileProps> = ({
   user,
   token,
@@ -1202,15 +1206,16 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     <ul className="divide-y divide-gray-200">
       {items.map((item, idx) => {
         const getValidationWarnings = (): string[] => {
-          console.log('rendered item' + item.release_rights);
-
           const warnings: string[] = [];
           if (
             !item.title ||
             (typeof item.title === 'string' && item.title.trim().length < 8)
           ) {
             warnings.push('Title is missing or is less than 8 characters.');
+          } else if (countMeaningfulWords(item.title) < 2) {
+            warnings.push('Title must contain at least 2 meaningful words.');
           }
+
           if (
             !item.description ||
             (typeof item.description === 'string' &&
@@ -1219,9 +1224,14 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
             warnings.push(
               'Description is missing or is less than 32 characters.',
             );
+          } else if (countMeaningfulWords(item.description) < 10) {
+            warnings.push(
+              'Description must contain at least 10 meaningful words.',
+            );
           }
+
           if (!item.location) {
-            warnings.push('location is missing');
+            warnings.push('Location is missing.');
           }
 
           const rights = item.release_rights;
@@ -1572,6 +1582,8 @@ const EditableContributionItem: React.FC<{
 }> = ({ item, onSave, onCancel }) => {
   const [title, setTitle] = useState(item.title || '');
   const [description, setDescription] = useState(item.description || '');
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
   const [language, setLanguage] = useState(item.language || 'NA');
@@ -1591,11 +1603,25 @@ const EditableContributionItem: React.FC<{
   const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
-    // Validate title: must be at least 8 characters
-    const isTitleValid = title.trim().length >= 8;
+    // Validate title: must be at least 8 characters and 2 meaningful words
+    if (title.trim().length < 8) {
+      setTitleError('Title must be at least 8 characters long.');
+    } else if (countMeaningfulWords(title) < 2) {
+      setTitleError('Title must contain at least 2 meaningful words.');
+    } else {
+      setTitleError(null);
+    }
 
-    // Validate description: must be at least 32 characters
-    const isDescriptionValid = description.trim().length >= 32;
+    // Validate description: must be at least 32 characters and 10 meaningful words
+    if (description.trim().length < 32) {
+      setDescriptionError('Description must be at least 32 characters long.');
+    } else if (countMeaningfulWords(description) < 10) {
+      setDescriptionError(
+        'Description must contain at least 10 meaningful words.',
+      );
+    } else {
+      setDescriptionError(null);
+    }
 
     // Validate location: must be valid numbers within the correct range
     const lat = parseFloat(latitude);
@@ -1615,13 +1641,22 @@ const EditableContributionItem: React.FC<{
 
     // Update the overall form validity state
     setIsFormValid(
-      isTitleValid &&
-        isDescriptionValid &&
+      !titleError &&
+        !descriptionError &&
         isLocationValid &&
         areRightsValid &&
         isLanguageValid,
     );
-  }, [title, description, latitude, longitude, rightsKey, language]); // Dependency Array
+  }, [
+    title,
+    description,
+    latitude,
+    longitude,
+    rightsKey,
+    language,
+    titleError,
+    descriptionError,
+  ]); // Dependency Array
 
   const handleSave = () => {
     if (!isFormValid) {
@@ -1655,18 +1690,17 @@ const EditableContributionItem: React.FC<{
           type="text"
           name="title"
           id="title"
-          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          className={`w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+            titleError ? 'border-red-500' : ''
+          }`}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Enter a title for the contribution"
         />
+        {titleError && (
+          <p className="text-xs text-red-600 mt-1">{titleError}</p>
+        )}
       </div>
-
-      {title.length < 8 && (
-        <p className="text-xs text-red-600 mt-1">
-          Title must be at least 8 characters long.
-        </p>
-      )}
 
       <div>
         <label
@@ -1679,18 +1713,17 @@ const EditableContributionItem: React.FC<{
           type="description"
           name="description"
           id="description"
-          className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          className={`w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+            descriptionError ? 'border-red-500' : ''
+          }`}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Enter the contribution description"
         />
+        {descriptionError && (
+          <p className="text-xs text-red-600 mt-1">{descriptionError}</p>
+        )}
       </div>
-
-      {description.length < 32 && (
-        <p className="text-xs text-red-600 mt-1">
-          Description must be at least 32 characters long.
-        </p>
-      )}
 
       <div>
         <div className="flex justify-between items-center mb-1">
