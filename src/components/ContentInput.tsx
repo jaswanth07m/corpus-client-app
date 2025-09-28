@@ -136,8 +136,12 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
   // Title and Description validation
-  const [titleError, setTitleError] = useState(false);
-  const [descriptionError, setDescriptionError] = useState(false); // New state for description error
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+
+  const countMeaningfulWords = (text: string) => {
+    return text.split(/\s+/).filter((word) => word.length > 1).length;
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoRecordingRef = useRef<HTMLVideoElement>(null);
@@ -714,17 +718,24 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 type="text"
                 value={title}
                 onChange={(e) => {
-                  const title = e.target.value;
-                  if (title.trim().length <= 8) setTitleError(true);
-                  else setTitleError(false);
-                  setTitle(title);
+                  const newTitle = e.target.value;
+                  setTitle(newTitle);
+                  if (newTitle.trim().length < 8) {
+                    setTitleError('Title must be at least 8 characters long.');
+                  } else if (countMeaningfulWords(newTitle) < 2) {
+                    setTitleError(
+                      'Title must contain at least 2 meaningful words.',
+                    );
+                  } else {
+                    setTitleError(null);
+                  }
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Enter a title for your content"
               />
               {titleError && (
                 <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                  *Title should be at least 8 characters
+                  {titleError}
                 </div>
               )}
             </div>
@@ -737,17 +748,26 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               <textarea
                 value={description}
                 onChange={(e) => {
-                  const desc = e.target.value;
-                  if (desc.trim().length < 32) setDescriptionError(true);
-                  else setDescriptionError(false);
-                  setDescription(desc);
+                  const newDescription = e.target.value;
+                  setDescription(newDescription);
+                  if (newDescription.trim().length < 32) {
+                    setDescriptionError(
+                      'Description must be at least 32 characters long.',
+                    );
+                  } else if (countMeaningfulWords(newDescription) < 10) {
+                    setDescriptionError(
+                      'Description must contain at least 10 meaningful words.',
+                    );
+                  } else {
+                    setDescriptionError(null);
+                  }
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
                 placeholder="Provide a detailed description (minimum 32 characters)"
               />
               {descriptionError && (
                 <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                  *Description must be at least 32 characters
+                  {descriptionError}
                 </div>
               )}
             </div>
@@ -1419,12 +1439,12 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   uploading ||
                   uploadingFiles ||
                   !title ||
-                  title.trim().length <= 8 ||
-                  !description || // Added description validation
-                  description.trim().length < 32 || // Added description length validation
+                  !!titleError ||
+                  !description ||
+                  !!descriptionError ||
                   !location ||
                   !releaseRights ||
-                  releaseRights == 'downloaded' ||
+                  releaseRights === 'downloaded' ||
                   !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&
