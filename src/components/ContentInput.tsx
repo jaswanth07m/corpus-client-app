@@ -802,16 +802,24 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 type="text"
                 value={title}
                 onChange={(e) => {
-                  const titleVal = e.target.value;
-                  setTitleError(titleVal.trim().length <= 8);
-                  setTitle(titleVal);
+                  const newTitle = e.target.value;
+                  setTitle(newTitle);
+                  if (newTitle.trim().length < 8) {
+                    setTitleError('Title must be at least 8 characters long.');
+                  } else if (countMeaningfulWords(newTitle) < 2) {
+                    setTitleError(
+                      'Title must contain at least 2 meaningful words.',
+                    );
+                  } else {
+                    setTitleError(null);
+                  }
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Enter a title for your content"
               />
               {titleError && (
                 <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                  *Title should be at least 8 characters
+                  {titleError}
                 </div>
               )}
             </div>
@@ -824,16 +832,26 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               <textarea
                 value={description}
                 onChange={(e) => {
-                  const desc = e.target.value;
-                  setDescriptionError(desc.trim().length < 32);
-                  setDescription(desc);
+                  const newDescription = e.target.value;
+                  setDescription(newDescription);
+                  if (newDescription.trim().length < 32) {
+                    setDescriptionError(
+                      'Description must be at least 32 characters long.',
+                    );
+                  } else if (countMeaningfulWords(newDescription) < 10) {
+                    setDescriptionError(
+                      'Description must contain at least 10 meaningful words.',
+                    );
+                  } else {
+                    setDescriptionError(null);
+                  }
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
                 placeholder="Provide a detailed description (minimum 32 characters)"
               />
               {descriptionError && (
                 <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                  *Description must be at least 32 characters
+                  {descriptionError}
                 </div>
               )}
             </div>
@@ -1478,7 +1496,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   descriptionError ||
                   !verifiedLocation || // <-- Key change: Disable button until location is VERIFIED
                   !releaseRights ||
-                  releaseRights == 'downloaded' ||
+                  releaseRights === 'downloaded' ||
                   !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode !== 'text' &&
