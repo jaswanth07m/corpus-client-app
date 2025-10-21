@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { SuggestionBar } from '@/components/SuggestionBar';
+import { useTeluguTyping } from '@/hooks/useTeluguTyping';
+import { useEffect, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -21,6 +23,40 @@ function Proofreading() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  const { value, suggestions, inputProps, setValue } = useTeluguTyping();
+  const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
+  const [hintsVisible, setHintsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isTeluguTypingEnabled && ocrTexts.length > 0) {
+      const currentPageText = ocrTexts[pageNumber - 1] || '';
+      setValue(currentPageText);
+    }
+    // We only want this to run when the page number or the initial texts change.
+  }, [pageNumber, setValue, isTeluguTypingEnabled]);
+
+  useEffect(() => {
+    // This check prevents an infinite loop. Only update if the text is different.
+    if (isTeluguTypingEnabled) {
+      if (value !== (ocrTexts[pageNumber - 1] || '')) {
+        const newOcrTexts = [...ocrTexts];
+        newOcrTexts[pageNumber - 1] = value;
+        setOcrTexts(newOcrTexts);
+      }
+    }
+    // This effect runs only when the hook's value changes.
+  }, [value, isTeluguTypingEnabled]);
+
+  const textAreaProps = isTeluguTypingEnabled
+    ? {
+        ...inputProps,
+        value: value,
+      }
+    : {
+        value: ocrTexts[pageNumber - 1] || '',
+        onChange: handleOcrTextChange,
+      };
 
   async function fetchNextRecord() {
     setIsLoading(true);
@@ -375,17 +411,53 @@ function Proofreading() {
         </div>
 
         {/* OCR Text Editor */}
-        <div className="flex-1 flex flex-col p-5 border-l border-gray-300 dark:border-gray-700">
-          <h2 className="text-xl font-bold mb-3 flex-shrink-0">
-            Proofread OCR Text
-          </h2>
+        <div className="flex-1 flex flex-col p-5 border-l border-gray-300 dark:border-gray-700 position: relative">
+          <div className="flex flex-row justify-between">
+            <h2 className="text-xl font-bold mb-3 flex-shrink-0">
+              Proofread OCR Text
+            </h2>
+
+            {hintsVisible && (
+              <p className="text-sm">*Start typing to get hints</p>
+            )}
+
+            <div>
+              <div className="flex gap-1">
+                <input
+                  className="cursor-pointer"
+                  id="telugu-toggle"
+                  type="checkbox"
+                  checked={isTeluguTypingEnabled}
+                  onChange={() =>
+                    setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
+                  }
+                />
+                <label className="cursor-pointer" htmlFor="telugu-toggle">
+                  Telugu
+                </label>
+              </div>
+
+              {isTeluguTypingEnabled && (
+                <div className="flex gap-1">
+                  <input
+                    id="telugu-hints-toggle"
+                    type="checkbox"
+                    checked={hintsVisible}
+                    onChange={() => setHintsVisible(!hintsVisible)}
+                  />
+                  <label htmlFor="telugu-hints-toggle">Show Hints</label>
+                </div>
+              )}
+            </div>
+          </div>
+
           <textarea
             className="flex-grow w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800"
             placeholder="OCR text will appear here."
-            value={ocrTexts[pageNumber - 1] || ''}
-            onChange={handleOcrTextChange}
             disabled={!bookData || isLoading || isSubmitting}
+            {...textAreaProps}
           ></textarea>
+          {hintsVisible && <SuggestionBar suggestions={suggestions} />}
         </div>
       </div>
     </div>

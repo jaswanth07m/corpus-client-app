@@ -361,3 +361,15 @@ All colors MUST be HSL.
 .show-less-button:hover {
   background: #5a6268;
 }
+
+#telugu-toggle:checked ~ .dot {
+  transform: translateX(100%);
+  background-color: #48bb78; /* Green */
+}
+#telugu-toggle:checked ~ .block {
+  background-color: #c6f6d5; /* Light Green */
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
