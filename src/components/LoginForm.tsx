@@ -79,7 +79,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     email: '',
     gender: '',
     date_of_birth: '',
-    place: '',
+    current_place: '',
     password: '',
     confirmPassword: '',
     has_given_consent: false,
@@ -351,7 +351,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         email: signupData.email.trim(),
         gender: signupData.gender || undefined,
         date_of_birth: signupData.date_of_birth || undefined,
-        place: signupData.place.trim() || undefined,
+        current_place: signupData.current_place.trim() || undefined,
         password: signupData.password,
         role_ids: [2], // Default role ID as per schema
       };
@@ -410,7 +410,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         email: signupData.email.trim(),
         gender: signupData.gender || undefined,
         date_of_birth: signupData.date_of_birth || undefined,
-        place: signupData.place.trim() || undefined,
+        current_place: signupData.current_place.trim() || undefined,
         password: signupData.password,
         confirm_password: signupData.confirmPassword,
         role_ids: [2], // Default role ID as per schema
@@ -537,7 +537,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       email: '',
       gender: '',
       date_of_birth: '',
-      place: '',
+      current_place: '',
       password: '',
       confirmPassword: '',
       has_given_consent: false,
@@ -1008,17 +1008,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="text"
                       placeholder="Place (City, State)"
-                      value={signupData.place}
+                      value={signupData.current_place}
                       onChange={(e) =>
-                        handleSignupInputChange('place', e.target.value)
+                        handleSignupInputChange('current_place', e.target.value)
                       }
                       onFocus={() => {
                         setValidatePlace('border-gray-500');
                         setErrorPlaceDisplay('hidden');
                       }}
                       onBlur={(e) => {
-                        const placeRegex = /^[A-Za-z\s,]+$/;
-                        if (!placeRegex.test(signupData.place.trim())) {
+                        const currentPlaceRegex = /^[A-Za-z\s,]+$/;
+                        if (
+                          !currentPlaceRegex.test(
+                            signupData.current_place.trim(),
+                          )
+                        ) {
                           setValidatePlace('border-rose-800');
                           setErrorPlaceDisplay('block');
                           setFormValidationErrors(true);
