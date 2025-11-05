@@ -22,12 +22,17 @@ import {
   AlertTriangle,
   X,
   Loader2,
+  History,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserContributions from './UserContributions';
+import ContributionDashboard from './ContributionDashboard'; // Import the new dashboard component
 import { BACKEND_URL } from '@/lib/constants';
 import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
 
+// ... (All interface definitions remain the same) ...
 interface UserProfile {
   id: string;
   username: string;
@@ -67,6 +72,7 @@ interface ContributionItem {
   timestamp?: string;
   location?: Coordinates;
   release_rights: string;
+  creator: string;
   language: string;
   file_hash: string;
   snr_frequency: number;
@@ -110,11 +116,20 @@ interface UseUserProfileReturn {
   refetch: () => void;
   exportData: any;
   requestExport: () => Promise<void>;
+  setContributions: React.Dispatch<
+    React.SetStateAction<UserContributions | null>
+  >;
+  fetchUserContributions: (
+    currentUserId: string,
+    mediaType: 'text' | 'audio' | 'video' | 'image' | 'document' | undefined,
+  ) => Promise<void>;
 }
 
 const useUserProfile = (
   userId?: string,
   shouldReset?: boolean,
+  selectedMediaType?: 'text' | 'audio' | 'video' | 'image' | 'document' | null, // Allow null for no selection
+  showDashboard?: boolean, // Add showDashboard
 ): UseUserProfileReturn => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
@@ -376,13 +391,18 @@ const useUserProfile = (
   );
 
   const fetchUserContributions = useCallback(
-    async (currentUserId: string) => {
+    async (
+      currentUserId: string,
+      mediaType: 'text' | 'audio' | 'video' | 'image' | 'document' | undefined,
+    ) => {
       setLoading((prev) => ({ ...prev, contributions: true }));
 
       try {
         const token = getAuthToken();
         const baseUrl = BACKEND_URL;
-        const apiUrl = `${baseUrl}/users/${currentUserId}/contributions`;
+        const apiUrl = mediaType
+          ? `${baseUrl}/users/${currentUserId}/contributions/${mediaType}`
+          : `${baseUrl}/users/${currentUserId}/contributions`; // Fallback to all if no mediaType
 
         const response = await fetch(apiUrl, {
           headers: {
@@ -398,7 +418,8 @@ const useUserProfile = (
 
         const data = await response.json();
 
-        setContributions({
+        // Initialize all contribution types as empty arrays
+        const newContributions: UserContributions = {
           totalContributions: data.total_contributions || 0,
           contributionsByType: data.contributions_by_media_type || {
             text: 0,
@@ -407,14 +428,37 @@ const useUserProfile = (
             video: 0,
             document: 0,
           },
-          audioContributions: data.audio_contributions || [],
-          videoContributions: data.video_contributions || [],
-          textContributions: data.text_contributions || [],
-          imageContributions: data.image_contributions || [],
-          documentContributions: data.document_contributions || [],
+          audioContributions: [],
+          videoContributions: [],
+          textContributions: [],
+          imageContributions: [],
+          documentContributions: [],
           audioDuration: data.audio_duration || 0,
           videoDuration: data.video_duration || 0,
-        });
+        };
+
+        // Populate only the fetched media type
+        if (mediaType === 'text') {
+          newContributions.textContributions = data.contributions || [];
+        } else if (mediaType === 'audio') {
+          newContributions.audioContributions = data.contributions || [];
+        } else if (mediaType === 'video') {
+          newContributions.videoContributions = data.contributions || [];
+        } else if (mediaType === 'image') {
+          newContributions.imageContributions = data.contributions || [];
+        } else if (mediaType === 'document') {
+          newContributions.documentContributions = data.contributions || [];
+        } else {
+          // If no specific mediaType was requested (dashboard view), populate all
+          newContributions.audioContributions = data.audio_contributions || [];
+          newContributions.videoContributions = data.video_contributions || [];
+          newContributions.textContributions = data.text_contributions || [];
+          newContributions.imageContributions = data.image_contributions || [];
+          newContributions.documentContributions =
+            data.document_contributions || [];
+        }
+
+        setContributions(newContributions);
       } catch (err) {
         setContributions({
           totalContributions: 0,
@@ -471,13 +515,25 @@ const useUserProfile = (
       setError(null);
       fetchUserProfile(currentUserId);
       fetchDailyStats(currentUserId);
-      fetchUserContributions(currentUserId);
+      // When refetching, if in dashboard mode, fetch all contributions.
+      // If in detailed view, fetch only the selected media type.
+      if (!showDashboard && selectedMediaType) {
+        // Only fetch if not dashboard and a media type is selected
+        fetchUserContributions(currentUserId, selectedMediaType);
+      } else if (showDashboard) {
+        // Fetch all for dashboard
+        fetchUserContributions(currentUserId, undefined);
+      } else {
+        setContributions(null); // Clear contributions if in detailed view but no media type selected
+      }
     }
   }, [
     getCurrentUserId,
     fetchUserProfile,
     fetchDailyStats,
     fetchUserContributions,
+    showDashboard,
+    setContributions,
   ]);
 
   useEffect(() => {
@@ -486,7 +542,16 @@ const useUserProfile = (
     if (currentUserId) {
       fetchUserProfile(currentUserId);
       fetchDailyStats(currentUserId);
-      fetchUserContributions(currentUserId);
+      // Initial fetch for contributions: if dashboard is shown, fetch all.
+      // If detailed view is shown, fetch only the selected media type.
+      if (showDashboard) {
+        fetchUserContributions(currentUserId, undefined);
+      } else if (selectedMediaType) {
+        // Only fetch if not dashboard and a media type is selected
+        fetchUserContributions(currentUserId, selectedMediaType);
+      } else {
+        setContributions(null); // Clear contributions if in detailed view but no media type selected
+      }
     } else {
       setError('No user ID found. Please log in again.');
       setLoading({ profile: false, stats: false, contributions: false });
@@ -497,6 +562,8 @@ const useUserProfile = (
     fetchUserProfile,
     fetchDailyStats,
     fetchUserContributions,
+    showDashboard,
+    setContributions,
   ]);
 
   return {
@@ -508,20 +575,21 @@ const useUserProfile = (
     refetch,
     exportData,
     requestExport,
+    setContributions,
+    fetchUserContributions,
   };
 };
 
 enum ReleaseRights {
   creator = 'creator',
-  familyOrFriend = 'family_or_friend',
+  others = 'others',
   downloaded = 'downloaded',
 }
 
 const releaseRightsMap: Record<ReleaseRights, string> = {
   [ReleaseRights.creator]:
     'This work is created by me and anyone is allowed to use it',
-  [ReleaseRights.familyOrFriend]:
-    'This work is created by my family/friends and I took permission to upload their work.',
+  [ReleaseRights.others]: 'Others',
   [ReleaseRights.downloaded]:
     'I downloaded this from the internet OR This is AI generted contnet',
 };
@@ -587,6 +655,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onBack,
 }) => {
   const navigate = useNavigate();
+  // State for modal is removed
+  // const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  // const [selectedRecordForHistory, setSelectedRecordForHistory] = useState<ContributionItem | null>(null);
+
+  const [selectedMediaType, setSelectedMediaType] = useState<
+    'text' | 'audio' | 'video' | 'image' | 'document' | null // Allow null for no selection
+  >(null); // Initialize as null, no media type selected by default
+  const [showDashboard, setShowDashboard] = useState(true); // New state for toggling views
 
   const {
     profile: currentUser,
@@ -597,14 +673,17 @@ const UserProfile: React.FC<UserProfileProps> = ({
     refetch,
     exportData,
     requestExport,
-  } = useUserProfile();
+    setContributions, // Destructure setContributions from the hook
+    fetchUserContributions, // Destructure fetchUserContributions from the hook
+  } = useUserProfile(
+    undefined,
+    undefined,
+    showDashboard ? undefined : selectedMediaType,
+    showDashboard,
+  ); // Pass selectedMediaType and showDashboard to hook
 
   const [isEmailRevealed, setIsEmailRevealed] = useState(false);
   const [isPhoneRevealed, setIsPhoneRevealed] = useState(false);
-
-  const [selectedMediaType, setSelectedMediaType] = useState<
-    'text' | 'audio' | 'video' | 'image' | 'document'
-  >('text');
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never';
@@ -664,6 +743,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           title: updatedItem.title,
           description: updatedItem.description,
           release_rights: updatedItem.release_rights,
+          creator: updatedItem.creator,
           location: updatedItem.location,
           language: updatedItem.language,
         }),
@@ -701,6 +781,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
       );
     }
   };
+
+  // handleShowHistory function is removed as it's now handled inside ContributionsList
 
   const handleExport = () => {
     try {
@@ -845,9 +927,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 pt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* ... (Header, Privacy Notice, Profile Info, Contributions by Media Type sections remain the same) ... */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -985,100 +1067,97 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </div>
           </>
         </div>
-        {contributions && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Contributions by Media Type
+        {/* Contribution Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-normal text-center w-full p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
+              <span className="font-sans">MY CONTRIBUTIONS</span>
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <Activity size={24} className="text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-600">
-                  {contributions.contributionsByType.text}
-                </p>
-                <p className="text-sm text-gray-600">Text Contributions</p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <Award size={24} className="text-orange-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-orange-600">
-                  {contributions.contributionsByType.image}
-                </p>
-                <p className="text-sm text-gray-600">Image Contributions</p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <Award size={24} className="text-orange-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-orange-600">
-                  {contributions.contributionsByType.document}
-                </p>
-                <p className="text-sm text-gray-600">Document Contributions</p>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <TrendingUp size={24} className="text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-green-600">
-                  {contributions.contributionsByType.audio}
-                </p>
-                <p className="text-sm text-gray-600">Audio Contributions</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {contributions.audioDuration > 0
-                    ? `${(contributions.audioDuration / 3600).toFixed(1)} hours`
-                    : '0 hours'}
-                </p>
-              </div>
-
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <Calendar size={24} className="text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-purple-600">
-                  {contributions.contributionsByType.video}
-                </p>
-                <p className="text-sm text-gray-600">Video Contributions</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {contributions.videoDuration > 0
-                    ? `${(contributions.videoDuration / 3600).toFixed(1)} hours`
-                    : '0 hours'}
-                </p>
-              </div>
-            </div>
-
-            {/* Total Contributions Summary */}
-            <div className="mt-6 text-center p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Total Contributions
-              </h3>
-              <p className="text-3xl font-bold text-indigo-600">
-                {contributions.totalContributions}
-              </p>
-            </div>
           </div>
-        )}
-        {/* New section for detailed contributions */}
-        <div className="detailed-contributions">
-          <h2 className="mt-6 text-2xl font-normal text-center p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
-            <span className="font-sans">MY CONTRIBUTIONS</span>
-          </h2>
 
-          {/* Media type selector - improved layout and style */}
-          <div className="flex justify-center gap-4 my-4">
-            {(['text', 'image', 'audio', 'video', 'document'] as const).map(
-              (type) => (
-                <ContributionTypeButton
-                  key={type}
-                  type={type}
-                  selectedMediaType={selectedMediaType}
-                  setSelectedMediaType={setSelectedMediaType}
-                />
-              ),
-            )}
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => {
+                setShowDashboard(true);
+                setContributions(null); // Clear contributions when switching to dashboard
+              }}
+              className={`px-6 py-2 rounded-l-lg font-medium transition-colors ${
+                showDashboard
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => {
+                setShowDashboard(false);
+                setContributions(null); // Clear contributions when switching to detailed view
+                // The useEffect in useUserProfile will then trigger a fetch for the current selectedMediaType
+              }}
+              className={`px-6 py-2 rounded-r-lg font-medium transition-colors ${
+                !showDashboard
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              View All Files
+            </button>
           </div>
-          {/* Modernized display of contributions for selected media type */}
-          <div className="max-w-2xl mx-auto">
-            <ContributionsList
+
+          {showDashboard ? (
+            <ContributionDashboard
+              dailyStats={dailyStats}
               contributions={contributions}
-              selectedMediaType={selectedMediaType}
-              onUpdate={refetch}
-              handleUpdate={handleUpdate}
-              token={token}
+              loading={loading.stats || loading.contributions}
             />
-          </div>
+          ) : (
+            <>
+              {/* Media type selector - improved layout and style */}
+              <div className="flex justify-center gap-4 my-4">
+                {(['text', 'document', 'image', 'audio', 'video'] as const).map(
+                  (type) => (
+                    <ContributionTypeButton
+                      key={type}
+                      type={type}
+                      selectedMediaType={selectedMediaType}
+                      setSelectedMediaType={(newType) => {
+                        setSelectedMediaType(newType);
+                        if (currentUser?.id) {
+                          fetchUserContributions(currentUser.id, newType);
+                        }
+                      }}
+                    />
+                  ),
+                )}
+              </div>
+              {/* Modernized display of contributions for selected media type */}
+              <div className="max-w-2xl mx-auto">
+                {selectedMediaType && ( // Only render ContributionsList if a media type is selected
+                  <ContributionsList
+                    contributions={contributions}
+                    selectedMediaType={selectedMediaType as any} // Cast to any for now, will fix ContributionsList prop type
+                    onUpdate={refetch}
+                    handleUpdate={handleUpdate}
+                    token={token}
+                  />
+                )}
+                {!selectedMediaType && !loading.contributions && (
+                  <div className="text-center text-gray-400 py-8 text-lg font-medium">
+                    Please select a media type to view contributions.
+                  </div>
+                )}
+                {loading.contributions && !selectedMediaType && (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">
+                      Loading contributions...
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
         {/* Account Information */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -1140,10 +1219,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </button>
         </div>
       </div>
+      {/* The modal is no longer rendered here */}
     </div>
   );
 };
 
+// ... (ContributionTypeButton remains the same) ...
 const capitalize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
@@ -1154,7 +1235,7 @@ function ContributionTypeButton({
   setSelectedMediaType,
 }: {
   type: 'text' | 'image' | 'video' | 'audio' | 'document';
-  selectedMediaType: 'text' | 'image' | 'video' | 'audio' | 'document';
+  selectedMediaType: 'text' | 'image' | 'video' | 'audio' | 'document' | null;
   setSelectedMediaType: (
     type: 'text' | 'image' | 'video' | 'audio' | 'document',
   ) => void;
@@ -1177,7 +1258,7 @@ function ContributionTypeButton({
 
 interface ContributionsListProps {
   contributions: UserContributions | null;
-  selectedMediaType: 'text' | 'audio' | 'video' | 'image' | 'document';
+  selectedMediaType: 'text' | 'audio' | 'video' | 'image' | 'document' | null; // Allow null
   onUpdate: () => void;
   handleUpdate: (item: ContributionItem) => Promise<void>;
   token: string;
@@ -1191,8 +1272,18 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   token,
 }) => {
   const [editingItem, setEditingItem] = useState<ContributionItem | null>(null);
+  // NEW: State to track which item's history is visible
+  const [historyVisibleItemId, setHistoryVisibleItemId] = useState<
+    string | null
+  >(null);
+
+  const toggleHistoryVisibility = (itemId: string) => {
+    setHistoryVisibleItemId((prevId) => (prevId === itemId ? null : itemId));
+  };
+
   let items: ContributionItem[] = [];
-  if (!contributions) return null;
+  if (!contributions || !selectedMediaType) return null; // Don't render if no contributions or no media type selected
+
   if (selectedMediaType === 'text') items = contributions.textContributions;
   if (selectedMediaType === 'audio') items = contributions.audioContributions;
   if (selectedMediaType === 'video') items = contributions.videoContributions;
@@ -1213,6 +1304,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   return (
     <ul className="divide-y divide-gray-200">
       {items.map((item, idx) => {
+        // ... (getValidationWarnings and getSnrLabel functions remain the same)
         const getValidationWarnings = (): string[] => {
           const warnings: string[] = [];
           if (
@@ -1272,7 +1364,6 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
           if (value >= 10) return `${value} db (Unreliable)`;
           return `${value} db (Probably unusable)`;
         };
-
         const validationWarnings = getValidationWarnings();
         const hasWarnings = validationWarnings.length > 0;
         return editingItem?.id === item.id ? (
@@ -1288,18 +1379,31 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
         ) : (
           <li
             key={item.id}
-            className={`flex flex-col  py-4 px-2 rounded-lg transition ${
+            className={`flex flex-col py-4 px-2 rounded-lg transition ${
               hasWarnings ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
             }`}
           >
+            {/* ... (The main display of the contribution item remains the same) ... */}
             <div className="flex gap-2">
               <span
                 className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
                   ${selectedMediaType === 'text' && 'bg-blue-100 text-blue-700'}
-                  ${selectedMediaType === 'audio' && 'bg-green-100 text-green-700'}
-                  ${selectedMediaType === 'video' && 'bg-purple-100 text-purple-700'}
-                  ${selectedMediaType === 'image' && 'bg-orange-100 text-orange-700'}
-                  ${selectedMediaType === 'document' && 'bg-orange-100 text-orange-700'}
+                  ${
+                    selectedMediaType === 'audio' &&
+                    'bg-green-100 text-green-700'
+                  }
+                  ${
+                    selectedMediaType === 'video' &&
+                    'bg-purple-100 text-purple-700'
+                  }
+                  ${
+                    selectedMediaType === 'image' &&
+                    'bg-orange-100 text-orange-700'
+                  }
+                  ${
+                    selectedMediaType === 'document' &&
+                    'bg-orange-100 text-orange-700'
+                  }
                 `}
               >
                 {capitalize(selectedMediaType)}
@@ -1351,7 +1455,9 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                       item.location &&
                       typeof item.location.latitude === 'number' &&
                       typeof item.location.longitude === 'number'
-                        ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                        ? `${item.location.latitude.toFixed(
+                            4,
+                          )}, ${item.location.longitude.toFixed(4)}`
                         : '-'
                     }
                   >
@@ -1359,7 +1465,9 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     {item.location &&
                     typeof item.location.latitude === 'number' &&
                     typeof item.location.longitude === 'number'
-                      ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                      ? `${item.location.latitude.toFixed(
+                          4,
+                        )}, ${item.location.longitude.toFixed(4)}`
                       : '-'}
                   </span>
                   {/* Size badge */}
@@ -1402,6 +1510,14 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                     <span className="font-semibold mr-1 italic">Rights:</span>{' '}
                     {releaseRightsMap[item.release_rights] || 'N/A'}
                   </span>
+                  {item.release_rights === 'others' && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
+                      <span className="font-semibold mr-1 italic">
+                        Creator:
+                      </span>{' '}
+                      {item.creator || 'N/A'}
+                    </span>
+                  )}
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
                     <span className="font-semibold mr-1 italic">Language:</span>{' '}
                     {selectedLanguageMap[
@@ -1439,7 +1555,13 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 >
                   <Pencil size={18} />
                 </button>
-
+                <button
+                  onClick={() => toggleHistoryVisibility(item.id)}
+                  className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-100 rounded-full transition-colors"
+                  title="View Edit History"
+                >
+                  <History size={18} />
+                </button>
                 {item.release_rights == 'downloaded' && (
                   <div className="relative group flex items-center">
                     <X className="text-red-500" size={18} />
@@ -1461,6 +1583,10 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
                 )}
               </div>
             </div>
+            {/* NEW: Conditionally render the inline history component */}
+            {historyVisibleItemId === item.id && (
+              <InlineEditHistory recordId={item.id} token={token} />
+            )}
           </li>
         );
       })}
@@ -1468,6 +1594,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   );
 };
 
+// ... (ProfileDetail, SecureViewButton, EditableContributionItem components remain the same) ...
 function ProfileDetail(item: {
   icon: React.ReactNode;
   title: string;
@@ -1594,6 +1721,7 @@ const EditableContributionItem: React.FC<{
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
   console.log(description);
   const [rightsKey, setRightsKey] = useState(item.release_rights || 'NA');
+  const [creator, setCreator] = useState(item.creator || '');
   const [language, setLanguage] = useState(item.language || 'NA');
   const {
     latitude,
@@ -1681,6 +1809,7 @@ const EditableContributionItem: React.FC<{
         longitude: parseFloat(longitude),
       },
       release_rights: rightsKey,
+      creator: creator,
       language: language,
     });
   };
@@ -1796,6 +1925,25 @@ const EditableContributionItem: React.FC<{
           ))}
         </select>
       </div>
+      {rightsKey === 'others' && (
+        <div>
+          <label
+            htmlFor="creator"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Creator
+          </label>
+          <input
+            type="text"
+            name="creator"
+            id="creator"
+            className="w-full border px-3 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            value={creator}
+            onChange={(e) => setCreator(e.target.value)}
+            placeholder="Enter the creator's name"
+          />
+        </div>
+      )}
       {rightsKey == 'NA' && (
         <p className="text-xs text-red-600 mt-1">
           Pleae declare release rights
@@ -1858,4 +2006,167 @@ const EditableContributionItem: React.FC<{
   );
 };
 
+// NEW: Component to show edit history inline
+interface InlineEditHistoryProps {
+  recordId: string;
+  token: string;
+}
+
+const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
+  recordId,
+  token,
+}) => {
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
+
+  const formatFieldName = (fieldName: string) => {
+    return fieldName
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/history/record/${recordId}/history`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch edit history');
+        }
+        const data = await response.json();
+        setHistory(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'An unknown error occurred.',
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [recordId, token]);
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <h4 className="text-md font-semibold text-gray-700 mb-2">Edit History</h4>
+      {loading && (
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="animate-spin text-blue-500" size={24} />
+        </div>
+      )}
+      {error && <p className="text-red-500 text-center py-4">{error}</p>}
+      {!loading && !error && history.length === 0 && (
+        <p className="text-gray-500 text-center py-4">
+          No edit history found for this record.
+        </p>
+      )}
+      {!loading && !error && history.length > 0 && (
+        <ul className="space-y-2">
+          {history.map((entry) => {
+            const isExpanded = expandedEntry === entry.uid;
+            return (
+              <li
+                key={entry.uid}
+                className="border rounded-lg overflow-hidden bg-white"
+              >
+                <button
+                  onClick={() =>
+                    setExpandedEntry(isExpanded ? null : entry.uid)
+                  }
+                  className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-800">
+                      Version {entry.version_number}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(entry.created_at).toLocaleString()} by{' '}
+                      <span className="font-medium">
+                        {entry.changed_by || 'N/A'}
+                      </span>
+                    </p>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </button>
+                {isExpanded && (
+                  <div className="p-4 bg-white">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
+                      <p>
+                        <strong className="text-gray-600">Change Type:</strong>{' '}
+                        <span className="font-mono bg-gray-100 px-1 rounded">
+                          {entry.change_type || 'N/A'}
+                        </span>
+                      </p>
+                      <p>
+                        <strong className="text-gray-600">
+                          Change Source:
+                        </strong>{' '}
+                        <span className="font-mono bg-gray-100 px-1 rounded">
+                          {entry.change_source || 'N/A'}
+                        </span>
+                      </p>
+                    </div>
+                    {entry.field_changes &&
+                      Object.keys(entry.field_changes).length > 0 && (
+                        <div>
+                          <strong className="text-base font-semibold text-gray-700">
+                            Field Changes:
+                          </strong>
+                          <ul className="mt-2 space-y-2">
+                            {Object.entries(entry.field_changes).map(
+                              ([field, change]: [string, any]) => (
+                                <li
+                                  key={field}
+                                  className="p-2 border rounded-md bg-gray-50"
+                                >
+                                  <strong className="font-semibold text-gray-800">
+                                    {formatFieldName(field)}
+                                  </strong>
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs font-medium text-red-500 mr-2">
+                                      OLD:
+                                    </span>
+                                    <span className="font-mono text-sm text-red-700 bg-red-50 p-1 rounded line-through">
+                                      {String(change.old_value ?? 'N/A')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs font-medium text-green-500 mr-2">
+                                      NEW:
+                                    </span>
+                                    <span className="font-mono text-sm text-green-700 bg-green-50 p-1 rounded">
+                                      {String(change.new_value ?? 'N/A')}
+                                    </span>
+                                  </div>
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+};
 export default UserProfile;

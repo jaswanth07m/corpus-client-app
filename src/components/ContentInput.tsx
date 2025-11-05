@@ -1,6 +1,6 @@
 // Pause Button Added In Audio/Video + Camera Switch Function + Progress
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -25,6 +25,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import LocationPicker from './LocationPicker';
+import { BACKEND_URL } from '@/lib/constants';
 
 interface Category {
   id: string;
@@ -35,6 +37,17 @@ interface Category {
   rank: number;
   created_at: string;
   updated_at: string;
+}
+
+// Re-added the VerifiedLocation interface for the verification flow
+interface VerifiedLocation {
+  formatted_address: string;
+  country: string;
+  state: string;
+  city: string;
+  postal_code: string;
+  latitude: number;
+  longitude: number;
 }
 
 interface ContentInputProps {
@@ -65,6 +78,8 @@ interface ContentInputProps {
   setDescriptionError: (error: boolean) => void;
   releaseRights: string;
   setreleaseRights: (releaseRights: string) => void;
+  creator: string;
+  setCreator: (creator: string) => void;
   selectedLanguage: string;
   setSelectedLangugae: (selectedLanguage: string) => void;
 
@@ -104,6 +119,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
   releaseRights,
   setreleaseRights,
+  creator,
+  setCreator,
   selectedLanguage,
   setSelectedLangugae,
 
@@ -136,11 +153,78 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
   // Title and Description validation
-  const [titleError, setTitleError] = useState<string | null>(null);
-  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [titleError, setTitleError] = useState(false);
+  const [descriptionError, setDescriptionError] = useState(false);
 
-  const countMeaningfulWords = (text: string) => {
-    return text.split(/\s+/).filter((word) => word.length > 1).length;
+  // Location Picker Modal State
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const hasVerifiedLocation = useRef<string>('');
+
+  // Location Verification State
+  const [verifiedLocation, setVerifiedLocation] =
+    useState<VerifiedLocation | null>(null);
+  const [isVerifyingLocation, setIsVerifyingLocation] = useState(false);
+
+  // Verification Logic
+  const verifyLocation = useCallback(
+    async (lat: number, lng: number) => {
+      if (!lat || !lng) return;
+      setIsVerifyingLocation(true);
+      setVerifiedLocation(null); // Clear previous verified location
+      if (setLocationError) setLocationError('');
+
+      try {
+        const apiUrl = BACKEND_URL + '/location/verify-location';
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ latitude: lat, longitude: lng }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({
+            message: 'Failed to verify location',
+          }));
+          throw new Error(errorData.message || 'Failed to verify location');
+        }
+        const data: VerifiedLocation = await response.json();
+        setVerifiedLocation(data);
+      } catch (error: unknown) {
+        console.error('Location verification error:', error);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to verify location.';
+        toast.error(errorMessage);
+        if (setLocationError)
+          setLocationError(
+            'Could not verify location. Please try a different spot.',
+          );
+      } finally {
+        setIsVerifyingLocation(false);
+      }
+    },
+    [setLocationError],
+  );
+
+  useEffect(() => {
+    if (location && !isVerifyingLocation) {
+      verifyLocation(location.lat, location.lng);
+    }
+  }, [location]);
+
+  const handleEditLocation = () => {
+    setVerifiedLocation(null);
+    if (setLocation) setLocation(null);
+    if (setLocationError) setLocationError('');
+    if (setShowManualLocation) setShowManualLocation(false);
+    setShowLocationPicker(true); // Open the map to pick a new one
+  };
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    if (setLocation) {
+      setLocation({ lat, lng });
+    }
+    setShowLocationPicker(false);
   };
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -582,7 +666,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       {/* Full-width Purple Header Bar */}
       <div className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white px-6 py-6 shadow-lg relative">
         {/* Back Button - Positioned at absolute left */}
@@ -780,18 +864,41 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   Location
                 </span>
               </div>
-              {location ? (
-                <div className="flex items-center gap-2 text-green-600">
-                  <Check className="w-4 h-4" />
-                  <span className="text-sm">
-                    Location: {location.lat.toFixed(4)},{' '}
-                    {location.lng.toFixed(4)}
-                  </span>
+
+              {isVerifyingLocation ? (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Verifying location...</span>
+                </div>
+              ) : verifiedLocation ? (
+                <div>
+                  <div className="flex items-center gap-2 text-green-600">
+                    <Check className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {verifiedLocation.formatted_address}
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleEditLocation}
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <Pencil className="w-3 h-3 mr-1" />
+                    Edit Location
+                  </Button>
                 </div>
               ) : locationError ? (
                 <div className="flex items-center gap-2 text-red-600">
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-sm">{locationError}</span>
+                </div>
+              ) : location ? (
+                <div className="flex items-center gap-2 text-orange-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">
+                    Location captured, awaiting verification...
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-orange-600">
@@ -800,94 +907,29 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 </div>
               )}
 
-              {!location && (
+              {!location && !verifiedLocation && !isVerifyingLocation && (
                 <div className="flex gap-2 mt-3">
                   <Button
                     onClick={requestLocation}
                     size="sm"
-                    className={
-                      !showManualLocation
-                        ? 'bg-purple-600 hover:bg-purple-700'
-                        : ''
-                    }
-                    variant={!showManualLocation ? 'default' : 'outline'}
+                    variant={'outline'}
                   >
                     <MapPin className="w-4 h-4 mr-1" />
-                    Get Location
+                    Use Current Location
                   </Button>
                   <Button
-                    onClick={() => setShowManualLocation(!showManualLocation)}
-                    variant={showManualLocation ? 'default' : 'outline'}
+                    onClick={() => setShowLocationPicker(true)}
                     size="sm"
-                    className={
-                      showManualLocation
-                        ? 'bg-purple-600 hover:bg-purple-700'
-                        : ''
-                    }
+                    className="bg-purple-600 hover:bg-purple-700"
                   >
                     <Pencil className="w-4 h-4 mr-1" />
-                    Manual
+                    Pick from Map
                   </Button>
                 </div>
               )}
             </div>
 
-            {/* Manual Location Input */}
-            {showManualLocation && (
-              <Card className="border-orange-200 bg-orange-50 mb-6">
-                <CardContent className="p-4">
-                  <h3 className="font-medium text-gray-800 mb-3">
-                    Enter Location Manually
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Latitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={manualLat}
-                        onChange={(e) => setManualLat(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                        placeholder="e.g., 17.3850"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Longitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={manualLng}
-                        onChange={(e) => setManualLng(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                        placeholder="e.g., 78.4867"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleManualLocationSubmit}
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Check className="w-4 h-4 mr-1" />
-                      Set Location
-                    </Button>
-                    <Button
-                      onClick={() => setShowManualLocation(false)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* All other sections remain unchanged... */}
 
             {/* Content Input based on type */}
             {uploadMode === 'text' && (
@@ -1401,16 +1443,26 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   <input
                     type="radio"
                     name="releaseRight_Options"
-                    checked={releaseRights === 'family_or_friend'}
+                    checked={releaseRights === 'others'}
                     onChange={() => {
-                      setreleaseRights('family_or_friend');
+                      setreleaseRights('others');
                     }}
                   />
-                  <span className="ml-2">
-                    This work is created by my family/friends and I took
-                    permission to upload their work.
-                  </span>
+                  <span className="ml-2">Others</span>
                 </label>
+
+                {releaseRights === 'others' && (
+                  <div className="mb-6">
+                    <label className="block font-medium mb-2">Creator *</label>
+                    <input
+                      type="text"
+                      value={creator}
+                      onChange={(e) => setCreator(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Enter a creator for your content"
+                    />
+                  </div>
+                )}
                 <label>
                   <input
                     type="radio"
@@ -1439,10 +1491,10 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   uploading ||
                   uploadingFiles ||
                   !title ||
-                  !!titleError ||
+                  titleError ||
                   !description ||
-                  !!descriptionError ||
-                  !location ||
+                  descriptionError ||
+                  !verifiedLocation || // <-- Key change: Disable button until location is VERIFIED
                   !releaseRights ||
                   releaseRights === 'downloaded' ||
                   !selectedLanguage ||
@@ -1461,6 +1513,14 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Location Picker Modal */}
+      {showLocationPicker && (
+        <LocationPicker
+          onLocationSelect={handleLocationSelect}
+          onClose={() => setShowLocationPicker(false)}
+        />
+      )}
     </div>
   );
 };
