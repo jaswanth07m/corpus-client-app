@@ -2,6 +2,7 @@ import { SuggestionBar } from '@/components/SuggestionBar';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useEffect, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { ArrowLeft } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -243,221 +244,246 @@ function Proofreading() {
   // --- END: FULLY CORRECTED SUBMISSION LOGIC ---
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-16">
-      {/* --- Left Sidebar --- */}
-      <div className="w-64 flex-shrink-0 flex flex-col p-4 border-r border-gray-300 dark:border-gray-700">
+    <div className="flex flex-col">
+      {/* --- Header --- */}
+      <div className="flex flex-row justify-between pt-2 px-2 bg-gray-100">
+        <div>
+          <button
+            onClick={() => {
+              window.location.href = '/';
+            }}
+          >
+            <ArrowLeft size={20} />
+          </button>
+        </div>
+
         <button
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+          className=" bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
           onClick={fetchNextRecord}
           disabled={isLoading}
         >
           {isLoading ? 'Loading...' : 'Get Next Record'}
         </button>
-
-        {error && (
-          <p className="text-red-500 text-sm mt-2 p-2 bg-red-100 dark:bg-red-900 rounded">
-            {error}
-          </p>
-        )}
-
-        {bookData && (
-          <>
-            <div className="mt-4 p-3 border border-gray-400 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800">
-              <h3 className="text-md font-bold mb-2 text-center border-b pb-2 dark:border-gray-600">
-                Record Metadata
-              </h3>
-              <div className="space-y-1 text-sm">
-                <p>
-                  <strong>Title:</strong> {bookData.metadata.title || 'N/A'}
-                </p>
-                <p>
-                  <strong>Language:</strong>{' '}
-                  {bookData.metadata.language || 'N/A'}
-                </p>
-                <p>
-                  <strong>Author:</strong> {bookData.metadata.author || 'N/A'}
-                </p>
-                <p>
-                  <strong>Source:</strong> {bookData.metadata.source || 'N/A'}
-                </p>
-              </div>
-            </div>
-
-            <h3 className="text-md font-bold mt-4 mb-2 text-center">Pages</h3>
-            <div className="flex-grow overflow-y-auto pr-2">
-              {Array.from(new Array(numPages || 0), (el, index) => {
-                const currentPage = index + 1;
-                const isSubmitted = submittedPages[currentPage];
-                const isActive = pageNumber === currentPage;
-
-                const buttonClasses = [
-                  'w-full',
-                  'text-left',
-                  'p-2',
-                  'my-1',
-                  'rounded-md',
-                  'transition-colors',
-                  'duration-150',
-                  'font-semibold',
-                ];
-
-                if (isSubmitted) {
-                  buttonClasses.push(
-                    'bg-green-500',
-                    'dark:bg-green-600',
-                    'text-white',
-                  );
-                } else {
-                  buttonClasses.push(
-                    'bg-white',
-                    'dark:bg-gray-700',
-                    'text-gray-900',
-                    'dark:text-gray-100',
-                    'hover:bg-gray-200',
-                    'dark:hover:bg-gray-600',
-                  );
-                }
-
-                if (isActive) {
-                  buttonClasses.push(
-                    'ring-2',
-                    'ring-offset-2',
-                    'ring-blue-500',
-                    'dark:ring-offset-gray-900',
-                  );
-                }
-
-                return (
-                  <button
-                    key={`page_button_${currentPage}`}
-                    onClick={() => setPageNumber(currentPage)}
-                    className={buttonClasses.join(' ')}
-                  >
-                    Page {currentPage}
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
       </div>
 
-      {/* --- Main Content --- */}
-      <div className="flex-1 flex h-full overflow-hidden">
-        {/* PDF Viewer */}
-        <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-          {bookData ? (
+      <div className="flex flex-row h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-5">
+        {/* --- Left Sidebar --- */}
+        <div className="w-20 flex-shrink-0 flex flex-col p-0 border-r border-gray-300 dark:border-gray-700">
+          {/* <button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+              onClick={fetchNextRecord}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Loading...' : 'Get Next Record'}
+            </button> */}
+
+          {error && (
+            <p className="text-red-500 text-sm mt-2 p-2 bg-red-100 dark:bg-red-900 rounded">
+              {error}
+            </p>
+          )}
+
+          {bookData && (
             <>
-              <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg">
-                <button
-                  className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
-                  onClick={() => setZoom((prev) => Math.max(0.2, prev - 0.2))}
-                >
-                  -
-                </button>
-                <span className="font-semibold">{Math.round(zoom * 100)}%</span>
-                <button
-                  className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
-                  onClick={() => setZoom((prev) => prev + 0.2)}
-                >
-                  +
-                </button>
-              </div>
-              <div className="flex-grow flex justify-center">
-                <Document
-                  file={bookData.pdfUrl}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  loading="Loading PDF..."
-                >
-                  <Page pageNumber={pageNumber} scale={zoom} />
-                </Document>
-              </div>
-              <div className="flex-shrink-0 flex justify-center items-center mt-4">
-                <button
-                  className="mx-2.5 px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded disabled:opacity-50"
-                  onClick={() => setPageNumber(pageNumber - 1)}
-                  disabled={pageNumber <= 1}
-                >
-                  Previous
-                </button>
-                <span className="font-bold">
-                  Page {pageNumber} of {numPages}
-                </span>
-                <button
-                  className="mx-2.5 px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded disabled:opacity-50"
-                  onClick={() => setPageNumber(pageNumber + 1)}
-                  disabled={!numPages || pageNumber >= numPages}
-                >
-                  Next
-                </button>
-                <button
-                  className="mx-2.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
-                  onClick={handleSubmitPage}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Page'}
-                </button>
+              {/* <div className="mt-4 p-3 border border-gray-400 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800">
+                <h3 className="text-md font-bold mb-2 text-center border-b pb-2 dark:border-gray-600">
+                  Record Metadata
+                </h3>
+                <div className="space-y-1 text-sm">
+                  <p>
+                    <strong>Title:</strong> {bookData.metadata.title || 'N/A'}
+                  </p>
+                  <p>
+                    <strong>Language:</strong>{' '}
+                    {bookData.metadata.language || 'N/A'}
+                  </p>
+                  <p>
+                    <strong>Author:</strong> {bookData.metadata.author || 'N/A'}
+                  </p>
+                  <p>
+                    <strong>Source:</strong> {bookData.metadata.source || 'N/A'}
+                  </p>
+                </div>
+              </div> */}
+
+              <h3 className="text-md font-bold mt-4 mb-2 text-center">Pages</h3>
+              <div className="w-full flex-grow overflow-y-auto pr-2 flex flex-col items-center">
+                {Array.from(new Array(numPages || 0), (el, index) => {
+                  const currentPage = index + 1;
+                  const isSubmitted = submittedPages[currentPage];
+                  const isActive = pageNumber === currentPage;
+
+                  const buttonClasses = [
+                    'w-1/2',
+                    'text-center',
+                    'p-1',
+                    'my-1',
+                    'rounded-md',
+                    'transition-colors',
+                    'duration-150',
+                    'font-semibold',
+                  ];
+
+                  if (isSubmitted) {
+                    buttonClasses.push(
+                      'bg-green-500',
+                      'dark:bg-green-600',
+                      'text-white',
+                    );
+                  } else {
+                    buttonClasses.push(
+                      'bg-white',
+                      'dark:bg-gray-700',
+                      'text-gray-900',
+                      'dark:text-gray-100',
+                      'hover:bg-gray-200',
+                      'dark:hover:bg-gray-600',
+                    );
+                  }
+
+                  if (isActive) {
+                    buttonClasses.push(
+                      'ring-2',
+                      'ring-offset-2',
+                      'ring-blue-500',
+                      'dark:ring-offset-gray-900',
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={`page_button_${currentPage}`}
+                      onClick={() => setPageNumber(currentPage)}
+                      className={buttonClasses.join(' ')}
+                    >
+                      {currentPage}
+                    </button>
+                  );
+                })}
               </div>
             </>
-          ) : (
-            <div className="flex justify-center items-center h-full">
-              <p className="text-xl">
-                {isLoading
-                  ? 'Fetching record...'
-                  : 'Please get a record to begin.'}
-              </p>
-            </div>
           )}
         </div>
 
-        {/* OCR Text Editor */}
-        <div className="flex-1 flex flex-col p-5 border-l border-gray-300 dark:border-gray-700 position: relative">
-          <div className="flex flex-row justify-between">
-            <h2 className="text-xl font-bold mb-3 flex-shrink-0">
-              Proofread OCR Text
-            </h2>
-
-            {hintsVisible && (
-              <p className="text-sm">*Start typing to get hints</p>
-            )}
-
-            <div>
-              <div className="flex gap-1">
-                <input
-                  className="cursor-pointer"
-                  id="telugu-toggle"
-                  type="checkbox"
-                  checked={isTeluguTypingEnabled}
-                  onChange={() =>
-                    setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
-                  }
-                />
-                <label className="cursor-pointer" htmlFor="telugu-toggle">
-                  Telugu
-                </label>
-              </div>
-
-              {isTeluguTypingEnabled && (
-                <div className="flex gap-1">
-                  <input
-                    id="telugu-hints-toggle"
-                    type="checkbox"
-                    checked={hintsVisible}
-                    onChange={() => setHintsVisible(!hintsVisible)}
-                  />
-                  <label htmlFor="telugu-hints-toggle">Show Hints</label>
+        {/* --- Main Content --- */}
+        <div className="flex-1 flex h-full overflow-hidden">
+          {/* PDF Viewer */}
+          <div className="flex-1 flex flex-col p-5 overflow-y-auto">
+            {bookData ? (
+              <>
+                <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg">
+                  <button
+                    className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
+                    onClick={() => setZoom((prev) => Math.max(0.2, prev - 0.2))}
+                  >
+                    -
+                  </button>
+                  <span className="font-semibold">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                  <button
+                    className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
+                    onClick={() => setZoom((prev) => prev + 0.2)}
+                  >
+                    +
+                  </button>
                 </div>
-              )}
-            </div>
+                <div className="flex-grow flex justify-center">
+                  <Document
+                    file={bookData.pdfUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    loading="Loading PDF..."
+                  >
+                    <Page pageNumber={pageNumber} scale={zoom} />
+                  </Document>
+                </div>
+                <div className="flex-shrink-0 flex justify-center items-center mt-4">
+                  <button
+                    className="mx-2.5 px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded disabled:opacity-50"
+                    onClick={() => setPageNumber(pageNumber - 1)}
+                    disabled={pageNumber <= 1}
+                  >
+                    Previous
+                  </button>
+                  <span className="font-bold">
+                    Page {pageNumber} of {numPages}
+                  </span>
+                  <button
+                    className="mx-2.5 px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded disabled:opacity-50"
+                    onClick={() => setPageNumber(pageNumber + 1)}
+                    disabled={!numPages || pageNumber >= numPages}
+                  >
+                    Next
+                  </button>
+                  <button
+                    className="mx-2.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
+                    onClick={handleSubmitPage}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Page'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-center items-center h-full">
+                <p className="text-xl">
+                  {isLoading
+                    ? 'Fetching record...'
+                    : 'Please get a record to begin.'}
+                </p>
+              </div>
+            )}
           </div>
 
-          <textarea
-            className="flex-grow w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800"
-            placeholder="OCR text will appear here."
-            disabled={!bookData || isLoading || isSubmitting}
-            {...textAreaProps}
-          ></textarea>
-          {hintsVisible && <SuggestionBar suggestions={suggestions} />}
+          {/* OCR Text Editor */}
+          <div className="flex-1 flex flex-col p-5 border-l border-gray-300 dark:border-gray-700 position: relative">
+            <div className="flex flex-row justify-between">
+              <h2 className="text-xl font-bold mb-3 flex-shrink-0">
+                Proofread OCR Text
+              </h2>
+
+              {hintsVisible && (
+                <p className="text-sm">*Start typing to get hints</p>
+              )}
+
+              <div>
+                <div className="flex gap-1">
+                  <input
+                    className="cursor-pointer"
+                    id="telugu-toggle"
+                    type="checkbox"
+                    checked={isTeluguTypingEnabled}
+                    onChange={() =>
+                      setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
+                    }
+                  />
+                  <label className="cursor-pointer" htmlFor="telugu-toggle">
+                    Telugu
+                  </label>
+                </div>
+
+                {isTeluguTypingEnabled && (
+                  <div className="flex gap-1">
+                    <input
+                      id="telugu-hints-toggle"
+                      type="checkbox"
+                      checked={hintsVisible}
+                      onChange={() => setHintsVisible(!hintsVisible)}
+                    />
+                    <label htmlFor="telugu-hints-toggle">Show Hints</label>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <textarea
+              className="flex-grow w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800"
+              placeholder="OCR text will appear here."
+              disabled={!bookData || isLoading || isSubmitting}
+              {...textAreaProps}
+            ></textarea>
+            {hintsVisible && <SuggestionBar suggestions={suggestions} />}
+          </div>
         </div>
       </div>
     </div>
