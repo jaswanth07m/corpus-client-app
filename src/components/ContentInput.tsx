@@ -94,6 +94,10 @@ interface ContentInputProps {
   isChunkedUploading?: boolean;
 }
 
+const countMeaningfulWords = (s: string) => {
+  return s.split(' ').filter((w) => w.length > 2).length;
+};
+
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
@@ -153,8 +157,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
   // Title and Description validation
-  const [titleError, setTitleError] = useState(false);
-  const [descriptionError, setDescriptionError] = useState(false);
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
 
   // Location Picker Modal State
   const [showLocationPicker, setShowLocationPicker] = useState(false);
