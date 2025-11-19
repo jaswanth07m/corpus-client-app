@@ -49,10 +49,20 @@ function Proofreading() {
     // This effect runs only when the hook's value changes.
   }, [value, isTeluguTypingEnabled]);
 
+  // Update the textAreaProps to ensure changes are properly saved
   const textAreaProps = isTeluguTypingEnabled
     ? {
         ...inputProps,
         value: value,
+        onChange: (e) => {
+          // Update the hook's value
+          const newValue = e.target.value;
+          setValue(newValue);
+          // Also update the ocrTexts state to persist the changes
+          const newOcrTexts = [...ocrTexts];
+          newOcrTexts[pageNumber - 1] = newValue;
+          setOcrTexts(newOcrTexts);
+        },
       }
     : {
         value: ocrTexts[pageNumber - 1] || '',
@@ -335,8 +345,8 @@ function Proofreading() {
 
                   if (isSubmitted) {
                     buttonClasses.push(
-                      'bg-green-500',
-                      'dark:bg-green-600',
+                      'bg-yellow-500',
+                      'dark:bg-yellow-600',
                       'text-white',
                     );
                   } else {
@@ -375,123 +385,145 @@ function Proofreading() {
         </div>
 
         {/* --- Main Content --- */}
-        <div className="flex-1 flex h-full overflow-hidden">
-          {/* PDF Viewer */}
-          <div className="flex-1 flex flex-col p-5 overflow-y-auto">
-            {bookData ? (
-              <>
-                <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg">
-                  <button
-                    className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
-                    onClick={() => setZoom((prev) => Math.max(0.2, prev - 0.2))}
-                  >
-                    -
-                  </button>
-                  <span className="font-semibold">
-                    {Math.round(zoom * 100)}%
-                  </span>
-                  <button
-                    className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
-                    onClick={() => setZoom((prev) => prev + 0.2)}
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="flex-grow flex justify-center">
-                  <Document
-                    file={bookData.pdfUrl}
-                    onLoadSuccess={onDocumentLoadSuccess}
-                    loading="Loading PDF..."
-                  >
-                    <Page pageNumber={pageNumber} scale={zoom} />
-                  </Document>
-                </div>
-                <div className="flex-shrink-0 flex justify-center items-center mt-4">
-                  <button
-                    className="mx-2.5 px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded disabled:opacity-50"
-                    onClick={() => setPageNumber(pageNumber - 1)}
-                    disabled={pageNumber <= 1}
-                  >
-                    Previous
-                  </button>
-                  <span className="font-bold">
-                    Page {pageNumber} of {numPages}
-                  </span>
-                  <button
-                    className="mx-2.5 px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded disabled:opacity-50"
-                    onClick={() => setPageNumber(pageNumber + 1)}
-                    disabled={!numPages || pageNumber >= numPages}
-                  >
-                    Next
-                  </button>
-                  <button
-                    className="mx-2.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
-                    onClick={handleSubmitPage}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit Page'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="flex justify-center items-center h-full">
-                <p className="text-xl">
-                  {isLoading
-                    ? 'Fetching record...'
-                    : 'Please get a record to begin.'}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* OCR Text Editor */}
-          <div className="flex-1 flex flex-col p-5 border-l border-gray-300 dark:border-gray-700 position: relative">
-            <div className="flex flex-row justify-between">
-              <h2 className="text-xl font-bold mb-3 flex-shrink-0">
-                Proofread OCR Text
-              </h2>
-
-              {hintsVisible && (
-                <p className="text-sm">*Start typing to get hints</p>
-              )}
-
-              <div>
-                <div className="flex gap-1">
-                  <input
-                    className="cursor-pointer"
-                    id="telugu-toggle"
-                    type="checkbox"
-                    checked={isTeluguTypingEnabled}
-                    onChange={() =>
-                      setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
-                    }
-                  />
-                  <label className="cursor-pointer" htmlFor="telugu-toggle">
-                    Telugu
-                  </label>
-                </div>
-
-                {isTeluguTypingEnabled && (
-                  <div className="flex gap-1">
-                    <input
-                      id="telugu-hints-toggle"
-                      type="checkbox"
-                      checked={hintsVisible}
-                      onChange={() => setHintsVisible(!hintsVisible)}
-                    />
-                    <label htmlFor="telugu-hints-toggle">Show Hints</label>
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="flex flex-1 overflow-hidden">
+            {/* PDF Viewer */}
+            <div className="w-1/2 flex flex-col p-5 overflow-y-auto border-r border-gray-300 dark:border-gray-700">
+              {bookData ? (
+                <>
+                  <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg">
+                    <button
+                      className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
+                      onClick={() =>
+                        setZoom((prev) => Math.max(0.2, prev - 0.2))
+                      }
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold">
+                      {Math.round(zoom * 100)}%
+                    </span>
+                    <button
+                      className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
+                      onClick={() => setZoom((prev) => prev + 0.2)}
+                    >
+                      +
+                    </button>
                   </div>
-                )}
-              </div>
+                  <div className="flex-grow flex justify-center">
+                    <Document
+                      file={bookData.pdfUrl}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                      loading="Loading PDF..."
+                    >
+                      <Page pageNumber={pageNumber} scale={zoom} />
+                    </Document>
+                  </div>
+                  <div className="flex-shrink-0 flex justify-center items-center mt-4">
+                    <span className="font-bold">
+                      Page {pageNumber} of {numPages}
+                    </span>
+                    <button
+                      className="mx-2.5 px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded disabled:opacity-50 ml-4"
+                      onClick={() => setPageNumber(pageNumber + 1)}
+                      disabled={!numPages || pageNumber >= numPages}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-center items-center h-full">
+                  <p className="text-xl">
+                    {isLoading
+                      ? 'Fetching record...'
+                      : 'Please get a record to begin.'}
+                  </p>
+                </div>
+              )}
             </div>
 
-            <textarea
-              className="flex-grow w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800"
-              placeholder="OCR text will appear here."
-              disabled={!bookData || isLoading || isSubmitting}
-              {...textAreaProps}
-            ></textarea>
-            {hintsVisible && <SuggestionBar suggestions={suggestions} />}
+            {/* OCR Text Editor */}
+            <div className="w-1/2 flex flex-col p-5 position: relative">
+              <div className="flex flex-row justify-between">
+                <h2 className="text-xl font-bold mb-3 flex-shrink-0">
+                  Proofread OCR Text
+                </h2>
+
+                {hintsVisible && (
+                  <p className="text-sm">*Start typing to get hints</p>
+                )}
+
+                <div>
+                  <div className="flex gap-1">
+                    <input
+                      className="cursor-pointer"
+                      id="telugu-toggle"
+                      type="checkbox"
+                      checked={isTeluguTypingEnabled}
+                      onChange={() =>
+                        setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
+                      }
+                    />
+                    <label className="cursor-pointer" htmlFor="telugu-toggle">
+                      Telugu
+                    </label>
+                  </div>
+
+                  {isTeluguTypingEnabled && (
+                    <div className="flex gap-1">
+                      <input
+                        id="telugu-hints-toggle"
+                        type="checkbox"
+                        checked={hintsVisible}
+                        onChange={() => setHintsVisible(!hintsVisible)}
+                      />
+                      <label htmlFor="telugu-hints-toggle">Show Hints</label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <textarea
+                className="flex-grow w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800"
+                placeholder="OCR text will appear here."
+                disabled={!bookData || isLoading || isSubmitting}
+                {...textAreaProps}
+              ></textarea>
+              {hintsVisible && <SuggestionBar suggestions={suggestions} />}
+            </div>
+          </div>
+
+          {/* Submit Button Section */}
+          <div className="border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex justify-center gap-4">
+            <button
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
+              onClick={() => {
+                // Mark current page as submitted locally and move to next page
+                setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
+                if (numPages && pageNumber < numPages) {
+                  setPageNumber(pageNumber + 1);
+                }
+              }}
+              disabled={isSubmitting}
+            >
+              Submit Page
+            </button>
+            <button
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
+              onClick={handleSubmitPage}
+              disabled={
+                isSubmitting ||
+                !numPages ||
+                Object.keys(submittedPages).length < numPages
+              }
+            >
+              {isSubmitting
+                ? 'Submitting...'
+                : Object.keys(submittedPages).length === numPages
+                  ? 'Submit Complete Record'
+                  : 'Submit all pages to enable'}
+            </button>
           </div>
         </div>
       </div>
