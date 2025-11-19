@@ -250,7 +250,7 @@ function Proofreading() {
         <div>
           <button
             onClick={() => {
-              window.location.href = '/';
+              window.location.href = '/annotations';
             }}
           >
             <ArrowLeft size={20} />
