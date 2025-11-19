@@ -42,10 +42,10 @@ const AnnotationsDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header with back button */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 sm:p-6">
+      <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <Link to="/">
                 <Button
                   variant="ghost"

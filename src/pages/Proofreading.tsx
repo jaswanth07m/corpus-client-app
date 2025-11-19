@@ -246,27 +246,36 @@ function Proofreading() {
   return (
     <div className="flex flex-col">
       {/* --- Header --- */}
-      <div className="flex flex-row justify-between pt-2 px-2 bg-gray-100">
-        <div>
+      <div className="gradient-purple text-white p-4 rounded-b-3xl shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                window.location.href = '/annotations';
+              }}
+              className="text-white hover:bg-white/20 w-10 h-10 rounded-full p-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold">Proofreading Tool</h1>
+              <p className="text-purple-100 text-sm">
+                Review and correct OCR text from documents
+              </p>
+            </div>
+          </div>
+
           <button
-            onClick={() => {
-              window.location.href = '/annotations';
-            }}
+            className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+            onClick={fetchNextRecord}
+            disabled={isLoading}
           >
-            <ArrowLeft size={20} />
+            {isLoading ? 'Loading...' : 'Get Next Record'}
           </button>
         </div>
-
-        <button
-          className=" bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
-          onClick={fetchNextRecord}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Loading...' : 'Get Next Record'}
-        </button>
       </div>
 
-      <div className="flex flex-row h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-5">
+      <div className="flex flex-row h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {/* --- Left Sidebar --- */}
         <div className="w-20 flex-shrink-0 flex flex-col p-0 border-r border-gray-300 dark:border-gray-700">
           {/* <button
