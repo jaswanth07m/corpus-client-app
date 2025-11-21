@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileCheck, Type, Eye, CheckCircle, ArrowLeft } from 'lucide-react';
+import { FileCheck, Mic, AudioLines, FileType, ArrowLeft } from 'lucide-react';
 
 const AnnotationsDashboard = () => {
   const annotationTools = [
@@ -17,30 +17,30 @@ const AnnotationsDashboard = () => {
       id: 'transcription',
       title: 'Transcription',
       description: 'Convert audio and video content to text',
-      icon: <Type className="h-8 w-8 text-green-600" />,
+      icon: <Mic className="h-8 w-8 text-yellow-600" />,
       path: '/annotations/transcription',
       comingSoon: true,
     },
     {
-      id: 'validation',
-      title: 'Validation',
-      description: 'Validate and verify content accuracy',
-      icon: <Eye className="h-8 w-8 text-purple-600" />,
-      path: '/annotations/validation',
+      id: 'extraction',
+      title: 'Text Extraction',
+      description: 'Extract text from images and documents',
+      icon: <FileType className="h-8 w-8 text-purple-600" />,
+      path: '/annotations/extraction',
       comingSoon: true,
     },
     {
-      id: 'review',
-      title: 'Review',
-      description: 'Review and approve content submissions',
-      icon: <CheckCircle className="h-8 w-8 text-orange-600" />,
-      path: '/annotations/review',
+      id: 'audio-proofreading',
+      title: 'Audio Proofreading',
+      description: 'Listen and correct transcribed audio content',
+      icon: <AudioLines className="h-8 w-8 text-green-600" />,
+      path: '/annotations/audio-proofreading',
       comingSoon: true,
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header with back button */}
       <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
         <div className="max-w-6xl mx-auto">
@@ -68,7 +68,7 @@ const AnnotationsDashboard = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="flex-grow max-w-6xl mx-auto p-4 sm:p-6 w-full">
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
             Annotation Tools
@@ -102,29 +102,40 @@ const AnnotationsDashboard = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-4">{tool.description}</p>
-                <Link to={tool.path} className="w-full">
+                {tool.comingSoon ? (
                   <Button
                     className="w-full"
                     variant="outline"
                     disabled={tool.comingSoon}
+                    onClick={(e) => e.preventDefault()}
                   >
-                    {tool.comingSoon ? 'Coming Soon' : 'Access Tool'}
+                    Coming Soon
                   </Button>
-                </Link>
+                ) : (
+                  <Link to={tool.path} className="w-full">
+                    <Button className="w-full" variant="outline">
+                      Access Tool
+                    </Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
           ))}
         </div>
+      </div>
 
-        <div className="mt-12 text-center">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Need Additional Tools?
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-            We're continuously adding new annotation tools to help with various
-            tasks. If you need a specific tool that's not listed here, please
-            reach out to our support team.
-          </p>
+      {/* Footer Section */}
+      <div className="bg-gray-50 border-t border-gray-200 py-8 mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Need Additional Tools?
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+              We're continuously adding new annotation tools to help with
+              various tasks.
+            </p>
+          </div>
         </div>
       </div>
     </div>
