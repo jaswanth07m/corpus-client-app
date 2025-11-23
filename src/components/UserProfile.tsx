@@ -648,13 +648,10 @@ const countMeaningfulWords = (text: string) => {
   return text.split(/\s+/).filter((word) => word.length > 1).length;
 };
 
-const UserProfile: React.FC<UserProfileProps> = ({
-  user,
-  token,
-  onLogout,
-  onBack,
-}) => {
+const UserProfile: React.FC = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+
   // State for modal is removed
   // const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   // const [selectedRecordForHistory, setSelectedRecordForHistory] = useState<ContributionItem | null>(null);
@@ -934,7 +931,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
-                onClick={onBack}
+                onClick={() => {
+                  window.location.href = '/';
+                }}
                 className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Back to Categories"
               >

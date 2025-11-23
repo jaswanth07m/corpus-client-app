@@ -62,17 +62,17 @@ const Index = () => {
     return <LoginForm onLoginSuccess={handleLoginSuccess} />;
   }
 
-  if (currentView === 'profile') {
-    return (
-      <UserProfile
-        key={user?.id || Date.now()}
-        user={user}
-        token={token!}
-        onLogout={handleLogout}
-        onBack={() => setCurrentView('categories')}
-      />
-    );
-  }
+  // if (currentView === 'profile') {
+  //   return (
+  //     <UserProfile
+  //       key={user?.id || Date.now()}
+  //       user={user}
+  //       token={token!}
+  //       onLogout={handleLogout}
+  //       onBack={() => setCurrentView('categories')}
+  //     />
+  //   );
+  // }
 
   if (currentView === 'content') {
     return (
@@ -95,7 +95,7 @@ const Index = () => {
         token={token!}
         onBack={handleLogout} // Changed: Now goes directly to login
         onLogout={handleLogout}
-        onProfile={() => setCurrentView('profile')}
+        //onProfile={() => setCurrentView('profile')}
         onContentInput={() => setCurrentView('content')}
         onSessionExpired={handleSessionExpired}
       />
