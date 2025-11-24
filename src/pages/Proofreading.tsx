@@ -107,7 +107,13 @@ function Proofreading() {
         throw new Error(errorData.message || 'Failed to find the next record.');
       }
 
-      const { record_id } = await nextRecordResponse.json();
+      const responseArray = await nextRecordResponse.json();
+      if (!Array.isArray(responseArray) || responseArray.length === 0) {
+        throw new Error(
+          'Invalid response format from /next-for-review - expected an array with at least one record',
+        );
+      }
+      const { record_id } = responseArray[0]; // Get the first record from the array
       console.log('Fetched Record ID:', record_id);
       setRecordId(record_id);
 
