@@ -877,7 +877,7 @@ const Categories: React.FC<CategoriesProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <Link to="/proofreading">
+            <Link to="/annotations">
               <Button
                 variant="ghost"
                 size="icon"
