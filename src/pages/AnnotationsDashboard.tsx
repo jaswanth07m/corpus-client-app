@@ -2,7 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileCheck, Mic, AudioLines, FileType, ArrowLeft } from 'lucide-react';
+import {
+  FileCheck,
+  Mic,
+  AudioLines,
+  FileType,
+  ArrowLeft,
+  MessageSquare,
+} from 'lucide-react';
 
 const AnnotationsDashboard = () => {
   const annotationTools = [
@@ -36,6 +43,14 @@ const AnnotationsDashboard = () => {
       icon: <AudioLines className="h-8 w-8 text-green-600" />,
       path: '/annotations/audio-proofreading',
       comingSoon: true,
+    },
+    {
+      id: 'peer-review',
+      title: 'Peer Review',
+      description: "Review and rate your peer's uploads",
+      icon: <MessageSquare className="h-8 w-8 text-green-600" />,
+      path: '/peer-review',
+      comingSoon: false,
     },
   ];
 
