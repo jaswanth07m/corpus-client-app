@@ -123,6 +123,15 @@ interface UseUserProfileReturn {
     currentUserId: string,
     mediaType: 'text' | 'audio' | 'video' | 'image' | 'document' | undefined,
   ) => Promise<void>;
+  // New additions for followers/following
+  followers: any[];
+  following: any[];
+  followersCount: number;
+  followingCount: number;
+  fetchFollowers: (currentUserId: string) => Promise<void>;
+  fetchFollowing: (currentUserId: string) => Promise<void>;
+  loadingFollowers: boolean;
+  loadingFollowing: boolean;
 }
 
 const useUserProfile = (
@@ -153,6 +162,13 @@ const useUserProfile = (
     }
   }, [shouldReset]);
   const [exportData, setExportData] = useState<any>(null);
+  // New states for followers and following
+  const [followers, setFollowers] = useState<any[]>([]);
+  const [following, setFollowing] = useState<any[]>([]);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
+  const [loadingFollowers, setLoadingFollowers] = useState<boolean>(true);
+  const [loadingFollowing, setLoadingFollowing] = useState<boolean>(true);
 
   const getAuthToken = useCallback(() => {
     const possibleKeys = [
@@ -509,6 +525,74 @@ const useUserProfile = (
     }
   }, [getCurrentUserId, getAuthToken]);
 
+  const fetchFollowers = useCallback(
+    async (currentUserId: string) => {
+      setLoadingFollowers(true);
+      try {
+        const token = getAuthToken();
+        const response = await fetch(
+          `${BACKEND_URL}/users/${currentUserId}/followers`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch followers: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        setFollowers(data.followers || data || []);
+        setFollowersCount(data.followers_count || data.length || 0);
+      } catch (err) {
+        console.error('Error fetching followers:', err);
+        setFollowers([]);
+        setFollowersCount(0);
+      } finally {
+        setLoadingFollowers(false);
+      }
+    },
+    [getAuthToken, BACKEND_URL],
+  );
+
+  const fetchFollowing = useCallback(
+    async (currentUserId: string) => {
+      setLoadingFollowing(true);
+      try {
+        const token = getAuthToken();
+        const response = await fetch(
+          `${BACKEND_URL}/users/${currentUserId}/following`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch following: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        setFollowing(data.following || data || []);
+        setFollowingCount(data.following_count || data.length || 0);
+      } catch (err) {
+        console.error('Error fetching following:', err);
+        setFollowing([]);
+        setFollowingCount(0);
+      } finally {
+        setLoadingFollowing(false);
+      }
+    },
+    [getAuthToken, BACKEND_URL],
+  );
+
   const refetch = useCallback(() => {
     const currentUserId = getCurrentUserId();
     if (currentUserId) {
@@ -542,6 +626,8 @@ const useUserProfile = (
     if (currentUserId) {
       fetchUserProfile(currentUserId);
       fetchDailyStats(currentUserId);
+      fetchFollowers(currentUserId);
+      fetchFollowing(currentUserId);
       // Initial fetch for contributions: if dashboard is shown, fetch all.
       // If detailed view is shown, fetch only the selected media type.
       if (showDashboard) {
@@ -562,6 +648,8 @@ const useUserProfile = (
     fetchUserProfile,
     fetchDailyStats,
     fetchUserContributions,
+    fetchFollowers,
+    fetchFollowing,
     showDashboard,
     setContributions,
   ]);
@@ -577,6 +665,15 @@ const useUserProfile = (
     requestExport,
     setContributions,
     fetchUserContributions,
+    // New additions for followers/following
+    followers,
+    following,
+    followersCount,
+    followingCount,
+    fetchFollowers,
+    fetchFollowing,
+    loadingFollowers,
+    loadingFollowing,
   };
 };
 
@@ -672,6 +769,15 @@ const UserProfile: React.FC = () => {
     requestExport,
     setContributions, // Destructure setContributions from the hook
     fetchUserContributions, // Destructure fetchUserContributions from the hook
+    // New destructuring for followers/following
+    followers,
+    following,
+    followersCount,
+    followingCount,
+    fetchFollowers,
+    fetchFollowing,
+    loadingFollowers,
+    loadingFollowing,
   } = useUserProfile(
     undefined,
     undefined,
@@ -681,6 +787,10 @@ const UserProfile: React.FC = () => {
 
   const [isEmailRevealed, setIsEmailRevealed] = useState(false);
   const [isPhoneRevealed, setIsPhoneRevealed] = useState(false);
+
+  // State for followers/following modal
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never';
@@ -1066,6 +1176,43 @@ const UserProfile: React.FC = () => {
             </div>
           </>
         </div>
+        {/* Followers and Following Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-normal text-center w-full p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
+              <span className="font-sans">FOLLOWERS & FOLLOWING</span>
+            </h2>
+          </div>
+
+          <div className="flex justify-around items-center py-4">
+            <div
+              className="text-center cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
+              onClick={() => {
+                fetchFollowers(currentUser.id);
+                setShowFollowersModal(true);
+              }}
+            >
+              <div className="text-3xl font-bold text-blue-600">
+                {followersCount}
+              </div>
+              <div className="text-gray-600">Followers</div>
+            </div>
+
+            <div
+              className="text-center cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
+              onClick={() => {
+                fetchFollowing(currentUser.id);
+                setShowFollowingModal(true);
+              }}
+            >
+              <div className="text-3xl font-bold text-blue-600">
+                {followingCount}
+              </div>
+              <div className="text-gray-600">Following</div>
+            </div>
+          </div>
+        </div>
+
         {/* Contribution Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -1219,6 +1366,20 @@ const UserProfile: React.FC = () => {
         </div>
       </div>
       {/* The modal is no longer rendered here */}
+
+      {/* Followers and Following Modals */}
+      <FollowersModal
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+        followers={followers}
+        loading={loadingFollowers}
+      />
+      <FollowingModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        following={following}
+        loading={loadingFollowing}
+      />
     </div>
   );
 };
@@ -2168,4 +2329,135 @@ const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
     </div>
   );
 };
+
+// Modal component for displaying followers
+const FollowersModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  followers: any[];
+  loading: boolean;
+}> = ({ isOpen, onClose, followers, loading }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h3 className="text-lg font-semibold">Followers</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="overflow-y-auto max-h-80">
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <Loader2 className="animate-spin text-blue-500" size={24} />
+            </div>
+          ) : followers.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {followers.map((follower) => (
+                <li
+                  key={follower.id || follower.user_id}
+                  className="p-4 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    window.location.href = `/userprofile/${follower.id || follower.user_id}`;
+                  }}
+                >
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-gray-600 font-medium">
+                        {follower.name
+                          ? follower.name.charAt(0).toUpperCase()
+                          : 'U'}
+                      </span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-900">
+                        {follower.name || follower.username || 'Unknown User'}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex justify-center items-center h-40">
+              <p className="text-gray-500">No followers found</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Modal component for displaying following
+const FollowingModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  following: any[];
+  loading: boolean;
+}> = ({ isOpen, onClose, following, loading }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h3 className="text-lg font-semibold">Following</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="overflow-y-auto max-h-80">
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <Loader2 className="animate-spin text-blue-500" size={24} />
+            </div>
+          ) : following.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {following.map((followedUser) => (
+                <li
+                  key={followedUser.id || followedUser.user_id}
+                  className="p-4 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    window.location.href = `/userprofile/${followedUser.id || followedUser.user_id}`;
+                  }}
+                >
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-gray-600 font-medium">
+                        {followedUser.name
+                          ? followedUser.name.charAt(0).toUpperCase()
+                          : 'U'}
+                      </span>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-900">
+                        {followedUser.name ||
+                          followedUser.username ||
+                          'Unknown User'}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex justify-center items-center h-40">
+              <p className="text-gray-500">No users being followed</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default UserProfile;

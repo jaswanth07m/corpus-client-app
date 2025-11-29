@@ -12,12 +12,21 @@ import { BACKEND_URL } from '@/lib/constants';
 
 // }
 
+interface FollowedUser {
+  id?: string;
+  user_id?: string;
+}
+
 function OtherUserProfile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const { userId } = useParams();
+
+  // State for follow functionality
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [followLoading, setFollowLoading] = useState<boolean>(false);
 
   const getAuthToken = () => {
     return localStorage.getItem('token');
@@ -85,9 +94,133 @@ function OtherUserProfile() {
       .slice(0, 2);
   };
 
+  // Function to get current user's profile to check follow status
+  const checkFollowStatus = useCallback(
+    async (profileUserId: string) => {
+      try {
+        const token = getAuthToken();
+        if (!token) {
+          return;
+        }
+
+        // Get current user's profile to get their id
+        const currentProfileResponse = await fetch(`${BACKEND_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!currentProfileResponse.ok) {
+          throw new Error('Could not get current user profile');
+        }
+
+        const currentProfile = await currentProfileResponse.json();
+        const currentUserId = currentProfile.id;
+
+        // Get the current user's following list
+        const followingResponse = await fetch(
+          `${BACKEND_URL}/users/${currentUserId}/following`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        if (followingResponse.ok) {
+          const followingData = await followingResponse.json();
+          const followingList = followingData.following || followingData || [];
+          const isUserBeingFollowed = followingList.some(
+            (user: FollowedUser) =>
+              user.id === profileUserId || user.user_id === profileUserId,
+          );
+          setIsFollowing(isUserBeingFollowed);
+        }
+      } catch (err) {
+        console.error('Error checking follow status:', err);
+      }
+    },
+    [getAuthToken, BACKEND_URL],
+  );
+
+  // Function to follow a user
+  const followUser = async (targetUserId: string) => {
+    setFollowLoading(true);
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('No Authentication token available');
+      }
+
+      const response = await fetch(
+        `${BACKEND_URL}/users/${targetUserId}/follow`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (response.ok) {
+        setIsFollowing(true);
+        // Refetch profile to update counts
+        fetchOtherUserProfile(targetUserId);
+      } else {
+        throw new Error(`Failed to follow user: ${response.status}`);
+      }
+    } catch (err) {
+      console.error('Error following user:', err);
+      setError(err instanceof Error ? err.message : 'Error following user');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  // Function to unfollow a user
+  const unfollowUser = async (targetUserId: string) => {
+    setFollowLoading(true);
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('No Authentication token available');
+      }
+
+      const response = await fetch(
+        `${BACKEND_URL}/users/${targetUserId}/follow`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (response.ok) {
+        setIsFollowing(false);
+        // Refetch profile to update counts
+        fetchOtherUserProfile(targetUserId);
+      } else {
+        throw new Error(`Failed to unfollow user: ${response.status}`);
+      }
+    } catch (err) {
+      console.error('Error unfollowing user:', err);
+      setError(err instanceof Error ? err.message : 'Error unfollowing user');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (userId) fetchOtherUserProfile(userId);
-  }, [userId, fetchOtherUserProfile]);
+    if (userId) {
+      fetchOtherUserProfile(userId);
+      checkFollowStatus(userId);
+    }
+  }, [userId, fetchOtherUserProfile, checkFollowStatus]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
@@ -112,6 +245,29 @@ function OtherUserProfile() {
                 {profile?.name}
               </h1>
               <p className="text-gray-600 text-sm">@{profile?.id}</p>
+            </div>
+            <div className="ml-auto">
+              <button
+                onClick={() => {
+                  if (isFollowing) {
+                    unfollowUser(userId!);
+                  } else {
+                    followUser(userId!);
+                  }
+                }}
+                disabled={followLoading}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isFollowing
+                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                } disabled:opacity-50`}
+              >
+                {followLoading
+                  ? 'Processing...'
+                  : isFollowing
+                    ? 'Unfollow'
+                    : 'Follow'}
+              </button>
             </div>
           </div>
         </div>
