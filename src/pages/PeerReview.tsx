@@ -10,6 +10,7 @@ interface PeerReviewCardProps {
   description: string;
   media_type: string;
   release_rights: string;
+  language: string;
   dataUrl: string;
 }
 
@@ -78,6 +79,7 @@ const PeerReview: React.FC = () => {
             description: recordDetails.description,
             media_type: recordDetails.media_type,
             release_rights: recordDetails.release_rights,
+            language: recordDetails.language,
             dataUrl: urlData.record_url,
           };
 
