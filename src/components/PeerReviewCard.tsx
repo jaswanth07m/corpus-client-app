@@ -37,9 +37,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
-  const [newRelRights, setNewRelRights] = useState<string>(
-    String(release_rights ?? ''),
-  );
 
   const [titleError, setTitleError] = useState<string | null>(null);
   const [descError, setDescError] = useState<string | null>(null);
@@ -300,23 +297,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 {descError}
               </div>
             )}
-          </div>
-        )}
-
-        {changed && !validRelRight && (
-          <div className="mt-2">
-            <Select value={newRelRights} onValueChange={setNewRelRights}>
-              <SelectTrigger>
-                <SelectValue
-                  defaultValue={'Please Select Correct Release Type'}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="creator">Creator</SelectItem>
-                <SelectItem value="downloaded">Denied</SelectItem>
-                <SelectItem value="others">Others</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         )}
       </div>
