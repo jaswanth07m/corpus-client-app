@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from './ui/input';
-import { StarRating } from './StarRating';
 import {
   Select,
   SelectContent,
@@ -92,8 +91,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   const [relRights, setRelRights] = useState<string>('');
   const [sourceLabel, setSourceLabel] = useState<string>('');
 
-  const [rating, setRating] = useState(0);
-
   const [titleError, setTitleError] = useState<string | null>(null);
   const [descError, setDescError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -123,10 +120,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   };
 
   const handleEditAndSubmit = () => {
-    if (rating === 0) {
-      setSubmitError('*Rating Must be given');
-      return;
-    }
     setSubmitError(null);
     // replace with actual PATCH/PUT
     console.log('Edit & Submit payload:', {
@@ -135,23 +128,17 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       language: newLanguage,
       release_rights: relRights,
       source_label: relRights === 'others' ? sourceLabel : undefined,
-      rating,
     });
     setChanged(false);
     setEditMode(false);
   };
 
   const handleSubmit = () => {
-    if (rating === 0) {
-      setSubmitError('*Rating Must be given');
-      return;
-    }
     setSubmitError(null);
     console.log('Submit payload (no edits):', {
       title,
       description,
       release_rights,
-      rating,
     });
   };
 
@@ -539,16 +526,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       {/* Media (now below history) */}
       <div style={{ maxHeight: '25rem' }} className="mb-3">
         {renderMedia()}
-      </div>
-
-      {/* Rating area */}
-      <div className="rate bg-gray-50 p-1 justify-center flex px-10 rounded-xl border mt-4">
-        <div className="mb-2">
-          <label className="block font-medium mb-1">
-            Your Rating of this post
-          </label>
-          <StarRating rating={rating} setRating={setRating} />
-        </div>
       </div>
 
       <div className="text-xs text-gray-500 mt-1">
