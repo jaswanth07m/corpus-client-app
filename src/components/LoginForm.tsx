@@ -819,7 +819,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       to="/forgot-password"
                       className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
                     >
-                      Cancel
+                      Reset Here
                     </Link>
                   </div>
                   <div className="font-medium text-gray-800">
