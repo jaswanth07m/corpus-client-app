@@ -534,39 +534,34 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
       {/* Actions */}
       <div className="flex justify-center mt-4 gap-3">
-        {changed ? (
-          <button
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            onClick={handleEditAndSubmit}
-          >
-            Edit & Submit
-          </button>
-        ) : (
+        {changed && (
           <button
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
             onClick={handleSubmit}
           >
-            Submit
+            Submit Changes
           </button>
         )}
 
-        <button
-          onClick={() => {
-            setNewTitle(title ?? '');
-            setNewDescription(description ?? '');
-            setNewLanguage(propLanguage ?? '');
-            setRelRights(release_rights ?? '');
-            setSourceLabel('');
-            setChanged(false);
-            setSubmitError(null);
-            setTitleError(null);
-            setDescError(null);
-            setEditMode(false);
-          }}
-          className="px-4 py-2 border rounded"
-        >
-          Reset
-        </button>
+        {changed && (
+          <button
+            onClick={() => {
+              setNewTitle(title ?? '');
+              setNewDescription(description ?? '');
+              setNewLanguage(propLanguage ?? '');
+              setRelRights(release_rights ?? '');
+              setSourceLabel('');
+              setChanged(false);
+              setSubmitError(null);
+              setTitleError(null);
+              setDescError(null);
+              setEditMode(false);
+            }}
+            className="px-4 py-2 border rounded"
+          >
+            Cancel Editing
+          </button>
+        )}
       </div>
 
       {submitError && (
