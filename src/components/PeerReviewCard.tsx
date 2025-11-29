@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { User } from 'lucide-react'; // profile icon
+import {
+  User,
+  Clock,
+  History,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from './ui/input';
 import { StarRating } from './StarRating';
@@ -10,18 +17,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { Value } from '@radix-ui/react-select';
+import { BACKEND_URL } from '@/lib/constants';
 
 interface PeerReviewCardProps {
   user_id: string;
+  record_id: string;
   title: string;
   description: string;
   media_type: string;
   release_rights: string;
   dataUrl: string;
-  // optional incoming language if you ever provide it
   language?: string;
-  location?: string;
 }
 
 const languages = [
@@ -50,23 +56,26 @@ const languages = [
 ];
 
 const releaseOptions = [
-  {
-    key: 'creator',
-    value: 'This work is created by me and anyone is free to use it.',
-  },
+  { key: 'creator', value: 'This work is created by Author' },
   {
     key: 'download',
     value:
-      "I downloaded this from the internet and/or I don't know if it is free to share.",
+      "Author downloaded this from the internet and/or Author don't know if it is free to share",
   },
-  {
-    key: 'others',
-    value: 'Others',
-  },
+  { key: 'others', value: 'Not Done By Author' },
 ];
+
+function formatDate(ts?: string) {
+  try {
+    return ts ? new Date(ts).toLocaleString() : 'N/A';
+  } catch {
+    return 'N/A';
+  }
+}
 
 const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   user_id,
+  record_id,
   title,
   description,
   media_type,
@@ -87,7 +96,16 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
   const [titleError, setTitleError] = useState<string | null>(null);
   const [descError, setDescError] = useState<string | null>(null);
-  const [sumbitError, setSubmiteError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // history
+  const [history, setHistory] = useState<Array<unknown> | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [expandedVersionUid, setExpandedVersionUid] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     setNewTitle(title ?? '');
@@ -106,10 +124,11 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
   const handleEditAndSubmit = () => {
     if (rating === 0) {
-      setSubmiteError('*Rating Must be given');
+      setSubmitError('*Rating Must be given');
       return;
     }
-    setSubmiteError(null);
+    setSubmitError(null);
+    // replace with actual PATCH/PUT
     console.log('Edit & Submit payload:', {
       title: newTitle,
       description: newDescription,
@@ -124,10 +143,10 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
   const handleSubmit = () => {
     if (rating === 0) {
-      setSubmiteError('*Rating Must be given');
+      setSubmitError('*Rating Must be given');
       return;
     }
-    setSubmiteError(null);
+    setSubmitError(null);
     console.log('Submit payload (no edits):', {
       title,
       description,
@@ -135,6 +154,46 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       rating,
     });
   };
+
+  // fetch history for current record_id (lazy)
+  const fetchRecordHistory = async () => {
+    if (!record_id) return;
+    const token = localStorage.getItem('token');
+    setLoadingHistory(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/history/record/${record_id}/history`,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        },
+      );
+      if (!res.ok) {
+        const text = await res.text().catch(() => null);
+        throw new Error(
+          `Failed to fetch history: ${res.status} ${res.statusText}${text ? ` - ${text}` : ''}`,
+        );
+      }
+      const data = await res.json();
+      setHistory(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unknown error while fetching history',
+      );
+      setHistory([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showHistory && history == null) {
+      fetchRecordHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showHistory, record_id]);
 
   const renderMedia = () => {
     if (media_type === 'image') {
@@ -154,7 +213,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         />
       );
     }
-
     if (media_type === 'video') {
       return (
         <video controls style={{ maxHeight: '25rem' }} className="w-full">
@@ -162,7 +220,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         </video>
       );
     }
-
     if (media_type === 'audio') {
       return (
         <audio controls className="w-full">
@@ -170,8 +227,11 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         </audio>
       );
     }
-
     return <p className="text-gray-500">Unsupported media</p>;
+  };
+
+  const toggleExpandVersion = (uid: string) => {
+    setExpandedVersionUid((s) => (s === uid ? null : uid));
   };
 
   return (
@@ -192,28 +252,48 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Edit</label>
-          <input
-            type="checkbox"
-            checked={editMode}
-            onChange={(e) => {
-              setEditMode(e.target.checked);
-            }}
-            className="w-4 h-4"
-          />
+        {/* Right controls: history icon + edit checkbox */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowHistory((s) => !s)}
+            title="Show history"
+            className="p-2 rounded hover:bg-gray-200"
+            aria-expanded={showHistory}
+          >
+            <History size={18} className="text-gray-600" />
+          </button>
+
+          {/* Edit toggle pencil button */}
+          <button
+            type="button"
+            onClick={() => setEditMode((s) => !s)}
+            className={`
+            p-2 rounded-md transition-all
+            ${
+              editMode
+                ? 'bg-indigo-600 text-white shadow-md'
+                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+            }
+          `}
+            title={editMode ? 'Disable Edit Mode' : 'Enable Edit Mode'}
+          >
+            <Pencil size={18} strokeWidth={2} />
+          </button>
         </div>
       </div>
 
+      {/* Title */}
       <div className="mb-2">
         <Input
           value={newTitle || (!editMode ? title : newTitle)}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const newTitle = e.target.value;
-            setNewTitle(newTitle);
-            if (newTitle.trim().length < 8) {
+            const t = e.target.value;
+            setNewTitle(t);
+            markChanged();
+            if (t.trim().length < 8) {
               setTitleError('Title must be at least 8 characters long.');
-            } else if (countMeaningfulWords(newTitle) < 2) {
+            } else if (countMeaningfulWords(t) < 2) {
               setTitleError('Title must contain at least 2 meaningful words.');
             } else {
               setTitleError(null);
@@ -231,11 +311,12 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         <textarea
           value={newDescription || (!editMode ? description : newDescription)}
           onChange={(e) => {
-            const newDescription = e.target.value;
-            setNewDescription(newDescription);
-            if (newDescription.trim().length < 32) {
+            const d = e.target.value;
+            setNewDescription(d);
+            markChanged();
+            if (d.trim().length < 32) {
               setDescError('Description must be at least 32 characters long.');
-            } else if (countMeaningfulWords(newDescription) < 10) {
+            } else if (countMeaningfulWords(d) < 10) {
               setDescError(
                 'Description must contain at least 10 meaningful words.',
               );
@@ -257,9 +338,8 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       {/* Inline row: Language + Release Rights (+ sourceLabel if others) */}
       <div className="flex flex-wrap gap-3 justify-around items-end mb-3">
         <div className="w-1/3 min-w-[260px]">
-          <label className={'block text-xs font-medium mb-1'}>Language</label>
+          <label className="block text-xs font-medium mb-1">Language</label>
           <Select
-            value={newLanguage}
             onValueChange={(val: string) => {
               setNewLanguage(val);
               markChanged();
@@ -289,9 +369,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             onValueChange={(val: string) => {
               setRelRights(val);
               markChanged();
-              if (val !== 'others') {
-                setSourceLabel('');
-              }
+              if (val !== 'others') setSourceLabel('');
             }}
           >
             <SelectTrigger
@@ -306,7 +384,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             <SelectContent>
               {releaseOptions.map((opt) => (
                 <SelectItem key={opt.key} value={opt.key}>
-                  {opt.key}
+                  {opt.value}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -332,7 +410,133 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         )}
       </div>
 
-      {/* Media */}
+      {showHistory && (
+        <div className="mb-4 border rounded-lg bg-white p-3">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={14} className="text-gray-500" />
+            <h4 className="text-sm font-semibold">Edit history (snapshots)</h4>
+            {loadingHistory && (
+              <span className="text-xs text-gray-500 ml-2">loading...</span>
+            )}
+            {error && (
+              <span className="text-xs text-red-500 ml-2">{error}</span>
+            )}
+            {!loadingHistory && history && history.length === 0 && (
+              <span className="text-xs text-gray-500 ml-2">
+                no history found
+              </span>
+            )}
+          </div>
+
+          <ul className="space-y-2">
+            {history &&
+              history.map((entry) => {
+                const uid =
+                  entry.uid ??
+                  entry.record_id ??
+                  JSON.stringify(entry).slice(0, 8);
+                const isExpanded = expandedVersionUid === uid;
+                const versionNumber = entry.version_number ?? '—';
+                const changedBy =
+                  entry.changed_by ?? entry.record_snapshot?.user_id ?? 'N/A';
+                const createdAt =
+                  entry.created_at ??
+                  entry.record_snapshot?.snapshot_timestamp ??
+                  undefined;
+                const snapshot = entry.record_snapshot ?? null;
+
+                return (
+                  <li
+                    key={uid}
+                    className="border rounded-lg overflow-hidden bg-gray-50"
+                  >
+                    <button
+                      onClick={() => toggleExpandVersion(uid)}
+                      className="w-full flex justify-between items-center p-3 bg-white hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="text-left">
+                        <p className="font-semibold text-gray-800">
+                          Version {versionNumber}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {formatDate(createdAt)} by{' '}
+                          <span className="font-medium">{changedBy}</span>
+                        </p>
+                      </div>
+                      <div>
+                        {isExpanded ? (
+                          <ChevronUp size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
+                        )}
+                      </div>
+                    </button>
+
+                    {isExpanded && snapshot && (
+                      <div className="p-3 bg-white border-t">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <div className="text-xs text-gray-500">Title</div>
+                            <div className="font-medium text-gray-800 break-words">
+                              {snapshot.title ?? '—'}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-xs text-gray-500">
+                              Language
+                            </div>
+                            <div className="font-medium text-gray-800">
+                              {snapshot.language ?? '—'}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-xs text-gray-500">
+                              Release Rights
+                            </div>
+                            <div className="font-medium text-gray-800">
+                              {snapshot.release_rights ?? '—'}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-xs text-gray-500">
+                              Snapshot Time
+                            </div>
+                            <div className="font-medium text-gray-800">
+                              {formatDate(
+                                snapshot.snapshot_timestamp ??
+                                  snapshot.updated_at,
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <div className="text-xs text-gray-500">
+                              Description
+                            </div>
+                            <div className="text-gray-800">
+                              {snapshot.description ?? '—'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {isExpanded && !snapshot && (
+                      <div className="p-3 text-sm text-gray-600">
+                        No snapshot available for this version.
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
+      )}
+
+      {/* Media (now below history) */}
       <div style={{ maxHeight: '25rem' }} className="mb-3">
         {renderMedia()}
       </div>
@@ -369,7 +573,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </button>
         )}
 
-        {/* Reset button reverts to prop values */}
         <button
           onClick={() => {
             setNewTitle(title ?? '');
@@ -378,7 +581,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             setRelRights(release_rights ?? '');
             setSourceLabel('');
             setChanged(false);
-            setSubmiteError(null);
+            setSubmitError(null);
             setTitleError(null);
             setDescError(null);
             setEditMode(false);
@@ -389,9 +592,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         </button>
       </div>
 
-      {sumbitError && (
+      {submitError && (
         <div className="text-xs text-red-500 mt-1 ml-1 font-medium text-center">
-          {sumbitError}
+          {submitError}
         </div>
       )}
     </div>

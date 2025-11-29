@@ -6,6 +6,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 
 interface PeerReviewCardProps {
   user_id: string;
+  record_id: string;
   title: string;
   description: string;
   media_type: string;
@@ -75,6 +76,7 @@ const PeerReview: React.FC = () => {
 
           const successfull: PeerReviewCardProps = {
             user_id: recordDetails.user_id,
+            record_id: record_id,
             title: recordDetails.title,
             description: recordDetails.description,
             media_type: recordDetails.media_type,
@@ -161,10 +163,12 @@ const PeerReview: React.FC = () => {
           {recordIdList.map((record, index) => (
             <PeerReviewCard
               user_id={record.user_id}
+              record_id={record.record_id}
               title={record.title}
               description={record.description}
               media_type={record.media_type}
               release_rights={record.release_rights}
+              language={record.language}
               dataUrl={record.dataUrl}
             />
           ))}
