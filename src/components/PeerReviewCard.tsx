@@ -95,6 +95,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   const [descError, setDescError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // history
   const [history, setHistory] = useState<Array<unknown> | null>(null);
@@ -119,30 +120,82 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
     if (!changed) setChanged(true);
   };
 
-  const handleEditAndSubmit = () => {
+  const handleEditAndSubmit = async () => {
     setSubmitError(null);
-    // replace with actual PATCH/PUT
-    console.log('Edit & Submit payload:', {
-      title: newTitle,
-      description: newDescription,
-      language: newLanguage,
-      release_rights: relRights,
-      source_label: relRights === 'others' ? sourceLabel : undefined,
-    });
-    setChanged(false);
-    setEditMode(false);
+
+    // Validate inputs before submitting
+    if (!newTitle || newTitle.trim().length < 8) {
+      setTitleError('Title must be at least 8 characters long.');
+      return;
+    }
+
+    if (!newDescription || newDescription.trim().length < 32) {
+      setDescError('Description must be at least 32 characters long.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setSubmitError('Authentication token not found. Please log in again.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const requestBody: {
+        title: string;
+        description: string;
+        language: string;
+        release_rights: string;
+        source_label?: string;
+      } = {
+        title: newTitle,
+        description: newDescription,
+        language: newLanguage || propLanguage || '',
+        release_rights: relRights || release_rights || '',
+      };
+
+      // Add source_label only if release rights is 'others'
+      if (relRights === 'others' && sourceLabel.trim()) {
+        requestBody.source_label = sourceLabel.trim();
+      }
+
+      const response = await fetch(`${BACKEND_URL}/records/${record_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Failed to submit review: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      // Update local state with new values to reflect the changes
+      // This should trigger a re-render with the new values
+      setChanged(false);
+      setEditMode(false);
+
+      // Optionally show success feedback to the user
+      console.log('Review submitted successfully:', requestBody);
+    } catch (error) {
+      console.error('Submission error:', error);
+      setSubmitError(
+        error instanceof Error ? error.message : 'An unknown error occurred',
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSubmit = () => {
-    setSubmitError(null);
-    console.log('Submit payload (no edits):', {
-      title,
-      description,
-      release_rights,
-    });
-  };
-
-  // fetch history for current record_id (lazy)
+  // fetch history for current record_id (immediate)
   const fetchRecordHistory = async () => {
     if (!record_id) return;
     const token = localStorage.getItem('token');
@@ -174,13 +227,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       setLoadingHistory(false);
     }
   };
-
-  useEffect(() => {
-    if (showHistory && history == null) {
-      fetchRecordHistory();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showHistory, record_id]);
 
   const renderMedia = () => {
     if (media_type === 'image') {
@@ -243,7 +289,14 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setShowHistory((s) => !s)}
+            onClick={async () => {
+              // Fetch history data if we're opening the history panel
+              if (!showHistory) {
+                await fetchRecordHistory();
+              }
+              // Toggle the history panel visibility
+              setShowHistory((prev) => !prev);
+            }}
             title="Show history"
             className="p-2 rounded hover:bg-gray-200"
             aria-expanded={showHistory}
@@ -401,14 +454,14 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         <div className="mb-4 border rounded-lg bg-white p-3">
           <div className="flex items-center gap-2 mb-3">
             <Clock size={14} className="text-gray-500" />
-            <h4 className="text-sm font-semibold">Edit history (snapshots)</h4>
+            <h4 className="text-sm font-semibold">Edit history (changes)</h4>
             {loadingHistory && (
               <span className="text-xs text-gray-500 ml-2">loading...</span>
             )}
             {error && (
               <span className="text-xs text-red-500 ml-2">{error}</span>
             )}
-            {!loadingHistory && history && history.length === 0 && (
+            {!loadingHistory && history.length === 0 && (
               <span className="text-xs text-gray-500 ml-2">
                 no history found
               </span>
@@ -416,109 +469,119 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </div>
 
           <ul className="space-y-2">
-            {history &&
-              history.map((entry) => {
-                const uid =
-                  entry.uid ??
-                  entry.record_id ??
-                  JSON.stringify(entry).slice(0, 8);
-                const isExpanded = expandedVersionUid === uid;
-                const versionNumber = entry.version_number ?? '—';
-                const changedBy =
-                  entry.changed_by ?? entry.record_snapshot?.user_id ?? 'N/A';
-                const createdAt =
-                  entry.created_at ??
-                  entry.record_snapshot?.snapshot_timestamp ??
-                  undefined;
-                const snapshot = entry.record_snapshot ?? null;
+            {history.map((entry) => {
+              const uid = entry.uid ?? JSON.stringify(entry).slice(0, 8);
+              const isExpanded = expandedVersionUid === uid;
+              const versionNumber = entry.version_number ?? '—';
+              const changedBy = entry.changed_by ?? 'N/A';
+              const createdAt = entry.created_at ?? undefined;
 
-                return (
-                  <li
-                    key={uid}
-                    className="border rounded-lg overflow-hidden bg-gray-50"
+              return (
+                <li
+                  key={uid}
+                  className="border rounded-lg overflow-hidden bg-white"
+                >
+                  <button
+                    onClick={() => toggleExpandVersion(uid)}
+                    className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
-                    <button
-                      onClick={() => toggleExpandVersion(uid)}
-                      className="w-full flex justify-between items-center p-3 bg-white hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="text-left">
-                        <p className="font-semibold text-gray-800">
-                          Version {versionNumber}
+                    <div className="text-left">
+                      <p className="font-semibold text-gray-800">
+                        Version {versionNumber}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {formatDate(createdAt)} by{' '}
+                        <span className="font-medium">{changedBy}</span>
+                      </p>
+                    </div>
+                    <div>
+                      {isExpanded ? (
+                        <ChevronUp size={18} />
+                      ) : (
+                        <ChevronDown size={18} />
+                      )}
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="p-4 bg-white">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
+                        <p>
+                          <strong className="text-gray-600">
+                            Change Type:
+                          </strong>{' '}
+                          <span className="font-mono bg-gray-100 px-1 rounded">
+                            {entry.change_type || 'N/A'}
+                          </span>
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {formatDate(createdAt)} by{' '}
-                          <span className="font-medium">{changedBy}</span>
+                        <p>
+                          <strong className="text-gray-600">
+                            Change Source:
+                          </strong>{' '}
+                          <span className="font-mono bg-gray-100 px-1 rounded">
+                            {entry.change_source || 'N/A'}
+                          </span>
                         </p>
                       </div>
-                      <div>
-                        {isExpanded ? (
-                          <ChevronUp size={18} />
-                        ) : (
-                          <ChevronDown size={18} />
-                        )}
-                      </div>
-                    </button>
-
-                    {isExpanded && snapshot && (
-                      <div className="p-3 bg-white border-t">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      {entry.field_changes &&
+                        Object.keys(entry.field_changes).length > 0 && (
                           <div>
-                            <div className="text-xs text-gray-500">Title</div>
-                            <div className="font-medium text-gray-800 break-words">
-                              {snapshot.title ?? '—'}
-                            </div>
-                          </div>
+                            <strong className="text-base font-semibold text-gray-700">
+                              Field Changes:
+                            </strong>
+                            <ul className="mt-2 space-y-2">
+                              {Object.entries(entry.field_changes).map(
+                                ([field, change]: [
+                                  string,
+                                  { old_value: unknown; new_value: unknown },
+                                ]) => {
+                                  // Format field name to be more readable
+                                  const formattedField = field
+                                    .replace(/_/g, ' ')
+                                    .split(' ')
+                                    .map(
+                                      (word) =>
+                                        word.charAt(0).toUpperCase() +
+                                        word.slice(1),
+                                    )
+                                    .join(' ');
 
-                          <div>
-                            <div className="text-xs text-gray-500">
-                              Language
-                            </div>
-                            <div className="font-medium text-gray-800">
-                              {snapshot.language ?? '—'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-xs text-gray-500">
-                              Release Rights
-                            </div>
-                            <div className="font-medium text-gray-800">
-                              {snapshot.release_rights ?? '—'}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-xs text-gray-500">
-                              Snapshot Time
-                            </div>
-                            <div className="font-medium text-gray-800">
-                              {formatDate(
-                                snapshot.snapshot_timestamp ??
-                                  snapshot.updated_at,
+                                  return (
+                                    <li
+                                      key={field}
+                                      className="p-2 border rounded-md bg-gray-50"
+                                    >
+                                      <strong className="font-semibold text-gray-800">
+                                        {formattedField}
+                                      </strong>
+                                      <div className="flex items-center mt-1">
+                                        <span className="text-xs font-medium text-red-500 mr-2">
+                                          OLD:
+                                        </span>
+                                        <span className="font-mono text-sm text-red-700 bg-red-50 p-1 rounded line-through">
+                                          {String(change.old_value ?? 'N/A')}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center mt-1">
+                                        <span className="text-xs font-medium text-green-500 mr-2">
+                                          NEW:
+                                        </span>
+                                        <span className="font-mono text-sm text-green-700 bg-green-50 p-1 rounded">
+                                          {String(change.new_value ?? 'N/A')}
+                                        </span>
+                                      </div>
+                                    </li>
+                                  );
+                                },
                               )}
-                            </div>
+                            </ul>
                           </div>
-
-                          <div className="md:col-span-2">
-                            <div className="text-xs text-gray-500">
-                              Description
-                            </div>
-                            <div className="text-gray-800">
-                              {snapshot.description ?? '—'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {isExpanded && !snapshot && (
-                      <div className="p-3 text-sm text-gray-600">
-                        No snapshot available for this version.
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
+                        )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -536,10 +599,11 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       <div className="flex justify-center mt-4 gap-3">
         {changed && (
           <button
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            onClick={handleSubmit}
+            className={`px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition ${isSubmitting ? 'opacity-50' : ''}`}
+            onClick={handleEditAndSubmit}
+            disabled={isSubmitting}
           >
-            Submit Changes
+            {isSubmitting ? 'Submitting...' : 'Submit Changes'}
           </button>
         )}
 
