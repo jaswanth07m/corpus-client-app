@@ -33,6 +33,13 @@ function OtherUserProfile() {
     summary: {
       contributions: {
         total_contributions: number;
+        contributions_by_media_type: {
+          text: number;
+          audio: number;
+          image: number;
+          video: number;
+          document: number;
+        };
       };
       edits: {
         total_edits: number;
@@ -455,9 +462,40 @@ function OtherUserProfile() {
           </div>
         </div>
 
+        {/* Followers and Following Section */}
+        <section className="mb-6">
+          <div className="flex justify-around items-center py-2">
+            <div
+              className="flex-1 text-center cursor-pointer bg-gray-100 py-3 rounded-lg transition-colors hover:bg-gray-200 mx-2"
+              onClick={() => {
+                fetchFollowers(userId!);
+                setShowFollowersModal(true);
+              }}
+            >
+              <div className="text-xl font-bold text-gray-800">
+                {followersCount}
+              </div>
+              <div className="text-xs text-gray-600 mt-1">Followers</div>
+            </div>
+
+            <div
+              className="flex-1 text-center cursor-pointer bg-gray-100 py-3 rounded-lg transition-colors hover:bg-gray-200 mx-2"
+              onClick={() => {
+                fetchFollowing(userId!);
+                setShowFollowingModal(true);
+              }}
+            >
+              <div className="text-xl font-bold text-gray-800">
+                {followingCount}
+              </div>
+              <div className="text-xs text-gray-600 mt-1">Following</div>
+            </div>
+          </div>
+        </section>
+
         {/* Summary */}
         <section className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">
+          <h2 className="text-lg font-semibold text-center text-gray-800 mb-4 uppercase tracking-wide font-sans border-b pb-2">
             Summary
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -482,9 +520,53 @@ function OtherUserProfile() {
           </div>
         </section>
 
+        {/* Contributions by Media Type */}
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-center text-gray-800 mb-4 uppercase tracking-wide font-sans border-b pb-2">
+            Contributions by Media Type
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Text</p>
+              <p className="text-xl font-bold text-blue-600">
+                {profile?.summary?.contributions?.contributions_by_media_type
+                  ?.text ?? 0}
+              </p>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Audio</p>
+              <p className="text-xl font-bold text-green-600">
+                {profile?.summary?.contributions?.contributions_by_media_type
+                  ?.audio ?? 0}
+              </p>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Image</p>
+              <p className="text-xl font-bold text-orange-600">
+                {profile?.summary?.contributions?.contributions_by_media_type
+                  ?.image ?? 0}
+              </p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Video</p>
+              <p className="text-xl font-bold text-purple-600">
+                {profile?.summary?.contributions?.contributions_by_media_type
+                  ?.video ?? 0}
+              </p>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Document</p>
+              <p className="text-xl font-bold text-yellow-600">
+                {profile?.summary?.contributions?.contributions_by_media_type
+                  ?.document ?? 0}
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Streaks */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">
+          <h2 className="text-lg font-semibold text-center text-gray-800 mb-4 uppercase tracking-wide font-sans border-b pb-2">
             Streaks
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -505,40 +587,6 @@ function OtherUserProfile() {
               <p className="text-xl font-bold text-green-600">
                 {profile?.streaks?.combined_streak?.total_active_days ?? 0}
               </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Followers and Following Section */}
-        <section className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">
-            Followers & Following
-          </h2>
-          <div className="flex justify-around items-center py-4">
-            <div
-              className="text-center cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
-              onClick={() => {
-                fetchFollowers(userId!);
-                setShowFollowersModal(true);
-              }}
-            >
-              <div className="text-3xl font-bold text-blue-600">
-                {followersCount}
-              </div>
-              <div className="text-gray-600">Followers</div>
-            </div>
-
-            <div
-              className="text-center cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
-              onClick={() => {
-                fetchFollowing(userId!);
-                setShowFollowingModal(true);
-              }}
-            >
-              <div className="text-3xl font-bold text-blue-600">
-                {followingCount}
-              </div>
-              <div className="text-gray-600">Following</div>
             </div>
           </div>
         </section>
