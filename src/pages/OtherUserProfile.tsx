@@ -51,34 +51,13 @@ function OtherUserProfile() {
     username?: string;
   }
 
-  interface UserProfileData {
-    id: string;
-    name: string;
-    streaks: {
-      combined_streak: {
-        current: number;
-        longest: number;
-        total_active_days: number;
-      };
-    };
-    timeline: Record<string, unknown>;
-    summary: {
-      contributions: {
-        total_contributions: number;
-      };
-      edits: {
-        total_edits: number;
-      };
-      overall: {
-        total_activities: number;
-      };
-    };
-  }
-
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const { userId } = useParams();
+
+  // State for current user ID
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // State for follow functionality
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
@@ -99,6 +78,34 @@ function OtherUserProfile() {
   const getAuthToken = useCallback(() => {
     return localStorage.getItem('token');
   }, []);
+
+  // Function to get the current user's ID from the token
+  const getCurrentUserId = useCallback(async () => {
+    const token = getAuthToken();
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // Get user profile to extract current user ID
+      const response = await fetch(`${BACKEND_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Could not get current user profile');
+      }
+
+      const userData = await response.json();
+      return userData.id;
+    } catch (err) {
+      console.error('Error getting current user ID:', err);
+      return null;
+    }
+  }, [getAuthToken]);
 
   const fetchOtherUserProfile = useCallback(
     async (userId: string) => {
@@ -374,18 +381,28 @@ function OtherUserProfile() {
 
   // Effect for initial data fetch
   useEffect(() => {
-    if (userId) {
-      fetchOtherUserProfile(userId);
-      checkFollowStatus(userId);
-      fetchFollowers(userId);
-      fetchFollowing(userId);
-    }
+    const loadInitialData = async () => {
+      if (userId) {
+        // Get current user ID first
+        const currentId = await getCurrentUserId();
+        setCurrentUserId(currentId);
+
+        // Then load other data
+        fetchOtherUserProfile(userId);
+        checkFollowStatus(userId);
+        fetchFollowers(userId);
+        fetchFollowing(userId);
+      }
+    };
+
+    loadInitialData();
   }, [
     userId,
     fetchOtherUserProfile,
     checkFollowStatus,
     fetchFollowers,
     fetchFollowing,
+    getCurrentUserId,
   ]); // Include all functions used in the effect
 
   return (
@@ -533,12 +550,14 @@ function OtherUserProfile() {
         onClose={() => setShowFollowersModal(false)}
         followers={followers}
         loading={loadingFollowers}
+        currentUserId={currentUserId}
       />
       <FollowingModal
         isOpen={showFollowingModal}
         onClose={() => setShowFollowingModal(false)}
         following={following}
         loading={loadingFollowing}
+        currentUserId={currentUserId}
       />
     </div>
   );
@@ -550,7 +569,8 @@ const FollowersModal: React.FC<{
   onClose: () => void;
   followers: User[];
   loading: boolean;
-}> = ({ isOpen, onClose, followers, loading }) => {
+  currentUserId: string | null;
+}> = ({ isOpen, onClose, followers, loading, currentUserId }) => {
   if (!isOpen) return null;
 
   return (
@@ -572,30 +592,39 @@ const FollowersModal: React.FC<{
             </div>
           ) : followers.length > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {followers.map((follower) => (
-                <li
-                  key={follower.id || follower.user_id}
-                  className="p-4 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    window.location.href = `/userprofile/${follower.id || follower.user_id}`;
-                  }}
-                >
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span className="text-gray-600 font-medium">
-                        {follower.name
-                          ? follower.name.charAt(0).toUpperCase()
-                          : 'U'}
-                      </span>
+              {followers.map((follower) => {
+                const userId = follower.id || follower.user_id;
+                const isCurrentUser = userId === currentUserId;
+
+                return (
+                  <li
+                    key={userId}
+                    className="p-4 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      if (isCurrentUser) {
+                        window.location.href = '/myprofile';
+                      } else {
+                        window.location.href = `/userprofile/${userId}`;
+                      }
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                        <span className="text-gray-600 font-medium">
+                          {follower.name
+                            ? follower.name.charAt(0).toUpperCase()
+                            : 'U'}
+                        </span>
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-900">
+                          {follower.name || follower.username || 'Unknown User'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900">
-                        {follower.name || follower.username || 'Unknown User'}
-                      </p>
-                    </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <div className="flex justify-center items-center h-40">
@@ -614,7 +643,8 @@ const FollowingModal: React.FC<{
   onClose: () => void;
   following: User[];
   loading: boolean;
-}> = ({ isOpen, onClose, following, loading }) => {
+  currentUserId: string | null;
+}> = ({ isOpen, onClose, following, loading, currentUserId }) => {
   if (!isOpen) return null;
 
   return (
@@ -636,32 +666,41 @@ const FollowingModal: React.FC<{
             </div>
           ) : following.length > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {following.map((followedUser) => (
-                <li
-                  key={followedUser.id || followedUser.user_id}
-                  className="p-4 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    window.location.href = `/userprofile/${followedUser.id || followedUser.user_id}`;
-                  }}
-                >
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span className="text-gray-600 font-medium">
-                        {followedUser.name
-                          ? followedUser.name.charAt(0).toUpperCase()
-                          : 'U'}
-                      </span>
+              {following.map((followedUser) => {
+                const userId = followedUser.id || followedUser.user_id;
+                const isCurrentUser = userId === currentUserId;
+
+                return (
+                  <li
+                    key={userId}
+                    className="p-4 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      if (isCurrentUser) {
+                        window.location.href = '/myprofile';
+                      } else {
+                        window.location.href = `/userprofile/${userId}`;
+                      }
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                        <span className="text-gray-600 font-medium">
+                          {followedUser.name
+                            ? followedUser.name.charAt(0).toUpperCase()
+                            : 'U'}
+                        </span>
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-900">
+                          {followedUser.name ||
+                            followedUser.username ||
+                            'Unknown User'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900">
-                        {followedUser.name ||
-                          followedUser.username ||
-                          'Unknown User'}
-                      </p>
-                    </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <div className="flex justify-center items-center h-40">
