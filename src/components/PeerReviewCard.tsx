@@ -6,6 +6,10 @@ import {
   ChevronDown,
   ChevronUp,
   Pencil,
+  ImageIcon,
+  Video,
+  Mic,
+  Music,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from './ui/input';
@@ -184,6 +188,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       setEditMode(false);
 
       // Optionally show success feedback to the user
+      console.log(record_id);
       console.log('Review submitted successfully:', requestBody);
     } catch (error) {
       console.error('Submission error:', error);
@@ -192,6 +197,19 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getMediaIcon = (type: string) => {
+    switch (type) {
+      case 'image':
+        return <ImageIcon size={20} className="text-blue-600" />;
+      case 'video':
+        return <Video size={20} className="text-red-600" />;
+      case 'audio':
+        return <Mic size={20} className="text-green-600" />;
+      default:
+        return <div className="text-gray-500 text-sm">?</div>;
     }
   };
 
@@ -229,38 +247,59 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   };
 
   const renderMedia = () => {
+    const containerClass =
+      'w-full h-[300px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden flex items-center justify-center';
+
     if (media_type === 'image') {
       return (
-        <img
-          src={dataUrl}
-          alt="uploaded media"
-          style={{
-            maxHeight: '25rem',
-            maxWidth: '100%',
-            width: 'auto',
-            height: 'auto',
-            display: 'block',
-            margin: '0 auto',
-          }}
-          className="object-contain"
-        />
+        <div className={containerClass}>
+          <img
+            src={dataUrl}
+            alt="uploaded media"
+            className="w-full h-full object-contain"
+          />
+        </div>
       );
     }
+
     if (media_type === 'video') {
       return (
-        <video controls style={{ maxHeight: '25rem' }} className="w-full">
-          <source src={dataUrl} />
-        </video>
+        <div className={containerClass}>
+          <video controls className="w-full h-full object-cover">
+            <source src={dataUrl} />
+          </video>
+        </div>
       );
     }
+
     if (media_type === 'audio') {
       return (
-        <audio controls className="w-full">
-          <source src={dataUrl} />
-        </audio>
+        <div className="w-full h-[300px] bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden p-6">
+          <div className="flex flex-col items-center justify-center gap-4 px-6">
+            <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <Music size={48} className="text-white" />
+            </div>
+            <div className="w-full max-w-md">
+              <audio controls className="w-full">
+                <source src={dataUrl} />
+              </audio>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600 font-medium">
+                Audio Track
+              </span>
+            </div>
+          </div>
+        </div>
       );
     }
-    return <p className="text-gray-500">Unsupported media</p>;
+
+    return (
+      <div className={containerClass}>
+        <p className="text-gray-400">Unsupported media</p>
+      </div>
+    );
   };
 
   const toggleExpandVersion = (uid: string) => {
@@ -268,178 +307,345 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   };
 
   return (
-    <div
-      style={{ backgroundColor: '#f2f2f2ff' }}
-      className="border shadow-md rounded-md p-4 mb-4 max-w-xl mx-auto relative"
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex gap-3 items-center">
-          <div className="bg-gray-200 rounded-full p-2">
+    <div className="bg-stone-50 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow max-w-xl mx-auto mb-3">
+      {/* Header - Compact */}
+      <div className="px-3 py-2.5 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-sm">
             <Link to={`/userProfile/${user_id}`}>
-              <User size={26} className="text-gray-600" />
+              <User size={18} className="text-white" />
             </Link>
           </div>
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800">{user_id}</h3>
-            <p className="text-sm text-gray-500">{media_type.toUpperCase()}</p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-900">{user_id}</h3>
+            {getMediaIcon(media_type)}
           </div>
         </div>
 
-        {/* Right controls: history icon + edit checkbox */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={async () => {
-              // Fetch history data if we're opening the history panel
               if (!showHistory) {
                 await fetchRecordHistory();
               }
-              // Toggle the history panel visibility
               setShowHistory((prev) => !prev);
             }}
             title="Show history"
-            className="p-2 rounded hover:bg-gray-200"
+            className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
             aria-expanded={showHistory}
           >
-            <History size={18} className="text-gray-600" />
+            <History size={16} className="text-gray-600" />
           </button>
 
-          {/* Edit toggle pencil button */}
           <button
             type="button"
             onClick={() => setEditMode((s) => !s)}
-            className={`
-            p-2 rounded-md transition-all
-            ${
+            className={`p-1.5 rounded-md transition-all ${
               editMode
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-            }
-          `}
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
             title={editMode ? 'Disable Edit Mode' : 'Enable Edit Mode'}
           >
-            <Pencil size={18} strokeWidth={2} />
+            <Pencil size={16} strokeWidth={2} />
           </button>
         </div>
       </div>
 
-      {/* Title */}
-      <div className="mb-2">
-        <Input
-          value={newTitle || (!editMode ? title : newTitle)}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const t = e.target.value;
-            setNewTitle(t);
-            markChanged();
-            if (t.trim().length < 8) {
-              setTitleError('Title must be at least 8 characters long.');
-            } else if (countMeaningfulWords(t) < 2) {
-              setTitleError('Title must contain at least 2 meaningful words.');
-            } else {
-              setTitleError(null);
-            }
-          }}
-          className={`${!editMode ? 'bg-gray-200' : 'bg-white'}`}
-          readOnly={!editMode}
-          placeholder="Title"
-        />
-        {titleError && <div className="text-xs text-red-500">{titleError}</div>}
-      </div>
-
-      {/* Description */}
-      <div className="mb-3">
-        <textarea
-          value={newDescription || (!editMode ? description : newDescription)}
-          onChange={(e) => {
-            const d = e.target.value;
-            setNewDescription(d);
-            markChanged();
-            if (d.trim().length < 32) {
-              setDescError('Description must be at least 32 characters long.');
-            } else if (countMeaningfulWords(d) < 10) {
-              setDescError(
-                'Description must contain at least 10 meaningful words.',
-              );
-            } else {
-              setDescError(null);
-            }
-          }}
-          readOnly={!editMode}
-          rows={4}
-          className={`w-full p-2 border rounded ${!editMode ? 'bg-gray-200' : 'bg-white'}`}
-          placeholder="Description"
-        />
-        {descError && <div className="text-xs text-red-500">{descError}</div>}
-        <div className="text-xs text-gray-400 mt-1">
-          {countMeaningfulWords(newDescription || description)} meaningful words
+      {/* Media */}
+      <div className="">
+        <div
+          className=" overflow-hidden bg-gray-50"
+          style={{ maxHeight: '20rem' }}
+        >
+          {renderMedia()}
         </div>
       </div>
 
-      {/* Inline row: Language + Release Rights (+ sourceLabel if others) */}
-      <div className="flex flex-wrap gap-3 justify-around items-end mb-3">
-        <div className="w-1/3 min-w-[260px]">
-          <label className="block text-xs font-medium mb-1">Language</label>
-          <Select
-            onValueChange={(val: string) => {
-              setNewLanguage(val);
-              markChanged();
-            }}
-          >
-            <SelectTrigger
-              className={`w-full ${!editMode ? 'bg-gray-200 pointer-events-none opacity-80' : ''}`}
-            >
-              <SelectValue placeholder={newLanguage || propLanguage || 'NA'} />
-            </SelectTrigger>
-            <SelectContent>
-              {languages.map((lang) => (
-                <SelectItem key={lang} value={lang}>
-                  {lang}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Content */}
+      <div className="px-3 pb-3 space-y-2.5">
+        {showHistory && (
+          <div className="border border-gray-200 rounded-md bg-gray-50 p-3 mt-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock size={14} className="text-gray-500" />
+              <h4 className="text-xs font-semibold text-gray-800">
+                Edit History
+              </h4>
+              {loadingHistory && (
+                <span className="text-xs text-gray-500">loading...</span>
+              )}
+              {error && <span className="text-xs text-red-500">{error}</span>}
+              {!loadingHistory && history.length === 0 && (
+                <span className="text-xs text-gray-500">no history</span>
+              )}
+            </div>
 
-        <div className="w-1/3 min-w-[260px]">
-          <label className="block text-xs font-medium mb-1">
-            Release Rights
-          </label>
-          <Select
-            value={relRights || release_rights}
-            onValueChange={(val: string) => {
-              setRelRights(val);
-              markChanged();
-              if (val !== 'others') setSourceLabel('');
-            }}
-          >
-            <SelectTrigger
-              className={`w-full ${!editMode ? 'bg-gray-200 pointer-events-none opacity-80' : ''}`}
-            >
-              <SelectValue
-                placeholder={
-                  relRights || release_rights || 'Select release rights'
+            <ul className="space-y-1.5">
+              {history.map((entry) => {
+                const uid = entry.uid ?? JSON.stringify(entry).slice(0, 8);
+                const isExpanded = expandedVersionUid === uid;
+                const versionNumber = entry.version_number ?? '—';
+                const changedBy = entry.changed_by ?? 'N/A';
+                const createdAt = entry.created_at ?? undefined;
+
+                return (
+                  <li
+                    key={uid}
+                    className="border border-gray-200 rounded-md overflow-hidden bg-white"
+                  >
+                    <button
+                      onClick={() => toggleExpandVersion(uid)}
+                      className="w-full flex justify-between items-center p-2.5 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="text-left">
+                        <p className="text-xs font-semibold text-gray-800">
+                          Version {versionNumber}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(createdAt)} by{' '}
+                          <span className="font-medium">{changedBy}</span>
+                        </p>
+                      </div>
+                      {isExpanded ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      )}
+                    </button>
+
+                    {isExpanded && (
+                      <div className="p-3 bg-white border-t border-gray-100">
+                        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                          <p>
+                            <strong className="text-gray-600">Type:</strong>{' '}
+                            <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                              {entry.change_type || 'N/A'}
+                            </span>
+                          </p>
+                          <p>
+                            <strong className="text-gray-600">Source:</strong>{' '}
+                            <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                              {entry.change_source || 'N/A'}
+                            </span>
+                          </p>
+                        </div>
+                        {entry.field_changes &&
+                          Object.keys(entry.field_changes).length > 0 && (
+                            <div>
+                              <strong className="text-xs font-semibold text-gray-700">
+                                Field Changes:
+                              </strong>
+                              <ul className="mt-1.5 space-y-1.5">
+                                {Object.entries(entry.field_changes).map(
+                                  ([field, change]) => {
+                                    const formattedField = field
+                                      .replace(/_/g, ' ')
+                                      .split(' ')
+                                      .map(
+                                        (word) =>
+                                          word.charAt(0).toUpperCase() +
+                                          word.slice(1),
+                                      )
+                                      .join(' ');
+
+                                    return (
+                                      <li
+                                        key={field}
+                                        className="p-2 border border-gray-200 rounded bg-gray-50"
+                                      >
+                                        <strong className="text-xs font-semibold text-gray-800">
+                                          {formattedField}
+                                        </strong>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="text-xs font-medium text-red-500">
+                                            OLD:
+                                          </span>
+                                          <span className="font-mono text-xs text-red-700 bg-red-50 px-1.5 py-0.5 rounded line-through">
+                                            {String(change.old_value ?? 'N/A')}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="text-xs font-medium text-green-500">
+                                            NEW:
+                                          </span>
+                                          <span className="font-mono text-xs text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
+                                            {String(change.new_value ?? 'N/A')}
+                                          </span>
+                                        </div>
+                                      </li>
+                                    );
+                                  },
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {editMode ? (
+          <div className="">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Title:{' '}
+            </label>
+            <Input
+              value={newTitle || (!editMode ? title : newTitle)}
+              onChange={(e) => {
+                const t = e.target.value;
+                setNewTitle(t);
+                markChanged();
+                if (t.trim().length < 8) {
+                  setTitleError('Title must be at least 8 characters long.');
+                } else if (countMeaningfulWords(t) < 2) {
+                  setTitleError(
+                    'Title must contain at least 2 meaningful words.',
+                  );
+                } else {
+                  setTitleError(null);
                 }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {releaseOptions.map((opt) => (
-                <SelectItem key={opt.key} value={opt.key}>
-                  {opt.value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              }}
+              className={`text-sm font-medium h-9 ${!editMode ? 'bg-gray-50 border-gray-200' : 'bg-white'}`}
+              readOnly={!editMode}
+              placeholder="Title"
+            />
+            {titleError && (
+              <p className="text-xs text-red-500 mt-1">{titleError}</p>
+            )}
+          </div>
+        ) : (
+          <div className="pt-1">
+            <h1 className="text-center font-bold text-xl">{newTitle}</h1>
+          </div>
+        )}
+
+        {editMode ? (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Description:{' '}
+            </label>
+            <textarea
+              value={
+                newDescription || (!editMode ? description : newDescription)
+              }
+              onChange={(e) => {
+                const d = e.target.value;
+                setNewDescription(d);
+                markChanged();
+                if (d.trim().length < 32) {
+                  setDescError(
+                    'Description must be at least 32 characters long.',
+                  );
+                } else if (countMeaningfulWords(d) < 10) {
+                  setDescError(
+                    'Description must contain at least 10 meaningful words.',
+                  );
+                } else {
+                  setDescError(null);
+                }
+              }}
+              readOnly={!editMode}
+              rows={3}
+              className={`w-full p-2 border rounded-md text-sm resize-none ${
+                !editMode ? 'bg-gray-50 border-gray-200' : 'bg-white'
+              }`}
+              placeholder="Description"
+            />
+            {descError && (
+              <p className="text-xs text-red-500 mt-1">{descError}</p>
+            )}
+            <p className="text-xs text-gray-400 mt-1">
+              {countMeaningfulWords(newDescription || description)} meaningful
+              words
+            </p>
+          </div>
+        ) : (
+          <div className="pt-1">
+            <p className="text-center font-thin text-md">{description}</p>
+          </div>
+        )}
+
+        {/* Language + Release Rights */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Language
+            </label>
+            <Select
+              onValueChange={(val) => {
+                setNewLanguage(val);
+                markChanged();
+              }}
+            >
+              <SelectTrigger
+                className={`w-full h-9 text-sm ${
+                  !editMode
+                    ? 'bg-gray-50 border-gray-200 pointer-events-none opacity-80'
+                    : ''
+                }`}
+              >
+                <SelectValue
+                  placeholder={newLanguage || propLanguage || 'NA'}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((lang) => (
+                  <SelectItem key={lang} value={lang}>
+                    {lang}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Release Rights
+            </label>
+            <Select
+              value={relRights || release_rights}
+              onValueChange={(val) => {
+                setRelRights(val);
+                markChanged();
+                if (val !== 'others') setSourceLabel('');
+              }}
+            >
+              <SelectTrigger
+                className={`w-full h-9 text-sm ${
+                  !editMode
+                    ? 'bg-gray-50 border-gray-200 pointer-events-none opacity-80'
+                    : ''
+                }`}
+              >
+                <SelectValue
+                  placeholder={relRights || release_rights || 'Select'}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {releaseOptions.map((opt) => (
+                  <SelectItem key={opt.key} value={opt.key}>
+                    {opt.value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {relRights === 'others' && (
-          <div className="w-full min-w-[200px]">
-            <label className="block text-xs font-medium mb-1">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
               Source Label
             </label>
             <Input
-              className={!editMode ? 'bg-gray-200' : ''}
+              className={`h-9 text-sm ${!editMode ? 'bg-gray-50 border-gray-200' : ''}`}
               value={sourceLabel}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              onChange={(e) => {
                 setSourceLabel(e.target.value);
                 markChanged();
               }}
@@ -448,191 +654,50 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             />
           </div>
         )}
-      </div>
 
-      {showHistory && (
-        <div className="mb-4 border rounded-lg bg-white p-3">
-          <div className="flex items-center gap-2 mb-3">
-            <Clock size={14} className="text-gray-500" />
-            <h4 className="text-sm font-semibold">Edit history (changes)</h4>
-            {loadingHistory && (
-              <span className="text-xs text-gray-500 ml-2">loading...</span>
-            )}
-            {error && (
-              <span className="text-xs text-red-500 ml-2">{error}</span>
-            )}
-            {!loadingHistory && history.length === 0 && (
-              <span className="text-xs text-gray-500 ml-2">
-                no history found
-              </span>
-            )}
+        <p className="text-xs text-gray-400 italic">
+          *If not changed, default is yes for all fields
+        </p>
+
+        {/* Actions */}
+        {changed && (
+          <div className="flex gap-2 pt-1">
+            <button
+              className={`flex-1 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition ${
+                isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              onClick={handleEditAndSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Changes'}
+            </button>
+
+            <button
+              onClick={() => {
+                setNewTitle(title ?? '');
+                setNewDescription(description ?? '');
+                setNewLanguage(propLanguage ?? '');
+                setRelRights(release_rights ?? '');
+                setSourceLabel('');
+                setChanged(false);
+                setSubmitError(null);
+                setTitleError(null);
+                setDescError(null);
+                setEditMode(false);
+              }}
+              className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
           </div>
-
-          <ul className="space-y-2">
-            {history.map((entry) => {
-              const uid = entry.uid ?? JSON.stringify(entry).slice(0, 8);
-              const isExpanded = expandedVersionUid === uid;
-              const versionNumber = entry.version_number ?? '—';
-              const changedBy = entry.changed_by ?? 'N/A';
-              const createdAt = entry.created_at ?? undefined;
-
-              return (
-                <li
-                  key={uid}
-                  className="border rounded-lg overflow-hidden bg-white"
-                >
-                  <button
-                    onClick={() => toggleExpandVersion(uid)}
-                    className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-800">
-                        Version {versionNumber}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {formatDate(createdAt)} by{' '}
-                        <span className="font-medium">{changedBy}</span>
-                      </p>
-                    </div>
-                    <div>
-                      {isExpanded ? (
-                        <ChevronUp size={18} />
-                      ) : (
-                        <ChevronDown size={18} />
-                      )}
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="p-4 bg-white">
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
-                        <p>
-                          <strong className="text-gray-600">
-                            Change Type:
-                          </strong>{' '}
-                          <span className="font-mono bg-gray-100 px-1 rounded">
-                            {entry.change_type || 'N/A'}
-                          </span>
-                        </p>
-                        <p>
-                          <strong className="text-gray-600">
-                            Change Source:
-                          </strong>{' '}
-                          <span className="font-mono bg-gray-100 px-1 rounded">
-                            {entry.change_source || 'N/A'}
-                          </span>
-                        </p>
-                      </div>
-                      {entry.field_changes &&
-                        Object.keys(entry.field_changes).length > 0 && (
-                          <div>
-                            <strong className="text-base font-semibold text-gray-700">
-                              Field Changes:
-                            </strong>
-                            <ul className="mt-2 space-y-2">
-                              {Object.entries(entry.field_changes).map(
-                                ([field, change]: [
-                                  string,
-                                  { old_value: unknown; new_value: unknown },
-                                ]) => {
-                                  // Format field name to be more readable
-                                  const formattedField = field
-                                    .replace(/_/g, ' ')
-                                    .split(' ')
-                                    .map(
-                                      (word) =>
-                                        word.charAt(0).toUpperCase() +
-                                        word.slice(1),
-                                    )
-                                    .join(' ');
-
-                                  return (
-                                    <li
-                                      key={field}
-                                      className="p-2 border rounded-md bg-gray-50"
-                                    >
-                                      <strong className="font-semibold text-gray-800">
-                                        {formattedField}
-                                      </strong>
-                                      <div className="flex items-center mt-1">
-                                        <span className="text-xs font-medium text-red-500 mr-2">
-                                          OLD:
-                                        </span>
-                                        <span className="font-mono text-sm text-red-700 bg-red-50 p-1 rounded line-through">
-                                          {String(change.old_value ?? 'N/A')}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center mt-1">
-                                        <span className="text-xs font-medium text-green-500 mr-2">
-                                          NEW:
-                                        </span>
-                                        <span className="font-mono text-sm text-green-700 bg-green-50 p-1 rounded">
-                                          {String(change.new_value ?? 'N/A')}
-                                        </span>
-                                      </div>
-                                    </li>
-                                  );
-                                },
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      {/* Media (now below history) */}
-      <div style={{ maxHeight: '25rem' }} className="mb-3">
-        {renderMedia()}
-      </div>
-
-      <div className="text-xs text-gray-500 mt-1">
-        *If not changed anything then default for all will be yes.
-      </div>
-
-      {/* Actions */}
-      <div className="flex justify-center mt-4 gap-3">
-        {changed && (
-          <button
-            className={`px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition ${isSubmitting ? 'opacity-50' : ''}`}
-            onClick={handleEditAndSubmit}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Changes'}
-          </button>
         )}
 
-        {changed && (
-          <button
-            onClick={() => {
-              setNewTitle(title ?? '');
-              setNewDescription(description ?? '');
-              setNewLanguage(propLanguage ?? '');
-              setRelRights(release_rights ?? '');
-              setSourceLabel('');
-              setChanged(false);
-              setSubmitError(null);
-              setTitleError(null);
-              setDescError(null);
-              setEditMode(false);
-            }}
-            className="px-4 py-2 border rounded"
-          >
-            Cancel Editing
-          </button>
+        {submitError && (
+          <p className="text-xs text-red-500 font-medium text-center mt-1">
+            {submitError}
+          </p>
         )}
       </div>
-
-      {submitError && (
-        <div className="text-xs text-red-500 mt-1 ml-1 font-medium text-center">
-          {submitError}
-        </div>
-      )}
     </div>
   );
 };
