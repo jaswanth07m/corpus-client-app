@@ -214,7 +214,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     if (location && !isVerifyingLocation) {
       verifyLocation(location.lat, location.lng);
     }
-  }, [location]);
+  }, [location, isVerifyingLocation, verifyLocation]);
 
   const handleEditLocation = () => {
     setVerifiedLocation(null);

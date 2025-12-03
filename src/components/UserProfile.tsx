@@ -556,7 +556,7 @@ const useUserProfile = (
         setLoadingFollowers(false);
       }
     },
-    [getAuthToken, BACKEND_URL],
+    [getAuthToken],
   );
 
   const fetchFollowing = useCallback(
@@ -590,7 +590,7 @@ const useUserProfile = (
         setLoadingFollowing(false);
       }
     },
-    [getAuthToken, BACKEND_URL],
+    [getAuthToken],
   );
 
   const refetch = useCallback(() => {
@@ -617,6 +617,7 @@ const useUserProfile = (
     fetchDailyStats,
     fetchUserContributions,
     showDashboard,
+    selectedMediaType,
     setContributions,
   ]);
 
@@ -651,6 +652,7 @@ const useUserProfile = (
     fetchFollowers,
     fetchFollowing,
     showDashboard,
+    selectedMediaType,
     setContributions,
   ]);
 

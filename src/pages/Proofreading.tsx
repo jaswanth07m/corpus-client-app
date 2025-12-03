@@ -37,7 +37,7 @@ function Proofreading() {
       setValue(currentPageText);
     }
     // We only want this to run when the page number or the initial texts change.
-  }, [pageNumber, setValue, isTeluguTypingEnabled]);
+  }, [ocrTexts, pageNumber, setValue, isTeluguTypingEnabled]);
 
   useEffect(() => {
     // This check prevents an infinite loop. Only update if the text is different.
@@ -49,13 +49,14 @@ function Proofreading() {
       }
     }
     // This effect runs only when the hook's value changes.
-  }, [value, isTeluguTypingEnabled]);
+  }, [ocrTexts, pageNumber, value, isTeluguTypingEnabled]);
 
   // Reset header timeout ref on unmount to avoid memory leaks
   useEffect(() => {
     return () => {
-      if (headerTimeoutRef.current) {
-        clearTimeout(headerTimeoutRef.current);
+      const timeoutId = headerTimeoutRef.current;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
     };
   }, []);
