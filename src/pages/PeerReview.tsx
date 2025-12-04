@@ -145,7 +145,7 @@ const PeerReview: React.FC = () => {
           </button>
         </div>
       </div>
-      <div className="peer-container flex justify-center p-4">
+      <div className="peer-container flex justify-center p-4 bg-zinc-100">
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
         <InfiniteScroll
