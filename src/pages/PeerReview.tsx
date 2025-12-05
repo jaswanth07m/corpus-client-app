@@ -16,6 +16,9 @@ interface PeerReviewCardProps {
 }
 
 const PeerReview: React.FC = () => {
+  const numberOfRecordsFetched = 10;
+  const numberOfRecordsRemoved = 5;
+
   const [recordIdList, setRecordIdList] = useState<PeerReviewCardProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState('');
@@ -24,9 +27,11 @@ const PeerReview: React.FC = () => {
   async function fetchMoreData() {
     const token = localStorage.getItem('token');
 
+    //setRecordIdList(prev => prev.slice(5));
+
     try {
       const nextRecordResponse = await fetch(
-        `${BACKEND_URL}/records/next-for-review?media_type=audio&media_type=video&media_type=image&proof_reading=false&limit=20`,
+        `${BACKEND_URL}/records/next-for-review?media_type=audio&media_type=video&media_type=image&proof_reading=false&limit=${numberOfRecordsFetched}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },

@@ -61,7 +61,7 @@ const languages = [
 const releaseOptions = [
   { key: 'creator', value: 'This work is created by Author' },
   {
-    key: 'download',
+    key: 'downloaded',
     value:
       "Author downloaded this from the internet and/or Author don't know if it is free to share",
   },
@@ -176,10 +176,25 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
+
+        const fieldMessages = Array.isArray(errorData.errors)
+          ? errorData.errors
+              .map(
+                (e: { field: string; message: string }) =>
+                  `${e.field}: ${e.message}`,
+              )
+              .join('\n')
+          : '';
+
+        const message = [
           errorData.message ||
             `Failed to submit review: ${response.status} ${response.statusText}`,
-        );
+          fieldMessages,
+        ]
+          .filter(Boolean)
+          .join('\n');
+
+        throw new Error(message);
       }
 
       // Update local state with new values to reflect the changes
@@ -693,7 +708,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         )}
 
         {submitError && (
-          <p className="text-xs text-red-500 font-medium text-center mt-1">
+          <p className="text-xs text-red-500 font-medium text-center mt-1 whitespace-pre-line">
             {submitError}
           </p>
         )}
