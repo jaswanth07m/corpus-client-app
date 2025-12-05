@@ -37,6 +37,7 @@ function OtherUserProfile() {
   interface UserProfileData {
     id: string;
     name: string;
+    username?: string;
     streaks: {
       combined_streak: {
         current: number;
@@ -369,6 +370,7 @@ function OtherUserProfile() {
         const formattedProfile = {
           id: userData.user_id,
           name: userData.user_name || 'Unknown User',
+          username: userData.username,
           streaks: userData.streaks,
           timeline: userData.timeline,
           summary: userData.summary,
@@ -661,7 +663,9 @@ function OtherUserProfile() {
               <h1 className="text-2xl font-semibold text-gray-900">
                 {profile?.name}
               </h1>
-              <p className="text-gray-600 text-sm">@{profile?.id}</p>
+              <p className="text-gray-600 text-sm">
+                @{profile?.username || profile?.id}
+              </p>
             </div>
             <div className="ml-auto">
               <button

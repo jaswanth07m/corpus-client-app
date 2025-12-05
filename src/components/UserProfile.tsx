@@ -1058,7 +1058,9 @@ const UserProfile: React.FC = () => {
                 <h1 className="text-2xl font-bold text-gray-900">
                   {currentUser.name}
                 </h1>
-                <p className="text-gray-600">@{currentUser.id}</p>
+                <p className="text-gray-600">
+                  @{currentUser.username || currentUser.id}
+                </p>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                     currentUser.isActive,

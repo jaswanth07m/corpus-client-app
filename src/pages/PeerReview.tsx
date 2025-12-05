@@ -6,6 +6,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 
 interface PeerReviewCardProps {
   user_id: string;
+  username?: string;
   record_id: string;
   title: string;
   description: string;
@@ -16,6 +17,9 @@ interface PeerReviewCardProps {
 }
 
 const PeerReview: React.FC = () => {
+  const numberOfRecordsFetched = 10;
+  const numberOfRecordsRemoved = 5;
+
   const [recordIdList, setRecordIdList] = useState<PeerReviewCardProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState('');
@@ -24,9 +28,11 @@ const PeerReview: React.FC = () => {
   async function fetchMoreData() {
     const token = localStorage.getItem('token');
 
+    //setRecordIdList(prev => prev.slice(5));
+
     try {
       const nextRecordResponse = await fetch(
-        `${BACKEND_URL}/records/next-for-review?media_type=audio&media_type=video&media_type=image&proof_reading=false&limit=20`,
+        `${BACKEND_URL}/records/next-for-review?media_type=audio&media_type=video&media_type=image&proof_reading=false&limit=${numberOfRecordsFetched}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -76,6 +82,7 @@ const PeerReview: React.FC = () => {
 
           const successfull: PeerReviewCardProps = {
             user_id: recordDetails.user_id,
+            username: recordDetails.user_name || recordDetails.username,
             record_id: record_id,
             title: recordDetails.title,
             description: recordDetails.description,
@@ -163,6 +170,7 @@ const PeerReview: React.FC = () => {
           {recordIdList.map((record, index) => (
             <PeerReviewCard
               user_id={record.user_id}
+              username={record.username}
               record_id={record.record_id}
               title={record.title}
               description={record.description}

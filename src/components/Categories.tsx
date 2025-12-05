@@ -119,6 +119,7 @@ const Categories: React.FC<CategoriesProps> = ({
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const [userSearch, setUserSearch] = useState<string>('');
+  const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
 
   const uploadOptions: UploadOption[] = [
     {
@@ -852,31 +853,51 @@ const Categories: React.FC<CategoriesProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-row items-center">
-            <input
-              className="text-gray-900 p-2 rounded-bl-xl rounded-tl-xl text-base sm:text-lg w-48 sm:w-64 lg:w-80"
-              value={userSearch}
-              onKeyDown={(e) => {
-                if (e.key == 'Enter') {
-                  e.preventDefault();
-                  window.location.href = `/userProfile/${userSearch}`;
-                }
-              }}
-              onChange={(e) => {
-                setUserSearch(e.target.value);
-              }}
-              placeholder="Type in User ID"
-              type="text"
-            />
-            <Link
-              className="px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-br-xl rounded-tr-xl justify-center"
-              to={`/userProfile/${userSearch}`}
-            >
-              <Search size={20} />
-            </Link>
-          </div>
-
           <div className="flex items-center gap-2">
+            {/* Conditionally render the search input field when visible */}
+            {isSearchVisible && (
+              <div className="flex flex-row items-center mr-2">
+                <input
+                  className="text-gray-900 p-2 rounded-bl-xl rounded-tl-xl text-base sm:text-lg w-48 sm:w-64 lg:w-80"
+                  value={userSearch}
+                  onKeyDown={(e) => {
+                    if (e.key == 'Enter') {
+                      e.preventDefault();
+                      window.location.href = `/userProfile/${userSearch}`;
+                      setIsSearchVisible(false); // Hide search bar after pressing Enter
+                    }
+                  }}
+                  onChange={(e) => {
+                    setUserSearch(e.target.value);
+                  }}
+                  placeholder="Type in User ID"
+                  type="text"
+                  autoFocus
+                />
+                <Button
+                  className="px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-br-xl rounded-tr-xl justify-center"
+                  onClick={() => {
+                    window.location.href = `/userProfile/${userSearch}`;
+                    setIsSearchVisible(false); // Hide search bar after clicking search
+                  }}
+                >
+                  <Search size={20} />
+                </Button>
+              </div>
+            )}
+
+            {/* Move the search icon button to the right with other icons */}
+            {!isSearchVisible && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
+                onClick={() => setIsSearchVisible(true)}
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+            )}
+
             <Link to="/annotations">
               <Button
                 variant="ghost"

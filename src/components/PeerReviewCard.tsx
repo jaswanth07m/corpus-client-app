@@ -24,6 +24,7 @@ import { BACKEND_URL } from '@/lib/constants';
 
 interface PeerReviewCardProps {
   user_id: string;
+  username?: string;
   record_id: string;
   title: string;
   description: string;
@@ -61,7 +62,7 @@ const languages = [
 const releaseOptions = [
   { key: 'creator', value: 'This work is created by Author' },
   {
-    key: 'download',
+    key: 'downloaded',
     value:
       "Author downloaded this from the internet and/or Author don't know if it is free to share",
   },
@@ -78,6 +79,7 @@ function formatDate(ts?: string) {
 
 const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   user_id,
+  username,
   record_id,
   title,
   description,
@@ -176,10 +178,25 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
+
+        const fieldMessages = Array.isArray(errorData.errors)
+          ? errorData.errors
+              .map(
+                (e: { field: string; message: string }) =>
+                  `${e.field}: ${e.message}`,
+              )
+              .join('\n')
+          : '';
+
+        const message = [
           errorData.message ||
             `Failed to submit review: ${response.status} ${response.statusText}`,
-        );
+          fieldMessages,
+        ]
+          .filter(Boolean)
+          .join('\n');
+
+        throw new Error(message);
       }
 
       // Update local state with new values to reflect the changes
@@ -317,7 +334,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             </Link>
           </div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-gray-900">{user_id}</h3>
+            <h3 className="text-sm font-semibold text-gray-900">
+              {username || user_id}
+            </h3>
             {getMediaIcon(media_type)}
           </div>
         </div>
@@ -655,10 +674,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </div>
         )}
 
-        <p className="text-xs text-gray-400 italic">
-          *If not changed, default is yes for all fields
-        </p>
-
         {/* Actions */}
         {changed && (
           <div className="flex gap-2 pt-1">
@@ -693,7 +708,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         )}
 
         {submitError && (
-          <p className="text-xs text-red-500 font-medium text-center mt-1">
+          <p className="text-xs text-red-500 font-medium text-center mt-1 whitespace-pre-line">
             {submitError}
           </p>
         )}
