@@ -7,6 +7,10 @@ import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 import ForgotPassword from './pages/ForgotPassword'; // Import the new component
 import Proofreading from './pages/Proofreading';
+import AnnotationsDashboard from './pages/AnnotationsDashboard';
+import UserProfile from './components/UserProfile';
+import OtherUserProfile from './pages/OtherUserProfile';
+import PeerReview from './pages/PeerReview';
 
 const queryClient = new QueryClient();
 
@@ -18,8 +22,13 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />{' '}
-          <Route path="/proofreading" element={<Proofreading />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/annotations" element={<AnnotationsDashboard />} />
+          <Route path="/annotations/proofreading" element={<Proofreading />} />
+          <Route path="/proofreading" element={<AnnotationsDashboard />} />
+          <Route path="/myprofile/" element={<UserProfile />} />
+          <Route path="/userprofile/:userId" element={<OtherUserProfile />} />
+          <Route path="/peer-review" element={<PeerReview />} />
           {/* New route for ForgotPassword */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
