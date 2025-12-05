@@ -670,10 +670,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </div>
         )}
 
-        <p className="text-xs text-gray-400 italic">
-          *If not changed, default is yes for all fields
-        </p>
-
         {/* Actions */}
         {changed && (
           <div className="flex gap-2 pt-1">
