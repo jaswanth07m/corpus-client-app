@@ -24,6 +24,7 @@ import { BACKEND_URL } from '@/lib/constants';
 
 interface PeerReviewCardProps {
   user_id: string;
+  username?: string;
   record_id: string;
   title: string;
   description: string;
@@ -78,6 +79,7 @@ function formatDate(ts?: string) {
 
 const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   user_id,
+  username,
   record_id,
   title,
   description,
@@ -332,7 +334,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             </Link>
           </div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-gray-900">{user_id}</h3>
+            <h3 className="text-sm font-semibold text-gray-900">
+              {username || user_id}
+            </h3>
             {getMediaIcon(media_type)}
           </div>
         </div>
