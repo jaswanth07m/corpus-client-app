@@ -214,7 +214,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     if (location && !isVerifyingLocation) {
       verifyLocation(location.lat, location.lng);
     }
-  }, [location, isVerifyingLocation, verifyLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]);
 
   const handleEditLocation = () => {
     setVerifiedLocation(null);
