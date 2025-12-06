@@ -585,7 +585,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </div>
         ) : (
           <div className="pt-1">
-            <p className="text-center font-thin text-md">{description}</p>
+            <p className="text-center font-thin text-md">{newDescription}</p>
           </div>
         )}
 

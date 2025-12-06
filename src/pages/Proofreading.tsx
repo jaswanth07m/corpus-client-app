@@ -31,25 +31,37 @@ function Proofreading() {
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (isTeluguTypingEnabled && ocrTexts.length > 0) {
-      const currentPageText = ocrTexts[pageNumber - 1] || '';
-      setValue(currentPageText);
+  // Function to save the current page's text before navigating away
+  const saveCurrentPageText = () => {
+    if (isTeluguTypingEnabled && value !== undefined && value !== null) {
+      // When using telugu typing, save the current value to the current page's position
+      const newOcrTexts = [...ocrTexts];
+      newOcrTexts[pageNumber - 1] = value;
+      setOcrTexts(newOcrTexts);
     }
-    // We only want this to run when the page number or the initial texts change.
-  }, [ocrTexts, pageNumber, setValue, isTeluguTypingEnabled]);
+    // For non-telugu typing, handleOcrTextChange should keep ocrTexts updated as user types
+  };
 
   useEffect(() => {
-    // This check prevents an infinite loop. Only update if the text is different.
     if (isTeluguTypingEnabled) {
-      if (value !== (ocrTexts[pageNumber - 1] || '')) {
-        const newOcrTexts = [...ocrTexts];
-        newOcrTexts[pageNumber - 1] = value;
-        setOcrTexts(newOcrTexts);
+      const currentPageText = ocrTexts[pageNumber - 1] || '';
+      if (value !== currentPageText) {
+        setValue(currentPageText);
       }
     }
-    // This effect runs only when the hook's value changes.
-  }, [ocrTexts, pageNumber, value, isTeluguTypingEnabled]);
+  }, [ocrTexts, pageNumber, setValue, isTeluguTypingEnabled]);
+
+  const handleTextChange = (newValue) => {
+    // 1. Update the local input state immediately for responsiveness
+    setValue(newValue);
+
+    // 2. Update the main ocrTexts state array
+    if (isTeluguTypingEnabled) {
+      const newOcrTexts = [...ocrTexts];
+      newOcrTexts[pageNumber - 1] = newValue;
+      setOcrTexts(newOcrTexts);
+    }
+  };
 
   // Reset header timeout ref on unmount to avoid memory leaks
   useEffect(() => {
@@ -82,6 +94,9 @@ function Proofreading() {
       };
 
   async function fetchNextRecord() {
+    // Save current page's text before loading new record
+    saveCurrentPageText();
+
     setIsLoading(true);
     setError(null);
     setBookData(null);
@@ -199,7 +214,6 @@ function Proofreading() {
     setOcrTexts(newOcrTexts);
   }
 
-  // --- START: FULLY CORRECTED SUBMISSION LOGIC ---
   async function handleSubmitPage() {
     if (!recordId || !fullRecordData) {
       alert('Cannot submit: No record is currently loaded.');
@@ -256,6 +270,8 @@ function Proofreading() {
       }
 
       alert(`Page ${pageNumber} submitted successfully!`);
+      // Save current page's text before marking as submitted
+      saveCurrentPageText();
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
 
       if (numPages && pageNumber < numPages) {
@@ -370,7 +386,10 @@ function Proofreading() {
                   return (
                     <button
                       key={`page_button_${currentPage}`}
-                      onClick={() => setPageNumber(currentPage)}
+                      onClick={() => {
+                        saveCurrentPageText();
+                        setPageNumber(currentPage);
+                      }}
                       className={buttonClasses.join(' ')}
                     >
                       {currentPage}
@@ -565,7 +584,10 @@ function Proofreading() {
                     return (
                       <button
                         key={`page_button_${currentPage}`}
-                        onClick={() => setPageNumber(currentPage)}
+                        onClick={() => {
+                          saveCurrentPageText();
+                          setPageNumber(currentPage);
+                        }}
                         className={buttonClasses.join(' ')}
                       >
                         {currentPage}
@@ -682,6 +704,8 @@ function Proofreading() {
           <button
             className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
             onClick={() => {
+              // Save current page's text
+              saveCurrentPageText();
               // Mark current page as submitted locally and move to next page
               setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
               if (numPages && pageNumber < numPages) {

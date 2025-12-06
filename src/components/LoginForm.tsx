@@ -28,6 +28,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   //validation states
   const [validatePhone, setValidatePhone] = useState('border-gray-200');
   const [errorPhoneDisplay, setErrorPhoneDisplay] = useState('hidden');
+  const [validateUserName, setValidateUserName] = useState('border-gray-200');
+  const [errorUserNameDisplay, setErrorUserNameDisplay] = useState('hidden');
   const [validateName, setValidateName] = useState('border-gray-200');
   const [errorNameDisplay, setErrorNameDisplay] = useState('hidden');
   const [validateEmail, setValidateEmail] = useState('border-gray-200');
@@ -75,6 +77,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   // Signup form fields
   const [signupData, setSignupData] = useState({
+    username: '',
     name: '',
     email: '',
     gender: '',
@@ -124,6 +127,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const isValidUserName = (name: string) => {
+    const newNameRegex = /^[A-Za-z0-9_]{3,50}$/;
+    return newNameRegex.test(name.trim());
   };
 
   const handleSendOTP = async () => {
@@ -316,9 +324,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handleSignupSendOTP = async () => {
     // Validation
+
     if (!isValidPhoneNumber()) {
       toast.error('Please enter a valid 10-digit phone number');
       return;
+    }
+
+    if (!isValidUserName) {
+      toast.error('Please Enter a Valid UserName');
     }
 
     if (!signupData.name.trim()) {
@@ -347,6 +360,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
       const requestBody = {
         phone: getFullPhoneNumber(),
+        username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
         email: signupData.email.trim(),
         gender: signupData.gender || undefined,
@@ -406,6 +420,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const requestBody = {
         phone: getFullPhoneNumber(),
         otp_code: signupOtp.trim(),
+        username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
         email: signupData.email.trim(),
         gender: signupData.gender || undefined,
@@ -533,6 +548,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setResendTimer(0);
     setCanResend(false);
     setSignupData({
+      username: '',
       name: '',
       email: '',
       gender: '',
@@ -840,6 +856,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   <Button
                     onClick={handlePasswordLogin}
+                    onKeyDown={(e) => {
+                      console.log(e);
+                    }}
                     disabled={loading || !isValidPhoneNumber() || !password}
                     className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                   >
@@ -897,6 +916,44 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
                     >
                       *Phone number is invalid
+                    </div>
+                  </div>
+
+                  {/*UserName*/}
+                  <div className="relative">
+                    <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                    <Input
+                      type="text"
+                      placeholder="UserName*"
+                      value={signupData.username}
+                      onChange={(e) =>
+                        handleSignupInputChange('username', e.target.value)
+                      }
+                      onFocus={() => {
+                        setValidateUserName('border-gray-500');
+                        setErrorUserNameDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        const newNameRegex = /^[A-Za-z0-9_]{3,50}$/;
+                        const nameValue = e.target.value.trim();
+
+                        if (!newNameRegex.test(nameValue)) {
+                          setValidateUserName('border-rose-800');
+                          setErrorUserNameDisplay('block');
+                          setFormValidationErrors(true);
+                        } else {
+                          setValidateUserName('');
+                          setErrorUserNameDisplay('hidden');
+                          setFormValidationErrors(false);
+                        }
+                      }}
+                      className={`pl-12 h-14 border-2 ${validateUserName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <div
+                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorUserNameDisplay}`}
+                    >
+                      *Username should consist of characters, underscores,
+                      digits only
                     </div>
                   </div>
 
