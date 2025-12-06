@@ -307,6 +307,7 @@ const Categories: React.FC<CategoriesProps> = ({
       food_agriculture: '🌾',
       old_newspapers: '📰',
       'folk tales': '📓',
+      'medical-camp': '💊',
     };
     return iconMap[name] || '📂';
   };
