@@ -59,8 +59,6 @@ interface CategoriesProps {
   token: string;
   onBack: () => void;
   onLogout: () => void;
-  //onProfile: () => void;
-  onContentInput: (categoryId: string, categoryName: string) => void;
   onSessionExpired?: () => void; // Add this prop for session expiration callback
   preSelectedMediaType?:
     | 'text'
@@ -69,8 +67,6 @@ interface CategoriesProps {
     | 'image'
     | 'document'
     | null;
-  preSelectedCategoryId?: string | null;
-  preSelectedCategoryName?: string | null;
 }
 
 interface UploadOption {
@@ -86,11 +82,8 @@ const Categories: React.FC<CategoriesProps> = ({
   onBack,
   onLogout,
   //onProfile,
-  onContentInput,
   onSessionExpired,
   preSelectedMediaType,
-  preSelectedCategoryId,
-  preSelectedCategoryName,
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);

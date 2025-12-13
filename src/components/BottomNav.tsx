@@ -1,18 +1,15 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FileCheck, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const BottomNav: React.FC = () => {
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear all authentication data
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('phoneNumber');
-
-    // Redirect to login page
-    navigate('/');
+    logout();
+    navigate('/login', { replace: true });
   };
 
   return (
