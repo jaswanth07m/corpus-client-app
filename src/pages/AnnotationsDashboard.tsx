@@ -55,26 +55,22 @@ const AnnotationsDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header with back button */}
-      <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
-        <div className="max-w-6xl mx-auto">
+      <div className="bg-white border-b border-slate-200 p-6 shadow-sm">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
+                <button className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 border border-slate-200 hover:border-slate-300">
+                  <ArrowLeft className="h-5 w-5 text-slate-700" />
+                </button>
               </Link>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold">
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">
                   Annotations Dashboard
                 </h1>
-                <p className="text-purple-100 text-sm sm:text-base">
+                <p className="text-slate-600 text-base">
                   Select an annotation tool to get started
                 </p>
               </div>
@@ -83,70 +79,73 @@ const AnnotationsDashboard = () => {
         </div>
       </div>
 
-      <div className="flex-grow max-w-6xl mx-auto p-4 sm:p-6 w-full">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+      <div className="flex-grow max-w-7xl mx-auto p-8 w-full">
+        <div className="mb-12 text-center">
+          <div className="inline-block mb-6">
+            <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg">
+              <FileCheck className="w-8 h-8 text-white" />
+            </span>
+          </div>
+          <h2 className="text-4xl font-bold text-slate-900 mb-4">
             Annotation Tools
-          </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          </h2>
+          <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
             Access all annotation and proofreading tools from this central hub.
             Choose the tool that best fits your current task.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {annotationTools.map((tool) => (
-            <Card
+            <div
               key={tool.id}
-              className={`cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-2xl overflow-hidden hover:scale-[1.02] ${
-                tool.comingSoon ? 'opacity-70' : ''
+              className={`group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:-translate-y-2 ${
+                tool.comingSoon ? 'opacity-60' : ''
               }`}
             >
-              <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <div className="flex items-center space-x-4">
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 group-hover:scale-110 transition-transform duration-300">
                   {tool.icon}
-                  <div>
-                    <CardTitle className="text-xl">{tool.title}</CardTitle>
-                    {tool.comingSoon && (
-                      <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full mt-1">
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">{tool.description}</p>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                  {tool.title}
+                </h3>
+                {tool.comingSoon && (
+                  <span className="inline-block bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+                    Coming Soon
+                  </span>
+                )}
+                <p className="text-slate-600 text-base leading-relaxed mb-6">
+                  {tool.description}
+                </p>
                 {tool.comingSoon ? (
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    disabled={tool.comingSoon}
-                    onClick={(e) => e.preventDefault()}
+                  <button
+                    className="w-full px-6 py-3 bg-slate-200 text-slate-500 rounded-xl font-semibold cursor-not-allowed"
+                    disabled
                   >
                     Coming Soon
-                  </Button>
+                  </button>
                 ) : (
                   <Link to={tool.path} className="w-full">
-                    <Button className="w-full" variant="outline">
-                      Access Tool
-                    </Button>
+                    <button className="w-full px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                      Access Tool →
+                    </button>
                   </Link>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
       {/* Footer Section */}
-      <div className="bg-gray-50 border-t border-gray-200 py-8 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="bg-slate-50 border-t border-slate-200 py-12 mt-16">
+        <div className="max-w-7xl mx-auto px-8">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
               Need Additional Tools?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+            <p className="text-slate-600 text-lg max-w-2xl mx-auto mb-6">
               We're continuously adding new annotation tools to help with
               various tasks.
             </p>

@@ -594,8 +594,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               variant={mode === 'login' ? 'default' : 'ghost'}
               className={`flex-1 rounded-lg transition-all duration-300 ${
                 mode === 'login'
-                  ? 'gradient-purple text-white shadow-lg'
-                  : 'hover:bg-gray-200 text-gray-700'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg'
+                  : 'hover:bg-slate-100 text-slate-700'
               }`}
               onClick={() => {
                 setMode('login');
@@ -609,8 +609,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               variant={mode === 'signup' ? 'default' : 'ghost'}
               className={`flex-1 rounded-lg transition-all duration-300 ${
                 mode === 'signup'
-                  ? 'gradient-purple text-white shadow-lg'
-                  : 'hover:bg-gray-200 text-gray-700'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg'
+                  : 'hover:bg-slate-100 text-slate-700'
               }`}
               onClick={() => {
                 setMode('signup');
@@ -636,7 +636,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   </div>
 
                   <div className="relative">
-                    <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                    <Phone className="absolute left-4 top-4 h-5 w-5 text-emerald-600" />
                     <div className="absolute left-12 top-4 text-gray-500 font-medium">
                       +91
                     </div>
@@ -657,7 +657,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                           setErrorPhoneDisplay('block');
                         }
                       }}
-                      className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
+                      className="pl-20 h-14 border-2 border-gray-200 focus:border-emerald-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
                       {phoneDigits.length}/10 digits
@@ -671,9 +671,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   {/* Login with Password */}
                   <div className="font-medium text-gray-800">
-                    Prefer OTP Login ?{' '}
+                    Prefer Password Login ?{' '}
                     <button
-                      className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
+                      className="font-bold text-emerald-600 hover:text-emerald-700 transition-colors duration-200"
                       onClick={() => {
                         setLoginMethod('password');
                       }}
@@ -685,7 +685,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <Button
                     onClick={handleSendOTP}
                     disabled={loading || !isValidPhoneNumber()}
-                    className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
+                    className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
                       <div className="flex items-center gap-2">
@@ -715,7 +715,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       placeholder="Enter 6-digit OTP"
                       value={otp}
                       onChange={handleOtpChange}
-                      className="h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-center text-2xl tracking-widest bg-gray-50 focus:bg-white transition-all duration-300"
+                      className="h-14 border-2 border-gray-200 focus:border-emerald-500 rounded-xl text-center text-2xl tracking-widest bg-gray-50 focus:bg-white transition-all duration-300"
                       maxLength={6}
                     />
                     <div className="text-xs text-gray-500 mt-1 text-center">
@@ -727,7 +727,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Button
                       onClick={handleVerifyOTP}
                       disabled={loading || otp.length !== 6}
-                      className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
+                      className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                     >
                       {loading ? (
                         <div className="flex items-center gap-2">
@@ -745,7 +745,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         variant="ghost"
                         onClick={handleResendOTP}
                         disabled={!canResend || loading}
-                        className="flex items-center gap-2 text-purple-600 hover:bg-purple-50 rounded-xl h-12 transition-all duration-300"
+                        className="flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 rounded-xl h-12 transition-all duration-300"
                       >
                         <RefreshCw className="h-4 w-4" />
                         {resendTimer > 0

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import BottomNav from './BottomNav';
 import {
   ArrowLeft,
   MapPin,
@@ -52,7 +53,9 @@ interface VerifiedLocation {
 
 interface ContentInputProps {
   uploadMode: 'text' | 'audio' | 'video' | 'image' | 'document' | null;
-  selectedCategory: Category;
+  selectedCategory: Category | null;
+  categories?: Category[];
+  setSelectedCategory?: (category: Category | null) => void;
   title: string;
   setTitle: (title: string) => void;
   textContent: string;
@@ -101,6 +104,8 @@ const countMeaningfulWords = (s: string) => {
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
+  categories = [],
+  setSelectedCategory,
   title,
   setTitle,
   textContent,
@@ -670,29 +675,27 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
-      {/* Full-width Purple Header Bar */}
-      <div className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white px-6 py-6 shadow-lg relative">
-        {/* Back Button - Positioned at absolute left */}
-        <Button
-          onClick={onBack}
-          variant="ghost"
-          size="sm"
-          className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 rounded-lg z-10
-                     w-10 h-10 p-0 md:w-auto md:h-auto md:p-2"
-        >
-          <ArrowLeft className="w-4 h-4 md:mr-2" />
-          <span className="hidden md:inline">Back</span>
-        </Button>
-
-        {/* Center Content */}
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold">
-            {uploadOptions.find((opt) => opt.type === uploadMode)?.title}
-          </h1>
-          <p className="text-purple-100 text-sm mt-1">
-            {selectedCategory.title}
-          </p>
+    <div className="min-h-screen bg-white flex flex-col pb-20">
+      {/* Instagram-like Header */}
+      <div className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-all duration-200"
+          >
+            <ArrowLeft className="w-6 h-6 text-slate-700" />
+          </button>
+          <div className="flex-1 text-center">
+            <h1 className="text-lg font-bold text-slate-900">
+              {uploadOptions.find((opt) => opt.type === uploadMode)?.title}
+            </h1>
+            {selectedCategory && (
+              <p className="text-xs text-slate-500 mt-0.5">
+                {selectedCategory.title}
+              </p>
+            )}
+          </div>
+          <div className="w-10"></div>
         </div>
       </div>
 
@@ -702,7 +705,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           <CardContent className="p-8">
             {/* Upload Form Header */}
             <div className="flex items-center mb-8">
-              <div className="bg-purple-100 p-3 rounded-lg mr-4">
+              <div className="bg-emerald-100 p-3 rounded-lg mr-4">
                 {uploadOptions.find((opt) => opt.type === uploadMode)?.icon}
               </div>
               <div>
@@ -730,7 +733,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${chunkedUploadProgress}%`,
                     }}
@@ -797,6 +800,30 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
+            {/* Category Dropdown */}
+            {categories && categories.length > 0 && setSelectedCategory && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category *
+                </label>
+                <select
+                  value={selectedCategory?.id || ''}
+                  onChange={(e) => {
+                    const cat = categories.find((c) => c.id === e.target.value);
+                    setSelectedCategory(cat || null);
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white text-gray-900"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Title Input */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -818,7 +845,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     setTitleError(null);
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 placeholder="Enter a title for your content"
               />
               {titleError && (
@@ -924,7 +951,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   <Button
                     onClick={() => setShowLocationPicker(true)}
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-emerald-600 hover:bg-emerald-700"
                   >
                     <Pencil className="w-4 h-4 mr-1" />
                     Pick from Map
@@ -1495,9 +1522,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   uploading ||
                   uploadingFiles ||
                   !title ||
-                  titleError ||
+                  !!titleError ||
                   !description ||
-                  descriptionError ||
+                  !!descriptionError ||
                   !verifiedLocation || // <-- Key change: Disable button until location is VERIFIED
                   !releaseRights ||
                   releaseRights === 'downloaded' ||
@@ -1509,7 +1536,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     ? true
                     : false
                 }
-                className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium text-lg"
+                className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-medium text-lg"
               >
                 {uploading || uploadingFiles
                   ? 'Uploading...'
@@ -1527,6 +1554,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           onClose={() => setShowLocationPicker(false)}
         />
       )}
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };

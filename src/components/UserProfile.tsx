@@ -31,8 +31,6 @@ import UserContributions from './UserContributions';
 import ContributionDashboard from './ContributionDashboard'; // Import the new dashboard component
 import { BACKEND_URL } from '@/lib/constants';
 import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
-
-// ... (All interface definitions remain the same) ...
 interface UserProfile {
   id: string;
   username: string;
@@ -794,6 +792,9 @@ const UserProfile: React.FC = () => {
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
 
+  // State for showing personal info
+  const [showPersonalInfo, setShowPersonalInfo] = useState(false);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never';
     try {
@@ -1036,82 +1037,144 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 pt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* ... (Header, Privacy Notice, Profile Info, Contributions by Media Type sections remain the same) ... */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  window.location.href = '/';
-                }}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Back to Categories"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-semibold">
-                {getInitials(currentUser.name)}
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {currentUser.name}
-                </h1>
-                <p className="text-gray-600">
-                  @{currentUser.username || currentUser.id}
-                </p>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                    currentUser.isActive,
-                  )}`}
-                >
-                  {getStatusText(currentUser.isActive)}
-                </span>
-              </div>
-            </div>
-            <div className="flex space-x-2">
+        {/* Enhanced Header Card */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
+          {/* Header Actions Bar */}
+          <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-3 flex items-center justify-between border-b border-slate-100">
+            <button
+              onClick={() => (window.location.href = '/')}
+              className="p-2 hover:bg-slate-100 rounded-full transition-all duration-200"
+              title="Back"
+            >
+              <ArrowLeft size={20} className="text-slate-600" />
+            </button>
+            <div className="flex gap-2">
               <button
                 onClick={handleRefresh}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-emerald-50 rounded-full transition-all duration-200 group"
                 title="Refresh"
               >
-                <RefreshCw size={20} />
+                <RefreshCw
+                  size={20}
+                  className="text-slate-600 group-hover:text-emerald-600"
+                />
               </button>
               <button
                 onClick={handleExport}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Export Data"
+                className="p-2 hover:bg-emerald-50 rounded-full transition-all duration-200 group"
+                title="Export"
               >
-                <Download size={20} />
+                <Download
+                  size={20}
+                  className="text-slate-600 group-hover:text-emerald-600"
+                />
               </button>
-              {/* Edit Profile Button removed from header, now only in Profile Information section */}
+            </div>
+          </div>
+
+          {/* Profile Info Section - Instagram Style Horizontal Layout */}
+          <div className="p-8">
+            <div className="flex gap-8 items-start mb-6">
+              {/* Avatar - Left Side */}
+              <div className="relative flex-shrink-0">
+                <div className="w-32 h-32 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl ring-4 ring-emerald-50">
+                  {getInitials(currentUser.name)}
+                </div>
+                <div className="absolute bottom-2 right-2 w-7 h-7 bg-emerald-500 rounded-full border-4 border-white"></div>
+              </div>
+
+              {/* User Info & Stats - Right Side */}
+              <div className="flex-1 pt-2">
+                {/* Name and Username */}
+                <div className="mb-4">
+                  <h1 className="text-2xl font-bold text-slate-900 mb-1">
+                    {currentUser.name}
+                  </h1>
+                  <p className="text-slate-500 text-sm">
+                    @{currentUser.username || currentUser.id}
+                  </p>
+                </div>
+
+                {/* Stats Row - Instagram Style */}
+                <div className="flex gap-8 mb-4">
+                  <div>
+                    <span className="font-bold text-slate-900">
+                      {contributions?.totalContributions || 0}
+                    </span>
+                    <span className="text-slate-600 ml-1">posts</span>
+                  </div>
+                  <button
+                    className="hover:text-slate-900 transition-colors"
+                    onClick={() => {
+                      fetchFollowers(currentUser.id);
+                      setShowFollowersModal(true);
+                    }}
+                  >
+                    <span className="font-bold text-slate-900">
+                      {followersCount}
+                    </span>
+                    <span className="text-slate-600 ml-1">followers</span>
+                  </button>
+                  <button
+                    className="hover:text-slate-900 transition-colors"
+                    onClick={() => {
+                      fetchFollowing(currentUser.id);
+                      setShowFollowingModal(true);
+                    }}
+                  >
+                    <span className="font-bold text-slate-900">
+                      {followingCount}
+                    </span>
+                    <span className="text-slate-600 ml-1">following</span>
+                  </button>
+                </div>
+
+                {/* Bio/Status */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {getStatusText(currentUser.isActive)}
+                    </span>
+                  </div>
+                  {currentUser.place && (
+                    <p className="text-slate-600 text-sm flex items-center gap-1">
+                      <MapPin size={14} />
+                      {currentUser.place}
+                    </p>
+                  )}
+                </div>
+
+                {/* Personal Info Button */}
+                <button
+                  onClick={() => setShowPersonalInfo(!showPersonalInfo)}
+                  className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
+                >
+                  {showPersonalInfo
+                    ? 'Hide Personal Info'
+                    : 'View Personal Info'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        {/* Privacy Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center space-x-2">
-            <Eye size={16} className="text-blue-600" />
-            <p className="text-sm text-blue-800">
-              Tap the eye icon to reveal sensitive information
-            </p>
-          </div>
-        </div>
-        {/* Profile Information or Edit Form */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-normal text-center w-full p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
-              <span className="font-sans">Profile Information</span>
-            </h2>
-          </div>
 
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Personal Information Section - Conditional */}
+        {showPersonalInfo && (
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6 animate-fadeIn">
+            <div className="flex items-center gap-2 mb-5">
+              <User size={20} className="text-emerald-600" />
+              <h2 className="text-xl font-bold text-slate-900">
+                Personal Information
+              </h2>
+            </div>
+
+            <div className="space-y-2">
               {[
                 {
                   key: 'email',
-                  icon: <Mail size={18} className="text-gray-500" />,
+                  icon: <Mail size={18} className="text-slate-500" />,
                   title: 'Email',
                   value: isEmailRevealed
                     ? currentUser.email
@@ -1127,7 +1190,7 @@ const UserProfile: React.FC = () => {
                 },
                 {
                   key: 'phone',
-                  icon: <Phone size={18} className="text-gray-500" />,
+                  icon: <Phone size={18} className="text-slate-500" />,
                   title: 'Phone',
                   value: isPhoneRevealed
                     ? currentUser.phone
@@ -1145,7 +1208,7 @@ const UserProfile: React.FC = () => {
                   ? [
                       {
                         key: 'gender',
-                        icon: <User size={18} className="text-gray-500" />,
+                        icon: <User size={18} className="text-slate-500" />,
                         title: 'Gender',
                         value: currentUser.gender,
                         hasButton: false,
@@ -1156,7 +1219,7 @@ const UserProfile: React.FC = () => {
                   ? [
                       {
                         key: 'dateOfBirth',
-                        icon: <Calendar size={18} className="text-gray-500" />,
+                        icon: <Calendar size={18} className="text-slate-500" />,
                         title: 'Date of Birth',
                         value: formatDate(currentUser.dateOfBirth),
                         hasButton: false,
@@ -1167,7 +1230,7 @@ const UserProfile: React.FC = () => {
                   ? [
                       {
                         key: 'place',
-                        icon: <MapPin size={18} className="text-gray-500" />,
+                        icon: <MapPin size={18} className="text-slate-500" />,
                         title: 'Location',
                         value: currentUser.place,
                         hasButton: false,
@@ -1178,93 +1241,62 @@ const UserProfile: React.FC = () => {
                 <ProfileDetail key={item.key} {...item} />
               ))}
             </div>
-          </>
-        </div>
-        {/* Followers and Following Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-normal text-center w-full p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
-              <span className="font-sans">FOLLOWERS & FOLLOWING</span>
-            </h2>
           </div>
+        )}
 
-          <div className="flex justify-around items-center py-4">
-            <div
-              className="text-center cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
-              onClick={() => {
-                fetchFollowers(currentUser.id);
-                setShowFollowersModal(true);
-              }}
-            >
-              <div className="text-3xl font-bold text-blue-600">
-                {followersCount}
-              </div>
-              <div className="text-gray-600">Followers</div>
+        {/* Contributions Section - Always Visible */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Activity size={20} className="text-emerald-600" />
+              <h2 className="text-xl font-bold text-slate-900">
+                My Contributions
+              </h2>
             </div>
 
-            <div
-              className="text-center cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
-              onClick={() => {
-                fetchFollowing(currentUser.id);
-                setShowFollowingModal(true);
-              }}
-            >
-              <div className="text-3xl font-bold text-blue-600">
-                {followingCount}
-              </div>
-              <div className="text-gray-600">Following</div>
+            {/* Compact Toggle */}
+            <div className="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50 shadow-sm">
+              <button
+                onClick={() => {
+                  setShowDashboard(true);
+                  setContributions(null);
+                }}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  showDashboard
+                    ? 'bg-white text-emerald-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  setShowDashboard(false);
+                  setContributions(null);
+                }}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  !showDashboard
+                    ? 'bg-white text-emerald-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Files
+              </button>
             </div>
-          </div>
-        </div>
-
-        {/* Contribution Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-normal text-center w-full p-4 bg-gray-100 rounded-lg uppercase tracking-wide font-sans">
-              <span className="font-sans">MY CONTRIBUTIONS</span>
-            </h2>
-          </div>
-
-          <div className="flex justify-center mb-6">
-            <button
-              onClick={() => {
-                setShowDashboard(true);
-                setContributions(null); // Clear contributions when switching to dashboard
-              }}
-              className={`px-6 py-2 rounded-l-lg font-medium transition-colors ${
-                showDashboard
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => {
-                setShowDashboard(false);
-                setContributions(null); // Clear contributions when switching to detailed view
-                // The useEffect in useUserProfile will then trigger a fetch for the current selectedMediaType
-              }}
-              className={`px-6 py-2 rounded-r-lg font-medium transition-colors ${
-                !showDashboard
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              View All Files
-            </button>
           </div>
 
           {showDashboard ? (
-            <ContributionDashboard
-              dailyStats={dailyStats}
-              contributions={contributions}
-              loading={loading.stats || loading.contributions}
-            />
+            <div className="mt-4">
+              <ContributionDashboard
+                dailyStats={dailyStats}
+                contributions={contributions}
+                loading={loading.stats || loading.contributions}
+              />
+            </div>
           ) : (
-            <>
-              {/* Media type selector - improved layout and style */}
-              <div className="flex justify-center gap-4 my-4">
+            <div className="mt-4">
+              {/* Media Type Pills */}
+              <div className="flex gap-2 mb-6 flex-wrap">
                 {(['text', 'document', 'image', 'audio', 'video'] as const).map(
                   (type) => (
                     <ContributionTypeButton
@@ -1281,19 +1313,20 @@ const UserProfile: React.FC = () => {
                   ),
                 )}
               </div>
-              {/* Modernized display of contributions for selected media type */}
-              <div className="max-w-2xl mx-auto">
-                {selectedMediaType && ( // Only render ContributionsList if a media type is selected
+
+              {/* Contributions List */}
+              <div className="space-y-3">
+                {selectedMediaType && (
                   <ContributionsList
                     contributions={contributions}
-                    selectedMediaType={selectedMediaType as any} // Cast to any for now, will fix ContributionsList prop type
+                    selectedMediaType={selectedMediaType as any}
                     onUpdate={refetch}
                     handleUpdate={handleUpdate}
                     token={token}
                   />
                 )}
                 {!selectedMediaType && !loading.contributions && (
-                  <div className="text-center text-gray-400 py-8 text-lg font-medium">
+                  <div className="text-center text-slate-400 py-8 text-sm font-medium">
                     Please select a media type to view contributions.
                   </div>
                 )}
@@ -1306,67 +1339,77 @@ const UserProfile: React.FC = () => {
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
         </div>
-        {/* Account Information */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Account Information
-          </h2>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Member Since</span>
-              <span className="text-sm font-medium text-gray-900">
-                {formatDate(currentUser.createdAt)}
-              </span>
+        {/* Account Information & Export - Combined */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-slate-900">
+              Account Details
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExport}
+                className="px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
+                disabled={!currentUser}
+              >
+                <Download size={14} />
+                <span>JSON</span>
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="px-3 py-1.5 bg-slate-600 text-white text-sm rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-1.5"
+                disabled={!currentUser}
+              >
+                <Download size={14} />
+                <span>CSV</span>
+              </button>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Last Updated</span>
-              <span className="text-sm font-medium text-gray-900">
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="text-xs text-slate-500 font-medium">
+                Member Since
+              </div>
+              <div className="text-sm font-semibold text-slate-900">
+                {formatDate(currentUser.createdAt)}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs text-slate-500 font-medium">
+                Last Updated
+              </div>
+              <div className="text-sm font-semibold text-slate-900">
                 {formatDate(currentUser.updatedAt)}
-              </span>
+              </div>
             </div>
             {currentUser.lastLoginAt && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Last Login</span>
-                <span className="text-sm font-medium text-gray-900">
+              <div className="space-y-2">
+                <div className="text-xs text-slate-500 font-medium">
+                  Last Login
+                </div>
+                <div className="text-sm font-semibold text-slate-900">
                   {formatDate(currentUser.lastLoginAt)}
-                </span>
+                </div>
               </div>
             )}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Consent Given</span>
-              <span
-                className={`text-sm font-medium ${
+            <div className="space-y-2">
+              <div className="text-xs text-slate-500 font-medium">
+                Consent Status
+              </div>
+              <div
+                className={`text-sm font-semibold ${
                   currentUser.hasGivenConsent
-                    ? 'text-green-600'
+                    ? 'text-emerald-600'
                     : 'text-red-600'
                 }`}
               >
-                {currentUser.hasGivenConsent ? 'Yes' : 'No'}
-              </span>
+                {currentUser.hasGivenConsent ? '✓ Given' : '✗ Not Given'}
+              </div>
             </div>
           </div>
-        </div>
-        {/* Export Section */}
-        <div className="flex space-x-2">
-          <button
-            onClick={handleExport}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-            disabled={!currentUser}
-          >
-            <Download size={16} />
-            <span>Export JSON</span>
-          </button>
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-            disabled={!currentUser}
-          >
-            <Download size={16} />
-            <span>Export CSV</span>
-          </button>
         </div>
       </div>
       {/* The modal is no longer rendered here */}
@@ -1404,18 +1447,25 @@ function ContributionTypeButton({
     type: 'text' | 'image' | 'video' | 'audio' | 'document',
   ) => void;
 }) {
+  const icons = {
+    text: '📝',
+    document: '📄',
+    image: '🖼️',
+    audio: '🎵',
+    video: '🎬',
+  };
+
   return (
     <button
-      key={type}
       onClick={() => setSelectedMediaType(type)}
-      className={`px-4 py-2 rounded-lg font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400
-        ${
-          selectedMediaType === type
-            ? 'bg-blue-600 text-white border-blue-600'
-            : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
-        }`}
+      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        selectedMediaType === type
+          ? 'bg-emerald-600 text-white shadow-sm'
+          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+      }`}
     >
-      {capitalize(type)}
+      <span>{icons[type]}</span>
+      <span>{capitalize(type)}</span>
     </button>
   );
 }

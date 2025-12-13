@@ -1,20 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import LoginForm from '@/components/LoginForm';
-import UserProfile from '@/components/UserProfile';
-import ContentInput from '@/components/ContentInput';
 import Categories from '@/components/Categories';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Plus, User, Grid3X3 } from 'lucide-react';
+import MediaTypeWheel from '@/components/MediaTypeWheel';
 import posthog from 'posthog-js';
 
-type View = 'login' | 'profile' | 'content' | 'categories';
+type View = 'login' | 'content' | 'categories' | 'mediaWheel';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>('login');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [selectedMediaType, setSelectedMediaType] = useState<
+    'text' | 'audio' | 'video' | 'image' | 'document' | null
+  >(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
+  const [selectedCategoryName, setSelectedCategoryName] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     // Check for existing session on load
@@ -26,7 +31,7 @@ const Index = () => {
       const user = JSON.parse(savedUser);
       setUser(user);
       posthog.identify(user.user_id);
-      setCurrentView('categories');
+      setCurrentView('mediaWheel');
     }
   }, []);
 
@@ -38,7 +43,7 @@ const Index = () => {
     localStorage.setItem('user', JSON.stringify(userData));
     posthog.identify(userData.user_id);
     posthog.capture('user_logged_in');
-    setCurrentView('categories');
+    setCurrentView('mediaWheel');
   };
 
   const handleLogout = () => {
@@ -47,41 +52,35 @@ const Index = () => {
     // Clear all authentication and cached data
     setToken(null);
     setUser(null);
+    setSelectedMediaType(null);
+    setSelectedCategoryId(null);
+    setSelectedCategoryName(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('authToken'); // Clear this too if it exists
-    localStorage.removeItem('cachedProfile'); // Clear cached profile
-    localStorage.clear(); // Or clear everything if needed
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('cachedProfile');
+    localStorage.clear();
 
     posthog.reset();
 
     setCurrentView('login');
   };
 
-  if (currentView === 'login') {
-    return <LoginForm onLoginSuccess={handleLoginSuccess} />;
-  }
+  const handleMediaTypeSelect = (
+    type: 'text' | 'audio' | 'video' | 'image' | 'document',
+  ) => {
+    console.log('Media type selected:', type);
+    setSelectedMediaType(type);
+    setCurrentView('categories'); // This will show upload form directly
+    posthog.capture('media_type_selected', { mediaType: type });
+  };
 
-  // if (currentView === 'profile') {
-  //   return (
-  //     <UserProfile
-  //       key={user?.id || Date.now()}
-  //       user={user}
-  //       token={token!}
-  //       onLogout={handleLogout}
-  //       onBack={() => setCurrentView('categories')}
-  //     />
-  //   );
-  // }
+  const handleCategorySelect = (categoryId: string, categoryName: string) => {
+    setSelectedCategoryId(categoryId);
+    setSelectedCategoryName(categoryName);
+    posthog.capture('category_selected', { categoryId, categoryName });
+  };
 
-  if (currentView === 'content') {
-    return (
-      <ContentInput
-        token={token!}
-        onBack={() => setCurrentView('categories')}
-      />
-    );
-  }
   const handleSessionExpired = () => {
     setToken('');
     setCurrentView('login');
@@ -89,20 +88,35 @@ const Index = () => {
     sessionStorage.removeItem('authToken');
   };
 
-  if (currentView === 'categories') {
+  if (currentView === 'login') {
+    return <LoginForm onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  if (currentView === 'mediaWheel') {
     return (
-      <Categories
-        token={token!}
-        onBack={handleLogout} // Changed: Now goes directly to login
-        onLogout={handleLogout}
-        //onProfile={() => setCurrentView('profile')}
-        onContentInput={() => setCurrentView('content')}
-        onSessionExpired={handleSessionExpired}
+      <MediaTypeWheel
+        onSelect={handleMediaTypeSelect}
+        selectedType={selectedMediaType}
+        onCategorySelect={handleCategorySelect}
       />
     );
   }
 
-  // This return statement should never be reached now
+  if (currentView === 'categories') {
+    return (
+      <Categories
+        token={token!}
+        onBack={() => setCurrentView('mediaWheel')}
+        onLogout={handleLogout}
+        onContentInput={handleCategorySelect}
+        onSessionExpired={handleSessionExpired}
+        preSelectedMediaType={selectedMediaType}
+        preSelectedCategoryId={selectedCategoryId}
+        preSelectedCategoryName={selectedCategoryName}
+      />
+    );
+  }
+
   return null;
 };
 
