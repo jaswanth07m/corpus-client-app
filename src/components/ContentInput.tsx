@@ -101,6 +101,33 @@ const countMeaningfulWords = (s: string) => {
   return s.split(' ').filter((w) => w.length > 2).length;
 };
 
+const getCategoryIcon = (name: string) => {
+  const iconMap: { [key: string]: string } = {
+    fables: '📚',
+    events: '🎉',
+    music: '🎵',
+    places: '🏛️',
+    food: '🍽️',
+    people: '👥',
+    literature: '📖',
+    architecture: '🏗️',
+    skills: '⚡',
+    images: '🖼️',
+    culture: '🎭',
+    'flora_&_fauna': '🌿',
+    education: '🎓',
+    vegetation: '🌱',
+    folk_songs: '🎶',
+    traditional_skills: '🛠️',
+    local_cultural_history: '🏛️',
+    local_history: '📜',
+    food_agriculture: '🌾',
+    old_newspapers: '📰',
+    'folk tales': '📓',
+  };
+  return iconMap[name] || '📂';
+};
+
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
@@ -800,27 +827,42 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
-            {/* Category Dropdown */}
+            {/* Category Card Selection */}
             {categories && categories.length > 0 && setSelectedCategory && (
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  Select Category *
                 </label>
-                <select
-                  value={selectedCategory?.id || ''}
-                  onChange={(e) => {
-                    const cat = categories.find((c) => c.id === e.target.value);
-                    setSelectedCategory(cat || null);
-                  }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white text-gray-900"
-                >
-                  <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.title}
-                    </option>
-                  ))}
-                </select>
+                <div className="overflow-x-auto pb-2 -mx-2 px-2">
+                  <div className="flex gap-4 min-w-max">
+                    {categories.map((cat) => (
+                      <div
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`cursor-pointer bg-white rounded-xl p-4 border-2 transition-all duration-200 hover:shadow-md flex-shrink-0 w-40 ${
+                          selectedCategory?.id === cat.id
+                            ? 'border-emerald-500 bg-emerald-50 shadow-md'
+                            : 'border-gray-200 hover:border-emerald-300'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center text-center gap-2">
+                          <div className="text-4xl">
+                            {getCategoryIcon(cat.name)}
+                          </div>
+                          <h3
+                            className={`font-semibold text-sm ${
+                              selectedCategory?.id === cat.id
+                                ? 'text-emerald-700'
+                                : 'text-gray-700'
+                            }`}
+                          >
+                            {cat.title}
+                          </h3>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 

@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
 import { Link } from 'react-router-dom';
+import SwechaLogo from './SwechaLogo';
 
 interface LoginFormProps {
   onLoginSuccess: (token: string, user: unknown) => void;
@@ -563,39 +564,50 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700">
-      {/* Background decoration */}
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50 via-white to-blue-50 relative overflow-hidden">
+      {/* Animated Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-emerald-200/30 rounded-full blur-3xl animate-pulse"></div>
+          <div
+            className="absolute bottom-20 right-20 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: '1s' }}
+          ></div>
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-200/20 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: '2s' }}
+          ></div>
+        </div>
       </div>
 
-      <Card className="w-full max-w-md animate-scale-in relative z-10 shadow-2xl border-0 bg-white/95 backdrop-blur-lg">
-        <CardHeader className="text-center pb-8 pt-8">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-3xl shadow-xl overflow-hidden">
-            <img
-              src="/favicon.png"
-              alt="Logo"
-              className="w-full h-full object-cover"
+      <Card className="w-full max-w-md animate-scale-in relative z-10 shadow-2xl border border-slate-200/50 bg-white/90 backdrop-blur-xl">
+        <CardHeader className="text-center pb-6 pt-10 px-8">
+          <div className="mb-8">
+            <SwechaLogo
+              size="xl"
+              showTagline={true}
+              className="justify-center"
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {mode === 'login' ? 'Welcome' : 'Create Account'}
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-3">
+            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
           </h1>
-          <p className="text-gray-600">
-            {mode === 'login' ? 'Sign in to your account' : 'Join us today'}
+          <p className="text-slate-600 text-base">
+            {mode === 'login'
+              ? 'Sign in to continue your journey'
+              : 'Join our community today'}
           </p>
         </CardHeader>
 
-        <CardContent className="space-y-6 px-8 pb-8">
-          {/* Mode Toggle */}
-          <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+        <CardContent className="space-y-6 px-8 pb-10">
+          {/* Mode Toggle - Enhanced Design */}
+          <div className="flex gap-3 p-1.5 bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl shadow-inner">
             <Button
               variant={mode === 'login' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${
+              className={`flex-1 rounded-xl transition-all duration-300 font-semibold ${
                 mode === 'login'
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg'
-                  : 'hover:bg-slate-100 text-slate-700'
+                  ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg shadow-emerald-500/30 scale-105'
+                  : 'hover:bg-white/80 text-slate-600 hover:text-slate-900'
               }`}
               onClick={() => {
                 setMode('login');
@@ -607,10 +619,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             </Button>
             <Button
               variant={mode === 'signup' ? 'default' : 'ghost'}
-              className={`flex-1 rounded-lg transition-all duration-300 ${
+              className={`flex-1 rounded-xl transition-all duration-300 font-semibold ${
                 mode === 'signup'
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg'
-                  : 'hover:bg-slate-100 text-slate-700'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/30 scale-105'
+                  : 'hover:bg-white/80 text-slate-600 hover:text-slate-900'
               }`}
               onClick={() => {
                 setMode('signup');

@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   MessageSquare,
 } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
 
 const AnnotationsDashboard = () => {
   const annotationTools = [
@@ -55,7 +56,7 @@ const AnnotationsDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-24">
       {/* Header with back button */}
       <div className="bg-white border-b border-slate-200 p-6 shadow-sm">
         <div className="max-w-7xl mx-auto">
@@ -152,6 +153,9 @@ const AnnotationsDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };

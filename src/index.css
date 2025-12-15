@@ -486,3 +486,433 @@ textarea:focus-visible {
   background: linear-gradient(to right, #f1f5f9 4%, #e2e8f0 25%, #f1f5f9 36%);
   background-size: 1000px 100%;
 }
+
+/* ========================================
+   MOBILE RESPONSIVENESS & CONSISTENCY
+   ======================================== */
+
+/* Prevent zoom on input focus (iOS) */
+input[type='text'],
+input[type='email'],
+input[type='tel'],
+input[type='password'],
+input[type='number'],
+textarea,
+select {
+  font-size: 16px !important; /* Prevents iOS zoom */
+}
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+  /* Ensure proper spacing on mobile */
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Adjust container padding for mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Make cards stack properly on mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Adjust text sizes for mobile readability */
+  h1 {
+    font-size: 1.875rem !important; /* 30px */
+  }
+
+  h2 {
+    font-size: 1.5rem !important; /* 24px */
+  }
+
+  h3 {
+    font-size: 1.25rem !important; /* 20px */
+  }
+
+  /* Make buttons full-width on mobile when needed */
+  .mobile-full-width {
+    width: 100% !important;
+  }
+
+  /* Adjust modal sizes for mobile */
+  .modal-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 1rem !important;
+  }
+
+  /* Fix profile page layout on mobile */
+  .profile-container {
+    flex-direction: column !important;
+  }
+
+  /* Make stats stack vertically on mobile */
+  .stats-row {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Adjust image grid for mobile */
+  .image-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Make navigation touch-friendly */
+  .nav-item {
+    min-height: 44px !important; /* iOS touch target size */
+    min-width: 44px !important;
+  }
+
+  /* Adjust wheel size for mobile */
+  .media-wheel {
+    max-width: 90vw !important;
+    max-height: 90vw !important;
+  }
+
+  /* Fix bottom navigation on mobile */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Add safe area padding for notched devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Prevent horizontal scroll */
+  * {
+    max-width: 100vw;
+  }
+
+  /* Make tables responsive */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Adjust form inputs for mobile */
+  input,
+  textarea,
+  select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Fix scrollable content */
+  .scrollable {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  /* Adjust padding for mobile */
+  .px-4 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .py-6 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  /* Make cards more compact on mobile */
+  .card {
+    padding: 1rem !important;
+  }
+
+  /* Adjust gap spacing for mobile */
+  .gap-6 {
+    gap: 1rem !important;
+  }
+
+  .gap-4 {
+    gap: 0.75rem !important;
+  }
+
+  /* Fix flex layouts on mobile */
+  .flex-row-mobile {
+    flex-direction: column !important;
+  }
+
+  /* Adjust avatar sizes for mobile */
+  .avatar-large {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  /* Make contribution cards stack on mobile */
+  .contribution-card {
+    width: 100% !important;
+  }
+
+  /* Fix modal positioning on mobile */
+  .fixed {
+    position: fixed !important;
+  }
+
+  /* Adjust z-index for mobile overlays */
+  .overlay {
+    z-index: 9999 !important;
+  }
+
+  /* Make images responsive */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Fix video player on mobile */
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Adjust category cards for mobile */
+  .category-card {
+    min-width: 140px !important;
+    max-width: 160px !important;
+  }
+
+  /* Fix horizontal scroll containers */
+  .horizontal-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  .horizontal-scroll::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
+  /* Adjust login form for mobile */
+  .login-container {
+    padding: 1.5rem !important;
+    min-height: 100vh;
+  }
+
+  /* Fix profile stats on mobile */
+  .profile-stats {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  /* Make followers/following buttons stack */
+  .follow-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  /* Adjust contribution dashboard for mobile */
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Fix media detail modal on mobile */
+  .media-detail-modal {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  /* Adjust peer review cards for mobile */
+  .peer-review-card {
+    flex-direction: column !important;
+  }
+
+  /* Fix annotation cards on mobile */
+  .annotation-card {
+    padding: 0.75rem !important;
+  }
+
+  /* Make upload form mobile-friendly */
+  .upload-form {
+    padding: 1rem !important;
+  }
+
+  /* Adjust file preview on mobile */
+  .file-preview {
+    max-width: 100% !important;
+    max-height: 200px !important;
+  }
+
+  /* Fix category selector on mobile */
+  .category-selector {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+
+  /* Adjust media type buttons for mobile */
+  .media-type-button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  /* Fix contribution list on mobile */
+  .contribution-list {
+    padding: 0.5rem !important;
+  }
+
+  /* Adjust edit history on mobile */
+  .edit-history {
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Fix swecha logo on mobile */
+  .swecha-logo {
+    transform: scale(0.8) !important;
+  }
+
+  /* Adjust wheel center info on mobile */
+  .wheel-center-info {
+    font-size: 0.75rem !important;
+  }
+
+  /* Fix profile header on mobile */
+  .profile-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Make action buttons stack on mobile */
+  .action-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .action-buttons button {
+    width: 100% !important;
+  }
+}
+
+/* Tablet adjustments (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .image-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (max-width: 896px) and (orientation: landscape) {
+  .modal-content {
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  .media-wheel {
+    max-width: 50vh !important;
+    max-height: 50vh !important;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  button,
+  a,
+  .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .hover\:scale-105:hover {
+    transform: none !important;
+  }
+
+  /* Adjust transitions for touch */
+  * {
+    transition-duration: 150ms !important;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Sharper borders */
+  .border {
+    border-width: 0.5px;
+  }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Smooth scrolling for mobile */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fix for iOS momentum scrolling */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: scroll;
+}
+
+/* Prevent pull-to-refresh on mobile */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Fix for mobile Safari bottom bar */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode adjustments for mobile */
+@media (prefers-color-scheme: dark) {
+  @media (max-width: 640px) {
+    body {
+      background-color: #1a1a1a;
+    }
+
+    .card {
+      background-color: #2a2a2a;
+      border-color: #3a3a3a;
+    }
+  }
+}

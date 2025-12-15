@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Type, Mic, Video, FileText, Image } from 'lucide-react';
 import BottomNav from './BottomNav';
+import SwechaLogo from './SwechaLogo';
 
 interface MediaType {
   type: 'text' | 'audio' | 'video' | 'image' | 'document';
@@ -586,22 +587,9 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex flex-col items-center justify-center py-12 px-4 pb-24">
       {/* Title */}
       <div className="text-center mb-16 animate-fade-in max-w-3xl mx-auto">
-        <div className="inline-block mb-6">
-          <span className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-2xl mb-4 ring-4 ring-emerald-100">
-            <svg
-              className="w-10 h-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
-          </span>
+        {/* Swecha Branding */}
+        <div className="mb-8">
+          <SwechaLogo size="lg" showTagline={true} className="justify-center" />
         </div>
         <h1 className="text-4xl sm:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
           What would you like to upload?
@@ -621,8 +609,8 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
         </div>
       </div>
 
-      {/* Wheel Container - LARGER FOR BETTER SPACING */}
-      <div className="relative w-[400px] h-[400px] sm:w-[500px] sm:h-[500px]">
+      {/* Wheel Container - Optimized for desktop view */}
+      <div className="relative w-[420px] h-[420px] sm:w-[480px] sm:h-[480px]">
         {/* Outer glow effect */}
         <div className="absolute inset-[-30px] rounded-full bg-gradient-to-br from-emerald-100 via-slate-100 to-amber-100 opacity-40 blur-2xl animate-pulse" />
 
@@ -660,7 +648,7 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
 
             const startRad = (startAngle * Math.PI) / 180;
             const endRad = (endAngle * Math.PI) / 180;
-            const innerRadius = 24;
+            const innerRadius = 30; // Increased for larger center circle
             const outerRadius = isActive ? 49.5 : 48;
 
             const x1 = 50 + outerRadius * Math.cos(startRad);
@@ -702,68 +690,11 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
           })}
         </svg>
 
-        {/* Icon labels on segments - FIXED POSITIONING */}
-        {mediaTypes.map((media, idx) => {
-          const segmentAngle = 360 / mediaTypes.length;
-          const midAngle = idx * segmentAngle + segmentAngle / 2 - 90;
-          const radius = 95; // Increased from 75 to 95 for better spacing
-          const x = Math.cos((midAngle * Math.PI) / 180) * radius;
-          const y = Math.sin((midAngle * Math.PI) / 180) * radius;
-          const isActive = activeType === media.type;
-
-          return (
-            <div
-              key={`icon-${media.type}`}
-              className={`absolute left-1/2 top-1/2 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 z-20 ${
-                isActive ? 'scale-110' : 'scale-100 hover:scale-105'
-              }`}
-              style={{
-                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-              }}
-              onMouseEnter={() => setHoveredType(media.type)}
-              onMouseLeave={() => setHoveredType(null)}
-              onClick={() => handleMediaSelect(media.type)}
-            >
-              {/* Icon container - cleaner design */}
-              <div
-                className={`p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
-                  isActive
-                    ? 'bg-white shadow-2xl'
-                    : 'bg-white shadow-lg hover:shadow-xl'
-                }`}
-              >
-                <div style={{ color: media.color }}>
-                  {React.cloneElement(media.icon as React.ReactElement, {
-                    className: 'w-6 h-6 sm:w-7 sm:h-7',
-                    strokeWidth: 2.5,
-                  })}
-                </div>
-              </div>
-              {/* Label - positioned below icon */}
-              <div
-                className={`mt-2 px-2.5 py-1 rounded-full transition-all duration-300 ${
-                  isActive ? 'bg-white shadow-lg' : 'bg-white/95 shadow-md'
-                }`}
-              >
-                <span
-                  className={`font-semibold whitespace-nowrap text-xs ${
-                    isActive ? 'sm:text-sm' : 'sm:text-xs'
-                  }`}
-                  style={{ color: media.color }}
-                >
-                  {media.title.split(' ')[0]}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Center circle with selected info - OPTIMIZED SIZE */}
+        {/* Center circle with selected info - LARGER SIZE */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[170px] h-[170px] sm:w-[210px] sm:h-[210px] rounded-full bg-white shadow-2xl flex flex-col items-center justify-center z-30 border-[6px] transition-all duration-300"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] rounded-full bg-white shadow-2xl flex flex-col items-center justify-center z-30 transition-all duration-300"
           style={{
-            borderColor: activeMedia.color,
-            boxShadow: `0 0 0 4px ${activeMedia.color}15, 0 12px 40px rgba(0,0,0,0.15), inset 0 2px 12px rgba(0,0,0,0.05)`,
+            boxShadow: `0 8px 32px rgba(0,0,0,0.12), inset 0 2px 12px rgba(0,0,0,0.05)`,
           }}
         >
           {/* Icon */}

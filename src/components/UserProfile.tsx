@@ -31,6 +31,7 @@ import UserContributions from './UserContributions';
 import ContributionDashboard from './ContributionDashboard'; // Import the new dashboard component
 import { BACKEND_URL } from '@/lib/constants';
 import { formatModernTime, formatSizeMB, formatDuration } from '@/lib/utils';
+import BottomNav from './BottomNav';
 interface UserProfile {
   id: string;
   username: string;
@@ -188,6 +189,7 @@ const useUserProfile = (
       if (localToken) {
         token = localToken;
         foundKey = `localStorage.${key}`;
+        console.log(`🔑 Found token in ${foundKey}`);
         break;
       }
     }
@@ -280,10 +282,15 @@ const useUserProfile = (
       try {
         const token = getAuthToken();
         if (!token) {
-          throw new Error('No authentication token available');
+          console.error('❌ No authentication token found');
+          throw new Error(
+            'No authentication token available. Please log in again.',
+          );
         }
 
+        console.log('🔑 Using token for profile fetch');
         const apiUrl = BACKEND_URL + '/auth/me';
+        console.log('📡 Fetching profile from:', apiUrl);
 
         const response = await fetch(apiUrl, {
           headers: {
@@ -294,6 +301,16 @@ const useUserProfile = (
 
         if (!response.ok) {
           if (response.status === 401) {
+            console.error('❌ Unauthorized: Token expired or invalid');
+            // Clear invalid token
+            localStorage.removeItem('token');
+            localStorage.removeItem('authToken');
+            sessionStorage.clear();
+            toast.error('Session expired. Redirecting to login...');
+            // Redirect to login after a short delay
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 2000);
             throw new Error(
               'Authentication failed. Please log in again. Your session might have expired.',
             );
@@ -369,7 +386,7 @@ const useUserProfile = (
 
       try {
         const token = getAuthToken();
-        const response = await fetch(BACKEND_URL + `/users/${currentUserId}/`, {
+        const response = await fetch(BACKEND_URL + `/users/${currentUserId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -413,6 +430,29 @@ const useUserProfile = (
 
       try {
         const token = getAuthToken();
+        if (!token) {
+          console.warn('⚠️ No token available for fetching contributions');
+          setContributions({
+            totalContributions: 0,
+            contributionsByType: {
+              text: 0,
+              audio: 0,
+              image: 0,
+              video: 0,
+              document: 0,
+            },
+            audioContributions: [],
+            videoContributions: [],
+            textContributions: [],
+            imageContributions: [],
+            documentContributions: [],
+            audioDuration: 0,
+            videoDuration: 0,
+          });
+          setLoading((prev) => ({ ...prev, contributions: false }));
+          return;
+        }
+
         const baseUrl = BACKEND_URL;
         const apiUrl = mediaType
           ? `${baseUrl}/users/${currentUserId}/contributions/${mediaType}`
@@ -427,6 +467,10 @@ const useUserProfile = (
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            console.error('❌ Unauthorized: Token may be expired');
+            toast.error('Session expired. Please log in again.');
+          }
           throw new Error(`Failed to fetch contributions: ${response.status}`);
         }
 
@@ -528,6 +572,14 @@ const useUserProfile = (
       setLoadingFollowers(true);
       try {
         const token = getAuthToken();
+        if (!token) {
+          console.warn('⚠️ No token available for fetching followers');
+          setFollowers([]);
+          setFollowersCount(0);
+          setLoadingFollowers(false);
+          return;
+        }
+
         const response = await fetch(
           `${BACKEND_URL}/users/${currentUserId}/followers`,
           {
@@ -539,6 +591,10 @@ const useUserProfile = (
         );
 
         if (!response.ok) {
+          if (response.status === 401) {
+            console.error('❌ Unauthorized: Token may be expired');
+            toast.error('Session expired. Please log in again.');
+          }
           throw new Error(`Failed to fetch followers: ${response.status}`);
         }
 
@@ -562,6 +618,14 @@ const useUserProfile = (
       setLoadingFollowing(true);
       try {
         const token = getAuthToken();
+        if (!token) {
+          console.warn('⚠️ No token available for fetching following');
+          setFollowing([]);
+          setFollowingCount(0);
+          setLoadingFollowing(false);
+          return;
+        }
+
         const response = await fetch(
           `${BACKEND_URL}/users/${currentUserId}/following`,
           {
@@ -573,6 +637,10 @@ const useUserProfile = (
         );
 
         if (!response.ok) {
+          if (response.status === 401) {
+            console.error('❌ Unauthorized: Token may be expired');
+            toast.error('Session expired. Please log in again.');
+          }
           throw new Error(`Failed to fetch following: ${response.status}`);
         }
 
@@ -1037,7 +1105,7 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 pt-16 pb-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced Header Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
@@ -1098,36 +1166,36 @@ const UserProfile: React.FC = () => {
                 </div>
 
                 {/* Stats Row - Instagram Style */}
-                <div className="flex gap-8 mb-4">
-                  <div>
+                <div className="flex gap-4 mb-4">
+                  <div className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
                     <span className="font-bold text-slate-900">
                       {contributions?.totalContributions || 0}
                     </span>
                     <span className="text-slate-600 ml-1">posts</span>
                   </div>
                   <button
-                    className="hover:text-slate-900 transition-colors"
+                    className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-200 hover:shadow-md"
                     onClick={() => {
                       fetchFollowers(currentUser.id);
                       setShowFollowersModal(true);
                     }}
                   >
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-emerald-700">
                       {followersCount}
                     </span>
-                    <span className="text-slate-600 ml-1">followers</span>
+                    <span className="text-emerald-600 ml-1">followers</span>
                   </button>
                   <button
-                    className="hover:text-slate-900 transition-colors"
+                    className="px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
                     onClick={() => {
                       fetchFollowing(currentUser.id);
                       setShowFollowingModal(true);
                     }}
                   >
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-blue-700">
                       {followingCount}
                     </span>
-                    <span className="text-slate-600 ml-1">following</span>
+                    <span className="text-blue-600 ml-1">following</span>
                   </button>
                 </div>
 
@@ -1344,28 +1412,10 @@ const UserProfile: React.FC = () => {
         </div>
         {/* Account Information & Export - Combined */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h2 className="text-lg font-bold text-slate-900">
               Account Details
             </h2>
-            <div className="flex gap-2">
-              <button
-                onClick={handleExport}
-                className="px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
-                disabled={!currentUser}
-              >
-                <Download size={14} />
-                <span>JSON</span>
-              </button>
-              <button
-                onClick={handleExportCSV}
-                className="px-3 py-1.5 bg-slate-600 text-white text-sm rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-1.5"
-                disabled={!currentUser}
-              >
-                <Download size={14} />
-                <span>CSV</span>
-              </button>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

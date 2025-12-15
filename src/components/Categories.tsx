@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import posthog from 'posthog-js';
+import SwechaLogo from './SwechaLogo';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
@@ -864,7 +865,8 @@ const Categories: React.FC<CategoriesProps> = ({
       <div className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900">Swecha Corpus</h1>
+            <SwechaLogo size="sm" showTagline={false} />
+            <span className="text-lg font-semibold text-slate-700">Corpus</span>
           </div>
 
           <div className="flex items-center gap-3">

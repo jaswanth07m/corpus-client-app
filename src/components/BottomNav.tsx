@@ -6,13 +6,24 @@ const BottomNav: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear all authentication data
+    // Clear all authentication and cached data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('phoneNumber');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('cachedProfile');
 
-    // Redirect to login page
-    navigate('/');
+    // Clear all localStorage
+    localStorage.clear();
+
+    // Clear sessionStorage as well
+    sessionStorage.clear();
+
+    // Redirect to login page (home page which shows login)
+    navigate('/', { replace: true });
+
+    // Force page reload to reset all state
+    window.location.href = '/';
   };
 
   return (
