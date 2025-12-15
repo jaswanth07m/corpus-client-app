@@ -784,7 +784,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
               {/* Password Login */}
               {loginMethod === 'password' && (
-                <div className="space-y-5 animate-fade-in-up">
+                <div
+                  onKeyDown={(e) => {
+                    if (e.key == 'Enter') handlePasswordLogin();
+                  }}
+                  className="space-y-5 animate-fade-in-up"
+                >
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500 z-10" />
                     <div className="absolute left-12 top-4 text-gray-500 font-medium">
@@ -824,6 +829,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       value={password}
+                      // onKeyDown={(e) => {
+                      //   if(e.key == 'Enter'){
+                      //     handlePasswordLogin();
+                      //   }
+                      // }}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
@@ -868,9 +878,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   <Button
                     onClick={handlePasswordLogin}
-                    onKeyDown={(e) => {
-                      console.log(e);
-                    }}
                     disabled={loading || !isValidPhoneNumber() || !password}
                     className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                   >

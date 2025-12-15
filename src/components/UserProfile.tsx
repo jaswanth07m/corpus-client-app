@@ -1112,7 +1112,7 @@ const UserProfile: React.FC = () => {
           {/* Header Actions Bar */}
           <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-3 flex items-center justify-between border-b border-slate-100">
             <button
-              onClick={() => (window.location.href = '/')}
+              onClick={() => navigate('/', { replace: true })}
               className="p-2 hover:bg-slate-100 rounded-full transition-all duration-200"
               title="Back"
             >
