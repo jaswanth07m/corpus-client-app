@@ -14,9 +14,12 @@ import {
   History,
   ChevronDown,
   ChevronUp,
+  Clock,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
+import BottomNav from '@/components/BottomNav';
+import ContributionDashboard from '@/components/ContributionDashboard';
 
 // interface FormattedUserProfile{
 //     id: string,
@@ -32,110 +35,111 @@ interface FollowedUser {
   user_id?: string;
 }
 
+interface UserProfileData {
+  id: string;
+  name: string;
+  username?: string;
+  streaks: {
+    combined_streak: {
+      current: number;
+      longest: number;
+      total_active_days: number;
+    };
+  };
+  timeline: Record<string, unknown>;
+  summary: {
+    contributions: {
+      total_contributions: number;
+      contributions_by_media_type: {
+        text: number;
+        audio: number;
+        image: number;
+        video: number;
+        document: number;
+      };
+    };
+    edits: {
+      total_edits: number;
+    };
+    overall: {
+      total_activities: number;
+    };
+  };
+}
+
+// Define interfaces for followers/following
+interface User {
+  id?: string;
+  user_id?: string;
+  name?: string;
+  username?: string;
+}
+
+// Define interfaces for contribution items
+interface DailyStats {
+  uploads_today: number;
+  total_uploads: number;
+  last_upload_date: string;
+  streak_days: number;
+}
+
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface ContributionItem {
+  id: string;
+  size: number;
+  category_id: string;
+  reviewed: boolean;
+  title: string;
+  description: string;
+  duration?: number;
+  timestamp?: string;
+  location?: Coordinates;
+  release_rights: string;
+  creator: string;
+  language: string;
+  file_hash: string;
+  snr_frequency: number;
+}
+
+interface UserContributions {
+  totalContributions: number;
+  contributionsByType: {
+    text: number;
+    audio: number;
+    image: number;
+    video: number;
+    document: number;
+  };
+  audioContributions: ContributionItem[];
+  videoContributions: ContributionItem[];
+  textContributions: ContributionItem[];
+  imageContributions: ContributionItem[];
+  documentContributions: ContributionItem[];
+  audioDuration: number;
+  videoDuration: number;
+}
+
+interface FieldChange {
+  old_value: string | number | boolean | null | undefined;
+  new_value: string | number | boolean | null | undefined;
+}
+
+interface EditHistoryEntry {
+  uid: string;
+  version_number: number;
+  created_at: string;
+  changed_by?: string;
+  change_type?: string;
+  change_source?: string;
+  field_changes?: Record<string, FieldChange>;
+}
+
 function OtherUserProfile() {
   const navigate = useNavigate();
-  interface UserProfileData {
-    id: string;
-    name: string;
-    username?: string;
-    streaks: {
-      combined_streak: {
-        current: number;
-        longest: number;
-        total_active_days: number;
-      };
-    };
-    timeline: Record<string, unknown>;
-    summary: {
-      contributions: {
-        total_contributions: number;
-        contributions_by_media_type: {
-          text: number;
-          audio: number;
-          image: number;
-          video: number;
-          document: number;
-        };
-      };
-      edits: {
-        total_edits: number;
-      };
-      overall: {
-        total_activities: number;
-      };
-    };
-  }
-
-  // Define interfaces for followers/following
-  interface User {
-    id?: string;
-    user_id?: string;
-    name?: string;
-    username?: string;
-  }
-
-  // Define interfaces for contribution items
-  interface DailyStats {
-    uploads_today: number;
-    total_uploads: number;
-    last_upload_date: string;
-    streak_days: number;
-  }
-
-  interface Coordinates {
-    latitude: number;
-    longitude: number;
-  }
-
-  interface ContributionItem {
-    id: string;
-    size: number;
-    category_id: string;
-    reviewed: boolean;
-    title: string;
-    description: string;
-    duration?: number;
-    timestamp?: string;
-    location?: Coordinates;
-    release_rights: string;
-    creator: string;
-    language: string;
-    file_hash: string;
-    snr_frequency: number;
-  }
-
-  interface UserContributions {
-    totalContributions: number;
-    contributionsByType: {
-      text: number;
-      audio: number;
-      image: number;
-      video: number;
-      document: number;
-    };
-    audioContributions: ContributionItem[];
-    videoContributions: ContributionItem[];
-    textContributions: ContributionItem[];
-    imageContributions: ContributionItem[];
-    documentContributions: ContributionItem[];
-    audioDuration: number;
-    videoDuration: number;
-  }
-
-  interface FieldChange {
-    old_value: string | number | boolean | null | undefined;
-    new_value: string | number | boolean | null | undefined;
-  }
-
-  interface EditHistoryEntry {
-    uid: string;
-    version_number: number;
-    created_at: string;
-    changed_by?: string;
-    change_type?: string;
-    change_source?: string;
-    field_changes?: Record<string, FieldChange>;
-  }
 
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -642,245 +646,170 @@ function OtherUserProfile() {
   ]); // Include all functions used in the effect
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 pt-16 pb-24">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Enhanced Header Card */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
+          {/* Header Actions Bar */}
+          <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-3 flex items-center justify-between border-b border-slate-100">
             <button
-              onClick={() => {
-                navigate('/');
-              }}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-              title="Go Back"
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-slate-100 rounded-full transition-all duration-200"
+              title="Back"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={20} className="text-slate-600" />
             </button>
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-              {getInitials(profile?.name)}
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {profile?.name}
-              </h1>
-              <p className="text-gray-600 text-sm">
-                @{profile?.username || profile?.id}
-              </p>
-            </div>
-            <div className="ml-auto">
-              <button
-                onClick={() => {
-                  if (isFollowing) {
-                    unfollowUser(userId!);
-                  } else {
-                    followUser(userId!);
-                  }
-                }}
-                disabled={followLoading}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isFollowing
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                } disabled:opacity-50`}
-              >
-                {followLoading
-                  ? 'Processing...'
-                  : isFollowing
-                    ? 'Unfollow'
-                    : 'Follow'}
-              </button>
+          </div>
+
+          {/* Profile Info Section - Instagram Style Horizontal Layout */}
+          <div className="p-8">
+            <div className="flex gap-8 items-start mb-6">
+              {/* Avatar - Left Side with Animation */}
+              <div className="relative flex-shrink-0 group">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+                <div className="relative w-32 h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl ring-4 ring-blue-50 group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
+                  {getInitials(profile?.name)}
+                </div>
+                <div className="absolute bottom-2 right-2 w-7 h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
+              </div>
+
+              {/* User Info & Stats - Right Side */}
+              <div className="flex-1 pt-2">
+                {/* Name and Username */}
+                <div className="mb-4">
+                  <h1 className="text-2xl font-bold text-slate-900 mb-1">
+                    {profile?.name}
+                  </h1>
+                  <p className="text-slate-500 text-sm">
+                    @{profile?.username || profile?.id}
+                  </p>
+                </div>
+
+                {/* Stats Row - Instagram Style with Enhanced Effects */}
+                <div className="flex gap-4 mb-4">
+                  <div className="px-4 py-2 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200 shadow-sm">
+                    <span className="font-bold text-slate-900">
+                      {profile?.summary?.contributions?.total_contributions ??
+                        0}
+                    </span>
+                    <span className="text-slate-600 ml-1">posts</span>
+                  </div>
+                  <button
+                    className="px-4 py-2 bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:-translate-y-0.5"
+                    onClick={() => {
+                      fetchFollowers(userId!);
+                      setShowFollowersModal(true);
+                    }}
+                  >
+                    <span className="font-bold text-emerald-700">
+                      {followersCount}
+                    </span>
+                    <span className="text-emerald-600 ml-1">followers</span>
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:-translate-y-0.5"
+                    onClick={() => {
+                      fetchFollowing(userId!);
+                      setShowFollowingModal(true);
+                    }}
+                  >
+                    <span className="font-bold text-blue-700">
+                      {followingCount}
+                    </span>
+                    <span className="text-blue-600 ml-1">following</span>
+                  </button>
+                </div>
+
+                {/* Follow Button with Enhanced Effects */}
+                <button
+                  onClick={() => {
+                    if (isFollowing) {
+                      unfollowUser(userId!);
+                    } else {
+                      followUser(userId!);
+                    }
+                  }}
+                  disabled={followLoading}
+                  className={`px-8 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
+                    isFollowing
+                      ? 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 border-2 border-slate-300 hover:border-slate-400'
+                      : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-emerald-500/50'
+                  } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
+                >
+                  {followLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </span>
+                  ) : isFollowing ? (
+                    'Following'
+                  ) : (
+                    'Follow'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Followers and Following Section */}
-        <section className="mb-6">
-          <div className="flex justify-around items-center py-2">
-            <div
-              className="flex-1 text-center cursor-pointer bg-gray-100 py-3 rounded-lg transition-colors hover:bg-gray-200 mx-2"
-              onClick={() => {
-                fetchFollowers(userId!);
-                setShowFollowersModal(true);
-              }}
-            >
-              <div className="text-xl font-bold text-gray-800">
-                {followersCount}
-              </div>
-              <div className="text-xs text-gray-600 mt-1">Followers</div>
+        {/* Contributions Section - Modern Design */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Activity size={20} className="text-blue-600" />
+              <h2 className="text-xl font-bold text-slate-900">
+                Contributions
+              </h2>
             </div>
 
-            <div
-              className="flex-1 text-center cursor-pointer bg-gray-100 py-3 rounded-lg transition-colors hover:bg-gray-200 mx-2"
-              onClick={() => {
-                fetchFollowing(userId!);
-                setShowFollowingModal(true);
-              }}
-            >
-              <div className="text-xl font-bold text-gray-800">
-                {followingCount}
-              </div>
-              <div className="text-xs text-gray-600 mt-1">Following</div>
+            {/* Compact Toggle */}
+            <div className="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50 shadow-sm">
+              <button
+                onClick={() => {
+                  setShowDashboard(true);
+                  setContributions(null);
+                }}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  showDashboard
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  setShowDashboard(false);
+                  setContributions(null);
+                }}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  !showDashboard
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Files
+              </button>
             </div>
-          </div>
-        </section>
-
-        {/* Summary */}
-        <section className="mb-6">
-          <h2 className="text-lg font-semibold text-center text-gray-800 mb-4 uppercase tracking-wide font-sans border-b pb-2">
-            Summary
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Total Contributions</p>
-              <p className="text-xl font-bold text-blue-600">
-                {profile?.summary?.contributions?.total_contributions ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Total Edits</p>
-              <p className="text-xl font-bold text-blue-600">
-                {profile?.summary?.edits?.total_edits ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Total Activities</p>
-              <p className="text-xl font-bold text-blue-600">
-                {profile?.summary?.overall?.total_activities ?? 0}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Contribution Section with Dashboard and View All Files */}
-        <section className="mb-6">
-          <h2 className="text-lg font-semibold text-center text-gray-800 mb-4 uppercase tracking-wide font-sans border-b pb-2">
-            Contributions
-          </h2>
-
-          <div className="flex justify-center mb-6">
-            <button
-              onClick={() => {
-                setShowDashboard(true);
-                setContributions(null); // Clear contributions when switching to dashboard
-              }}
-              className={`px-6 py-2 rounded-l-lg font-medium transition-colors ${
-                showDashboard
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => {
-                setShowDashboard(false);
-                setContributions(null); // Clear contributions when switching to detailed view
-                // The effect will trigger a fetch for the current selectedMediaType
-              }}
-              className={`px-6 py-2 rounded-r-lg font-medium transition-colors ${
-                !showDashboard
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              View All Files
-            </button>
           </div>
 
           {showDashboard ? (
-            <div>
-              {contributionsLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-600">Loading dashboard...</p>
-                </div>
-              ) : (
-                <div>
-                  {/* Daily Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <DashboardCard
-                      icon={<TrendingUp size={20} className="text-green-600" />}
-                      title="Total Uploads"
-                      value={contributions?.totalContributions || 0}
-                      unit="files"
-                      color="bg-green-50"
-                    />
-                    <DashboardCard
-                      icon={<Award size={20} className="text-purple-600" />}
-                      title="Total Hours Contributed"
-                      value={formatDuration(
-                        (contributions?.audioDuration || 0) +
-                          (contributions?.videoDuration || 0),
-                      )}
-                      color="bg-purple-50"
-                    />
-                    <DashboardCard
-                      icon={<Zap size={20} className="text-yellow-600" />}
-                      title="Contribution Streak"
-                      value={profile?.streaks?.combined_streak?.current || 0}
-                      unit="days"
-                      color="bg-yellow-50"
-                    />
-                    <DashboardCard
-                      icon={<Activity size={20} className="text-blue-600" />}
-                      title="Uploads Today"
-                      value={calculateUploadsToday()}
-                      unit="files"
-                      color="bg-blue-50"
-                    />
-                  </div>
-
-                  {/* Contributions by Media Type */}
-                  <div className="bg-gray-50 rounded-lg shadow-sm p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Contributions by Media Type
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                      <MediaTypeCard
-                        type="Text"
-                        count={contributions?.contributionsByType.text || 0}
-                        icon={<Activity size={20} className="text-blue-600" />}
-                        color="bg-blue-50"
-                      />
-                      <MediaTypeCard
-                        type="Document"
-                        count={contributions?.contributionsByType.document || 0}
-                        icon={<BarChart size={20} className="text-red-600" />}
-                        color="bg-red-50"
-                      />
-                      <MediaTypeCard
-                        type="Image"
-                        count={contributions?.contributionsByType.image || 0}
-                        icon={<Award size={20} className="text-orange-600" />}
-                        color="bg-orange-50"
-                      />
-                      <MediaTypeCard
-                        type="Audio"
-                        count={contributions?.contributionsByType.audio || 0}
-                        duration={contributions?.audioDuration || 0}
-                        icon={
-                          <TrendingUp size={20} className="text-green-600" />
-                        }
-                        color="bg-green-50"
-                      />
-                      <MediaTypeCard
-                        type="Video"
-                        count={contributions?.contributionsByType.video || 0}
-                        duration={contributions?.videoDuration || 0}
-                        icon={
-                          <Calendar size={20} className="text-purple-600" />
-                        }
-                        color="bg-purple-50"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="mt-4">
+              <ContributionDashboard
+                dailyStats={{
+                  uploads_today: calculateUploadsToday(),
+                  total_uploads: contributions?.totalContributions || 0,
+                  last_upload_date: new Date().toISOString(),
+                  streak_days: profile?.streaks?.combined_streak?.current || 0,
+                }}
+                contributions={contributions}
+                loading={contributionsLoading}
+              />
             </div>
           ) : (
             <div>
               {/* Media type selector */}
-              <div className="flex justify-center gap-4 my-4">
+              <div className="flex flex-wrap justify-center gap-3 my-6 px-4">
                 {(['text', 'document', 'image', 'audio', 'video'] as const).map(
                   (type) => (
                     <ContributionTypeButton
@@ -898,8 +827,8 @@ function OtherUserProfile() {
                 )}
               </div>
               {/* Modernized display of contributions for selected media type */}
-              <div className="max-w-2xl mx-auto">
-                {selectedMediaType && ( // Only render ContributionsList if a media type is selected
+              <div className="mt-6">
+                {selectedMediaType && (
                   <ContributionsList
                     contributions={contributions}
                     selectedMediaType={selectedMediaType}
@@ -907,14 +836,22 @@ function OtherUserProfile() {
                   />
                 )}
                 {!selectedMediaType && !contributionsLoading && (
-                  <div className="text-center text-gray-400 py-8 text-lg font-medium">
-                    Please select a media type to view contributions.
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
+                      <Activity size={32} className="text-blue-500" />
+                    </div>
+                    <p className="text-gray-500 text-lg font-medium">
+                      Select a media type to view contributions
+                    </p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      Choose from Text, Document, Image, Audio, or Video
+                    </p>
                   </div>
                 )}
-                {contributionsLoading && !selectedMediaType && (
-                  <div className="text-center py-8">
+                {contributionsLoading && (
+                  <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">
+                    <p className="mt-4 text-gray-600 font-medium">
                       Loading contributions...
                     </p>
                   </div>
@@ -922,10 +859,10 @@ function OtherUserProfile() {
               </div>
             </div>
           )}
-        </section>
+        </div>
 
         {/* Streaks */}
-        <section>
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-center text-gray-800 mb-4 uppercase tracking-wide font-sans border-b pb-2">
             Streaks
           </h2>
@@ -949,7 +886,7 @@ function OtherUserProfile() {
               </p>
             </div>
           </div>
-        </section>
+        </div>
       </div>
 
       {/* Followers and Following Modals */}
@@ -967,6 +904,9 @@ function OtherUserProfile() {
         loading={loadingFollowing}
         currentUserId={currentUserId}
       />
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }
@@ -1141,11 +1081,11 @@ function ContributionTypeButton({
     <button
       key={type}
       onClick={() => setSelectedMediaType(type)}
-      className={`px-4 py-2 rounded-lg font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400
+      className={`px-6 py-2.5 rounded-full font-semibold border-2 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
         ${
           selectedMediaType === type
-            ? 'bg-blue-600 text-white border-blue-600'
-            : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+            ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/30'
+            : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400'
         }`}
     >
       {capitalize(type)}
@@ -1159,22 +1099,583 @@ interface ContributionsListProps {
   token: string;
 }
 
+// Modal for showing media details
+interface MediaDetailModalProps {
+  item: ContributionItem;
+  mediaType: 'text' | 'audio' | 'video' | 'image' | 'document';
+  previewUrl: string | null;
+  token: string;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
+  item,
+  mediaType,
+  previewUrl,
+  token,
+  isOpen,
+  onClose,
+}) => {
+  const [showHistory, setShowHistory] = useState(false);
+
+  if (!isOpen) return null;
+
+  const getMediaTypeLabel = () => {
+    return mediaType.charAt(0).toUpperCase() + mediaType.slice(1);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {getMediaTypeLabel()} Details
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X size={24} className="text-gray-600" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Image Preview */}
+            <div className="space-y-4">
+              <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt={item.title || 'Image'}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <SecureViewButton recordId={item.id} apiToken={token} />
+                <button
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="flex-1 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-purple-200 hover:border-purple-600"
+                >
+                  <History size={18} />
+                  <span className="text-sm font-semibold">
+                    {showHistory ? 'Hide History' : 'View History'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="space-y-6">
+              {/* Title and Description */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {item.title || 'Untitled'}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {item.description || 'No description available'}
+                </p>
+              </div>
+
+              {/* Metadata */}
+              <div className="space-y-3 bg-gray-50 rounded-xl p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">
+                  Information
+                </h4>
+
+                <div className="flex items-start gap-3">
+                  <Clock
+                    size={18}
+                    className="text-gray-400 mt-0.5 flex-shrink-0"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">
+                      Timestamp
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {item.timestamp
+                        ? new Date(item.timestamp).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })
+                        : 'Not available'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <svg
+                    className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">
+                      Location
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {item.location &&
+                      typeof item.location.latitude === 'number' &&
+                      typeof item.location.longitude === 'number'
+                        ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                        : 'Not available'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <svg
+                    className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">
+                      File Size
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {item.size ? formatSizeMB(item.size) : 'Not available'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <svg
+                    className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                    />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">
+                      Language
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {item.language || 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+
+                {item.reviewed && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
+                      ✓ Reviewed
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Edit History Section */}
+          {showHistory && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <InlineEditHistory recordId={item.id} token={token} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Component for image grid view
+interface ImageGridItemProps {
+  item: ContributionItem;
+  token: string;
+}
+
+const ImageGridItem: React.FC<ImageGridItemProps> = ({ item, token }) => {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  // Lazy load image URL only when needed
+  useEffect(() => {
+    if (!shouldLoad || imageUrl) return;
+
+    const fetchImageUrl = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch image URL');
+        }
+
+        const data = await response.json();
+        if (data.record_url) {
+          setImageUrl(data.record_url);
+        }
+      } catch (err) {
+        console.error('Error fetching image:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImageUrl();
+  }, [item.id, token, shouldLoad, imageUrl]);
+
+  return (
+    <>
+      <div
+        onClick={() => {
+          setShouldLoad(true);
+          setShowModal(true);
+        }}
+        onMouseEnter={() => setShouldLoad(true)}
+        className="group relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+      >
+        {/* Image Container */}
+        <div className="aspect-square relative overflow-hidden bg-white">
+          {!shouldLoad && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
+              <svg
+                className="w-16 h-16 text-orange-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+          )}
+          {shouldLoad && loading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            </div>
+          )}
+          {shouldLoad && error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="text-center p-4">
+                <svg
+                  className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <p className="text-xs text-gray-500">Image unavailable</p>
+              </div>
+            </div>
+          )}
+          {shouldLoad && imageUrl && !loading && !error && (
+            <img
+              src={imageUrl}
+              alt={item.title || 'Image'}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              onError={() => setError(true)}
+            />
+          )}
+
+          {/* Overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+              <p className="font-semibold text-sm truncate">
+                {item.title || 'Untitled'}
+              </p>
+              <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Section */}
+        <div className="p-4 bg-white">
+          <h3 className="font-bold text-gray-900 text-sm mb-2 truncate">
+            {item.title || 'Untitled'}
+          </h3>
+          <p className="text-xs text-gray-500 truncate">
+            {item.description || 'No description'}
+          </p>
+        </div>
+      </div>
+
+      {/* Modal */}
+      <MediaDetailModal
+        item={item}
+        mediaType="image"
+        previewUrl={imageUrl}
+        token={token}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+      />
+    </>
+  );
+};
+
+// Generic Media Grid Item for all media types
+interface MediaGridItemProps {
+  item: ContributionItem;
+  mediaType: 'text' | 'audio' | 'video' | 'document';
+  token: string;
+}
+
+const MediaGridItem: React.FC<MediaGridItemProps> = ({
+  item,
+  mediaType,
+  token,
+}) => {
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  // Lazy load media URL only when needed (for video)
+  useEffect(() => {
+    if (mediaType !== 'video' || !shouldLoad || mediaUrl) return;
+
+    const fetchMediaUrl = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch media URL');
+        }
+
+        const data = await response.json();
+        if (data.record_url) {
+          setMediaUrl(data.record_url);
+        }
+      } catch (err) {
+        console.error('Error fetching media:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMediaUrl();
+  }, [item.id, token, mediaType, shouldLoad, mediaUrl]);
+
+  const getMediaIcon = () => {
+    switch (mediaType) {
+      case 'text':
+        return (
+          <svg
+            className="w-16 h-16 text-blue-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        );
+      case 'audio':
+        return (
+          <svg
+            className="w-16 h-16 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+            />
+          </svg>
+        );
+      case 'document':
+        return (
+          <svg
+            className="w-16 h-16 text-yellow-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+          </svg>
+        );
+      case 'video':
+        return (
+          <svg
+            className="w-16 h-16 text-purple-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <>
+      <div
+        onClick={() => {
+          setShouldLoad(true);
+          setShowModal(true);
+        }}
+        onMouseEnter={() => setShouldLoad(true)}
+        className="group relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+      >
+        {/* Media Container */}
+        <div className="aspect-square relative overflow-hidden bg-white">
+          {shouldLoad && loading && mediaType === 'video' && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            </div>
+          )}
+          {shouldLoad &&
+            mediaUrl &&
+            !loading &&
+            !error &&
+            mediaType === 'video' && (
+              <video
+                src={mediaUrl}
+                className="w-full h-full object-cover"
+                muted
+                playsInline
+              />
+            )}
+          {(mediaType === 'text' ||
+            mediaType === 'audio' ||
+            mediaType === 'document' ||
+            (mediaType === 'video' && !shouldLoad) ||
+            (mediaType === 'video' && !mediaUrl && !loading)) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white to-gray-50">
+              {getMediaIcon()}
+            </div>
+          )}
+
+          {/* Overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+              <p className="font-semibold text-sm truncate">
+                {item.title || 'Untitled'}
+              </p>
+              <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Section */}
+        <div className="p-4 bg-white">
+          <h3 className="font-bold text-gray-900 text-sm mb-2 truncate">
+            {item.title || 'Untitled'}
+          </h3>
+          <p className="text-xs text-gray-500 truncate">
+            {item.description || 'No description'}
+          </p>
+        </div>
+      </div>
+
+      {/* Modal */}
+      <MediaDetailModal
+        item={item}
+        mediaType={mediaType}
+        previewUrl={mediaUrl}
+        token={token}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+      />
+    </>
+  );
+};
+
 const ContributionsList: React.FC<ContributionsListProps> = ({
   contributions,
   selectedMediaType,
   token,
 }) => {
-  // NEW: State to track which item's history is visible
-  const [historyVisibleItemId, setHistoryVisibleItemId] = useState<
-    string | null
-  >(null);
-
-  const toggleHistoryVisibility = (itemId: string) => {
-    setHistoryVisibleItemId((prevId) => (prevId === itemId ? null : itemId));
-  };
-
   let items: ContributionItem[] = [];
-  if (!contributions || !selectedMediaType) return null; // Don't render if no contributions or no media type selected
+  if (!contributions || !selectedMediaType) return null;
 
   if (selectedMediaType === 'text') items = contributions.textContributions;
   if (selectedMediaType === 'audio') items = contributions.audioContributions;
@@ -1193,162 +1694,39 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     );
   }
 
-  return (
-    <ul className="divide-y divide-gray-200">
-      {items.map((item, idx) => (
-        <li
-          key={item.id}
-          className="flex flex-col py-4 px-2 rounded-lg transition hover:bg-gray-50"
-        >
-          <div className="flex gap-2">
-            <span
-              className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold
-                ${selectedMediaType === 'text' && 'bg-blue-100 text-blue-700'}
-                ${
-                  selectedMediaType === 'audio' && 'bg-green-100 text-green-700'
-                }
-                ${
-                  selectedMediaType === 'video' &&
-                  'bg-purple-100 text-purple-700'
-                }
-                ${
-                  selectedMediaType === 'image' &&
-                  'bg-orange-100 text-orange-700'
-                }
-                ${
-                  selectedMediaType === 'document' &&
-                  'bg-yellow-100 text-yellow-700'
-                }
-              `}
-            >
-              {capitalize(selectedMediaType)}
-            </span>
-            <span className="ml-2 text-base font-semibold text-gray-900">
-              {item.title || 'Untitled'}
-            </span>
-            {item.reviewed && (
-              <span className="ml-2 px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-xs font-bold uppercase tracking-wide">
-                Reviewed
-              </span>
-            )}
-          </div>
-          <div className="flex">
-            <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
-              <span className="flex flex-row flex-wrap gap-2 w-full">
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[24ch] max-w-full overflow-x-auto italic shadow-none"
-                  title={
-                    item.timestamp
-                      ? new Date(item.timestamp).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })
-                      : '-'
-                  }
-                >
-                  <span className="font-semibold mr-1 italic">Timestamp:</span>{' '}
-                  {item.timestamp
-                    ? new Date(item.timestamp).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })
-                    : '-'}
-                </span>
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[18ch] max-w-full overflow-x-auto italic shadow-none"
-                  title={
-                    item.location &&
-                    typeof item.location.latitude === 'number' &&
-                    typeof item.location.longitude === 'number'
-                      ? `${item.location.latitude.toFixed(
-                          4,
-                        )}, ${item.location.longitude.toFixed(4)}`
-                      : '-'
-                  }
-                >
-                  <span className="font-semibold mr-1 italic">Location:</span>{' '}
-                  {item.location &&
-                  typeof item.location.latitude === 'number' &&
-                  typeof item.location.longitude === 'number'
-                    ? `${item.location.latitude.toFixed(
-                        4,
-                      )}, ${item.location.longitude.toFixed(4)}`
-                    : '-'}
-                </span>
-                {/* Size badge */}
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
-                  style={{
-                    display: 'inline-flex',
-                    minWidth: '60px',
-                    fontStyle: 'italic',
-                    borderWidth: '1px',
-                    boxShadow: 'none',
-                    background: 'rgba(0,0,0,0.02)',
-                  }}
-                >
-                  <span className="font-semibold mr-1 italic">Size:</span>{' '}
-                  {item.size ? formatSizeMB(item.size) : '-'}
-                </span>
-                {/* Duration badge */}
-                {selectedMediaType === 'audio' ||
-                selectedMediaType === 'video' ? (
-                  <span
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic"
-                    style={{
-                      display: 'inline-flex',
-                      minWidth: '60px',
-                      fontStyle: 'italic',
-                      borderWidth: '1px',
-                      boxShadow: 'none',
-                      background: 'rgba(0,0,0,0.02)',
-                    }}
-                  >
-                    <span className="font-semibold mr-1 italic">Duration:</span>{' '}
-                    {item.duration ? formatDuration(item.duration) : '-'}
-                  </span>
-                ) : null}
-                {/* Display language */}
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-xs border border-gray-300 whitespace-nowrap min-w-[60px] max-w-full overflow-x-auto italic">
-                  <span className="font-semibold mr-1 italic">Language:</span>{' '}
-                  {item.language || 'N/A'}
-                </span>
-              </span>
-            </div>
-            <div className="flex flex-col items-center space-y-2 ml-4 flex-shrink-0">
-              {(selectedMediaType === 'audio' ||
-                selectedMediaType === 'video' ||
-                selectedMediaType === 'document' ||
-                selectedMediaType === 'image') && (
-                <SecureViewButton recordId={item.id} apiToken={token} />
-              )}
+  // Show grid layout for all media types
+  if (selectedMediaType === 'image') {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {items.map((item) => (
+          <ImageGridItem key={item.id} item={item} token={token} />
+        ))}
+      </div>
+    );
+  }
 
-              <button
-                onClick={() => toggleHistoryVisibility(item.id)}
-                className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-100 rounded-full transition-colors"
-                title="View Edit History"
-              >
-                <History size={18} />
-              </button>
-            </div>
-          </div>
+  if (
+    selectedMediaType === 'text' ||
+    selectedMediaType === 'audio' ||
+    selectedMediaType === 'video' ||
+    selectedMediaType === 'document'
+  ) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {items.map((item) => (
+          <MediaGridItem
+            key={item.id}
+            item={item}
+            mediaType={selectedMediaType}
+            token={token}
+          />
+        ))}
+      </div>
+    );
+  }
 
-          {/* NEW: Conditionally render the inline history component */}
-          {historyVisibleItemId === item.id && (
-            <InlineEditHistory recordId={item.id} token={token} />
-          )}
-        </li>
-      ))}
-    </ul>
-  );
+  // Fallback (should never reach here)
+  return null;
 };
 
 // Secure view button component
@@ -1417,13 +1795,19 @@ const SecureViewButton: React.FC<SecureViewButtonProps> = ({
     <button
       onClick={handleViewFile}
       disabled={isLoading}
-      className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      title="View File Securely"
+      className="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border border-blue-200 hover:border-blue-600"
+      title="View Details"
     >
       {isLoading ? (
-        <Loader2 size={18} className="animate-spin" />
+        <>
+          <Loader2 size={18} className="animate-spin" />
+          <span className="text-sm">Loading...</span>
+        </>
       ) : (
-        <Eye size={18} />
+        <>
+          <Eye size={18} />
+          <span className="text-sm font-semibold">View Details</span>
+        </>
       )}
     </button>
   );

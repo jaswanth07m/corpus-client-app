@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auth Token Checker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .status {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔐 Authentication Token Checker</h1>
+
+      <div id="results"></div>
+
+      <button onclick="checkAuth()">Check Authentication</button>
+      <button onclick="clearStorage()">Clear All Storage</button>
+      <button onclick="testAPI()">Test API Connection</button>
+    </div>
+
+    <script>
+      const API_URL = 'https://dev.api.corpus.swecha.org/api/v1';
+
+      function checkAuth() {
+        const results = document.getElementById('results');
+        results.innerHTML = '<h2>Checking Authentication...</h2>';
+
+        const possibleKeys = [
+          'authToken',
+          'token',
+          'access_token',
+          'accessToken',
+          'jwt',
+          'jwtToken',
+          'authorization',
+          'bearer',
+        ];
+
+        let foundTokens = [];
+
+        // Check localStorage
+        possibleKeys.forEach((key) => {
+          const value = localStorage.getItem(key);
+          if (value) {
+            foundTokens.push({
+              location: 'localStorage',
+              key: key,
+              value: value.substring(0, 50) + '...',
+              fullValue: value,
+            });
+          }
+        });
+
+        // Check sessionStorage
+        possibleKeys.forEach((key) => {
+          const value = sessionStorage.getItem(key);
+          if (value) {
+            foundTokens.push({
+              location: 'sessionStorage',
+              key: key,
+              value: value.substring(0, 50) + '...',
+              fullValue: value,
+            });
+          }
+        });
+
+        if (foundTokens.length === 0) {
+          results.innerHTML +=
+            '<div class="status error">❌ No authentication tokens found!</div>';
+          results.innerHTML +=
+            '<div class="info">Please log in to the application first.</div>';
+        } else {
+          results.innerHTML +=
+            '<div class="status success">✅ Found ' +
+            foundTokens.length +
+            ' token(s)</div>';
+          foundTokens.forEach((token) => {
+            results.innerHTML += `
+                        <div class="info">
+                            <strong>${token.location}.${token.key}</strong><br>
+                            ${token.value}
+                        </div>
+                    `;
+
+            // Try to decode JWT
+            try {
+              const parts = token.fullValue.split('.');
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1]));
+                results.innerHTML += `<pre>${JSON.stringify(payload, null, 2)}</pre>`;
+              }
+            } catch (e) {
+              results.innerHTML +=
+                '<div class="error">Could not decode token</div>';
+            }
+          });
+        }
+      }
+
+      function clearStorage() {
+        if (
+          confirm(
+            'Are you sure you want to clear all storage? You will need to log in again.',
+          )
+        ) {
+          localStorage.clear();
+          sessionStorage.clear();
+          document.getElementById('results').innerHTML =
+            '<div class="status success">✅ Storage cleared!</div>';
+        }
+      }
+
+      async function testAPI() {
+        const results = document.getElementById('results');
+        results.innerHTML = '<h2>Testing API Connection...</h2>';
+
+        const token =
+          localStorage.getItem('token') || localStorage.getItem('authToken');
+
+        if (!token) {
+          results.innerHTML +=
+            '<div class="status error">❌ No token found. Please log in first.</div>';
+          return;
+        }
+
+        try {
+          results.innerHTML +=
+            '<div class="info">Testing: ' + API_URL + '/auth/me</div>';
+
+          const response = await fetch(API_URL + '/auth/me', {
+            headers: {
+              Authorization: 'Bearer ' + token,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            results.innerHTML +=
+              '<div class="status success">✅ API Connection Successful!</div>';
+            results.innerHTML +=
+              '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+          } else {
+            results.innerHTML +=
+              '<div class="status error">❌ API Error: ' +
+              response.status +
+              ' ' +
+              response.statusText +
+              '</div>';
+            const errorText = await response.text();
+            results.innerHTML += '<pre>' + errorText + '</pre>';
+          }
+        } catch (error) {
+          results.innerHTML +=
+            '<div class="status error">❌ Network Error: ' +
+            error.message +
+            '</div>';
+        }
+      }
+
+      // Auto-check on load
+      window.onload = checkAuth;
+    </script>
+  </body>
+</html>

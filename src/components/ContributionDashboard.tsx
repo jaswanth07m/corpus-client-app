@@ -7,6 +7,9 @@ import {
   BarChart,
   Zap,
   Globe,
+  Upload,
+  Clock,
+  Flame,
 } from 'lucide-react';
 import { formatModernTime, formatDuration, getISTDate } from '@/lib/utils';
 
@@ -243,100 +246,145 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Daily Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardCard
-          icon={<TrendingUp size={20} className="text-green-600" />}
-          title="Total Uploads"
-          value={contributions?.totalContributions || 0}
-          unit="files"
-          color="bg-green-50"
-        />
-        <DashboardCard
-          icon={<Award size={20} className="text-purple-600" />}
-          title="Total Hours Contributed"
-          value={formatDuration(
-            (contributions?.audioDuration || 0) +
-              (contributions?.videoDuration || 0),
-          )}
-          color="bg-purple-50"
-        />
-        <DashboardCard
-          icon={<Zap size={20} className="text-yellow-600" />}
-          title="Contribution Streak"
-          value={contributionStreak}
-          unit="days"
-          color="bg-yellow-50"
-        />
-        <DashboardCard
-          icon={<Activity size={20} className="text-blue-600" />}
-          title="Uploads Today"
-          value={uploadsToday}
-          unit="files"
-          color="bg-blue-50"
-        />
-      </div>
+      {/* Stats Grid - Colorful Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium opacity-90">
+              Total Uploads
+            </span>
+            <TrendingUp size={20} className="opacity-80" />
+          </div>
+          <div className="text-3xl font-bold">
+            {contributions?.totalContributions || 0}
+          </div>
+        </div>
 
-      {/* Contributions by Media Type */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Contributions by Media Type
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          <MediaTypeCard
-            type="Text"
-            count={contributions?.contributionsByType.text || 0}
-            icon={<Activity size={20} className="text-blue-600" />}
-            color="bg-blue-50"
-          />
-          <MediaTypeCard
-            type="Document"
-            count={contributions?.contributionsByType.document || 0}
-            icon={<BarChart size={20} className="text-red-600" />}
-            color="bg-red-50"
-          />
-          <MediaTypeCard
-            type="Image"
-            count={contributions?.contributionsByType.image || 0}
-            icon={<Award size={20} className="text-orange-600" />}
-            color="bg-orange-50"
-          />
-          <MediaTypeCard
-            type="Audio"
-            count={contributions?.contributionsByType.audio || 0}
-            duration={contributions?.audioDuration || 0}
-            icon={<TrendingUp size={20} className="text-green-600" />}
-            color="bg-green-50"
-          />
-          <MediaTypeCard
-            type="Video"
-            count={contributions?.contributionsByType.video || 0}
-            duration={contributions?.videoDuration || 0}
-            icon={<Calendar size={20} className="text-purple-600" />}
-            color="bg-purple-50"
-          />
+        <div className="bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium opacity-90">Total Hours</span>
+            <Clock size={20} className="opacity-80" />
+          </div>
+          <div className="text-3xl font-bold">
+            {formatDuration(
+              (contributions?.audioDuration || 0) +
+                (contributions?.videoDuration || 0),
+            )}
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium opacity-90">Streak</span>
+            <Flame size={20} className="opacity-80" />
+          </div>
+          <div className="text-3xl font-bold">{contributionStreak} days</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium opacity-90">Today</span>
+            <Upload size={20} className="opacity-80" />
+          </div>
+          <div className="text-3xl font-bold">{uploadsToday} files</div>
         </div>
       </div>
 
-      {/* Language Contributions */}
+      {/* Contributions by Media Type - Colorful Cards */}
+      <div>
+        <h3 className="text-base font-bold text-slate-900 mb-3">
+          Contributions by Media Type
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity size={18} />
+              <span className="text-sm font-semibold">Text</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {contributions?.contributionsByType.text || 0}
+            </div>
+            <div className="text-xs opacity-80 mt-1">Contributions</div>
+          </div>
+
+          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart size={18} />
+              <span className="text-sm font-semibold">Document</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {contributions?.contributionsByType.document || 0}
+            </div>
+            <div className="text-xs opacity-80 mt-1">Contributions</div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Award size={18} />
+              <span className="text-sm font-semibold">Image</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {contributions?.contributionsByType.image || 0}
+            </div>
+            <div className="text-xs opacity-80 mt-1">Contributions</div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp size={18} />
+              <span className="text-sm font-semibold">Audio</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {contributions?.contributionsByType.audio || 0}
+            </div>
+            <div className="text-xs opacity-80 mt-1">
+              {formatDuration(contributions?.audioDuration || 0)}
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar size={18} />
+              <span className="text-sm font-semibold">Video</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {contributions?.contributionsByType.video || 0}
+            </div>
+            <div className="text-xs opacity-80 mt-1">
+              {formatDuration(contributions?.videoDuration || 0)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Languages */}
       {languageContributions.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div>
+          <h3 className="text-base font-bold text-slate-900 mb-3">
             Top Languages Contributed To
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {languageContributions.slice(0, 6).map((lang, index) => (
-              <div
-                key={index}
-                className="flex items-center p-3 bg-gray-50 rounded-lg shadow-sm"
-              >
-                <Globe size={18} className="text-gray-600 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {lang.language.charAt(0).toUpperCase() +
-                      lang.language.slice(1)}
-                  </p>
-                  <p className="text-xs text-gray-500">{lang.count} files</p>
+          <div className="space-y-2">
+            {languageContributions.slice(0, 3).map((lang, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <Globe size={18} className="text-slate-400" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-semibold text-slate-700">
+                      {lang.language.charAt(0).toUpperCase() +
+                        lang.language.slice(1)}
+                    </span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {lang.count} files
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all"
+                      style={{
+                        width: `${(lang.count / (contributions?.totalContributions || 1)) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             ))}

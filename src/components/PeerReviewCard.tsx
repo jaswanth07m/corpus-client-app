@@ -34,6 +34,16 @@ interface PeerReviewCardProps {
   language?: string;
 }
 
+interface HistoryEntry {
+  uid: string;
+  version_number: number;
+  changed_by: string;
+  created_at: string;
+  change_type: string;
+  change_source: string;
+  field_changes: Record<string, { old_value: unknown; new_value: unknown }>;
+}
+
 const languages = [
   'assamese',
   'bengali',
@@ -104,7 +114,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // history
-  const [history, setHistory] = useState<Array<unknown> | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [expandedVersionUid, setExpandedVersionUid] = useState<string | null>(
@@ -250,7 +260,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         );
       }
       const data = await res.json();
-      setHistory(Array.isArray(data) ? data : []);
+      setHistory(Array.isArray(data) ? (data as HistoryEntry[]) : []);
     } catch (err) {
       setError(
         err instanceof Error
@@ -265,7 +275,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
   const renderMedia = () => {
     const containerClass =
-      'w-full h-[300px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden flex items-center justify-center';
+      'w-full h-[280px] bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden flex items-center justify-center';
 
     if (media_type === 'image') {
       return (
@@ -274,6 +284,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             src={dataUrl}
             alt="uploaded media"
             className="w-full h-full object-contain"
+            loading="lazy"
           />
         </div>
       );
@@ -282,7 +293,11 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
     if (media_type === 'video') {
       return (
         <div className={containerClass}>
-          <video controls className="w-full h-full object-cover">
+          <video
+            controls
+            className="w-full h-full object-cover"
+            preload="metadata"
+          >
             <source src={dataUrl} />
           </video>
         </div>
@@ -291,19 +306,19 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
     if (media_type === 'audio') {
       return (
-        <div className="w-full h-[300px] bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden p-6">
-          <div className="flex flex-col items-center justify-center gap-4 px-6">
-            <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <Music size={48} className="text-white" />
+        <div className="w-full h-[200px] bg-gradient-to-br from-emerald-50 to-cyan-50 overflow-hidden p-6">
+          <div className="flex flex-col items-center justify-center gap-4 h-full">
+            <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <Music size={40} className="text-white" />
             </div>
             <div className="w-full max-w-md">
-              <audio controls className="w-full">
+              <audio controls className="w-full" preload="metadata">
                 <source src={dataUrl} />
               </audio>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600 font-medium">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-slate-600 font-medium">
                 Audio Track
               </span>
             </div>
@@ -314,7 +329,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
     return (
       <div className={containerClass}>
-        <p className="text-gray-400">Unsupported media</p>
+        <p className="text-slate-400">Unsupported media</p>
       </div>
     );
   };
@@ -324,24 +339,24 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   };
 
   return (
-    <div className="bg-stone-50 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow max-w-xl mx-auto mb-3">
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 max-w-xl mx-auto mb-4">
       {/* Header - Compact */}
-      <div className="px-3 py-2.5 border-b border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-sm">
-            <Link to={`/userProfile/${user_id}`}>
-              <User size={18} className="text-white" />
-            </Link>
-          </div>
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+        <div className="flex items-center gap-3">
+          <Link to={`/userProfile/${user_id}`} className="group">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+              <User size={20} className="text-white" />
+            </div>
+          </Link>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-bold text-slate-900">
               {username || user_id}
             </h3>
             {getMediaIcon(media_type)}
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={async () => {
@@ -351,52 +366,43 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               setShowHistory((prev) => !prev);
             }}
             title="Show history"
-            className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
             aria-expanded={showHistory}
           >
-            <History size={16} className="text-gray-600" />
+            <History size={18} className="text-slate-600" />
           </button>
 
           <button
             type="button"
             onClick={() => setEditMode((s) => !s)}
-            className={`p-1.5 rounded-md transition-all ${
+            className={`p-2 rounded-lg transition-all ${
               editMode
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-emerald-500 text-white shadow-md'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
             title={editMode ? 'Disable Edit Mode' : 'Enable Edit Mode'}
           >
-            <Pencil size={16} strokeWidth={2} />
+            <Pencil size={18} strokeWidth={2} />
           </button>
         </div>
       </div>
 
       {/* Media */}
-      <div className="">
-        <div
-          className=" overflow-hidden bg-gray-50"
-          style={{ maxHeight: '20rem' }}
-        >
-          {renderMedia()}
-        </div>
-      </div>
+      <div className="overflow-hidden bg-slate-50">{renderMedia()}</div>
 
       {/* Content */}
-      <div className="px-3 pb-3 space-y-2.5">
+      <div className="px-4 pb-4 space-y-3">
         {showHistory && (
-          <div className="border border-gray-200 rounded-md bg-gray-50 p-3 mt-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock size={14} className="text-gray-500" />
-              <h4 className="text-xs font-semibold text-gray-800">
-                Edit History
-              </h4>
+          <div className="border border-slate-200 rounded-lg bg-slate-50 p-4 mt-3">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock size={16} className="text-slate-500" />
+              <h4 className="text-sm font-bold text-slate-800">Edit History</h4>
               {loadingHistory && (
-                <span className="text-xs text-gray-500">loading...</span>
+                <span className="text-xs text-slate-500">loading...</span>
               )}
               {error && <span className="text-xs text-red-500">{error}</span>}
               {!loadingHistory && history.length === 0 && (
-                <span className="text-xs text-gray-500">no history</span>
+                <span className="text-xs text-slate-500">no history</span>
               )}
             </div>
 
@@ -509,9 +515,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         )}
 
         {editMode ? (
-          <div className="">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Title:{' '}
+          <div className="mt-3">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Title
             </label>
             <Input
               value={newTitle || (!editMode ? title : newTitle)}
@@ -529,24 +535,28 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                   setTitleError(null);
                 }
               }}
-              className={`text-sm font-medium h-9 ${!editMode ? 'bg-gray-50 border-gray-200' : 'bg-white'}`}
+              className={`text-sm font-medium h-10 ${!editMode ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-300 focus:border-emerald-500 focus:ring-emerald-500'}`}
               readOnly={!editMode}
-              placeholder="Title"
+              placeholder="Enter title"
             />
             {titleError && (
-              <p className="text-xs text-red-500 mt-1">{titleError}</p>
+              <p className="text-xs text-red-500 mt-1.5 font-medium">
+                {titleError}
+              </p>
             )}
           </div>
         ) : (
-          <div className="pt-1">
-            <h1 className="text-center font-bold text-xl">{newTitle}</h1>
+          <div className="pt-2">
+            <h1 className="text-center font-bold text-xl text-slate-900">
+              {newTitle}
+            </h1>
           </div>
         )}
 
         {editMode ? (
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Description:{' '}
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Description
             </label>
             <textarea
               value={
@@ -570,22 +580,28 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               }}
               readOnly={!editMode}
               rows={3}
-              className={`w-full p-2 border rounded-md text-sm resize-none ${
-                !editMode ? 'bg-gray-50 border-gray-200' : 'bg-white'
+              className={`w-full p-3 border rounded-lg text-sm resize-none ${
+                !editMode
+                  ? 'bg-slate-50 border-slate-200'
+                  : 'bg-white border-slate-300 focus:border-emerald-500 focus:ring-emerald-500'
               }`}
-              placeholder="Description"
+              placeholder="Enter description"
             />
             {descError && (
-              <p className="text-xs text-red-500 mt-1">{descError}</p>
+              <p className="text-xs text-red-500 mt-1.5 font-medium">
+                {descError}
+              </p>
             )}
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1.5">
               {countMeaningfulWords(newDescription || description)} meaningful
               words
             </p>
           </div>
         ) : (
-          <div className="pt-1">
-            <p className="text-center font-thin text-md">{newDescription}</p>
+          <div className="pt-2">
+            <p className="text-center text-slate-700 leading-relaxed">
+              {newDescription}
+            </p>
           </div>
         )}
 
@@ -676,9 +692,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
         {/* Actions */}
         {changed && (
-          <div className="flex gap-2 pt-1">
+          <div className="flex gap-3 pt-2">
             <button
-              className={`flex-1 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition ${
+              className={`flex-1 px-4 py-2.5 bg-emerald-500 text-white text-sm font-bold rounded-lg hover:bg-emerald-600 transition-all shadow-md hover:shadow-lg ${
                 isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               onClick={handleEditAndSubmit}
@@ -700,7 +716,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 setDescError(null);
                 setEditMode(false);
               }}
-              className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition"
+              className="flex-1 px-4 py-2.5 border-2 border-slate-300 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition-all"
             >
               Cancel
             </button>
