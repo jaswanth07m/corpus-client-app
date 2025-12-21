@@ -42,9 +42,11 @@ export async function validateAudioFile(
 
   try {
     // Create audio context for analysis
-    const audioContext = new (window.AudioContext ||
+    const audioContext = new (
+      window.AudioContext ||
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).webkitAudioContext)();
+      (window as any).webkitAudioContext
+    )();
 
     // Read file as ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
