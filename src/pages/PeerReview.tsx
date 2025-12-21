@@ -323,30 +323,6 @@ const PeerReview: React.FC = () => {
 
         {/* Search Bar */}
         <div className="max-w-7xl mx-auto mt-3">
-          {/* Search Type Toggle */}
-          <div className="flex mb-2">
-            <button
-              onClick={() => setSearchType('records')}
-              className={`px-4 py-2 text-sm font-medium rounded-l-lg border ${
-                searchType === 'records'
-                  ? 'bg-emerald-500 text-white border-emerald-500'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              Records
-            </button>
-            <button
-              onClick={() => setSearchType('users')}
-              className={`px-4 py-2 text-sm font-medium rounded-r-lg border-l-0 ${
-                searchType === 'users'
-                  ? 'bg-emerald-500 text-white border-emerald-500'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              Users
-            </button>
-          </div>
-
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
@@ -363,14 +339,30 @@ const PeerReview: React.FC = () => {
                   await handleSearch(searchQuery);
                 }
               }}
-              className="w-full pl-10 pr-12 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full pl-10 pr-28 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
-            <button
-              onClick={async () => await handleSearch(searchQuery)}
-              className="absolute right-10 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <Search className="w-5 h-5" />
-            </button>
+            <div className="absolute right-14 top-1/2 transform -translate-y-1/2 flex">
+              <button
+                onClick={() => setSearchType('records')}
+                className={`px-3 py-1 text-xs font-medium rounded-l ${
+                  searchType === 'records'
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                Records
+              </button>
+              <button
+                onClick={() => setSearchType('users')}
+                className={`px-3 py-1 text-xs font-medium rounded-r ${
+                  searchType === 'users'
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                Users
+              </button>
+            </div>
             {searchQuery && (
               <button
                 onClick={async () => await handleSearch('')}
