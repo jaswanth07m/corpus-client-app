@@ -35,6 +35,7 @@ const PeerReview: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchType, setSearchType] = useState<'records' | 'users'>('records');
   const [currentPage, setCurrentPage] = useState(0);
 
   async function fetchMoreData() {
@@ -224,6 +225,38 @@ const PeerReview: React.FC = () => {
     }
   }
 
+  async function searchUsers(query: string) {
+    const token = localStorage.getItem('token');
+
+    setIsLoading(true); // Set loading state to true
+
+    try {
+      // Call the user profile API with the user identifier - using /users/{user_identifier}/profile
+      const userResponse = await fetch(
+        `${BACKEND_URL}/users/${encodeURIComponent(query)}/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!userResponse.ok) {
+        const errorData = await userResponse.json();
+        throw new Error(errorData.message || 'User not found');
+      }
+
+      // If user is found, redirect to their profile page
+      window.location.href = `/userProfile/${encodeURIComponent(query)}`;
+    } catch (err) {
+      const error = err as Error;
+      console.error('User search Error:', error);
+      setError(error.message);
+      setIsLoading(false); // Make sure to reset loading state on error
+    }
+  }
+
   useEffect(() => {
     fetchMoreData();
   }, []);
@@ -248,7 +281,12 @@ const PeerReview: React.FC = () => {
     } else {
       setIsSearching(true);
       setHasMore(false); // Disable infinite scroll during search
-      await searchRecords(query);
+
+      if (searchType === 'records') {
+        await searchRecords(query);
+      } else if (searchType === 'users') {
+        await searchUsers(query);
+      }
     }
   };
 
@@ -285,11 +323,39 @@ const PeerReview: React.FC = () => {
 
         {/* Search Bar */}
         <div className="max-w-7xl mx-auto mt-3">
+          {/* Search Type Toggle */}
+          <div className="flex mb-2">
+            <button
+              onClick={() => setSearchType('records')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-lg border ${
+                searchType === 'records'
+                  ? 'bg-emerald-500 text-white border-emerald-500'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Records
+            </button>
+            <button
+              onClick={() => setSearchType('users')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-lg border-l-0 ${
+                searchType === 'users'
+                  ? 'bg-emerald-500 text-white border-emerald-500'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Users
+            </button>
+          </div>
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by title, description, username, or language..."
+              placeholder={
+                searchType === 'records'
+                  ? 'Search by title, description ...'
+                  : 'Search for users...'
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={async (e) => {
@@ -325,7 +391,9 @@ const PeerReview: React.FC = () => {
                 ></div>
               </div>
               <p className="text-sm text-slate-600 mt-1 text-center">
-                Searching records...
+                {searchType === 'records'
+                  ? 'Searching records...'
+                  : 'Searching users...'}
               </p>
             </div>
           )}
