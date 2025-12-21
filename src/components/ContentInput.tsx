@@ -24,6 +24,7 @@ import {
   Upload,
   Trash2,
   FileText,
+  X as XIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import LocationPicker from './LocationPicker';
@@ -56,6 +57,8 @@ interface ContentInputProps {
   selectedCategory: Category | null;
   categories?: Category[];
   setSelectedCategory?: (category: Category | null) => void;
+  selectedCategories?: Category[]; // For multi-selection
+  setSelectedCategories?: (categories: Category[]) => void; // For multi-selection
   title: string;
   setTitle: (title: string) => void;
   textContent: string;
@@ -133,6 +136,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   selectedCategory,
   categories = [],
   setSelectedCategory,
+  selectedCategories = [],
+  setSelectedCategories,
   title,
   setTitle,
   textContent,
@@ -187,6 +192,11 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Multiple file upload states
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+
+  // Multi-category selection state - fallback to empty array if not provided
+  const [multiSelectedCategories, setMultiSelectedCategories] = useState<
+    Category[]
+  >(selectedCategories || []);
 
   // Title and Description validation
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -828,41 +838,71 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
-            {/* Category Card Selection */}
-            {categories && categories.length > 0 && setSelectedCategory && (
+            {/* Multi-Category Selection as Tags */}
+            {categories && categories.length > 0 && (
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Select Category *
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Categories *
                 </label>
-                <div className="overflow-x-auto pb-2 -mx-2 px-2">
-                  <div className="flex gap-4 min-w-max">
-                    {categories.map((cat) => (
+
+                {/* Selected Categories Display */}
+                <div className="flex flex-wrap gap-2 mb-3 min-h-10">
+                  {multiSelectedCategories.map((cat) => (
+                    <div
+                      key={cat.id}
+                      className="flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-500"
+                    >
+                      <span className="mr-2">{cat.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSelection = multiSelectedCategories.filter(
+                            (c) => c.id !== cat.id,
+                          );
+                          setMultiSelectedCategories(newSelection);
+                          if (setSelectedCategories) {
+                            setSelectedCategories(newSelection);
+                          }
+                        }}
+                        className="text-emerald-800 hover:text-emerald-900 focus:outline-none"
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Available Categories */}
+                <div className="flex flex-wrap gap-2">
+                  {categories
+                    .filter(
+                      (cat) =>
+                        !multiSelectedCategories.some(
+                          (selected) => selected.id === cat.id,
+                        ),
+                    )
+                    .map((cat) => (
                       <div
                         key={cat.id}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`cursor-pointer bg-white rounded-xl p-4 border-2 transition-all duration-200 hover:shadow-md flex-shrink-0 w-40 ${
-                          selectedCategory?.id === cat.id
-                            ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                            : 'border-gray-200 hover:border-emerald-300'
+                        onClick={() => {
+                          const newSelection = [
+                            ...multiSelectedCategories,
+                            cat,
+                          ];
+                          setMultiSelectedCategories(newSelection);
+                          if (setSelectedCategories) {
+                            setSelectedCategories(newSelection);
+                          }
+                        }}
+                        className={`cursor-pointer px-4 py-2 rounded-full border transition-all duration-200 ${
+                          multiSelectedCategories.some((c) => c.id === cat.id)
+                            ? 'bg-emerald-100 border-emerald-500 text-emerald-700'
+                            : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
-                        <div className="flex flex-col items-center text-center gap-2">
-                          <div className="text-4xl">
-                            {getCategoryIcon(cat.name)}
-                          </div>
-                          <h3
-                            className={`font-semibold text-sm ${
-                              selectedCategory?.id === cat.id
-                                ? 'text-emerald-700'
-                                : 'text-gray-700'
-                            }`}
-                          >
-                            {cat.title}
-                          </h3>
-                        </div>
+                        {cat.title}
                       </div>
                     ))}
-                  </div>
                 </div>
               </div>
             )}

@@ -91,6 +91,7 @@ const Categories: React.FC<CategoriesProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [showUploadOptions, setShowUploadOptions] = useState(false);
   const [uploadMode, setUploadMode] = useState<
     'text' | 'audio' | 'video' | 'image' | 'document' | null
@@ -518,7 +519,16 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('upload_uuid', uploadUuid);
       formData.append('title', title);
       formData.append('description', description);
-      formData.append('category_id', selectedCategory!.id);
+
+      // Send category_ids as a JSON string array instead of individual form fields
+      const categoryIds =
+        selectedCategories && selectedCategories.length > 0
+          ? selectedCategories.map((cat) => cat.id)
+          : selectedCategory
+            ? [selectedCategory.id]
+            : [];
+      formData.append('category_ids', JSON.stringify(categoryIds));
+
       formData.append('user_id', userId);
       formData.append('media_type', uploadMode || '');
       formData.append('latitude', location!.lat.toString());
@@ -613,8 +623,11 @@ const Categories: React.FC<CategoriesProps> = ({
   // Step 3.1: Modify handleUpload Function
   const handleUpload = async () => {
     // Validation checks (existing logic)
-    if (!selectedCategory || !title.trim()) {
-      toast.error('Please provide a title');
+    if (
+      (selectedCategories.length === 0 && !selectedCategory) ||
+      !title.trim()
+    ) {
+      toast.error('Please select at least one category and provide a title');
       return;
     }
 
@@ -755,6 +768,8 @@ const Categories: React.FC<CategoriesProps> = ({
         selectedCategory={selectedCategory}
         categories={categories}
         setSelectedCategory={setSelectedCategory}
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
         title={title}
         setTitle={setTitle}
         textContent={textContent}
