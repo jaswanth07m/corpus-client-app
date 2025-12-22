@@ -1068,6 +1068,8 @@ const FollowersModal: React.FC<{
                       } else {
                         navigate(`/profile/${follower.username || userId}`);
                       }
+                      // Close the modal after navigation
+                      onClose();
                     }}
                   >
                     <div className="flex items-center">
@@ -1152,6 +1154,8 @@ const FollowingModal: React.FC<{
                       } else {
                         navigate(`/profile/${followedUser.username || userId}`);
                       }
+                      // Close the modal after navigation
+                      onClose();
                     }}
                   >
                     <div className="flex items-center">
