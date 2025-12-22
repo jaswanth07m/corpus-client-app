@@ -20,6 +20,7 @@ import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import CategoryTags from '@/components/CategoryTags';
 import {
   Select,
   SelectContent,
@@ -125,7 +126,8 @@ interface Coordinates {
 interface ContributionItem {
   id: string;
   size: number;
-  category_id: string;
+  category_id?: string; // Keep for backward compatibility
+  category_ids?: string[]; // New field for multiple categories
   reviewed: boolean;
   title: string;
   description: string;
@@ -2197,10 +2199,14 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       <Select
                         value={editItem.release_rights}
                         onValueChange={(val) => {
-                          setEditItem({ ...editItem, release_rights: val });
-                          // Clear fields if not 'others'
+                          setEditItem((prev) => ({
+                            ...prev,
+                            release_rights: val,
+                            // Clear creator field if not 'others'
+                            creator: val !== 'others' ? '' : prev.creator,
+                          }));
+                          // Clear sourceLabel if not 'others'
                           if (val !== 'others') {
-                            setEditItem({ ...editItem, creator: '' });
                             setSourceLabel('');
                           }
                         }}
@@ -2259,29 +2265,62 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-start gap-3">
-                    <svg
-                      className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700">
-                        Release Rights
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {item.release_rights || 'Not specified'}
-                      </p>
+                  <>
+                    <div className="flex items-start gap-3">
+                      <svg
+                        className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                        />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">
+                          Release Rights
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {item.release_rights || 'Not specified'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+
+                    {/* Category Tags */}
+                    <div className="flex items-start gap-3">
+                      <svg
+                        className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                        />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">
+                          Categories
+                        </p>
+                        <div className="mt-1">
+                          <CategoryTags
+                            categoryIds={
+                              item.category_ids ||
+                              (item.category_id ? [item.category_id] : [])
+                            }
+                            token={token}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {item.reviewed && (
