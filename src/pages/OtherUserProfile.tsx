@@ -1118,11 +1118,444 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   onClose,
 }) => {
   const [showHistory, setShowHistory] = useState(false);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Function to fetch media URL on demand
+  const fetchMediaUrl = async () => {
+    if (!isOpen || mediaUrl) return; // Don't fetch if modal is closed or already have URL
+
+    setLoading(true);
+    setError(false);
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch media URL');
+      }
+
+      const data = await response.json();
+      if (data.record_url) {
+        setMediaUrl(data.record_url);
+      }
+    } catch (err) {
+      console.error('Error fetching media:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch media URL only when needed for audio, document, and video types
+  useEffect(() => {
+    if (
+      isOpen &&
+      !previewUrl &&
+      (mediaType === 'audio' ||
+        mediaType === 'document' ||
+        mediaType === 'video')
+    ) {
+      fetchMediaUrl();
+    }
+  }, [isOpen, previewUrl, mediaType, item.id, token]);
 
   if (!isOpen) return null;
 
   const getMediaTypeLabel = () => {
     return mediaType.charAt(0).toUpperCase() + mediaType.slice(1);
+  };
+
+  const renderMediaPreview = () => {
+    switch (mediaType) {
+      case 'image':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt={item.title || 'Image'}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'video':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
+            {loading && (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+            {error && (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <div className="text-center p-4">
+                  <svg
+                    className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-xs text-gray-500">Video unavailable</p>
+                </div>
+              </div>
+            )}
+            {!loading && !error && mediaUrl && (
+              <video
+                src={mediaUrl}
+                controls
+                className="w-full h-full object-contain bg-black"
+                onError={() => setError(true)}
+              />
+            )}
+            {!loading && !error && !mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-purple-200 p-4">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-purple-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <button
+                  onClick={fetchMediaUrl}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Load Video
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'audio':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center p-4">
+            {loading && (
+              <div className="flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+            {error && (
+              <div className="text-center p-4">
+                <svg
+                  className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                  />
+                </svg>
+                <p className="text-xs text-gray-500">Audio unavailable</p>
+              </div>
+            )}
+            {!loading && !error && mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
+                  </svg>
+                </div>
+                <audio
+                  src={mediaUrl}
+                  controls
+                  className="w-full max-w-xs"
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onEnded={() => setIsPlaying(false)}
+                  onError={() => setError(true)}
+                />
+              </div>
+            )}
+            {!loading && !error && !mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
+                  </svg>
+                </div>
+                <button
+                  onClick={fetchMediaUrl}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Load Audio
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'document':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+            {loading && (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+            {error && (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <div className="text-center p-4">
+                  <svg
+                    className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-xs text-gray-500">Document unavailable</p>
+                </div>
+              </div>
+            )}
+            {!loading && !error && mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+                {/* Check document type and render appropriate preview */}
+                {mediaUrl && (
+                  <div className="w-full h-full flex flex-col items-center">
+                    {mediaUrl.toLowerCase().endsWith('.pdf') ? (
+                      <iframe
+                        src={mediaUrl}
+                        className="w-full h-full border-0"
+                        title="Document Preview"
+                      />
+                    ) : mediaUrl.toLowerCase().endsWith('.docx') ||
+                      mediaUrl.toLowerCase().endsWith('.doc') ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
+                        <div className="mb-2">
+                          <svg
+                            className="w-16 h-16 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-700 mb-4">
+                          {item.title || 'Word Document'}
+                        </p>
+                        <p className="text-gray-500 mb-6 text-center max-w-md">
+                          {item.description || 'Microsoft Word Document'}
+                        </p>
+                        <a
+                          href={mediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                        >
+                          Open in New Tab
+                        </a>
+                      </div>
+                    ) : mediaUrl.toLowerCase().endsWith('.txt') ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
+                        <div className="mb-2">
+                          <svg
+                            className="w-16 h-16 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-700 mb-4">
+                          {item.title || 'Text File'}
+                        </p>
+                        <p className="text-gray-500 mb-6 text-center max-w-md">
+                          {item.description || 'Plain Text Document'}
+                        </p>
+                        <a
+                          href={mediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                        >
+                          View Text
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
+                        <div className="mb-2">
+                          <svg
+                            className="w-16 h-16 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-700 mb-4">
+                          {item.title || 'Document'}
+                        </p>
+                        <p className="text-gray-500 mb-6 text-center max-w-md">
+                          {item.description || 'Document File'}
+                        </p>
+                        <a
+                          href={mediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                        >
+                          Open Document
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {!loading && !error && !mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-yellow-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-center text-gray-600 mb-4">
+                  {item.title || 'Document'}
+                </p>
+                <button
+                  onClick={fetchMediaUrl}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Load Document
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'text':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50">
+              <div className="mb-4">
+                <svg
+                  className="w-16 h-16 text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-center text-gray-600 mb-4">
+                {item.title || 'Text Content'}
+              </p>
+              <a
+                href={previewUrl || mediaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View Text
+              </a>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+            <div className="text-center p-4">
+              <p className="text-xs text-gray-500">Unsupported media type</p>
+            </div>
+          </div>
+        );
+    }
   };
 
   return (
@@ -1143,21 +1576,9 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Image Preview */}
+            {/* Media Preview */}
             <div className="space-y-4">
-              <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt={item.title || 'Image'}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-                  </div>
-                )}
-              </div>
+              {renderMediaPreview()}
 
               {/* Action Buttons */}
               <div className="flex gap-3">
@@ -1227,7 +1648,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.414A1 1 0 0112.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                     />
                     <path
                       strokeLinecap="round"
@@ -1487,41 +1908,47 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   const [showModal, setShowModal] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
 
-  // Lazy load media URL only when needed (for video)
+  // Lazy load media URL for text, audio, and document types only (video is handled separately in the modal)
   useEffect(() => {
-    if (mediaType !== 'video' || !shouldLoad || mediaUrl) return;
-
-    const fetchMediaUrl = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
+    if (
+      (mediaType === 'text' ||
+        mediaType === 'audio' ||
+        mediaType === 'document') &&
+      shouldLoad &&
+      !mediaUrl
+    ) {
+      const fetchMediaUrl = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
             },
-          },
-        );
+          );
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch media URL');
+          if (!response.ok) {
+            throw new Error('Failed to fetch media URL');
+          }
+
+          const data = await response.json();
+          if (data.record_url) {
+            setMediaUrl(data.record_url);
+          }
+        } catch (err) {
+          console.error('Error fetching media:', err);
+          setError(true);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        const data = await response.json();
-        if (data.record_url) {
-          setMediaUrl(data.record_url);
-        }
-      } catch (err) {
-        console.error('Error fetching media:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMediaUrl();
+      fetchMediaUrl();
+    }
   }, [item.id, token, mediaType, shouldLoad, mediaUrl]);
 
   const getMediaIcon = () => {
@@ -1607,7 +2034,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
       >
         {/* Media Container */}
         <div className="aspect-square relative overflow-hidden bg-white">
-          {shouldLoad && loading && mediaType === 'video' && (
+          {shouldLoad && loading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
             </div>
@@ -1617,18 +2044,19 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
             !loading &&
             !error &&
             mediaType === 'video' && (
-              <video
-                src={mediaUrl}
-                className="w-full h-full object-cover"
-                muted
-                playsInline
-              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black">
+                <video
+                  src={mediaUrl}
+                  className="w-full h-full object-cover"
+                  muted
+                  playsInline
+                />
+              </div>
             )}
           {(mediaType === 'text' ||
             mediaType === 'audio' ||
             mediaType === 'document' ||
-            (mediaType === 'video' && !shouldLoad) ||
-            (mediaType === 'video' && !mediaUrl && !loading)) && (
+            mediaType === 'video') && (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white to-gray-50">
               {getMediaIcon()}
             </div>
