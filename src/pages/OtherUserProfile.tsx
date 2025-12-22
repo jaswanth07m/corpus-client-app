@@ -1674,6 +1674,9 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   selectedMediaType,
   token,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   let items: ContributionItem[] = [];
   if (!contributions || !selectedMediaType) return null;
 
@@ -1694,13 +1697,29 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     );
   }
 
+  // Calculate pagination
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = items.slice(startIndex, endIndex);
+
   // Show grid layout for all media types
   if (selectedMediaType === 'image') {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {items.map((item) => (
-          <ImageGridItem key={item.id} item={item} token={token} />
-        ))}
+      <div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {currentItems.map((item) => (
+            <ImageGridItem key={item.id} item={item} token={token} />
+          ))}
+        </div>
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
     );
   }
@@ -1712,15 +1731,25 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     selectedMediaType === 'document'
   ) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {items.map((item) => (
-          <MediaGridItem
-            key={item.id}
-            item={item}
-            mediaType={selectedMediaType}
-            token={token}
+      <div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {currentItems.map((item) => (
+            <MediaGridItem
+              key={item.id}
+              item={item}
+              mediaType={selectedMediaType}
+              token={token}
+            />
+          ))}
+        </div>
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
-        ))}
+        )}
       </div>
     );
   }
@@ -2030,6 +2059,109 @@ const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
           })}
         </ul>
       )}
+    </div>
+  );
+};
+
+// Pagination Controls Component
+interface PaginationControlsProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+const PaginationControls: React.FC<PaginationControlsProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) => {
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      // If total pages is less than or equal to max visible, show all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Show first page, last page, current page, and adjacent pages
+      if (currentPage <= 3) {
+        // Near the beginning
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Near the end
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Somewhere in the middle
+        pages.push(1);
+        pages.push('ellipsis');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  return (
+    <div className="flex items-center justify-center mt-6 space-x-2">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className={`px-4 py-2 rounded-lg border ${
+          currentPage === 1
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+        }`}
+      >
+        Previous
+      </button>
+
+      {pageNumbers.map((page, index) => (
+        <React.Fragment key={index}>
+          {page === 'ellipsis' ? (
+            <span className="px-3 py-2 text-gray-500">...</span>
+          ) : (
+            <button
+              onClick={() => onPageChange(page as number)}
+              className={`px-4 py-2 rounded-lg border ${
+                currentPage === page
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+              }`}
+            >
+              {page}
+            </button>
+          )}
+        </React.Fragment>
+      ))}
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className={`px-4 py-2 rounded-lg border ${
+          currentPage === totalPages
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+        }`}
+      >
+        Next
+      </button>
     </div>
   );
 };
