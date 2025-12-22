@@ -8,8 +8,8 @@ import NotFound from './pages/NotFound';
 import ForgotPassword from './pages/ForgotPassword'; // Import the new component
 import Proofreading from './pages/Proofreading';
 import AnnotationsDashboard from './pages/AnnotationsDashboard';
-import UserProfile from './components/UserProfile';
-import OtherUserProfile from './pages/OtherUserProfile';
+import Profile from './pages/Profile';
+import MyProfileRedirect from './pages/MyProfileRedirect';
 import PeerReview from './pages/PeerReview';
 import { AuthProvider } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
@@ -57,11 +57,30 @@ const App = () => (
               path="/myprofile/"
               element={
                 <RequireAuth>
-                  <UserProfile />
+                  <Navigate to="/profile" replace />
                 </RequireAuth>
               }
             />
-            <Route path="/userprofile/:userId" element={<OtherUserProfile />} />
+            <Route
+              path="/userprofile/:userId"
+              element={<Navigate to="/profile/:username" replace />}
+            />
+            <Route
+              path="/profile"
+              element={
+                <RequireAuth>
+                  <MyProfileRedirect />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/profile/:username"
+              element={
+                <RequireAuth>
+                  <Profile />
+                </RequireAuth>
+              }
+            />
             <Route path="/peer-review" element={<PeerReview />} />
             {/* New route for ForgotPassword */}
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

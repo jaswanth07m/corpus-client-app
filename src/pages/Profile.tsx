@@ -10,25 +10,60 @@ import {
   BarChart,
   Zap,
   Calendar,
-  Eye,
   History,
   ChevronDown,
   ChevronUp,
   Clock,
+  Pencil,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import CategoryTags from '@/components/CategoryTags';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
-// interface FormattedUserProfile{
-//     id: string,
-//     name: string
-//     streaks: Object,
-//     timeline: Object,
-//     summary: Object,
+const languages = [
+  'assamese',
+  'bengali',
+  'bodo',
+  'dogri',
+  'gujarati',
+  'hindi',
+  'kannada',
+  'kashmiri',
+  'konkani',
+  'maithili',
+  'malayalam',
+  'marathi',
+  'meitei',
+  'nepali',
+  'odia',
+  'punjabi',
+  'sanskrit',
+  'santali',
+  'sindhi',
+  'tamil',
+  'telugu',
+  'urdu',
+];
 
-// }
+const releaseOptions = [
+  { key: 'creator', value: 'This work is created by Author' },
+  {
+    key: 'downloaded',
+    value:
+      "Author downloaded this from the internet and/or Author don't know if it is free to share",
+  },
+  { key: 'others', value: 'Not Done By Author' },
+];
 
 interface FollowedUser {
   id?: string;
@@ -91,7 +126,8 @@ interface Coordinates {
 interface ContributionItem {
   id: string;
   size: number;
-  category_id: string;
+  category_id?: string; // Keep for backward compatibility
+  category_ids?: string[]; // New field for multiple categories
   reviewed: boolean;
   title: string;
   description: string;
@@ -138,7 +174,7 @@ interface EditHistoryEntry {
   field_changes?: Record<string, FieldChange>;
 }
 
-function OtherUserProfile() {
+function Profile() {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<UserProfileData | null>(null);
@@ -156,10 +192,14 @@ function OtherUserProfile() {
   >(null);
   const [showDashboard, setShowDashboard] = useState(true);
 
-  const { userId } = useParams();
+  const { username } = useParams<{ username?: string }>();
 
   // State for current user ID
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [targetUserIdentifier, setTargetUserIdentifier] = useState<
+    string | null
+  >(null); // Store the identifier (username or ID) for API calls
 
   // State for follow functionality
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
@@ -202,6 +242,7 @@ function OtherUserProfile() {
       }
 
       const userData = await response.json();
+      setCurrentUsername(userData.username);
       return userData.id;
     } catch (err) {
       console.error('Error getting current user ID:', err);
@@ -212,7 +253,7 @@ function OtherUserProfile() {
   // Function to fetch user contributions by media type
   const fetchUserContributions = useCallback(
     async (
-      currentUserId: string,
+      userId: string, // Changed parameter name from currentUserId to userId for clarity
       mediaType: 'text' | 'audio' | 'video' | 'image' | 'document' | undefined,
     ) => {
       setContributionsLoading(true);
@@ -221,8 +262,8 @@ function OtherUserProfile() {
         const token = getAuthToken();
         const baseUrl = BACKEND_URL;
         const apiUrl = mediaType
-          ? `${baseUrl}/users/${currentUserId}/contributions/${mediaType}`
-          : `${baseUrl}/users/${currentUserId}/contributions`; // Fallback to all if no mediaType
+          ? `${baseUrl}/users/${userId}/contributions/${mediaType}`
+          : `${baseUrl}/users/${userId}/contributions`; // Fallback to all if no mediaType
 
         const response = await fetch(apiUrl, {
           headers: {
@@ -337,8 +378,8 @@ function OtherUserProfile() {
   };
 
   const fetchOtherUserProfile = useCallback(
-    async (userId: string) => {
-      setLoading(false);
+    async (username: string) => {
+      setLoading(true);
       setError(null);
 
       try {
@@ -349,7 +390,7 @@ function OtherUserProfile() {
 
         const apiUrl =
           BACKEND_URL +
-          `/users/${userId}/profile?include=streaks,timeline,summary&days=30`;
+          `/users/${username}/profile?include=streaks,timeline,summary&days=30`;
         const response = await fetch(apiUrl, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -382,6 +423,8 @@ function OtherUserProfile() {
         console.log(formattedProfile);
 
         setProfile(formattedProfile);
+        // Set the targetUserId for API calls since we need the ID, not the username
+        setTargetUserId(userData.user_id);
       } catch (err) {
         console.error('Error fetching other users profile', err);
         setError(err instanceof Error ? err.message : 'Error caught in Catch');
@@ -390,7 +433,71 @@ function OtherUserProfile() {
       }
     },
     [getAuthToken],
-  ); // Added getAuthToken to dependencies
+  );
+
+  const fetchMyUserProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('No Authentication token available');
+      }
+
+      const response = await fetch(`${BACKEND_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch profile: ${response.status}`);
+      }
+
+      const userData = await response.json();
+      const formattedProfile = {
+        id: userData.id,
+        name: userData.name || userData.username || 'Unknown User',
+        username: userData.username,
+        streaks: {
+          combined_streak: {
+            current: userData.streak_days || 0,
+            longest: userData.streak_days || 0,
+            total_active_days: userData.total_active_days || 0,
+          },
+        },
+        timeline: {},
+        summary: {
+          contributions: {
+            total_contributions: userData.total_contributions || 0,
+            contributions_by_media_type:
+              userData.contributions_by_media_type || {
+                text: 0,
+                audio: 0,
+                image: 0,
+                video: 0,
+                document: 0,
+              },
+          },
+          edits: {
+            total_edits: userData.total_edits || 0,
+          },
+          overall: {
+            total_activities: userData.total_activities || 0,
+          },
+        },
+      };
+
+      setProfile(formattedProfile);
+    } catch (err) {
+      console.error('Error fetching my profile', err);
+      setError(err instanceof Error ? err.message : 'Error caught in Catch');
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthToken]);
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -403,8 +510,8 @@ function OtherUserProfile() {
   };
 
   // Function to get current user's profile to check follow status
-  const checkFollowStatus = useCallback(
-    async (profileUserId: string) => {
+  const checkFollowStatusWithUsername = useCallback(
+    async (profileUsername: string) => {
       try {
         const token = getAuthToken();
         if (!token) {
@@ -440,9 +547,12 @@ function OtherUserProfile() {
         if (followingResponse.ok) {
           const followingData = await followingResponse.json();
           const followingList = followingData.following || followingData || [];
+          // Check if the user is being followed by username or ID
           const isUserBeingFollowed = followingList.some(
             (user: FollowedUser) =>
-              user.id === profileUserId || user.user_id === profileUserId,
+              user.username === profileUsername ||
+              user.id === profileUsername ||
+              user.user_id === profileUsername,
           );
           setIsFollowing(isUserBeingFollowed);
         }
@@ -450,11 +560,11 @@ function OtherUserProfile() {
         console.error('Error checking follow status:', err);
       }
     },
-    [getAuthToken], // Removed BACKEND_URL as it's an outer scope value
+    [getAuthToken],
   );
 
   // Function to follow a user
-  const followUser = async (targetUserId: string) => {
+  const followUser = async (targetUsername: string) => {
     setFollowLoading(true);
     try {
       const token = getAuthToken();
@@ -463,7 +573,7 @@ function OtherUserProfile() {
       }
 
       const response = await fetch(
-        `${BACKEND_URL}/users/${targetUserId}/follow`,
+        `${BACKEND_URL}/users/${targetUsername}/follow`,
         {
           method: 'POST',
           headers: {
@@ -478,10 +588,10 @@ function OtherUserProfile() {
         // Update the followers count by incrementing it (since target user now has one more follower)
         setFollowersCount((prev) => prev + 1);
         // Refetch profile to update counts
-        fetchOtherUserProfile(targetUserId);
+        fetchOtherUserProfile(targetUsername);
         // Refetch followers and following data to keep them updated
-        fetchFollowers(targetUserId);
-        fetchFollowing(targetUserId);
+        fetchFollowers(targetUsername);
+        fetchFollowing(targetUsername);
       } else {
         throw new Error(`Failed to follow user: ${response.status}`);
       }
@@ -494,7 +604,7 @@ function OtherUserProfile() {
   };
 
   // Function to unfollow a user
-  const unfollowUser = async (targetUserId: string) => {
+  const unfollowUser = async (targetUsername: string) => {
     setFollowLoading(true);
     try {
       const token = getAuthToken();
@@ -503,7 +613,7 @@ function OtherUserProfile() {
       }
 
       const response = await fetch(
-        `${BACKEND_URL}/users/${targetUserId}/follow`,
+        `${BACKEND_URL}/users/${targetUsername}/follow`,
         {
           method: 'DELETE',
           headers: {
@@ -518,10 +628,10 @@ function OtherUserProfile() {
         // Update the followers count by decrementing it (since target user now has one less follower)
         setFollowersCount((prev) => Math.max(0, prev - 1));
         // Refetch profile to update counts
-        fetchOtherUserProfile(targetUserId);
+        fetchOtherUserProfile(targetUsername);
         // Refetch followers and following data to keep them updated
-        fetchFollowers(targetUserId);
-        fetchFollowing(targetUserId);
+        fetchFollowers(targetUsername);
+        fetchFollowing(targetUsername);
       } else {
         throw new Error(`Failed to unfollow user: ${response.status}`);
       }
@@ -535,7 +645,7 @@ function OtherUserProfile() {
 
   // Function to fetch followers
   const fetchFollowers = useCallback(
-    async (targetUserId: string) => {
+    async (targetUsername: string) => {
       setLoadingFollowers(true);
       try {
         const token = getAuthToken();
@@ -544,7 +654,7 @@ function OtherUserProfile() {
         }
 
         const response = await fetch(
-          `${BACKEND_URL}/users/${targetUserId}/followers`,
+          `${BACKEND_URL}/users/${targetUsername}/followers`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -573,7 +683,7 @@ function OtherUserProfile() {
 
   // Function to fetch following
   const fetchFollowing = useCallback(
-    async (targetUserId: string) => {
+    async (targetUsername: string) => {
       setLoadingFollowing(true);
       try {
         const token = getAuthToken();
@@ -582,7 +692,7 @@ function OtherUserProfile() {
         }
 
         const response = await fetch(
-          `${BACKEND_URL}/users/${targetUserId}/following`,
+          `${BACKEND_URL}/users/${targetUsername}/following`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -612,38 +722,67 @@ function OtherUserProfile() {
   // Effect for initial data fetch
   useEffect(() => {
     const loadInitialData = async () => {
-      if (userId) {
-        // Get current user ID first
-        const currentId = await getCurrentUserId();
-        setCurrentUserId(currentId);
+      // Get current user ID first
+      const currentId = await getCurrentUserId();
+      const currentUsername = localStorage.getItem('username') || null; // Also get current username
+      setCurrentUserId(currentId);
+      setCurrentUsername(currentUsername);
 
-        // Then load other data
-        fetchOtherUserProfile(userId);
-        checkFollowStatus(userId);
-        fetchFollowers(userId);
-        fetchFollowing(userId);
+      if (username) {
+        // Check if viewing own profile by comparing username with current user's username
+        const isOwnProfileView = currentUsername === username;
 
-        // Fetch contributions based on view
-        if (showDashboard) {
-          fetchUserContributions(userId, undefined);
-        } else if (selectedMediaType) {
-          fetchUserContributions(userId, selectedMediaType);
+        if (isOwnProfileView) {
+          // Viewing own profile - use current username for API calls
+          fetchMyUserProfile();
+          // For own profile, fetch contributions for current user
+          if (showDashboard) {
+            fetchUserContributions(username, undefined);
+          } else if (selectedMediaType) {
+            fetchUserContributions(username, selectedMediaType);
+          }
+          // Also fetch followers and following for own profile
+          fetchFollowers(username);
+          fetchFollowing(username);
+          // Set the target identifier to the username for own profile
+          setTargetUserIdentifier(username);
+        } else {
+          // Viewing another user's profile - use the username from URL
+          fetchOtherUserProfile(username);
+          checkFollowStatusWithUsername(username);
+          fetchFollowers(username);
+          fetchFollowing(username);
+
+          // Fetch contributions based on view - we'll use the resolved user ID from the profile
+          // But for now, we'll use the username directly
+          if (showDashboard) {
+            fetchUserContributions(username, undefined);
+          } else if (selectedMediaType) {
+            fetchUserContributions(username, selectedMediaType);
+          }
+          // Set the target identifier to the username for other profile
+          setTargetUserIdentifier(username);
         }
       }
     };
 
     loadInitialData();
   }, [
-    userId,
+    username,
     fetchOtherUserProfile,
-    checkFollowStatus,
+    fetchMyUserProfile,
+    checkFollowStatusWithUsername,
     fetchFollowers,
     fetchFollowing,
     getCurrentUserId,
     showDashboard,
     selectedMediaType,
     fetchUserContributions,
-  ]); // Include all functions used in the effect
+  ]);
+
+  // Determine if viewing own profile
+  const isOwnProfile =
+    username && currentUsername ? currentUsername === username : false;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 pt-16 pb-24">
@@ -653,7 +792,7 @@ function OtherUserProfile() {
           {/* Header Actions Bar */}
           <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-3 flex items-center justify-between border-b border-slate-100">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(-1)}
               className="p-2 hover:bg-slate-100 rounded-full transition-all duration-200"
               title="Back"
             >
@@ -687,17 +826,14 @@ function OtherUserProfile() {
 
                 {/* Stats Row - Instagram Style with Enhanced Effects */}
                 <div className="flex gap-4 mb-4">
-                  <div className="px-4 py-2 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200 shadow-sm">
-                    <span className="font-bold text-slate-900">
-                      {profile?.summary?.contributions?.total_contributions ??
-                        0}
-                    </span>
-                    <span className="text-slate-600 ml-1">posts</span>
-                  </div>
                   <button
                     className="px-4 py-2 bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:-translate-y-0.5"
                     onClick={() => {
-                      fetchFollowers(userId!);
+                      if (username) {
+                        fetchFollowers(username);
+                      } else if (currentUserId) {
+                        fetchFollowers(currentUserId);
+                      }
                       setShowFollowersModal(true);
                     }}
                   >
@@ -709,7 +845,11 @@ function OtherUserProfile() {
                   <button
                     className="px-4 py-2 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:-translate-y-0.5"
                     onClick={() => {
-                      fetchFollowing(userId!);
+                      if (username) {
+                        fetchFollowing(username);
+                      } else if (currentUserId) {
+                        fetchFollowing(currentUserId);
+                      }
                       setShowFollowingModal(true);
                     }}
                   >
@@ -720,33 +860,35 @@ function OtherUserProfile() {
                   </button>
                 </div>
 
-                {/* Follow Button with Enhanced Effects */}
-                <button
-                  onClick={() => {
-                    if (isFollowing) {
-                      unfollowUser(userId!);
-                    } else {
-                      followUser(userId!);
-                    }
-                  }}
-                  disabled={followLoading}
-                  className={`px-8 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
-                    isFollowing
-                      ? 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 border-2 border-slate-300 hover:border-slate-400'
-                      : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-emerald-500/50'
-                  } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
-                >
-                  {followLoading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processing...
-                    </span>
-                  ) : isFollowing ? (
-                    'Following'
-                  ) : (
-                    'Follow'
-                  )}
-                </button>
+                {/* Follow Button with Conditional Logic */}
+                {!isOwnProfile && (
+                  <button
+                    onClick={() => {
+                      if (isFollowing) {
+                        unfollowUser(username!);
+                      } else {
+                        followUser(username!);
+                      }
+                    }}
+                    disabled={followLoading}
+                    className={`px-8 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
+                      isFollowing
+                        ? 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 border-2 border-slate-300 hover:border-slate-400'
+                        : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-emerald-500/50'
+                    } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
+                  >
+                    {followLoading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Processing...
+                      </span>
+                    ) : isFollowing ? (
+                      'Following'
+                    ) : (
+                      'Follow'
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -818,8 +960,9 @@ function OtherUserProfile() {
                       selectedMediaType={selectedMediaType}
                       setSelectedMediaType={(newType) => {
                         setSelectedMediaType(newType);
-                        if (userId) {
-                          fetchUserContributions(userId, newType);
+                        const targetUserIdentifier = username || currentUserId;
+                        if (targetUserIdentifier) {
+                          fetchUserContributions(targetUserIdentifier, newType);
                         }
                       }}
                     />
@@ -833,6 +976,7 @@ function OtherUserProfile() {
                     contributions={contributions}
                     selectedMediaType={selectedMediaType}
                     token={getAuthToken()}
+                    isOwnProfile={isOwnProfile}
                   />
                 )}
                 {!selectedMediaType && !contributionsLoading && (
@@ -896,6 +1040,8 @@ function OtherUserProfile() {
         followers={followers}
         loading={loadingFollowers}
         currentUserId={currentUserId}
+        isOwnProfile={isOwnProfile}
+        navigate={navigate}
       />
       <FollowingModal
         isOpen={showFollowingModal}
@@ -903,6 +1049,8 @@ function OtherUserProfile() {
         following={following}
         loading={loadingFollowing}
         currentUserId={currentUserId}
+        isOwnProfile={isOwnProfile}
+        navigate={navigate}
       />
 
       {/* Bottom Navigation */}
@@ -918,7 +1066,17 @@ const FollowersModal: React.FC<{
   followers: User[];
   loading: boolean;
   currentUserId: string | null;
-}> = ({ isOpen, onClose, followers, loading, currentUserId }) => {
+  isOwnProfile: boolean;
+  navigate: (path: string) => void;
+}> = ({
+  isOpen,
+  onClose,
+  followers,
+  loading,
+  currentUserId,
+  isOwnProfile,
+  navigate,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -950,10 +1108,12 @@ const FollowersModal: React.FC<{
                     className="p-4 hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       if (isCurrentUser) {
-                        window.location.href = '/myprofile';
+                        navigate('/profile');
                       } else {
-                        window.location.href = `/userprofile/${userId}`;
+                        navigate(`/profile/${follower.username || userId}`);
                       }
+                      // Close the modal after navigation
+                      onClose();
                     }}
                   >
                     <div className="flex items-center">
@@ -992,7 +1152,17 @@ const FollowingModal: React.FC<{
   following: User[];
   loading: boolean;
   currentUserId: string | null;
-}> = ({ isOpen, onClose, following, loading, currentUserId }) => {
+  isOwnProfile: boolean;
+  navigate: (path: string) => void;
+}> = ({
+  isOpen,
+  onClose,
+  following,
+  loading,
+  currentUserId,
+  isOwnProfile,
+  navigate,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -1024,10 +1194,12 @@ const FollowingModal: React.FC<{
                     className="p-4 hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       if (isCurrentUser) {
-                        window.location.href = '/myprofile';
+                        navigate('/profile');
                       } else {
-                        window.location.href = `/userprofile/${userId}`;
+                        navigate(`/profile/${followedUser.username || userId}`);
                       }
+                      // Close the modal after navigation
+                      onClose();
                     }}
                   >
                     <div className="flex items-center">
@@ -1097,6 +1269,7 @@ interface ContributionsListProps {
   contributions: UserContributions | null;
   selectedMediaType: 'text' | 'audio' | 'video' | 'image' | 'document' | null;
   token: string;
+  isOwnProfile: boolean;
 }
 
 // Modal for showing media details
@@ -1107,6 +1280,7 @@ interface MediaDetailModalProps {
   token: string;
   isOpen: boolean;
   onClose: () => void;
+  isOwnProfile: boolean;
 }
 
 const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
@@ -1116,13 +1290,459 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   token,
   isOpen,
   onClose,
+  isOwnProfile,
 }) => {
   const [showHistory, setShowHistory] = useState(false);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editItem, setEditItem] = useState<ContributionItem>({ ...item });
+  const [sourceLabel, setSourceLabel] = useState<string>('');
+
+  // Validation states
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descError, setDescError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Function to count meaningful words
+  const countMeaningfulWords = (s: string) =>
+    s.split(' ').filter((w) => w.trim().length > 2).length;
+
+  // Function to fetch media URL on demand
+  const fetchMediaUrl = async () => {
+    if (!isOpen || mediaUrl) return; // Don't fetch if modal is closed or already have URL
+
+    setLoading(true);
+    setError(false);
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch media URL');
+      }
+
+      const data = await response.json();
+      if (data.record_url) {
+        setMediaUrl(data.record_url);
+      }
+    } catch (err) {
+      console.error('Error fetching media:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch media URL only when needed for audio, document, and video types
+  useEffect(() => {
+    if (
+      isOpen &&
+      !previewUrl &&
+      (mediaType === 'audio' ||
+        mediaType === 'document' ||
+        mediaType === 'video')
+    ) {
+      fetchMediaUrl();
+    }
+  }, [isOpen, previewUrl, mediaType, item.id, token]);
 
   if (!isOpen) return null;
 
   const getMediaTypeLabel = () => {
     return mediaType.charAt(0).toUpperCase() + mediaType.slice(1);
+  };
+
+  const renderMediaPreview = () => {
+    switch (mediaType) {
+      case 'image':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt={item.title || 'Image'}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'video':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
+            {loading && (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+            {error && (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <div className="text-center p-4">
+                  <svg
+                    className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-xs text-gray-500">Video unavailable</p>
+                </div>
+              </div>
+            )}
+            {!loading && !error && mediaUrl && (
+              <video
+                src={mediaUrl}
+                controls
+                className="w-full h-full object-contain bg-black"
+                onError={() => setError(true)}
+              />
+            )}
+            {!loading && !error && !mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-purple-200 p-4">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-purple-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <button
+                  onClick={fetchMediaUrl}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Load Video
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'audio':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center p-4">
+            {loading && (
+              <div className="flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+            {error && (
+              <div className="text-center p-4">
+                <svg
+                  className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                  />
+                </svg>
+                <p className="text-xs text-gray-500">Audio unavailable</p>
+              </div>
+            )}
+            {!loading && !error && mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
+                  </svg>
+                </div>
+                <audio
+                  src={mediaUrl}
+                  controls
+                  className="w-full max-w-xs"
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onEnded={() => setIsPlaying(false)}
+                  onError={() => setError(true)}
+                />
+              </div>
+            )}
+            {!loading && !error && !mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
+                  </svg>
+                </div>
+                <button
+                  onClick={fetchMediaUrl}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Load Audio
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'document':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+            {loading && (
+              <div className="w-full h-full flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+              </div>
+            )}
+            {error && (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <div className="text-center p-4">
+                  <svg
+                    className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-xs text-gray-500">Document unavailable</p>
+                </div>
+              </div>
+            )}
+            {!loading && !error && mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+                {/* Check document type and render appropriate preview */}
+                {mediaUrl && (
+                  <div className="w-full h-full flex flex-col items-center">
+                    {mediaUrl.toLowerCase().endsWith('.pdf') ? (
+                      <iframe
+                        src={mediaUrl}
+                        className="w-full h-full border-0"
+                        title="Document Preview"
+                      />
+                    ) : mediaUrl.toLowerCase().endsWith('.docx') ||
+                      mediaUrl.toLowerCase().endsWith('.doc') ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
+                        <div className="mb-2">
+                          <svg
+                            className="w-16 h-16 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-700 mb-4">
+                          {item.title || 'Word Document'}
+                        </p>
+                        <p className="text-gray-500 mb-6 text-center max-w-md">
+                          {item.description || 'Microsoft Word Document'}
+                        </p>
+                        <a
+                          href={mediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                        >
+                          Open in New Tab
+                        </a>
+                      </div>
+                    ) : mediaUrl.toLowerCase().endsWith('.txt') ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
+                        <div className="mb-2">
+                          <svg
+                            className="w-16 h-16 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-700 mb-4">
+                          {item.title || 'Text File'}
+                        </p>
+                        <p className="text-gray-500 mb-6 text-center max-w-md">
+                          {item.description || 'Plain Text Document'}
+                        </p>
+                        <a
+                          href={mediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                        >
+                          View Text
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
+                        <div className="mb-2">
+                          <svg
+                            className="w-16 h-16 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-700 mb-4">
+                          {item.title || 'Document'}
+                        </p>
+                        <p className="text-gray-500 mb-6 text-center max-w-md">
+                          {item.description || 'Document File'}
+                        </p>
+                        <a
+                          href={mediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                        >
+                          Open Document
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {!loading && !error && !mediaUrl && (
+              <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-yellow-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-center text-gray-600 mb-4">
+                  {item.title || 'Document'}
+                </p>
+                <button
+                  onClick={fetchMediaUrl}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Load Document
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'text':
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50">
+              <div className="mb-4">
+                <svg
+                  className="w-16 h-16 text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-center text-gray-600 mb-4">
+                {item.title || 'Text Content'}
+              </p>
+              <a
+                href={previewUrl || mediaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View Text
+              </a>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+            <div className="text-center p-4">
+              <p className="text-xs text-gray-500">Unsupported media type</p>
+            </div>
+          </div>
+        );
+    }
   };
 
   return (
@@ -1143,47 +1763,292 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Image Preview */}
+            {/* Media Preview */}
             <div className="space-y-4">
-              <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt={item.title || 'Image'}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-                  </div>
-                )}
-              </div>
+              {renderMediaPreview()}
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <SecureViewButton recordId={item.id} apiToken={token} />
-                <button
-                  onClick={() => setShowHistory(!showHistory)}
-                  className="flex-1 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-purple-200 hover:border-purple-600"
-                >
-                  <History size={18} />
-                  <span className="text-sm font-semibold">
-                    {showHistory ? 'Hide History' : 'View History'}
-                  </span>
-                </button>
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={async () => {
+                        // Clear any previous submit errors
+                        setSubmitError(null);
+
+                        // Validate inputs before submitting
+                        let hasErrors = false;
+
+                        if (
+                          !editItem.title ||
+                          editItem.title.trim().length < 8
+                        ) {
+                          setTitleError(
+                            'Title must be at least 8 characters long.',
+                          );
+                          hasErrors = true;
+                        } else if (countMeaningfulWords(editItem.title) < 2) {
+                          setTitleError(
+                            'Title must contain at least 2 meaningful words.',
+                          );
+                          hasErrors = true;
+                        } else {
+                          setTitleError(null);
+                        }
+
+                        if (
+                          !editItem.description ||
+                          editItem.description.trim().length < 32
+                        ) {
+                          setDescError(
+                            'Description must be at least 32 characters long.',
+                          );
+                          hasErrors = true;
+                        } else if (
+                          countMeaningfulWords(editItem.description) < 10
+                        ) {
+                          setDescError(
+                            'Description must contain at least 10 meaningful words.',
+                          );
+                          hasErrors = true;
+                        } else {
+                          setDescError(null);
+                        }
+
+                        // Check if release rights is 'others' and if source label or creator is required
+                        if (editItem.release_rights === 'others') {
+                          if (
+                            isOwnProfile &&
+                            (!editItem.creator ||
+                              editItem.creator.trim() === '')
+                          ) {
+                            // Creator is required for own profile when release rights is 'others'
+                            // For now we'll just show a general error, but we could add a specific state for this
+                            setSubmitError(
+                              'Creator is required when release rights is set to "Not Done By Author"',
+                            );
+                            hasErrors = true;
+                          } else if (
+                            !isOwnProfile &&
+                            (!sourceLabel || sourceLabel.trim() === '')
+                          ) {
+                            // Source label is required for other profiles when release rights is 'others'
+                            setSubmitError(
+                              'Source label is required when release rights is set to "Not Done By Author"',
+                            );
+                            hasErrors = true;
+                          }
+                        }
+
+                        if (hasErrors) {
+                          return; // Don't submit if there are validation errors
+                        }
+
+                        // Check if there are actual changes to save
+                        if (
+                          item.title === editItem.title &&
+                          item.description === editItem.description &&
+                          item.language === editItem.language &&
+                          item.release_rights === editItem.release_rights &&
+                          item.creator === editItem.creator &&
+                          (!isOwnProfile || sourceLabel === '') // Only check sourceLabel if on other's profile
+                        ) {
+                          toast.info('No changes to save');
+                          return;
+                        }
+
+                        try {
+                          const response = await fetch(
+                            `${BACKEND_URL}/records/${editItem.id}`,
+                            {
+                              method: 'PATCH',
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                title: editItem.title,
+                                description: editItem.description,
+                                language: editItem.language,
+                                release_rights: editItem.release_rights,
+                                ...(editItem.release_rights === 'others' &&
+                                isOwnProfile &&
+                                editItem.creator
+                                  ? { creator: editItem.creator }
+                                  : {}),
+                                ...(editItem.release_rights === 'others' &&
+                                !isOwnProfile &&
+                                sourceLabel
+                                  ? { source_label: sourceLabel }
+                                  : {}),
+                                // Add other fields that can be edited if needed
+                              }),
+                            },
+                          );
+
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(
+                              errorData.detail || 'Failed to update record',
+                            );
+                          }
+
+                          // Update the original item with edited values
+                          item.title = editItem.title;
+                          item.description = editItem.description;
+                          item.language = editItem.language;
+                          item.release_rights = editItem.release_rights;
+                          item.creator = editItem.creator;
+
+                          setIsEditing(false);
+                        } catch (error) {
+                          console.error('Error updating record:', error);
+                          setSubmitError(
+                            `Error updating record: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                          );
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-green-200 hover:border-green-600"
+                    >
+                      <span className="text-sm font-semibold">Save</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Cancel editing and revert changes
+                        setEditItem({ ...item });
+                        setSourceLabel(''); // Reset source label
+                        setTitleError(null); // Reset validation errors
+                        setDescError(null);
+                        setSubmitError(null);
+                        setIsEditing(false);
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-50 text-gray-600 hover:bg-gray-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-gray-200 hover:border-gray-600"
+                    >
+                      <span className="text-sm font-semibold">Cancel</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsEditing(true);
+                        // Initialize validation states
+                        setTitleError(null);
+                        setDescError(null);
+                        setSubmitError(null);
+                        // Initialize source label if release rights is 'others'
+                        if (item.release_rights === 'others') {
+                          setSourceLabel(''); // Initialize to empty, it will be populated if needed
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-blue-200 hover:border-blue-600"
+                    >
+                      <Pencil size={18} />
+                      <span className="text-sm font-semibold">Edit</span>
+                    </button>
+                    <button
+                      onClick={() => setShowHistory(!showHistory)}
+                      className="flex-1 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-purple-200 hover:border-purple-600"
+                    >
+                      <History size={18} />
+                      <span className="text-sm font-semibold">
+                        {showHistory ? 'Hide History' : 'View History'}
+                      </span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Details */}
             <div className="space-y-6">
               {/* Title and Description */}
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {item.title || 'Untitled'}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {item.description || 'No description available'}
-                </p>
+              <div className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={editItem.title}
+                        onChange={(e) => {
+                          const t = e.target.value;
+                          setEditItem({ ...editItem, title: t });
+                          if (t.trim().length < 8) {
+                            setTitleError(
+                              'Title must be at least 8 characters long.',
+                            );
+                          } else if (countMeaningfulWords(t) < 2) {
+                            setTitleError(
+                              'Title must contain at least 2 meaningful words.',
+                            );
+                          } else {
+                            setTitleError(null);
+                          }
+                        }}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                          titleError
+                            ? 'border-red-500 focus:border-red-500'
+                            : 'border-gray-300 focus:border-blue-500'
+                        }`}
+                      />
+                      {titleError && (
+                        <p className="text-xs text-red-500 mt-1 font-medium">
+                          {titleError}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={editItem.description}
+                        onChange={(e) => {
+                          const d = e.target.value;
+                          setEditItem({ ...editItem, description: d });
+                          if (d.trim().length < 32) {
+                            setDescError(
+                              'Description must be at least 32 characters long.',
+                            );
+                          } else if (countMeaningfulWords(d) < 10) {
+                            setDescError(
+                              'Description must contain at least 10 meaningful words.',
+                            );
+                          } else {
+                            setDescError(null);
+                          }
+                        }}
+                        rows={4}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 resize-none ${
+                          descError
+                            ? 'border-red-500 focus:border-red-500'
+                            : 'border-gray-300 focus:border-blue-500'
+                        }`}
+                      />
+                      {descError && (
+                        <p className="text-xs text-red-500 mt-1 font-medium">
+                          {descError}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {countMeaningfulWords(editItem.description || '')}{' '}
+                        meaningful words
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {item.title || 'Untitled'}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {item.description || 'No description available'}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Metadata */}
@@ -1227,7 +2092,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.414A1 1 0 0112.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                     />
                     <path
                       strokeLinecap="round"
@@ -1274,29 +2139,189 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <svg
-                    className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                    />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">
+                {isEditing ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Language
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {item.language || 'Not specified'}
-                    </p>
+                    </label>
+                    <Select
+                      value={editItem.language}
+                      onValueChange={(val) =>
+                        setEditItem({ ...editItem, language: val })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder={editItem.language || 'Select language'}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.map((lang) => (
+                          <SelectItem key={lang} value={lang}>
+                            {lang}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">
+                        Language
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {item.language || 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Release Rights
+                      </label>
+                      <Select
+                        value={editItem.release_rights}
+                        onValueChange={(val) => {
+                          setEditItem((prev) => ({
+                            ...prev,
+                            release_rights: val,
+                            // Clear creator field if not 'others'
+                            creator: val !== 'others' ? '' : prev.creator,
+                          }));
+                          // Clear sourceLabel if not 'others'
+                          if (val !== 'others') {
+                            setSourceLabel('');
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            placeholder={
+                              editItem.release_rights || 'Select release rights'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {releaseOptions.map((opt) => (
+                            <SelectItem key={opt.key} value={opt.key}>
+                              {opt.value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {editItem.release_rights === 'others' && (
+                      <>
+                        {isOwnProfile ? (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Creator
+                            </label>
+                            <input
+                              type="text"
+                              value={editItem.creator}
+                              onChange={(e) =>
+                                setEditItem({
+                                  ...editItem,
+                                  creator: e.target.value,
+                                })
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Specify creator"
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Source Label
+                            </label>
+                            <input
+                              type="text"
+                              value={sourceLabel}
+                              onChange={(e) => setSourceLabel(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Specify source"
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <svg
+                        className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                        />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">
+                          Release Rights
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {item.release_rights || 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Category Tags */}
+                    <div className="flex items-start gap-3">
+                      <svg
+                        className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                        />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">
+                          Categories
+                        </p>
+                        <div className="mt-1">
+                          <CategoryTags
+                            categoryIds={
+                              item.category_ids ||
+                              (item.category_id ? [item.category_id] : [])
+                            }
+                            token={token}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {item.reviewed && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
@@ -1325,9 +2350,14 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 interface ImageGridItemProps {
   item: ContributionItem;
   token: string;
+  isOwnProfile: boolean;
 }
 
-const ImageGridItem: React.FC<ImageGridItemProps> = ({ item, token }) => {
+const ImageGridItem: React.FC<ImageGridItemProps> = ({
+  item,
+  token,
+  isOwnProfile,
+}) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -1464,6 +2494,7 @@ const ImageGridItem: React.FC<ImageGridItemProps> = ({ item, token }) => {
         token={token}
         isOpen={showModal}
         onClose={() => setShowModal(false)}
+        isOwnProfile={isOwnProfile}
       />
     </>
   );
@@ -1474,12 +2505,14 @@ interface MediaGridItemProps {
   item: ContributionItem;
   mediaType: 'text' | 'audio' | 'video' | 'document';
   token: string;
+  isOwnProfile: boolean;
 }
 
 const MediaGridItem: React.FC<MediaGridItemProps> = ({
   item,
   mediaType,
   token,
+  isOwnProfile,
 }) => {
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -1487,41 +2520,47 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   const [showModal, setShowModal] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
 
-  // Lazy load media URL only when needed (for video)
+  // Lazy load media URL for text, audio, and document types only (video is handled separately in the modal)
   useEffect(() => {
-    if (mediaType !== 'video' || !shouldLoad || mediaUrl) return;
-
-    const fetchMediaUrl = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
+    if (
+      (mediaType === 'text' ||
+        mediaType === 'audio' ||
+        mediaType === 'document') &&
+      shouldLoad &&
+      !mediaUrl
+    ) {
+      const fetchMediaUrl = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
             },
-          },
-        );
+          );
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch media URL');
+          if (!response.ok) {
+            throw new Error('Failed to fetch media URL');
+          }
+
+          const data = await response.json();
+          if (data.record_url) {
+            setMediaUrl(data.record_url);
+          }
+        } catch (err) {
+          console.error('Error fetching media:', err);
+          setError(true);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        const data = await response.json();
-        if (data.record_url) {
-          setMediaUrl(data.record_url);
-        }
-      } catch (err) {
-        console.error('Error fetching media:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMediaUrl();
+      fetchMediaUrl();
+    }
   }, [item.id, token, mediaType, shouldLoad, mediaUrl]);
 
   const getMediaIcon = () => {
@@ -1607,7 +2646,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
       >
         {/* Media Container */}
         <div className="aspect-square relative overflow-hidden bg-white">
-          {shouldLoad && loading && mediaType === 'video' && (
+          {shouldLoad && loading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
             </div>
@@ -1617,18 +2656,19 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
             !loading &&
             !error &&
             mediaType === 'video' && (
-              <video
-                src={mediaUrl}
-                className="w-full h-full object-cover"
-                muted
-                playsInline
-              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black">
+                <video
+                  src={mediaUrl}
+                  className="w-full h-full object-cover"
+                  muted
+                  playsInline
+                />
+              </div>
             )}
           {(mediaType === 'text' ||
             mediaType === 'audio' ||
             mediaType === 'document' ||
-            (mediaType === 'video' && !shouldLoad) ||
-            (mediaType === 'video' && !mediaUrl && !loading)) && (
+            mediaType === 'video') && (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white to-gray-50">
               {getMediaIcon()}
             </div>
@@ -1664,6 +2704,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
         token={token}
         isOpen={showModal}
         onClose={() => setShowModal(false)}
+        isOwnProfile={isOwnProfile}
       />
     </>
   );
@@ -1673,7 +2714,11 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   contributions,
   selectedMediaType,
   token,
+  isOwnProfile,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   let items: ContributionItem[] = [];
   if (!contributions || !selectedMediaType) return null;
 
@@ -1694,13 +2739,34 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     );
   }
 
+  // Calculate pagination
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = items.slice(startIndex, endIndex);
+
   // Show grid layout for all media types
   if (selectedMediaType === 'image') {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {items.map((item) => (
-          <ImageGridItem key={item.id} item={item} token={token} />
-        ))}
+      <div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {currentItems.map((item) => (
+            <ImageGridItem
+              key={item.id}
+              item={item}
+              token={token}
+              isOwnProfile={isOwnProfile}
+            />
+          ))}
+        </div>
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
     );
   }
@@ -1712,105 +2778,32 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
     selectedMediaType === 'document'
   ) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {items.map((item) => (
-          <MediaGridItem
-            key={item.id}
-            item={item}
-            mediaType={selectedMediaType}
-            token={token}
+      <div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {currentItems.map((item) => (
+            <MediaGridItem
+              key={item.id}
+              item={item}
+              mediaType={selectedMediaType}
+              token={token}
+              isOwnProfile={isOwnProfile}
+            />
+          ))}
+        </div>
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
-        ))}
+        )}
       </div>
     );
   }
 
   // Fallback (should never reach here)
   return null;
-};
-
-// Secure view button component
-interface SecureViewButtonProps {
-  recordId: string;
-  apiToken: string;
-}
-
-const SecureViewButton: React.FC<SecureViewButtonProps> = ({
-  recordId,
-  apiToken,
-}) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleViewFile = async () => {
-    if (!recordId || !apiToken) {
-      setError('Missing required data to fetch file.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // 1. Call your FastAPI endpoint to get the Record URL
-      const response = await fetch(
-        `${BACKEND_URL}/records/${recordId}/record-url?expires_minutes=10`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to get Record URL.');
-      }
-
-      const data = await response.json();
-
-      // 2. Open the received URL in a new browser tab
-      if (data.record_url) {
-        window.open(data.record_url, '_blank', 'noopener,noreferrer');
-      } else {
-        throw new Error('API did not return a valid URL.');
-      }
-    } catch (err) {
-      console.error('Failed to fetch Record URL:', err);
-      setError(
-        err instanceof Error ? err.message : 'An unknown error occurred.',
-      );
-      // Optionally, show an alert to the user
-      // toast.error(
-      //   `Error: ${err instanceof Error ? err.message : 'Could not load file.'}`,
-      // );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <button
-      onClick={handleViewFile}
-      disabled={isLoading}
-      className="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border border-blue-200 hover:border-blue-600"
-      title="View Details"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 size={18} className="animate-spin" />
-          <span className="text-sm">Loading...</span>
-        </>
-      ) : (
-        <>
-          <Eye size={18} />
-          <span className="text-sm font-semibold">View Details</span>
-        </>
-      )}
-    </button>
-  );
 };
 
 // Dashboard card component
@@ -2034,4 +3027,107 @@ const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
   );
 };
 
-export default OtherUserProfile;
+// Pagination Controls Component
+interface PaginationControlsProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+const PaginationControls: React.FC<PaginationControlsProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) => {
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      // If total pages is less than or equal to max visible, show all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Show first page, last page, current page, and adjacent pages
+      if (currentPage <= 3) {
+        // Near the beginning
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Near the end
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Somewhere in the middle
+        pages.push(1);
+        pages.push('ellipsis');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  return (
+    <div className="flex items-center justify-center mt-6 space-x-2">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className={`px-4 py-2 rounded-lg border ${
+          currentPage === 1
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+        }`}
+      >
+        Previous
+      </button>
+
+      {pageNumbers.map((page, index) => (
+        <React.Fragment key={index}>
+          {page === 'ellipsis' ? (
+            <span className="px-3 py-2 text-gray-500">...</span>
+          ) : (
+            <button
+              onClick={() => onPageChange(page as number)}
+              className={`px-4 py-2 rounded-lg border ${
+                currentPage === page
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+              }`}
+            >
+              {page}
+            </button>
+          )}
+        </React.Fragment>
+      ))}
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className={`px-4 py-2 rounded-lg border ${
+          currentPage === totalPages
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+        }`}
+      >
+        Next
+      </button>
+    </div>
+  );
+};
+
+export default Profile;

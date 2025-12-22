@@ -34,6 +34,9 @@ const PeerReview: React.FC = () => {
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchType, setSearchType] = useState<'records' | 'users'>('records');
+  const [currentPage, setCurrentPage] = useState(0);
 
   async function fetchMoreData() {
     // Don't fetch more data if user is searching
@@ -131,6 +134,129 @@ const PeerReview: React.FC = () => {
     }
   }
 
+  async function searchRecords(query: string) {
+    const token = localStorage.getItem('token');
+
+    setIsLoading(true); // Set loading state to true
+
+    try {
+      // Call the search API with the query and limit parameters - using records/search (BACKEND_URL already includes /api/v1)
+      const searchResponse = await fetch(
+        `${BACKEND_URL}/records/search?query=${encodeURIComponent(query)}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!searchResponse.ok) {
+        const errorData = await searchResponse.json();
+        throw new Error(errorData.message || 'Error in search');
+      }
+
+      const responseArray = await searchResponse.json();
+
+      if (!Array.isArray(responseArray) || responseArray.length === 0) {
+        setRecordIdList([]);
+        return;
+      }
+
+      // Transform the search results to match our PeerReviewCardProps structure
+      const searchResults: PeerReviewCardProps[] = [];
+
+      for (const item of responseArray) {
+        const { record_id } = item;
+        try {
+          const [recordDetailsResponse, recordUrlResponse] = await Promise.all([
+            fetch(`${BACKEND_URL}/records/${record_id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${BACKEND_URL}/records/${record_id}/record-url`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
+
+          if (!recordDetailsResponse.ok || !recordUrlResponse.ok) {
+            continue;
+          }
+
+          const recordDetails = await recordDetailsResponse
+            .json()
+            .catch(() => null);
+          const urlData = await recordUrlResponse.json().catch(() => null);
+
+          if (!recordDetails || !urlData) {
+            continue;
+          }
+
+          const searchResult: PeerReviewCardProps = {
+            user_id: recordDetails.user_id,
+            username:
+              recordDetails.user_name ||
+              recordDetails.username ||
+              recordDetails.userName ||
+              `user_${recordDetails.user_id}`,
+            record_id: record_id,
+            title: recordDetails.title,
+            description: recordDetails.description,
+            media_type: recordDetails.media_type,
+            release_rights: recordDetails.release_rights,
+            language: recordDetails.language,
+            dataUrl: urlData.record_url,
+          };
+
+          searchResults.push(searchResult);
+        } catch (err) {
+          console.error('Error processing search result:', err);
+          continue;
+        }
+      }
+
+      setRecordIdList(searchResults);
+      setAllRecords(searchResults); // Update all records with search results
+    } catch (err) {
+      const error = err as Error;
+      console.error('Search Error:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false); // Set loading state to false
+    }
+  }
+
+  async function searchUsers(query: string) {
+    const token = localStorage.getItem('token');
+
+    setIsLoading(true); // Set loading state to true
+
+    try {
+      // Call the user profile API with the user identifier - using /users/{user_identifier}/profile
+      const userResponse = await fetch(
+        `${BACKEND_URL}/users/${encodeURIComponent(query)}/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!userResponse.ok) {
+        const errorData = await userResponse.json();
+        throw new Error(errorData.message || 'User not found');
+      }
+
+      // If user is found, redirect to their profile page
+      window.location.href = `/profile/${encodeURIComponent(query)}`;
+    } catch (err) {
+      const error = err as Error;
+      console.error('User search Error:', error);
+      setError(error.message);
+      setIsLoading(false); // Make sure to reset loading state on error
+    }
+  }
+
   useEffect(() => {
     fetchMoreData();
   }, []);
@@ -140,44 +266,27 @@ const PeerReview: React.FC = () => {
     window.location.href = '/';
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
-      setRecordIdList(allRecords);
+      // Reset to default view when search is cleared
+      setRecordIdList([]);
+      setAllRecords([]);
       setIsSearching(false);
       setHasMore(true);
+      setCurrentPage(0);
+      setIsLoading(false); // Make sure loading is false when clearing search
+      // Fetch initial records again
+      await fetchMoreData();
     } else {
       setIsSearching(true);
       setHasMore(false); // Disable infinite scroll during search
 
-      // Remove @ symbol if present and convert to lowercase
-      const searchTerm = query.toLowerCase().replace('@', '');
-
-      const filtered = allRecords.filter((record) => {
-        const title = record.title?.toLowerCase() || '';
-        const description = record.description?.toLowerCase() || '';
-        const username = record.username?.toLowerCase().replace('@', '') || '';
-        const language = record.language?.toLowerCase() || '';
-        const userId = record.user_id?.toLowerCase() || '';
-
-        return (
-          title.includes(searchTerm) ||
-          description.includes(searchTerm) ||
-          username.includes(searchTerm) ||
-          language.includes(searchTerm) ||
-          userId.includes(searchTerm)
-        );
-      });
-
-      console.log('Search query:', searchTerm);
-      console.log('All records:', allRecords.length);
-      console.log('Filtered records:', filtered.length);
-      console.log(
-        'Sample usernames:',
-        allRecords.slice(0, 3).map((r) => r.username),
-      );
-
-      setRecordIdList(filtered);
+      if (searchType === 'records') {
+        await searchRecords(query);
+      } else if (searchType === 'users') {
+        await searchUsers(query);
+      }
     }
   };
 
@@ -218,37 +327,78 @@ const PeerReview: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by title, description, username, or language..."
+              placeholder={
+                searchType === 'records'
+                  ? 'Search by title, description ...'
+                  : 'Search for users...'
+              }
               value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter') {
+                  await handleSearch(searchQuery);
+                }
+              }}
+              className="w-full pl-10 pr-28 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
+            <div className="absolute right-14 top-1/2 transform -translate-y-1/2 flex">
+              <button
+                onClick={() => setSearchType('records')}
+                className={`px-3 py-1 text-xs font-medium rounded-l ${
+                  searchType === 'records'
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                Records
+              </button>
+              <button
+                onClick={() => setSearchType('users')}
+                className={`px-3 py-1 text-xs font-medium rounded-r ${
+                  searchType === 'users'
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                Users
+              </button>
+            </div>
             {searchQuery && (
               <button
-                onClick={() => handleSearch('')}
+                onClick={async () => await handleSearch('')}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 ✕
               </button>
             )}
           </div>
-          {isSearching && (
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-sm text-slate-600">
-                Found {recordIdList.length} result
-                {recordIdList.length !== 1 ? 's' : ''} (searching in{' '}
-                {allRecords.length} loaded records)
+
+          {/* Loading indicator when searching */}
+          {isLoading && (
+            <div className="mt-3">
+              <div className="w-full bg-slate-200 rounded-full h-1.5">
+                <div
+                  className="bg-emerald-500 h-1.5 rounded-full animate-pulse"
+                  style={{ width: '100%' }}
+                ></div>
+              </div>
+              <p className="text-sm text-slate-600 mt-1 text-center">
+                {searchType === 'records'
+                  ? 'Searching records...'
+                  : 'Searching users...'}
               </p>
+            </div>
+          )}
+
+          {isSearching && (
+            <div className="flex items-center justify-end mt-2">
               <button
                 onClick={() => {
-                  setIsSearching(false);
-                  setHasMore(true);
-                  setSearchQuery('');
-                  setRecordIdList(allRecords);
+                  window.location.reload();
                 }}
                 className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
               >
-                Clear & Load More
+                Refresh Feed
               </button>
             </div>
           )}
@@ -272,21 +422,18 @@ const PeerReview: React.FC = () => {
             </p>
             <button
               onClick={() => {
-                setIsSearching(false);
-                setHasMore(true);
-                setSearchQuery('');
-                setRecordIdList(allRecords);
+                window.location.reload();
               }}
               className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
             >
-              Clear Search & Load More
+              Refresh Feed
             </button>
           </div>
         ) : (
           <InfiniteScroll
             dataLength={recordIdList.length}
             next={fetchMoreData}
-            hasMore={hasMore}
+            hasMore={hasMore && !isSearching} // Disable infinite scroll when searching
             loader={
               <div className="flex items-center justify-center gap-2 py-4">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
