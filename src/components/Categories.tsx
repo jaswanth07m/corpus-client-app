@@ -889,7 +889,7 @@ const Categories: React.FC<CategoriesProps> = ({
                     onKeyDown={(e) => {
                       if (e.key == 'Enter') {
                         e.preventDefault();
-                        window.location.href = `/userProfile/${userSearch}`;
+                        window.location.href = `/profile/${userSearch}`;
                         setIsSearchVisible(false);
                       }
                     }}
@@ -905,7 +905,7 @@ const Categories: React.FC<CategoriesProps> = ({
                 <button
                   className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 rounded-r-xl transition-all duration-200 shadow-sm"
                   onClick={() => {
-                    window.location.href = `/userProfile/${userSearch}`;
+                    window.location.href = `/profile/${userSearch}`;
                     setIsSearchVisible(false);
                   }}
                 >

@@ -248,7 +248,7 @@ const PeerReview: React.FC = () => {
       }
 
       // If user is found, redirect to their profile page
-      window.location.href = `/userProfile/${encodeURIComponent(query)}`;
+      window.location.href = `/profile/${encodeURIComponent(query)}`;
     } catch (err) {
       const error = err as Error;
       console.error('User search Error:', error);

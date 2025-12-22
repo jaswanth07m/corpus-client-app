@@ -343,7 +343,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       {/* Header - Compact */}
       <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
         <div className="flex items-center gap-3">
-          <Link to={`/userProfile/${user_id}`} className="group">
+          <Link to={`/profile/${username || user_id}`} className="group">
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               <User size={20} className="text-white" />
             </div>
