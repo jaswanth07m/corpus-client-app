@@ -10,7 +10,6 @@ import {
   BarChart,
   Zap,
   Calendar,
-  Eye,
   History,
   ChevronDown,
   ChevronUp,
@@ -21,6 +20,49 @@ import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import BottomNav from '@/components/BottomNav';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+
+const languages = [
+  'assamese',
+  'bengali',
+  'bodo',
+  'dogri',
+  'gujarati',
+  'hindi',
+  'kannada',
+  'kashmiri',
+  'konkani',
+  'maithili',
+  'malayalam',
+  'marathi',
+  'meitei',
+  'nepali',
+  'odia',
+  'punjabi',
+  'sanskrit',
+  'santali',
+  'sindhi',
+  'tamil',
+  'telugu',
+  'urdu',
+];
+
+const releaseOptions = [
+  { key: 'creator', value: 'This work is created by Author' },
+  {
+    key: 'downloaded',
+    value:
+      "Author downloaded this from the internet and/or Author don't know if it is free to share",
+  },
+  { key: 'others', value: 'Not Done By Author' },
+];
 
 interface FollowedUser {
   id?: string;
@@ -1253,6 +1295,18 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editItem, setEditItem] = useState<ContributionItem>({ ...item });
+  const [sourceLabel, setSourceLabel] = useState<string>('');
+
+  // Validation states
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descError, setDescError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Function to count meaningful words
+  const countMeaningfulWords = (s: string) =>
+    s.split(' ').filter((w) => w.trim().length > 2).length;
 
   // Function to fetch media URL on demand
   const fetchMediaUrl = async () => {
@@ -1713,41 +1767,286 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <SecureViewButton recordId={item.id} apiToken={token} />
-                {isOwnProfile && (
-                  <button
-                    onClick={() => {
-                      // For own profile, navigate to edit page
-                      window.location.href = `/myprofile`;
-                    }}
-                    className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-blue-200 hover:border-blue-600"
-                  >
-                    <Pencil size={18} />
-                    <span className="text-sm font-semibold">Edit</span>
-                  </button>
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={async () => {
+                        // Clear any previous submit errors
+                        setSubmitError(null);
+
+                        // Validate inputs before submitting
+                        let hasErrors = false;
+
+                        if (
+                          !editItem.title ||
+                          editItem.title.trim().length < 8
+                        ) {
+                          setTitleError(
+                            'Title must be at least 8 characters long.',
+                          );
+                          hasErrors = true;
+                        } else if (countMeaningfulWords(editItem.title) < 2) {
+                          setTitleError(
+                            'Title must contain at least 2 meaningful words.',
+                          );
+                          hasErrors = true;
+                        } else {
+                          setTitleError(null);
+                        }
+
+                        if (
+                          !editItem.description ||
+                          editItem.description.trim().length < 32
+                        ) {
+                          setDescError(
+                            'Description must be at least 32 characters long.',
+                          );
+                          hasErrors = true;
+                        } else if (
+                          countMeaningfulWords(editItem.description) < 10
+                        ) {
+                          setDescError(
+                            'Description must contain at least 10 meaningful words.',
+                          );
+                          hasErrors = true;
+                        } else {
+                          setDescError(null);
+                        }
+
+                        // Check if release rights is 'others' and if source label or creator is required
+                        if (editItem.release_rights === 'others') {
+                          if (
+                            isOwnProfile &&
+                            (!editItem.creator ||
+                              editItem.creator.trim() === '')
+                          ) {
+                            // Creator is required for own profile when release rights is 'others'
+                            // For now we'll just show a general error, but we could add a specific state for this
+                            setSubmitError(
+                              'Creator is required when release rights is set to "Not Done By Author"',
+                            );
+                            hasErrors = true;
+                          } else if (
+                            !isOwnProfile &&
+                            (!sourceLabel || sourceLabel.trim() === '')
+                          ) {
+                            // Source label is required for other profiles when release rights is 'others'
+                            setSubmitError(
+                              'Source label is required when release rights is set to "Not Done By Author"',
+                            );
+                            hasErrors = true;
+                          }
+                        }
+
+                        if (hasErrors) {
+                          return; // Don't submit if there are validation errors
+                        }
+
+                        // Check if there are actual changes to save
+                        if (
+                          item.title === editItem.title &&
+                          item.description === editItem.description &&
+                          item.language === editItem.language &&
+                          item.release_rights === editItem.release_rights &&
+                          item.creator === editItem.creator &&
+                          (!isOwnProfile || sourceLabel === '') // Only check sourceLabel if on other's profile
+                        ) {
+                          toast.info('No changes to save');
+                          return;
+                        }
+
+                        try {
+                          const response = await fetch(
+                            `${BACKEND_URL}/records/${editItem.id}`,
+                            {
+                              method: 'PATCH',
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                title: editItem.title,
+                                description: editItem.description,
+                                language: editItem.language,
+                                release_rights: editItem.release_rights,
+                                ...(editItem.release_rights === 'others' &&
+                                isOwnProfile &&
+                                editItem.creator
+                                  ? { creator: editItem.creator }
+                                  : {}),
+                                ...(editItem.release_rights === 'others' &&
+                                !isOwnProfile &&
+                                sourceLabel
+                                  ? { source_label: sourceLabel }
+                                  : {}),
+                                // Add other fields that can be edited if needed
+                              }),
+                            },
+                          );
+
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(
+                              errorData.detail || 'Failed to update record',
+                            );
+                          }
+
+                          // Update the original item with edited values
+                          item.title = editItem.title;
+                          item.description = editItem.description;
+                          item.language = editItem.language;
+                          item.release_rights = editItem.release_rights;
+                          item.creator = editItem.creator;
+
+                          setIsEditing(false);
+                        } catch (error) {
+                          console.error('Error updating record:', error);
+                          setSubmitError(
+                            `Error updating record: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                          );
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-green-200 hover:border-green-600"
+                    >
+                      <span className="text-sm font-semibold">Save</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Cancel editing and revert changes
+                        setEditItem({ ...item });
+                        setSourceLabel(''); // Reset source label
+                        setTitleError(null); // Reset validation errors
+                        setDescError(null);
+                        setSubmitError(null);
+                        setIsEditing(false);
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-50 text-gray-600 hover:bg-gray-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-gray-200 hover:border-gray-600"
+                    >
+                      <span className="text-sm font-semibold">Cancel</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsEditing(true);
+                        // Initialize validation states
+                        setTitleError(null);
+                        setDescError(null);
+                        setSubmitError(null);
+                        // Initialize source label if release rights is 'others'
+                        if (item.release_rights === 'others') {
+                          setSourceLabel(''); // Initialize to empty, it will be populated if needed
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-blue-200 hover:border-blue-600"
+                    >
+                      <Pencil size={18} />
+                      <span className="text-sm font-semibold">Edit</span>
+                    </button>
+                    <button
+                      onClick={() => setShowHistory(!showHistory)}
+                      className="flex-1 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-purple-200 hover:border-purple-600"
+                    >
+                      <History size={18} />
+                      <span className="text-sm font-semibold">
+                        {showHistory ? 'Hide History' : 'View History'}
+                      </span>
+                    </button>
+                  </>
                 )}
-                <button
-                  onClick={() => setShowHistory(!showHistory)}
-                  className="flex-1 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-purple-200 hover:border-purple-600"
-                >
-                  <History size={18} />
-                  <span className="text-sm font-semibold">
-                    {showHistory ? 'Hide History' : 'View History'}
-                  </span>
-                </button>
               </div>
             </div>
 
             {/* Details */}
             <div className="space-y-6">
               {/* Title and Description */}
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {item.title || 'Untitled'}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {item.description || 'No description available'}
-                </p>
+              <div className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={editItem.title}
+                        onChange={(e) => {
+                          const t = e.target.value;
+                          setEditItem({ ...editItem, title: t });
+                          if (t.trim().length < 8) {
+                            setTitleError(
+                              'Title must be at least 8 characters long.',
+                            );
+                          } else if (countMeaningfulWords(t) < 2) {
+                            setTitleError(
+                              'Title must contain at least 2 meaningful words.',
+                            );
+                          } else {
+                            setTitleError(null);
+                          }
+                        }}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                          titleError
+                            ? 'border-red-500 focus:border-red-500'
+                            : 'border-gray-300 focus:border-blue-500'
+                        }`}
+                      />
+                      {titleError && (
+                        <p className="text-xs text-red-500 mt-1 font-medium">
+                          {titleError}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={editItem.description}
+                        onChange={(e) => {
+                          const d = e.target.value;
+                          setEditItem({ ...editItem, description: d });
+                          if (d.trim().length < 32) {
+                            setDescError(
+                              'Description must be at least 32 characters long.',
+                            );
+                          } else if (countMeaningfulWords(d) < 10) {
+                            setDescError(
+                              'Description must contain at least 10 meaningful words.',
+                            );
+                          } else {
+                            setDescError(null);
+                          }
+                        }}
+                        rows={4}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 resize-none ${
+                          descError
+                            ? 'border-red-500 focus:border-red-500'
+                            : 'border-gray-300 focus:border-blue-500'
+                        }`}
+                      />
+                      {descError && (
+                        <p className="text-xs text-red-500 mt-1 font-medium">
+                          {descError}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {countMeaningfulWords(editItem.description || '')}{' '}
+                        meaningful words
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {item.title || 'Untitled'}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {item.description || 'No description available'}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Metadata */}
@@ -1838,29 +2137,152 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <svg
-                    className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                    />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">
+                {isEditing ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Language
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {item.language || 'Not specified'}
-                    </p>
+                    </label>
+                    <Select
+                      value={editItem.language}
+                      onValueChange={(val) =>
+                        setEditItem({ ...editItem, language: val })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder={editItem.language || 'Select language'}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.map((lang) => (
+                          <SelectItem key={lang} value={lang}>
+                            {lang}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">
+                        Language
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {item.language || 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Release Rights
+                      </label>
+                      <Select
+                        value={editItem.release_rights}
+                        onValueChange={(val) => {
+                          setEditItem({ ...editItem, release_rights: val });
+                          // Clear fields if not 'others'
+                          if (val !== 'others') {
+                            setEditItem({ ...editItem, creator: '' });
+                            setSourceLabel('');
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            placeholder={
+                              editItem.release_rights || 'Select release rights'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {releaseOptions.map((opt) => (
+                            <SelectItem key={opt.key} value={opt.key}>
+                              {opt.value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {editItem.release_rights === 'others' && (
+                      <>
+                        {isOwnProfile ? (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Creator
+                            </label>
+                            <input
+                              type="text"
+                              value={editItem.creator}
+                              onChange={(e) =>
+                                setEditItem({
+                                  ...editItem,
+                                  creator: e.target.value,
+                                })
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Specify creator"
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Source Label
+                            </label>
+                            <input
+                              type="text"
+                              value={sourceLabel}
+                              onChange={(e) => setSourceLabel(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Specify source"
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">
+                        Release Rights
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {item.release_rights || 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {item.reviewed && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
@@ -2343,90 +2765,6 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
 
   // Fallback (should never reach here)
   return null;
-};
-
-// Secure view button component
-interface SecureViewButtonProps {
-  recordId: string;
-  apiToken: string;
-}
-
-const SecureViewButton: React.FC<SecureViewButtonProps> = ({
-  recordId,
-  apiToken,
-}) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleViewFile = async () => {
-    if (!recordId || !apiToken) {
-      setError('Missing required data to fetch file.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // 1. Call your FastAPI endpoint to get the Record URL
-      const response = await fetch(
-        `${BACKEND_URL}/records/${recordId}/record-url?expires_minutes=10`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to get Record URL.');
-      }
-
-      const data = await response.json();
-
-      // 2. Open the received URL in a new browser tab
-      if (data.record_url) {
-        window.open(data.record_url, '_blank', 'noopener,noreferrer');
-      } else {
-        throw new Error('API did not return a valid URL.');
-      }
-    } catch (err) {
-      console.error('Failed to fetch Record URL:', err);
-      setError(
-        err instanceof Error ? err.message : 'An unknown error occurred.',
-      );
-      // Optionally, show an alert to the user
-      // toast.error(
-      //   `Error: ${err instanceof Error ? err.message : 'Could not load file.'}`,
-      // );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <button
-      onClick={handleViewFile}
-      disabled={isLoading}
-      className="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border border-blue-200 hover:border-blue-600"
-      title="View Details"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 size={18} className="animate-spin" />
-          <span className="text-sm">Loading...</span>
-        </>
-      ) : (
-        <>
-          <Eye size={18} />
-          <span className="text-sm font-semibold">View Details</span>
-        </>
-      )}
-    </button>
-  );
 };
 
 // Dashboard card component
