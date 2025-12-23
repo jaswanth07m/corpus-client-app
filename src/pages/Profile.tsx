@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
-import BottomNav from '@/components/BottomNav';
 import ContributionDashboard from '@/components/ContributionDashboard';
 import CategoryTags from '@/components/CategoryTags';
 import {
@@ -1062,9 +1061,6 @@ function Profile() {
         isOwnProfile={isOwnProfile}
         navigate={navigate}
       />
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </div>
   );
 }

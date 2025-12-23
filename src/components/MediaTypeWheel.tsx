@@ -373,9 +373,6 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </div>
   );
 };
