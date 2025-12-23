@@ -329,9 +329,6 @@ const UploadForm: React.FC<UploadFormProps> = ({
           </CardContent>
         </Card>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </div>
   );
 };
