@@ -30,6 +30,41 @@ function Proofreading() {
   const [hintsVisible, setHintsVisible] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollContainerRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    // Get initial click position and current scroll position
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setStartY(e.pageY - scrollContainerRef.current.offsetTop);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+    setScrollTop(scrollContainerRef.current.scrollTop);
+  };
+
+  const handleMouseLeaveOrUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const y = e.pageY - scrollContainerRef.current.offsetTop;
+
+    // Calculate distance moved
+    const walkX = x - startX;
+    const walkY = y - startY;
+
+    // Update scroll position
+    scrollContainerRef.current.scrollLeft = scrollLeft - walkX;
+    scrollContainerRef.current.scrollTop = scrollTop - walkY;
+  };
 
   // Function to save the current page's text before navigating away
   const saveCurrentPageText = () => {
@@ -625,13 +660,27 @@ function Proofreading() {
                         +
                       </button>
                     </div>
-                    <div className="flex-grow flex justify-center min-h-[300px] p-2 overflow-auto">
+                    {/* Added overflow-x-auto to ensure horizontal scrolling is possible */}
+                    <div
+                      ref={scrollContainerRef}
+                      onMouseDown={handleMouseDown}
+                      onMouseLeave={handleMouseLeaveOrUp}
+                      onMouseUp={handleMouseLeaveOrUp}
+                      onMouseMove={handleMouseMove}
+                      className="flex-grow flex flex-col items-center min-h-[300px] p-2 overflow-auto bg-gray-100 dark:bg-gray-900"
+                    >
                       <Document
                         file={bookData.pdfUrl}
                         onLoadSuccess={onDocumentLoadSuccess}
                         loading="Loading PDF..."
+                        className="mx-auto"
                       >
-                        <Page pageNumber={pageNumber} scale={zoom} />
+                        <Page
+                          pageNumber={pageNumber}
+                          scale={zoom}
+                          renderAnnotationLayer={false}
+                          renderTextLayer={true}
+                        />
                       </Document>
                     </div>
                   </>
