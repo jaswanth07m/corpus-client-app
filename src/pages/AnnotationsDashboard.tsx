@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   MessageSquare,
 } from 'lucide-react';
-import BottomNav from '@/components/BottomNav';
 
 const AnnotationsDashboard = () => {
   const annotationTools = [
@@ -153,9 +152,6 @@ const AnnotationsDashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </div>
   );
 };

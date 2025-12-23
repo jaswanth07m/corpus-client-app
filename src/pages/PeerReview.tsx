@@ -37,12 +37,15 @@ const PeerReview: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchType, setSearchType] = useState<'records' | 'users'>('records');
   const [currentPage, setCurrentPage] = useState(0);
+  const [isFetching, setIsFetching] = useState(false);
 
   async function fetchMoreData() {
     // Don't fetch more data if user is searching
-    if (isSearching) {
+    if (isSearching || isFetching || !hasMore) {
       return;
     }
+    setIsFetching(true);
+    console.count('fetchMoreData called');
 
     const token = localStorage.getItem('token');
 
@@ -120,8 +123,8 @@ const PeerReview: React.FC = () => {
           }
           setAllRecords((prev) => [...prev, successfull]);
 
-          console.log('Record details:', recordDetails);
-          console.log('Username:', successfull.username);
+          // console.log('Record details:', recordDetails);
+          // console.log('Username:', successfull.username);
         } catch (err) {
           continue;
         }
@@ -131,6 +134,8 @@ const PeerReview: React.FC = () => {
       console.error('An Error Occurred', error);
       setError(error.message);
       setHasMore(false);
+    } finally {
+      setIsFetching(false);
     }
   }
 
@@ -261,11 +266,6 @@ const PeerReview: React.FC = () => {
     fetchMoreData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/';
-  };
-
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
@@ -311,14 +311,6 @@ const PeerReview: React.FC = () => {
               </p>
             </div>
           </div>
-
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 border border-slate-200 hover:border-red-300"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
         </div>
 
         {/* Search Bar */}
@@ -404,7 +396,10 @@ const PeerReview: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="peer-container flex justify-center p-4 bg-slate-50 flex-1 overflow-auto">
+      <div
+        id="peer-scroll-container"
+        className="peer-container flex justify-center p-4 bg-slate-50 flex-1 overflow-auto"
+      >
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
@@ -433,6 +428,7 @@ const PeerReview: React.FC = () => {
           <InfiniteScroll
             dataLength={recordIdList.length}
             next={fetchMoreData}
+            scrollableTarget="peer-scroll-container"
             hasMore={hasMore && !isSearching} // Disable infinite scroll when searching
             loader={
               <div className="flex items-center justify-center gap-2 py-4">
@@ -459,9 +455,6 @@ const PeerReview: React.FC = () => {
           </InfiniteScroll>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </div>
   );
 };

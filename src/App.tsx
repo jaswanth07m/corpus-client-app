@@ -17,6 +17,7 @@ import RequireAuth from './components/RequireAuth';
 import { User } from 'lucide-react';
 import Categories from './components/Categories';
 import UploadPage from './pages/UploadPage';
+import Layout from './Layout';
 
 const queryClient = new QueryClient();
 
@@ -29,61 +30,80 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<Navigate to="/media" replace />} />
             <Route
-              path="/media"
               element={
                 <RequireAuth>
-                  <Index />
+                  <Layout />
                 </RequireAuth>
               }
-            />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route
-              path="/media/:mediaType"
-              element={
-                <RequireAuth>
-                  <UploadPage />
-                </RequireAuth>
-              }
-            />
-            <Route path="/annotations" element={<AnnotationsDashboard />} />
+            >
+              <Route path="/" element={<Navigate to="/media" replace />} />
+              <Route
+                path="/media"
+                element={
+                  <RequireAuth>
+                    <Index />
+                  </RequireAuth>
+                }
+              />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route
+                path="/media/:mediaType"
+                element={
+                  <RequireAuth>
+                    <UploadPage />
+                  </RequireAuth>
+                }
+              />
+              <Route path="/annotations" element={<AnnotationsDashboard />} />
+              <Route path="/proofreading" element={<AnnotationsDashboard />} />
+              <Route
+                path="/myprofile/"
+                element={
+                  <RequireAuth>
+                    <Navigate to="/profile" replace />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/userprofile/:userId"
+                element={<Navigate to="/profile/:username" replace />}
+              />
+              <Route
+                path="/profile"
+                element={
+                  <RequireAuth>
+                    <MyProfileRedirect />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/profile/:username"
+                element={
+                  <RequireAuth>
+                    <Profile />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/peer-review"
+                element={
+                  <RequireAuth>
+                    <PeerReview />
+                  </RequireAuth>
+                }
+              />
+            </Route>
+
             <Route
               path="/annotations/proofreading"
-              element={<Proofreading />}
-            />
-            <Route path="/proofreading" element={<AnnotationsDashboard />} />
-            <Route
-              path="/myprofile/"
               element={
                 <RequireAuth>
-                  <Navigate to="/profile" replace />
+                  <Proofreading />
                 </RequireAuth>
               }
             />
-            <Route
-              path="/userprofile/:userId"
-              element={<Navigate to="/profile/:username" replace />}
-            />
-            <Route
-              path="/profile"
-              element={
-                <RequireAuth>
-                  <MyProfileRedirect />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/profile/:username"
-              element={
-                <RequireAuth>
-                  <Profile />
-                </RequireAuth>
-              }
-            />
-            <Route path="/peer-review" element={<PeerReview />} />
-            {/* New route for ForgotPassword */}
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
