@@ -85,12 +85,23 @@ const App = () => (
                   </RequireAuth>
                 }
               />
-              <Route path="/peer-review" element={<PeerReview />} />
+              <Route
+                path="/peer-review"
+                element={
+                  <RequireAuth>
+                    <PeerReview />
+                  </RequireAuth>
+                }
+              />
             </Route>
 
             <Route
               path="/annotations/proofreading"
-              element={<Proofreading />}
+              element={
+                <RequireAuth>
+                  <Proofreading />
+                </RequireAuth>
+              }
             />
 
             <Route path="*" element={<NotFound />} />
