@@ -137,7 +137,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
           />
           <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
             <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-            <span className="text-gray-600">
+            <span className="text-gray-600 text-sm sm:text-base">
               Upload Document Files (PDF, DOCX, TXT)
             </span>
           </div>
@@ -150,12 +150,14 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex flex-col sm:flex-row items-center justify-between p-3 bg-gray-50 rounded-lg gap-2"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <FileText className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-sm">{file.name}</div>
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm truncate">
+                      {file.name}
+                    </div>
                     <div className="text-xs text-gray-500">
                       {formatFileSize(file.size)}
                     </div>
@@ -165,7 +167,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                   onClick={() => removeFile(index)}
                   variant="ghost"
                   size="sm"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -217,11 +219,11 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             <div className="text-2xl font-mono text-red-600">
               {formatTime?.(recordingTime || 0)}
             </div>
-            <div className="flex justify-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
               {!isPaused ? (
                 <Button
                   onClick={pauseRecording}
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2"
                 >
                   <Pause className="w-5 h-5 mr-2" />
                   Pause
@@ -229,7 +231,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               ) : (
                 <Button
                   onClick={resumeRecording}
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2"
                 >
                   <Play className="w-5 h-5 mr-2" />
                   Resume
@@ -237,7 +239,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               )}
               <Button
                 onClick={stopRecording}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
               >
                 <Square className="w-5 h-5 mr-2" />
                 Stop Recording
@@ -253,19 +255,26 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
 
         {recordedBlob && audioUrl && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-              <span className="text-green-700 font-medium">
+            <div className="flex flex-col sm:flex-row items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg gap-2">
+              <span className="text-green-700 font-medium text-sm truncate max-w-full">
                 Recording completed ({formatTime?.(recordingTime || 0)})
               </span>
-              <Button onClick={resetRecording} variant="outline" size="sm">
+              <Button
+                onClick={resetRecording}
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+              >
                 <RotateCcw className="w-4 h-4 mr-1" />
                 Record Again
               </Button>
             </div>
-            <audio controls className="w-full">
-              <source src={audioUrl} type="audio/webm" />
-              Your browser does not support the audio element.
-            </audio>
+            <div className="flex justify-center">
+              <audio controls className="w-full max-w-full">
+                <source src={audioUrl} type="audio/webm" />
+                Your browser does not support the audio element.
+              </audio>
+            </div>
           </div>
         )}
 
@@ -348,17 +357,10 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
         {/* Video preview - show during recording */}
         <video
           ref={videoRecordingRef}
-          style={{
-            width: '100%',
-            maxWidth: '400px',
-            display: isRecording ? 'block' : 'none',
-            margin: '0 auto',
-            borderRadius: '8px',
-            backgroundColor: '#000',
-          }}
           muted
           playsInline
-          className="mb-4"
+          className={`w-full max-w-full rounded-lg mb-4 ${isRecording ? 'block' : 'hidden'}`}
+          style={{ maxHeight: '70vh', backgroundColor: '#000' }}
         />
 
         {!isRecording && !recordedBlob && (
@@ -376,11 +378,11 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             <div className="text-2xl font-mono text-red-600">
               {formatTime?.(recordingTime || 0)}
             </div>
-            <div className="flex justify-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
               {!isPaused ? (
                 <Button
                   onClick={pauseRecording}
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2"
                 >
                   <Pause className="w-5 h-5 mr-2" />
                   Pause
@@ -388,7 +390,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               ) : (
                 <Button
                   onClick={resumeRecording}
-                  className="bg-green-500 hover:bg-green-600 text-white"
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2"
                 >
                   <Play className="w-5 h-5 mr-2" />
                   Resume
@@ -396,7 +398,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               )}
               <Button
                 onClick={stopRecording}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
               >
                 <Square className="w-5 h-5 mr-2" />
                 Stop Recording
@@ -412,23 +414,31 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
 
         {recordedBlob && videoUrl && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-              <span className="text-green-700 font-medium">
+            <div className="flex flex-col sm:flex-row items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg gap-2">
+              <span className="text-green-700 font-medium text-sm truncate max-w-full">
                 Recording completed ({formatTime?.(recordingTime || 0)})
               </span>
-              <Button onClick={resetRecording} variant="outline" size="sm">
+              <Button
+                onClick={resetRecording}
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+              >
                 <RotateCcw className="w-4 h-4 mr-1" />
                 Record Again
               </Button>
             </div>
-            <video
-              controls
-              className="w-full"
-              style={{ maxWidth: '400px', margin: '0 auto' }}
-            >
-              <source src={videoUrl} type="video/webm" />
-              Your browser does not support the video element.
-            </video>
+            <div className="flex justify-center">
+              <div className="max-w-full overflow-hidden">
+                <video
+                  controls
+                  className="w-full max-w-full max-h-48 object-contain rounded-lg"
+                >
+                  <source src={videoUrl} type="video/webm" />
+                  Your browser does not support the video element.
+                </video>
+              </div>
+            </div>
           </div>
         )}
 
@@ -444,7 +454,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             />
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <span className="text-gray-600">
+              <span className="text-gray-600 text-sm sm:text-base">
                 Upload Video Files (Single file)
               </span>
             </div>
@@ -500,7 +510,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               onClick={switchCamera}
               variant="outline"
               size="sm"
-              className="bg-white/80 hover:bg-white/90 text-gray-700"
+              className="bg-white/80 hover:bg-white/90 text-gray-700 text-xs sm:text-sm"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Switch to {facingMode === 'user' ? 'Rear' : 'Front'} Camera
@@ -511,18 +521,11 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
         {/* Camera preview */}
         <video
           ref={videoRef}
-          style={{
-            width: '100%',
-            maxWidth: '400px',
-            display: isCameraActive ? 'block' : 'none',
-            margin: '0 auto',
-            borderRadius: '8px',
-            backgroundColor: '#000',
-          }}
           autoPlay
           muted
           playsInline
-          className="mb-4"
+          className={`w-full max-w-full rounded-lg mb-4 ${isCameraActive ? 'block' : 'hidden'}`}
+          style={{ maxHeight: '70vh', backgroundColor: '#000' }}
         />
 
         <canvas ref={canvasRef} style={{ display: 'none' }} />
@@ -539,17 +542,17 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
 
         {isCameraActive && (
           <div className="text-center space-y-4">
-            <div className="flex justify-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
               <Button
                 onClick={() => capturePhoto?.()}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2"
               >
                 <Camera className="w-5 h-5 mr-2" />
                 Capture Photo
               </Button>
               <Button
                 onClick={stopCamera}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
               >
                 <Square className="w-5 h-5 mr-2" />
                 Stop Camera
@@ -560,8 +563,8 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
 
         {selectedFile && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-              <span className="text-green-700 font-medium">
+            <div className="flex flex-col sm:flex-row items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg gap-2">
+              <span className="text-green-700 font-medium text-sm truncate max-w-full">
                 Photo captured: {selectedFile.name}
               </span>
               <Button
@@ -571,17 +574,20 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                 }}
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
                 Take Another
               </Button>
             </div>
-            <div className="text-center">
-              <img
-                src={URL.createObjectURL(selectedFile)}
-                alt="Captured photo"
-                className="max-w-full max-h-64 mx-auto rounded-lg border"
-              />
+            <div className="flex justify-center">
+              <div className="max-w-full overflow-hidden">
+                <img
+                  src={URL.createObjectURL(selectedFile)}
+                  alt="Captured photo"
+                  className="max-w-full max-h-48 w-auto object-contain rounded-lg border"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -598,7 +604,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             />
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <span className="text-gray-600">
+              <span className="text-gray-600 text-sm sm:text-base">
                 Upload Image Files (Single file)
               </span>
             </div>
@@ -607,30 +613,43 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
 
         {/* Selected Files List */}
         {selectedFiles.length > 0 && !selectedFile && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-3">
             <h4 className="font-medium text-gray-700">Selected Files:</h4>
             {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <Camera className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-sm">{file.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {formatFileSize(file.size)}
+              <div key={index} className="space-y-2">
+                <div className="flex flex-col sm:flex-row items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Camera className="w-4 h-4 text-gray-500" />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm truncate">
+                        {file.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatFileSize(file.size)}
+                      </div>
                     </div>
                   </div>
+                  <Button
+                    onClick={() => removeFile(index)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => removeFile(index)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {/* Preview for image files */}
+                {file.type.startsWith('image/') && (
+                  <div className="flex justify-center">
+                    <div className="max-w-full overflow-hidden">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="Preview"
+                        className="max-w-full max-h-48 object-contain rounded-lg border mx-auto"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
