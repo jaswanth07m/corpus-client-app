@@ -311,90 +311,104 @@ const PeerReview: React.FC = () => {
               </p>
             </div>
           </div>
+          {/* Search Toggle Button */}
+          <button
+            onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+            className={`p-2 rounded-lg transition-all duration-200 ${!isHeaderCollapsed ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-600' : 'hover:bg-slate-100 text-slate-700'}`}
+          >
+            <Search className="w-6 h-6" />
+          </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="max-w-7xl mx-auto mt-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              placeholder={
-                searchType === 'records'
-                  ? 'Search by title, description ...'
-                  : 'Search for users...'
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={async (e) => {
-                if (e.key === 'Enter') {
-                  await handleSearch(searchQuery);
-                }
-              }}
-              className="w-full pl-10 pr-28 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-            <div className="absolute right-14 top-1/2 transform -translate-y-1/2 flex">
-              <button
-                onClick={() => setSearchType('records')}
-                className={`px-3 py-1 text-xs font-medium rounded-l ${
-                  searchType === 'records'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                }`}
-              >
-                Records
-              </button>
-              <button
-                onClick={() => setSearchType('users')}
-                className={`px-3 py-1 text-xs font-medium rounded-r ${
-                  searchType === 'users'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                }`}
-              >
-                Users
-              </button>
+        {/* Search Bar and Toggle Container - Collapsible */}
+        {!isHeaderCollapsed && (
+          <div className="max-w-7xl mx-auto mt-3">
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              {/* Search Bar */}
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={
+                    searchType === 'records'
+                      ? 'Search by title, description ...'
+                      : 'Search for users...'
+                  }
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={async (e) => {
+                    if (e.key === 'Enter') {
+                      await handleSearch(searchQuery);
+                    }
+                  }}
+                  className="w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={async () => await handleSearch('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Record/User Toggle - appears beside search on desktop, below on mobile */}
+              <div className="flex border border-slate-300 rounded-lg overflow-hidden bg-white shadow-sm w-full sm:w-auto">
+                <button
+                  onClick={() => setSearchType('records')}
+                  className={`flex-1 px-3 py-2 text-sm font-medium ${
+                    searchType === 'records'
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Records
+                </button>
+                <button
+                  onClick={() => setSearchType('users')}
+                  className={`flex-1 px-3 py-2 text-sm font-medium ${
+                    searchType === 'users'
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-white text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Users
+                </button>
+              </div>
             </div>
-            {searchQuery && (
-              <button
-                onClick={async () => await handleSearch('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
+
+            {/* Loading indicator when searching */}
+            {isLoading && (
+              <div className="mt-3">
+                <div className="w-full bg-slate-200 rounded-full h-1.5">
+                  <div
+                    className="bg-emerald-500 h-1.5 rounded-full animate-pulse"
+                    style={{ width: '100%' }}
+                  ></div>
+                </div>
+                <p className="text-sm text-slate-600 mt-1 text-center">
+                  {searchType === 'records'
+                    ? 'Searching records...'
+                    : 'Searching users...'}
+                </p>
+              </div>
+            )}
+
+            {isSearching && (
+              <div className="flex items-center justify-end mt-2">
+                <button
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                  className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                >
+                  Refresh Feed
+                </button>
+              </div>
             )}
           </div>
-
-          {/* Loading indicator when searching */}
-          {isLoading && (
-            <div className="mt-3">
-              <div className="w-full bg-slate-200 rounded-full h-1.5">
-                <div
-                  className="bg-emerald-500 h-1.5 rounded-full animate-pulse"
-                  style={{ width: '100%' }}
-                ></div>
-              </div>
-              <p className="text-sm text-slate-600 mt-1 text-center">
-                {searchType === 'records'
-                  ? 'Searching records...'
-                  : 'Searching users...'}
-              </p>
-            </div>
-          )}
-
-          {isSearching && (
-            <div className="flex items-center justify-end mt-2">
-              <button
-                onClick={() => {
-                  window.location.reload();
-                }}
-                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-              >
-                Refresh Feed
-              </button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
       <div
         id="peer-scroll-container"
