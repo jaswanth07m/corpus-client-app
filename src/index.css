@@ -585,6 +585,11 @@ select {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  /* Hide bottom navigation when modal is open */
+  body.modal-open .bottom-nav {
+    display: none;
+  }
+
   /* Add safe area padding for notched devices */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);

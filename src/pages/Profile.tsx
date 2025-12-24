@@ -842,7 +842,9 @@ function Profile() {
                     <span className="text-emerald-600 ml-1 hidden sm:inline">
                       followers
                     </span>
-                    <span className="text-emerald-600 ml-1 sm:hidden">fol</span>
+                    <span className="text-emerald-600 ml-1 sm:hidden">
+                      followers
+                    </span>
                   </button>
                   <button
                     className="px-4 py-2 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:-translate-y-0.5"
@@ -861,7 +863,9 @@ function Profile() {
                     <span className="text-blue-600 ml-1 hidden sm:inline">
                       following
                     </span>
-                    <span className="text-blue-600 ml-1 sm:hidden">folg</span>
+                    <span className="text-blue-600 ml-1 sm:hidden">
+                      following
+                    </span>
                   </button>
                 </div>
 
@@ -1306,6 +1310,20 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editItem, setEditItem] = useState<ContributionItem>({ ...item });
   const [sourceLabel, setSourceLabel] = useState<string>('');
+
+  // Effect to hide bottom navigation when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
 
   // Validation states
   const [titleError, setTitleError] = useState<string | null>(null);
