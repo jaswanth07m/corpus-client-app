@@ -852,7 +852,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     setTitleError(null);
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 placeholder="Enter a title for your content"
               />
               {titleError && (
@@ -884,7 +884,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     setDescriptionError(null);
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
                 placeholder="Provide a detailed description (minimum 32 characters)"
               />
               {descriptionError && (
@@ -902,13 +902,15 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 </label>
 
                 {/* Selected Categories Display */}
-                <div className="flex flex-wrap gap-2 mb-3 min-h-10">
+                <div className="flex flex-wrap gap-2 mb-3 min-h-10 max-h-32 overflow-y-auto p-1">
                   {multiSelectedCategories.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-500"
+                      className="flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-500 max-w-xs truncate"
                     >
-                      <span className="mr-2">{cat.title}</span>
+                      <span className="mr-2 truncate max-w-[100px] sm:max-w-[150px]">
+                        {cat.title}
+                      </span>
                       <button
                         type="button"
                         onClick={() => {
@@ -920,7 +922,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                             setSelectedCategories(newSelection);
                           }
                         }}
-                        className="text-emerald-800 hover:text-emerald-900 focus:outline-none"
+                        className="text-emerald-800 hover:text-emerald-900 focus:outline-none flex-shrink-0"
                       >
                         <XIcon className="w-4 h-4" />
                       </button>
@@ -929,7 +931,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 </div>
 
                 {/* Available Categories */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
                   {categories
                     .filter(
                       (cat) =>
@@ -950,7 +952,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                             setSelectedCategories(newSelection);
                           }
                         }}
-                        className={`cursor-pointer px-4 py-2 rounded-full border transition-all duration-200 ${
+                        className={`cursor-pointer px-3 py-1.5 rounded-full border transition-all duration-200 text-sm max-w-xs truncate ${
                           multiSelectedCategories.some((c) => c.id === cat.id)
                             ? 'bg-emerald-100 border-emerald-500 text-emerald-700'
                             : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
@@ -1041,7 +1043,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 Select Language *
               </label>
               <select
-                className="border rounded px-3 py-2 w-full"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLangugae(e.target.value)}
               >
@@ -1057,62 +1059,44 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             {/* Release Rights */}
             <div className="mb-6">
               <label className="block font-medium mb-2">Release Rights *</label>
-              <div className="flex flex-col gap-2">
-                <label>
-                  <input
-                    type="radio"
-                    name="releaseRight_Options"
-                    checked={releaseRights === 'creator'}
-                    onChange={() => {
-                      setreleaseRights('creator');
-                    }}
-                  />
-                  <span className="ml-2">
-                    This work is created by me and anyone is free to use it.
-                  </span>
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="releaseRight_Options"
-                    checked={releaseRights === 'others'}
-                    onChange={() => {
-                      setreleaseRights('others');
-                    }}
-                  />
-                  <span className="ml-2">Others</span>
-                </label>
-
-                {releaseRights === 'others' && (
-                  <div className="mb-6">
-                    <label className="block font-medium mb-2">Creator *</label>
-                    <input
-                      type="text"
-                      value={creator}
-                      onChange={(e) => setCreator(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter a creator for your content"
-                    />
-                  </div>
+              <select
+                value={releaseRights}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === 'downloaded') {
+                    toast.error(
+                      'Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.',
+                    );
+                  }
+                  setreleaseRights(value);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                {!releaseRights && (
+                  <option value="">Select Release Rights</option>
                 )}
-                <label>
+                <option value="creator">
+                  This work is created by me and anyone is free to use it.
+                </option>
+                <option value="others">Others</option>
+                <option value="downloaded">
+                  I downloaded this from the internet and/or I don't know if it
+                  is free to share.
+                </option>
+              </select>
+
+              {releaseRights === 'others' && (
+                <div className="mt-3">
+                  <label className="block font-medium mb-2">Creator *</label>
                   <input
-                    type="radio"
-                    name="releaseRight_Options"
-                    checked={releaseRights === 'downloaded'}
-                    onChange={() => {
-                      setreleaseRights('downloaded');
-                      toast.error(
-                        'Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.',
-                      );
-                    }}
+                    type="text"
+                    value={creator}
+                    onChange={(e) => setCreator(e.target.value)}
+                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Enter a creator for your content"
                   />
-                  <span className="ml-2">
-                    I downloaded this from the internet and/or I don't know if
-                    it is free to share.
-                  </span>
-                </label>
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}

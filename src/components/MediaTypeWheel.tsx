@@ -207,7 +207,8 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
                   y={iconY - 8}
                   width="16"
                   height="16"
-                  style={{ pointerEvents: 'none' }}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleMediaSelect(media.type)}
                 >
                   <div className="w-full h-full flex items-center justify-center">
                     {media.type === 'image' && (
