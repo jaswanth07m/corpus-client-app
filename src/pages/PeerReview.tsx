@@ -31,7 +31,7 @@ const PeerReview: React.FC = () => {
   const [allRecords, setAllRecords] = useState<PeerReviewCardProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState('');
-  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
