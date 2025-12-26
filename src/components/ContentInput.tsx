@@ -30,6 +30,8 @@ import { toast } from 'sonner';
 import LocationPicker from './LocationPicker';
 import { BACKEND_URL } from '@/lib/constants';
 import MediaUploadComponent from './MediaUploadComponent';
+import { audioRecordingService } from '@/lib/audioRecordingService';
+import { videoRecordingService } from '@/lib/videoRecordingService';
 
 interface Category {
   id: string;
@@ -180,12 +182,15 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isVideoInitialized, setIsVideoInitialized] = useState(false);
+
+  // For compatibility with MediaUploadComponent props
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null,
   );
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
@@ -347,7 +352,11 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   useEffect(() => {
     if (isRecording && !isPaused) {
       recordingInterval.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
+        if (uploadMode === 'audio') {
+          setRecordingTime(audioRecordingService.getRecordingDuration());
+        } else if (uploadMode === 'video') {
+          setRecordingTime(videoRecordingService.getRecordingDuration());
+        }
       }, 1000);
     } else {
       if (recordingInterval.current) {
@@ -359,55 +368,42 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         clearInterval(recordingInterval.current);
       }
     };
-  }, [isRecording, isPaused]);
+  }, [isRecording, isPaused, uploadMode]);
 
   const switchCamera = async () => {
-    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
-    setFacingMode(newFacingMode);
-
-    // Stop current stream
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
-    }
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-    }
-
     try {
-      // Start new stream with switched camera
-      if (uploadMode === 'image' && isCameraActive) {
-        await capturePhoto(newFacingMode);
-      } else if (uploadMode === 'video' && isRecording) {
-        // For video recording, we need to restart the recording with new camera
-        const wasRecording = isRecording;
-        const wasPaused = isPaused;
-        const currentTime = recordingTime;
+      if (uploadMode === 'video' && isVideoInitialized) {
+        const result = await videoRecordingService.flipCamera();
+        const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+        setFacingMode(newFacingMode);
 
-        // Stop current recording
-        if (mediaRecorder) {
-          mediaRecorder.stop();
+        if (result.stream && videoRecordingRef.current) {
+          videoRecordingRef.current.srcObject = result.stream;
+          videoRecordingRef.current.muted = true;
+          videoRecordingRef.current.playsInline = true;
         }
 
-        // Start new recording with new camera
-        setTimeout(() => {
-          startRecording('video', newFacingMode);
-          if (wasPaused) {
-            setTimeout(() => {
-              setRecordingTime(currentTime);
-              pauseRecording();
-            }, 100);
-          }
-        }, 100);
-      }
+        toast.success(
+          `Switched to ${newFacingMode === 'user' ? 'front' : 'rear'} camera`,
+        );
+      } else if (uploadMode === 'image' && isCameraActive) {
+        const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+        setFacingMode(newFacingMode);
 
-      toast.success(
-        `Switched to ${newFacingMode === 'user' ? 'front' : 'rear'} camera`,
-      );
+        // Stop current stream
+        if (cameraStream) {
+          cameraStream.getTracks().forEach((track) => track.stop());
+        }
+
+        // Restart photo capture with new camera
+        await capturePhoto(newFacingMode);
+        toast.success(
+          `Switched to ${newFacingMode === 'user' ? 'front' : 'rear'} camera`,
+        );
+      }
     } catch (error) {
       console.error('Camera switch error:', error);
       toast.error('Failed to switch camera');
-      // Revert facing mode if switch failed
-      setFacingMode(facingMode);
     }
   };
 
@@ -416,73 +412,63 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     customFacingMode?: 'user' | 'environment',
   ) => {
     try {
-      const currentFacingMode = customFacingMode || facingMode;
-      const constraints =
-        type === 'audio'
-          ? { audio: true }
-          : {
-              audio: true,
-              video: {
-                facingMode: currentFacingMode,
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-              },
-            };
+      if (type === 'audio') {
+        const result = await audioRecordingService.startRecording();
 
-      const mediaStream =
-        await navigator.mediaDevices.getUserMedia(constraints);
-      setStream(mediaStream);
-
-      if (type === 'video' && videoRecordingRef.current) {
-        const video = videoRecordingRef.current;
-        video.srcObject = mediaStream;
-        video.autoplay = true;
-        video.muted = true;
-        video.playsInline = true;
-
-        video.onloadedmetadata = () => {
-          video.play().catch((error) => {
-            console.error('Video play error:', error);
-            toast.error('Failed to start video preview');
-          });
-        };
-      }
-
-      const recorder = new MediaRecorder(mediaStream);
-      const chunks: BlobPart[] = [];
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, {
-          type: type === 'audio' ? 'audio/webm' : 'video/webm',
-        });
-        setRecordedBlob(blob);
-        const file = new File([blob], `recorded-${type}.webm`, {
-          type: blob.type,
-        });
-        setSelectedFile(file);
-        setSelectedFiles([file]);
-        const url = URL.createObjectURL(blob);
-        if (type === 'audio') {
-          setAudioUrl(url);
+        if (result.success) {
+          setIsRecording(true);
+          setIsPaused(false);
+          setRecordingTime(0);
+          toast.success('Audio recording started');
         } else {
-          setVideoUrl(url);
+          toast.error(result.error || 'Failed to start audio recording');
         }
-      };
+      } else if (type === 'video') {
+        const currentFacingMode = customFacingMode || facingMode;
+        const cameraType =
+          currentFacingMode === 'user'
+            ? 0 // FRONT
+            : 1; // BACK
 
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      setIsPaused(false);
-      setRecordingTime(0);
-      toast.success(
-        `${type === 'audio' ? 'Audio' : 'Video'} recording started`,
-      );
+        if (!isVideoInitialized) {
+          const initResult = await videoRecordingService.initialize({
+            camera: cameraType,
+          });
+
+          if (!initResult.success) {
+            toast.error(initResult.error || 'Failed to initialize camera');
+            return;
+          }
+
+          setIsVideoInitialized(true);
+        } else {
+          // Switch camera if needed
+          await videoRecordingService.flipCamera();
+        }
+
+        const result = await videoRecordingService.startRecording();
+
+        if (result.success) {
+          setIsRecording(true);
+          setIsPaused(false);
+          setRecordingTime(0);
+
+          if (result.stream && videoRecordingRef.current) {
+            videoRecordingRef.current.srcObject = result.stream;
+            videoRecordingRef.current.muted = true;
+            videoRecordingRef.current.playsInline = true;
+            videoRecordingRef.current.onloadedmetadata = () => {
+              videoRecordingRef.current?.play().catch((error) => {
+                console.error('Video play error:', error);
+              });
+            };
+          }
+
+          toast.success('Video recording started');
+        } else {
+          toast.error(result.error || 'Failed to start video recording');
+        }
+      }
     } catch (error) {
       console.error('Recording error:', error);
       toast.error(
@@ -491,39 +477,92 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     }
   };
 
-  const pauseRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.pause();
-      setIsPaused(true);
-      toast.success('Recording paused');
+  const pauseRecording = async () => {
+    try {
+      if (uploadMode === 'audio') {
+        const result = await audioRecordingService.pauseRecording();
+
+        if (result.success) {
+          setIsPaused(true);
+          toast.success('Recording paused');
+        } else {
+          toast.error(result.error || 'Failed to pause recording');
+        }
+      } else if (uploadMode === 'video' && isRecording) {
+        setIsPaused(true);
+        toast.success('Recording paused');
+        // Note: video recorder plugin doesn't support pause
+        // We just update UI state for now
+      }
+    } catch (error) {
+      console.error('Pause recording error:', error);
+      toast.error('Failed to pause recording');
     }
   };
 
-  const resumeRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'paused') {
-      mediaRecorder.resume();
-      setIsPaused(false);
-      toast.success('Recording resumed');
+  const resumeRecording = async () => {
+    try {
+      if (uploadMode === 'audio') {
+        const result = await audioRecordingService.resumeRecording();
+
+        if (result.success) {
+          setIsPaused(false);
+          toast.success('Recording resumed');
+        } else {
+          toast.error(result.error || 'Failed to resume recording');
+        }
+      } else if (uploadMode === 'video' && isRecording && isPaused) {
+        setIsPaused(false);
+        toast.success('Recording resumed');
+        // Note: video recorder plugin doesn't support pause/resume
+        // We just update UI state for now
+      }
+    } catch (error) {
+      console.error('Resume recording error:', error);
+      toast.error('Failed to resume recording');
     }
   };
 
-  const stopRecording = () => {
-    if (
-      mediaRecorder &&
-      (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused')
-    ) {
-      mediaRecorder.stop();
-    }
+  const stopRecording = async () => {
+    try {
+      if (uploadMode === 'audio') {
+        const result = await audioRecordingService.stopRecording();
 
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
+        if (result.success && result.file) {
+          setRecordedBlob(result.file);
+          setSelectedFile(result.file);
+          setSelectedFiles([result.file]);
+          setAudioUrl(URL.createObjectURL(result.file));
+          setIsRecording(false);
+          setIsPaused(false);
+          toast.success('Recording stopped');
+        } else {
+          toast.error(result.error || 'Failed to stop recording');
+        }
+      } else if (uploadMode === 'video' && isRecording) {
+        const result = await videoRecordingService.stopRecording();
 
-    setIsRecording(false);
-    setIsPaused(false);
-    setMediaRecorder(null);
-    toast.success('Recording stopped');
+        if (result.success && result.file) {
+          setRecordedBlob(result.file);
+          setSelectedFile(result.file);
+          setSelectedFiles([result.file]);
+          setVideoUrl(URL.createObjectURL(result.file));
+          setIsRecording(false);
+          setIsPaused(false);
+
+          // Destroy camera after recording
+          await videoRecordingService.destroy();
+          setIsVideoInitialized(false);
+
+          toast.success('Recording stopped');
+        } else {
+          toast.error(result.error || 'Failed to stop recording');
+        }
+      }
+    } catch (error) {
+      console.error('Stop recording error:', error);
+      toast.error('Failed to stop recording');
+    }
   };
 
   const capturePhoto = async (customFacingMode?: 'user' | 'environment') => {

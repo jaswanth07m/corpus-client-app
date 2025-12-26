@@ -271,7 +271,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             </div>
             <div className="flex justify-center">
               <audio controls className="w-full max-w-full">
-                <source src={audioUrl} type="audio/webm" />
+                <source src={audioUrl} />
                 Your browser does not support the audio element.
               </audio>
             </div>
@@ -434,7 +434,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                   controls
                   className="w-full max-w-full max-h-48 object-contain rounded-lg"
                 >
-                  <source src={videoUrl} type="video/webm" />
+                  <source src={videoUrl} />
                   Your browser does not support the video element.
                 </video>
               </div>
