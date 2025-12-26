@@ -35,6 +35,9 @@ export async function validateAudioFile(
     'audio/ogg',
     'audio/webm',
     'audio/flac',
+    'audio/aac',
+    'audio/mp4',
+    'audio/m4a',
   ];
   if (!validAudioFormats.includes(file.type)) {
     errors.push('unsupported_format');
