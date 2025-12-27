@@ -253,35 +253,14 @@ class VideoRecordingService {
         if (result?.videoUrl) {
           videoUrl = result.videoUrl;
 
-          const fileData = await Filesystem.readFile({
-            directory: Directory.Cache,
-            path: result.videoUrl,
+          const response = await fetch(videoUrl);
+          const blob = await response.blob();
+
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '_');
+
+          file = new File([blob], `video-recording-${timestamp}.mp4`, {
+            type: 'video/mp4',
           });
-
-          if (fileData.data) {
-            let blob: Blob;
-
-            if (typeof fileData.data === 'string') {
-              const byteCharacters = atob(fileData.data);
-              const byteNumbers = new Array(byteCharacters.length);
-
-              for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-              }
-
-              const byteArray = new Uint8Array(byteNumbers);
-              blob = new Blob([byteArray], { type: 'video/mp4' });
-            } else if (fileData.data instanceof Blob) {
-              blob = fileData.data;
-            } else {
-              throw new Error('Unsupported data format');
-            }
-
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            file = new File([blob], `video-recording-${timestamp}.mp4`, {
-              type: 'video/mp4',
-            });
-          }
         }
       }
 
