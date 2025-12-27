@@ -823,10 +823,10 @@ function Profile() {
                   </p>
                 </div>
 
-                {/* Stats Row - Stacked on mobile, side by side on larger screens */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
+                {/* Stats Row - Side by side with equal width */}
+                <div className="flex gap-3 mb-4">
                   <button
-                    className="px-4 py-2 bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:-translate-y-0.5"
+                    className="flex-1 px-4 py-3 bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:-translate-y-0.5 text-center"
                     onClick={() => {
                       if (username) {
                         fetchFollowers(username);
@@ -836,18 +836,13 @@ function Profile() {
                       setShowFollowersModal(true);
                     }}
                   >
-                    <span className="font-bold text-emerald-700">
+                    <div className="font-bold text-emerald-700 text-lg">
                       {followersCount}
-                    </span>
-                    <span className="text-emerald-600 ml-1 hidden sm:inline">
-                      followers
-                    </span>
-                    <span className="text-emerald-600 ml-1 sm:hidden">
-                      followers
-                    </span>
+                    </div>
+                    <div className="text-emerald-600 text-sm">followers</div>
                   </button>
                   <button
-                    className="px-4 py-2 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:-translate-y-0.5"
+                    className="flex-1 px-4 py-3 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:-translate-y-0.5 text-center"
                     onClick={() => {
                       if (username) {
                         fetchFollowing(username);
@@ -857,15 +852,10 @@ function Profile() {
                       setShowFollowingModal(true);
                     }}
                   >
-                    <span className="font-bold text-blue-700">
+                    <div className="font-bold text-blue-700 text-lg">
                       {followingCount}
-                    </span>
-                    <span className="text-blue-600 ml-1 hidden sm:inline">
-                      following
-                    </span>
-                    <span className="text-blue-600 ml-1 sm:hidden">
-                      following
-                    </span>
+                    </div>
+                    <div className="text-blue-600 text-sm">following</div>
                   </button>
                 </div>
 

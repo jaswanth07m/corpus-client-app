@@ -245,177 +245,106 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   const uploadsToday = calculateUploadsToday();
 
   return (
-    <div className="space-y-6">
-      {/* Stats Grid - Colorful Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium opacity-90">
-              Total Uploads
-            </span>
-            <TrendingUp size={20} className="opacity-80" />
-          </div>
-          <div className="text-3xl font-bold">
-            {contributions?.totalContributions || 0}
+    <div className="space-y-2">
+      {/* Stats Grid - 2x2 Grid */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-lg p-2 text-white">
+          <div className="flex flex-col items-center text-center">
+            <TrendingUp size={14} className="opacity-80 mb-0.5" />
+            <div className="text-xs font-medium opacity-90">Uploads</div>
+            <div className="text-lg font-bold">
+              {contributions?.totalContributions || 0}
+            </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium opacity-90">Total Hours</span>
-            <Clock size={20} className="opacity-80" />
-          </div>
-          <div className="text-3xl font-bold">
-            {formatDuration(
-              (contributions?.audioDuration || 0) +
-                (contributions?.videoDuration || 0),
-            )}
+        <div className="bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg p-2 text-white">
+          <div className="flex flex-col items-center text-center">
+            <Clock size={14} className="opacity-80 mb-0.5" />
+            <div className="text-xs font-medium opacity-90">Hours</div>
+            <div className="text-lg font-bold">
+              {formatDuration(
+                (contributions?.audioDuration || 0) +
+                  (contributions?.videoDuration || 0),
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium opacity-90">Streak</span>
-            <Flame size={20} className="opacity-80" />
+        <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-lg p-2 text-white">
+          <div className="flex flex-col items-center text-center">
+            <Flame size={14} className="opacity-80 mb-0.5" />
+            <div className="text-xs font-medium opacity-90">Streak</div>
+            <div className="text-lg font-bold">{contributionStreak}</div>
           </div>
-          <div className="text-3xl font-bold">{contributionStreak} days</div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium opacity-90">Today</span>
-            <Upload size={20} className="opacity-80" />
+        <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg p-2 text-white">
+          <div className="flex flex-col items-center text-center">
+            <Upload size={14} className="opacity-80 mb-0.5" />
+            <div className="text-xs font-medium opacity-90">Today</div>
+            <div className="text-lg font-bold">{uploadsToday}</div>
           </div>
-          <div className="text-3xl font-bold">{uploadsToday} files</div>
         </div>
       </div>
 
-      {/* Contributions by Media Type - Colorful Cards */}
+      {/* Contributions by Media Type - 2 Column Grid */}
       <div>
-        <h3 className="text-base font-bold text-slate-900 mb-3">
+        <h3 className="text-xs font-bold text-slate-900 mb-1.5">
           Contributions by Media Type
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity size={18} />
-              <span className="text-sm font-semibold">Text</span>
-            </div>
-            <div className="text-2xl font-bold">
-              {contributions?.contributionsByType.text || 0}
-            </div>
-            <div className="text-xs opacity-80 mt-1">Contributions</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <BarChart size={18} />
-              <span className="text-sm font-semibold">Document</span>
-            </div>
-            <div className="text-2xl font-bold">
-              {contributions?.contributionsByType.document || 0}
-            </div>
-            <div className="text-xs opacity-80 mt-1">Contributions</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Award size={18} />
-              <span className="text-sm font-semibold">Image</span>
-            </div>
-            <div className="text-2xl font-bold">
-              {contributions?.contributionsByType.image || 0}
-            </div>
-            <div className="text-xs opacity-80 mt-1">Contributions</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={18} />
-              <span className="text-sm font-semibold">Audio</span>
-            </div>
-            <div className="text-2xl font-bold">
-              {contributions?.contributionsByType.audio || 0}
-            </div>
-            <div className="text-xs opacity-80 mt-1">
-              {formatDuration(contributions?.audioDuration || 0)}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-2 text-white">
+            <div className="flex flex-col items-center text-center">
+              <Activity size={14} className="mb-0.5" />
+              <span className="text-xs font-semibold">Text</span>
+              <div className="text-lg font-bold">
+                {contributions?.contributionsByType.text || 0}
+              </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar size={18} />
-              <span className="text-sm font-semibold">Video</span>
+          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-2 text-white">
+            <div className="flex flex-col items-center text-center">
+              <BarChart size={14} className="mb-0.5" />
+              <span className="text-xs font-semibold">Doc</span>
+              <div className="text-lg font-bold">
+                {contributions?.contributionsByType.document || 0}
+              </div>
             </div>
-            <div className="text-2xl font-bold">
-              {contributions?.contributionsByType.video || 0}
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-2 text-white">
+            <div className="flex flex-col items-center text-center">
+              <Award size={14} className="mb-0.5" />
+              <span className="text-xs font-semibold">Image</span>
+              <div className="text-lg font-bold">
+                {contributions?.contributionsByType.image || 0}
+              </div>
             </div>
-            <div className="text-xs opacity-80 mt-1">
-              {formatDuration(contributions?.videoDuration || 0)}
+          </div>
+
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-2 text-white">
+            <div className="flex flex-col items-center text-center">
+              <TrendingUp size={14} className="mb-0.5" />
+              <span className="text-xs font-semibold">Audio</span>
+              <div className="text-lg font-bold">
+                {contributions?.contributionsByType.audio || 0}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2 text-white col-span-2">
+            <div className="flex flex-col items-center text-center">
+              <Calendar size={14} className="mb-0.5" />
+              <span className="text-xs font-semibold">Video</span>
+              <div className="text-lg font-bold">
+                {contributions?.contributionsByType.video || 0}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Top Languages */}
-      {languageContributions.length > 0 && (
-        <div>
-          <h3 className="text-base font-bold text-slate-900 mb-3">
-            Top Languages Contributed To
-          </h3>
-          <div className="space-y-2">
-            {languageContributions.slice(0, 3).map((lang, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <Globe size={18} className="text-slate-400" />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-semibold text-slate-700">
-                      {lang.language.charAt(0).toUpperCase() +
-                        lang.language.slice(1)}
-                    </span>
-                    <span className="text-sm font-bold text-slate-900">
-                      {lang.count} files
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-500 h-2 rounded-full transition-all"
-                      style={{
-                        width: `${(lang.count / (contributions?.totalContributions || 1)) * 100}%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Monthly Contributions */}
-      {monthlyContributions.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Contributions Over Time
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {monthlyContributions.map((data, index) => (
-              <div
-                key={index}
-                className="flex items-center p-3 bg-gray-50 rounded-lg shadow-sm"
-              >
-                <Calendar size={18} className="text-gray-600 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {data.month}
-                  </p>
-                  <p className="text-xs text-gray-500">{data.count} uploads</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

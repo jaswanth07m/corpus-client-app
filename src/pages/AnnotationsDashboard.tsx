@@ -68,11 +68,8 @@ const AnnotationsDashboard = () => {
               </Link>
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                  Annotations Dashboard
+                  Tools
                 </h1>
-                <p className="text-slate-600 text-base">
-                  Select an annotation tool to get started
-                </p>
               </div>
             </div>
           </div>
@@ -80,21 +77,6 @@ const AnnotationsDashboard = () => {
       </div>
 
       <div className="flex-grow max-w-7xl mx-auto p-8 w-full">
-        <div className="mb-12 text-center">
-          <div className="inline-block mb-6">
-            <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg">
-              <FileCheck className="w-8 h-8 text-white" />
-            </span>
-          </div>
-          <h2 className="text-4xl font-bold text-slate-900 mb-4">
-            Annotation Tools
-          </h2>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
-            Access all annotation and proofreading tools from this central hub.
-            Choose the tool that best fits your current task.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {annotationTools.map((tool) => (
             <div
@@ -135,21 +117,6 @@ const AnnotationsDashboard = () => {
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Footer Section */}
-      <div className="bg-slate-50 border-t border-slate-200 py-12 mt-16">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">
-              Need Additional Tools?
-            </h2>
-            <p className="text-slate-600 text-lg max-w-2xl mx-auto mb-6">
-              We're continuously adding new annotation tools to help with
-              various tasks.
-            </p>
-          </div>
         </div>
       </div>
     </div>
