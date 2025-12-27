@@ -784,12 +784,12 @@ function Profile() {
     username && currentUsername ? currentUsername === username : false;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 pt-16 pb-24">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 pt-16 pb-24">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
           {/* Header Actions Bar */}
-          <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-3 flex items-center justify-between border-b border-slate-100">
+          <div className="bg-gradient-to-r from-slate-50 to-white px-4 py-3 flex items-center justify-between border-b border-slate-100">
             <button
               onClick={() => navigate(-1)}
               className="p-2 hover:bg-slate-100 rounded-full transition-all duration-200"
@@ -799,23 +799,23 @@ function Profile() {
             </button>
           </div>
 
-          {/* Profile Info Section - Instagram Style Horizontal Layout */}
-          <div className="p-8">
-            <div className="flex gap-8 items-start mb-6">
-              {/* Avatar - Left Side with Animation */}
+          {/* Profile Info Section - Mobile Responsive Layout */}
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start mb-6">
+              {/* Avatar - Centered on mobile */}
               <div className="relative flex-shrink-0 group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-                <div className="relative w-32 h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl ring-4 ring-blue-50 group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl font-bold shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
                   {getInitials(profile?.name)}
                 </div>
-                <div className="absolute bottom-2 right-2 w-7 h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
+                <div className="absolute bottom-2 right-2 w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
               </div>
 
-              {/* User Info & Stats - Right Side */}
-              <div className="flex-1 pt-2">
+              {/* User Info & Stats - Stacked on mobile */}
+              <div className="flex-1 text-center sm:text-left">
                 {/* Name and Username */}
                 <div className="mb-4">
-                  <h1 className="text-2xl font-bold text-slate-900 mb-1">
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">
                     {profile?.name}
                   </h1>
                   <p className="text-slate-500 text-sm">
@@ -823,8 +823,8 @@ function Profile() {
                   </p>
                 </div>
 
-                {/* Stats Row - Instagram Style with Enhanced Effects */}
-                <div className="flex gap-4 mb-4">
+                {/* Stats Row - Stacked on mobile, side by side on larger screens */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
                   <button
                     className="px-4 py-2 bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:-translate-y-0.5"
                     onClick={() => {
@@ -839,7 +839,12 @@ function Profile() {
                     <span className="font-bold text-emerald-700">
                       {followersCount}
                     </span>
-                    <span className="text-emerald-600 ml-1">followers</span>
+                    <span className="text-emerald-600 ml-1 hidden sm:inline">
+                      followers
+                    </span>
+                    <span className="text-emerald-600 ml-1 sm:hidden">
+                      followers
+                    </span>
                   </button>
                   <button
                     className="px-4 py-2 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:-translate-y-0.5"
@@ -855,11 +860,16 @@ function Profile() {
                     <span className="font-bold text-blue-700">
                       {followingCount}
                     </span>
-                    <span className="text-blue-600 ml-1">following</span>
+                    <span className="text-blue-600 ml-1 hidden sm:inline">
+                      following
+                    </span>
+                    <span className="text-blue-600 ml-1 sm:hidden">
+                      following
+                    </span>
                   </button>
                 </div>
 
-                {/* Follow Button with Conditional Logic */}
+                {/* Follow Button - Full width on mobile */}
                 {!isOwnProfile && (
                   <button
                     onClick={() => {
@@ -870,14 +880,14 @@ function Profile() {
                       }
                     }}
                     disabled={followLoading}
-                    className={`px-8 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
+                    className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
                       isFollowing
                         ? 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 border-2 border-slate-300 hover:border-slate-400'
                         : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-emerald-500/50'
                     } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
                   >
                     {followLoading ? (
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center justify-center sm:justify-start gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Processing...
                       </span>
@@ -893,24 +903,24 @@ function Profile() {
           </div>
         </div>
 
-        {/* Contributions Section - Modern Design */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
+        {/* Contributions Section - Mobile Responsive Design */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-2">
               <Activity size={20} className="text-blue-600" />
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                 Contributions
               </h2>
             </div>
 
-            {/* Compact Toggle */}
-            <div className="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50 shadow-sm">
+            {/* Compact Toggle - Stacked on mobile */}
+            <div className="flex rounded-lg border border-slate-200 p-1 bg-slate-50 shadow-sm w-full sm:w-auto">
               <button
                 onClick={() => {
                   setShowDashboard(true);
                   setContributions(null);
                 }}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                className={`flex-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
                   showDashboard
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
@@ -923,7 +933,7 @@ function Profile() {
                   setShowDashboard(false);
                   setContributions(null);
                 }}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                className={`flex-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
                   !showDashboard
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
@@ -935,7 +945,7 @@ function Profile() {
           </div>
 
           {showDashboard ? (
-            <div className="mt-4">
+            <div className="mt-2 sm:mt-4">
               <ContributionDashboard
                 dailyStats={{
                   uploads_today: calculateUploadsToday(),
@@ -949,8 +959,8 @@ function Profile() {
             </div>
           ) : (
             <div>
-              {/* Media type selector */}
-              <div className="flex flex-wrap justify-center gap-3 my-6 px-4">
+              {/* Media type selector - Responsive layout */}
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 my-4 px-2">
                 {(['text', 'document', 'image', 'audio', 'video'] as const).map(
                   (type) => (
                     <ContributionTypeButton
@@ -969,7 +979,7 @@ function Profile() {
                 )}
               </div>
               {/* Modernized display of contributions for selected media type */}
-              <div className="mt-6">
+              <div className="mt-4">
                 {selectedMediaType && (
                   <ContributionsList
                     contributions={contributions}
@@ -979,22 +989,26 @@ function Profile() {
                   />
                 )}
                 {!selectedMediaType && !contributionsLoading && (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
-                      <Activity size={32} className="text-blue-500" />
+                  <div className="text-center py-8 sm:py-12">
+                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-50 mb-3 sm:mb-4">
+                      <Activity
+                        size={24}
+                        className="text-blue-500 hidden sm:block"
+                      />
+                      <Activity size={20} className="text-blue-500 sm:hidden" />
                     </div>
-                    <p className="text-gray-500 text-lg font-medium">
+                    <p className="text-gray-500 text-base sm:text-lg font-medium">
                       Select a media type to view contributions
                     </p>
-                    <p className="text-gray-400 text-sm mt-2">
+                    <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
                       Choose from Text, Document, Image, Audio, or Video
                     </p>
                   </div>
                 )}
                 {contributionsLoading && (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600 font-medium">
+                  <div className="text-center py-8 sm:py-12">
+                    <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-3 sm:mt-4 text-gray-600 font-medium text-sm sm:text-base">
                       Loading contributions...
                     </p>
                   </div>
@@ -1005,26 +1019,26 @@ function Profile() {
         </div>
 
         {/* Streaks */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-center text-gray-800 mb-4 uppercase tracking-wide font-sans border-b pb-2">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
+          <h2 className="text-base sm:text-lg font-semibold text-center text-gray-800 mb-3 sm:mb-4 uppercase tracking-wide font-sans border-b pb-2">
             Streaks
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Current Streak</p>
-              <p className="text-xl font-bold text-green-600">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
+            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+              <p className="text-xs sm:text-sm text-gray-500">Current</p>
+              <p className="text-lg sm:text-xl font-bold text-green-600">
                 {profile?.streaks?.combined_streak?.current ?? 0}
               </p>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Longest Streak</p>
-              <p className="text-xl font-bold text-green-600">
+            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+              <p className="text-xs sm:text-sm text-gray-500">Longest</p>
+              <p className="text-lg sm:text-xl font-bold text-green-600">
                 {profile?.streaks?.combined_streak?.longest ?? 0}
               </p>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Total Active Days</p>
-              <p className="text-xl font-bold text-green-600">
+            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+              <p className="text-xs sm:text-sm text-gray-500">Active Days</p>
+              <p className="text-lg sm:text-xl font-bold text-green-600">
                 {profile?.streaks?.combined_streak?.total_active_days ?? 0}
               </p>
             </div>
@@ -1076,9 +1090,9 @@ const FollowersModal: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">Followers</h3>
           <button
             onClick={onClose}
@@ -1101,7 +1115,7 @@ const FollowersModal: React.FC<{
                 return (
                   <li
                     key={userId}
-                    className="p-4 hover:bg-gray-50 cursor-pointer"
+                    className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       if (isCurrentUser) {
                         navigate('/profile');
@@ -1120,7 +1134,7 @@ const FollowersModal: React.FC<{
                             : 'U'}
                         </span>
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-3 sm:ml-4">
                         <p className="text-sm font-medium text-gray-900">
                           {follower.name || follower.username || 'Unknown User'}
                         </p>
@@ -1162,9 +1176,9 @@ const FollowingModal: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">Following</h3>
           <button
             onClick={onClose}
@@ -1187,7 +1201,7 @@ const FollowingModal: React.FC<{
                 return (
                   <li
                     key={userId}
-                    className="p-4 hover:bg-gray-50 cursor-pointer"
+                    className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       if (isCurrentUser) {
                         navigate('/profile');
@@ -1206,7 +1220,7 @@ const FollowingModal: React.FC<{
                             : 'U'}
                         </span>
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-3 sm:ml-4">
                         <p className="text-sm font-medium text-gray-900">
                           {followedUser.name ||
                             followedUser.username ||
@@ -1249,7 +1263,7 @@ function ContributionTypeButton({
     <button
       key={type}
       onClick={() => setSelectedMediaType(type)}
-      className={`px-6 py-2.5 rounded-full font-semibold border-2 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+      className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold border-2 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 text-xs sm:text-sm
         ${
           selectedMediaType === type
             ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/30'
@@ -1296,6 +1310,20 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editItem, setEditItem] = useState<ContributionItem>({ ...item });
   const [sourceLabel, setSourceLabel] = useState<string>('');
+
+  // Effect to hide bottom navigation when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
 
   // Validation states
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -1742,29 +1770,30 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
             {getMediaTypeLabel()} Details
           </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <X size={24} className="text-gray-600" />
+            <X size={24} className="text-gray-600 hidden sm:block" />
+            <X size={20} className="text-gray-600 sm:hidden" />
           </button>
         </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6">
             {/* Media Preview */}
             <div className="space-y-4">
               {renderMediaPreview()}
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
+              {/* Action Buttons - Stacked on mobile */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 {isEditing ? (
                   <>
                     <button
@@ -1957,7 +1986,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
             </div>
 
             {/* Details */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Title and Description */}
               <div className="space-y-4">
                 {isEditing ? (
@@ -2037,7 +2066,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
                       {item.title || 'Untitled'}
                     </h3>
                     <p className="text-gray-600 leading-relaxed">
@@ -2048,12 +2077,12 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
               </div>
 
               {/* Metadata */}
-              <div className="space-y-3 bg-gray-50 rounded-xl p-4">
+              <div className="space-y-3 bg-gray-50 rounded-xl p-3 sm:p-4">
                 <h4 className="font-semibold text-gray-900 mb-3">
                   Information
                 </h4>
 
-                <div className="flex items-start gap-3">
+                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
                   <Clock
                     size={18}
                     className="text-gray-400 mt-0.5 flex-shrink-0"
@@ -2077,7 +2106,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
                   <svg
                     className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
                     fill="none"
@@ -2111,7 +2140,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
                   <svg
                     className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
                     fill="none"
@@ -2161,7 +2190,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                     </Select>
                   </div>
                 ) : (
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
                     <svg
                       className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
                       fill="none"
@@ -2262,7 +2291,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-start gap-3">
+                    <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
                       <svg
                         className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
                         fill="none"
@@ -2287,7 +2316,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                     </div>
 
                     {/* Category Tags */}
-                    <div className="flex items-start gap-3">
+                    <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
                       <svg
                         className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
                         fill="none"
@@ -2332,7 +2361,7 @@ const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
           {/* Edit History Section */}
           {showHistory && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
               <InlineEditHistory recordId={item.id} token={token} />
             </div>
           )}
@@ -2412,7 +2441,7 @@ const ImageGridItem: React.FC<ImageGridItemProps> = ({
           {!shouldLoad && (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
               <svg
-                className="w-16 h-16 text-orange-400"
+                className="w-12 h-12 sm:w-16 sm:h-16 text-orange-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -2428,14 +2457,14 @@ const ImageGridItem: React.FC<ImageGridItemProps> = ({
           )}
           {shouldLoad && loading && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-blue-500" />
             </div>
           )}
           {shouldLoad && error && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-              <div className="text-center p-4">
+              <div className="text-center p-3 sm:p-4">
                 <svg
-                  className="w-12 h-12 mx-auto text-gray-400 mb-2"
+                  className="w-8 h-8 sm:w-12 sm:h-12 mx-auto text-gray-400 mb-1 sm:mb-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -2462,8 +2491,8 @@ const ImageGridItem: React.FC<ImageGridItemProps> = ({
 
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-              <p className="font-semibold text-sm truncate">
+            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
+              <p className="font-semibold text-xs sm:text-sm truncate">
                 {item.title || 'Untitled'}
               </p>
               <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
@@ -2472,8 +2501,8 @@ const ImageGridItem: React.FC<ImageGridItemProps> = ({
         </div>
 
         {/* Info Section */}
-        <div className="p-4 bg-white">
-          <h3 className="font-bold text-gray-900 text-sm mb-2 truncate">
+        <div className="p-3 sm:p-4 bg-white">
+          <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-1 sm:mb-2 truncate">
             {item.title || 'Untitled'}
           </h3>
           <p className="text-xs text-gray-500 truncate">
@@ -2564,7 +2593,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
       case 'text':
         return (
           <svg
-            className="w-16 h-16 text-blue-500"
+            className="w-12 h-12 sm:w-16 sm:h-16 text-blue-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -2580,7 +2609,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
       case 'audio':
         return (
           <svg
-            className="w-16 h-16 text-green-500"
+            className="w-12 h-12 sm:w-16 sm:h-16 text-green-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -2596,7 +2625,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
       case 'document':
         return (
           <svg
-            className="w-16 h-16 text-yellow-600"
+            className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -2612,7 +2641,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
       case 'video':
         return (
           <svg
-            className="w-16 h-16 text-purple-500"
+            className="w-12 h-12 sm:w-16 sm:h-16 text-purple-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -2644,7 +2673,7 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
         <div className="aspect-square relative overflow-hidden bg-white">
           {shouldLoad && loading && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-blue-500" />
             </div>
           )}
           {shouldLoad &&
@@ -2672,8 +2701,8 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
 
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-              <p className="font-semibold text-sm truncate">
+            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
+              <p className="font-semibold text-xs sm:text-sm truncate">
                 {item.title || 'Untitled'}
               </p>
               <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
@@ -2682,8 +2711,8 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
         </div>
 
         {/* Info Section */}
-        <div className="p-4 bg-white">
-          <h3 className="font-bold text-gray-900 text-sm mb-2 truncate">
+        <div className="p-3 sm:p-4 bg-white">
+          <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-1 sm:mb-2 truncate">
             {item.title || 'Untitled'}
           </h3>
           <p className="text-xs text-gray-500 truncate">
@@ -2745,7 +2774,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   if (selectedMediaType === 'image') {
     return (
       <div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {currentItems.map((item) => (
             <ImageGridItem
               key={item.id}
@@ -2775,7 +2804,7 @@ const ContributionsList: React.FC<ContributionsListProps> = ({
   ) {
     return (
       <div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {currentItems.map((item) => (
             <MediaGridItem
               key={item.id}
@@ -3079,27 +3108,29 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-center mt-6 space-x-2">
+    <div className="flex flex-wrap items-center justify-center mt-4 sm:mt-6 gap-1 sm:gap-2">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={`px-4 py-2 rounded-lg border ${
+        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border text-sm ${
           currentPage === 1
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
             : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
         }`}
       >
-        Previous
+        Prev
       </button>
 
       {pageNumbers.map((page, index) => (
         <React.Fragment key={index}>
           {page === 'ellipsis' ? (
-            <span className="px-3 py-2 text-gray-500">...</span>
+            <span className="px-2 py-1.5 sm:px-3 sm:py-2 text-gray-500 text-sm">
+              ...
+            </span>
           ) : (
             <button
               onClick={() => onPageChange(page as number)}
-              className={`px-4 py-2 rounded-lg border ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border text-sm ${
                 currentPage === page
                   ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
@@ -3114,7 +3145,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={`px-4 py-2 rounded-lg border ${
+        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border text-sm ${
           currentPage === totalPages
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
             : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'

@@ -24,7 +24,7 @@ const mediaTypes: MediaType[] = [
     icon: <Image className="w-5 h-5 sm:w-6 sm:h-6" />,
     title: 'Images',
     description: 'Upload photos, illustrations, or graphics',
-    color: '#10b981',
+    color: '#00A36C',
     bgColor: 'bg-emerald-500',
   },
   {
@@ -66,9 +66,8 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
   selectedType,
   onCategorySelect,
 }) => {
-  const [hoveredType, setHoveredType] = useState<string | null>(null);
-
-  const activeType = hoveredType || selectedType;
+  // For mobile, we don't need hover state, only use selectedType
+  const activeType = selectedType;
   const activeMedia =
     mediaTypes.find((m) => m.type === activeType) || mediaTypes[0];
 
@@ -115,18 +114,17 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
       {/* Wheel Container - Optimized for desktop view */}
       <div className="relative w-[420px] h-[420px] sm:w-[480px] sm:h-[480px]">
         {/* Outer glow effect */}
-        <div className="absolute inset-[-30px] rounded-full bg-gradient-to-br from-emerald-100 via-slate-100 to-amber-100 opacity-40 blur-2xl animate-pulse" />
+        <div className="absolute inset-[-30px] rounded-full bg-gradient-to-br from-emerald-100 via-slate-100 to-amber-100 opacity-40 blur-2xl animate-pulse z-0" />
 
-        {/* Outer decorative rings */}
-        <div className="absolute inset-[-12px] rounded-full border-[6px] border-white shadow-2xl" />
-        <div className="absolute inset-[-4px] rounded-full border-2 border-slate-200/50" />
-        <div className="absolute inset-0 rounded-full border-4 border-white shadow-xl bg-gradient-to-br from-white to-slate-50" />
+        {/* Outer decorative rings - behind the segments */}
+        <div className="absolute inset-[-12px] rounded-full border-[6px] border-white shadow-2xl z-0" />
+        <div className="absolute inset-[-4px] rounded-full border-2 border-slate-200/50 z-0" />
+        <div className="absolute inset-0 rounded-full border-4 border-white shadow-xl bg-gradient-to-br from-white to-slate-50 z-0" />
 
-        {/* Colored segments background */}
+        {/* Colored segments background with icons - in front of decorative rings */}
         <svg
-          className="absolute inset-0 w-full h-full drop-shadow-lg"
+          className="absolute inset-0 w-full h-full drop-shadow-lg z-20"
           viewBox="0 0 100 100"
-          style={{ transform: 'rotate(-90deg)' }}
         >
           <defs>
             {mediaTypes.map((media, index) => (
@@ -145,14 +143,16 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
           </defs>
           {mediaTypes.map((media, index) => {
             const segmentAngle = 360 / mediaTypes.length;
-            const startAngle = index * segmentAngle;
-            const endAngle = startAngle + segmentAngle;
-            const isActive = activeType === media.type;
+            const gapAngle = 1; // Increased gap between segments to prevent visual overlap
+            const effectiveSegmentAngle = segmentAngle - gapAngle;
+            const startAngle = index * segmentAngle + gapAngle / 2 - 90; // Adjusted to account for removed rotation
+            const endAngle = startAngle + effectiveSegmentAngle;
+            const isSegmentActive = activeType === media.type;
 
             const startRad = (startAngle * Math.PI) / 180;
             const endRad = (endAngle * Math.PI) / 180;
-            const innerRadius = 30; // Increased for larger center circle
-            const outerRadius = isActive ? 49.5 : 48;
+            const innerRadius = 32; // Increased for larger center circle
+            const outerRadius = 48; // Consistent outer radius to prevent visual overlap
 
             const x1 = 50 + outerRadius * Math.cos(startRad);
             const y1 = 50 + outerRadius * Math.sin(startRad);
@@ -163,7 +163,7 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
             const x4 = 50 + innerRadius * Math.cos(startRad);
             const y4 = 50 + innerRadius * Math.sin(startRad);
 
-            const largeArc = segmentAngle > 180 ? 1 : 0;
+            const largeArc = effectiveSegmentAngle > 180 ? 1 : 0;
 
             const path = `
               M ${x1} ${y1}
@@ -173,66 +173,85 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
               Z
             `;
 
+            // Calculate position for icon inside the segment - better positioned within the segment
+            const midAngle = (startAngle + endAngle) / 2;
+            const midRad = (midAngle * Math.PI) / 180;
+            const iconRadius = ((innerRadius + outerRadius) / 2) * 1.0; // Position icon 65% from center to fit better inside the segment
+            const iconX = 50 + iconRadius * Math.cos(midRad);
+            const iconY = 50 + iconRadius * Math.sin(midRad);
+
             return (
-              <path
-                key={media.type}
-                d={path}
-                fill={`url(#gradient-${media.type})`}
-                className="cursor-pointer transition-all duration-300"
-                style={{
-                  filter: isActive
-                    ? 'brightness(1.2) drop-shadow(0 6px 12px rgba(0,0,0,0.25)) saturate(1.1)'
-                    : 'brightness(1) drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                  transformOrigin: '50% 50%',
-                }}
-                onMouseEnter={() => setHoveredType(media.type)}
-                onMouseLeave={() => setHoveredType(null)}
-                onClick={() => handleMediaSelect(media.type)}
-              />
+              <g key={media.type}>
+                <path
+                  d={path}
+                  fill={`url(#gradient-${media.type})`}
+                  className="cursor-pointer transition-all duration-300"
+                  style={{
+                    filter: isSegmentActive
+                      ? 'brightness(1.2) drop-shadow(0 6px 12px rgba(0,0,0,0.25)) saturate(1.1)'
+                      : 'brightness(1) drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                    transformOrigin: '50% 50%',
+                  }}
+                  onClick={() => handleMediaSelect(media.type)}
+                />
+                {/* White background circle - rendered behind the icon */}
+                <circle
+                  r="8"
+                  fill="white"
+                  opacity="0.95"
+                  transform={`translate(${iconX}, ${iconY})`}
+                />
+                {/* Icon inside the segment - properly aligned */}
+                <foreignObject
+                  x={iconX - 8}
+                  y={iconY - 8}
+                  width="16"
+                  height="16"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleMediaSelect(media.type)}
+                >
+                  <div className="w-full h-full flex items-center justify-center">
+                    {media.type === 'image' && (
+                      <Image size={12} color={media.color} />
+                    )}
+                    {media.type === 'text' && (
+                      <Type size={12} color={media.color} />
+                    )}
+                    {media.type === 'audio' && (
+                      <Mic size={12} color={media.color} />
+                    )}
+                    {media.type === 'video' && (
+                      <Video size={12} color={media.color} />
+                    )}
+                    {media.type === 'document' && (
+                      <FileText size={12} color={media.color} />
+                    )}
+                  </div>
+                </foreignObject>
+              </g>
             );
           })}
         </svg>
 
-        {/* Center circle with selected info - LARGER SIZE */}
+        {/* Center circle with general instructions - LARGER SIZE */}
         <div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] rounded-full bg-white shadow-2xl flex flex-col items-center justify-center z-30 transition-all duration-300"
           style={{
             boxShadow: `0 8px 32px rgba(0,0,0,0.12), inset 0 2px 12px rgba(0,0,0,0.05)`,
           }}
         >
-          {/* Icon */}
-          <div
-            className="p-4 sm:p-5 rounded-2xl mb-2 transition-all duration-500 shadow-lg"
-            style={{
-              backgroundColor: `${activeMedia.color}`,
-            }}
-          >
-            <div className="text-white">
-              {React.cloneElement(activeMedia.icon as React.ReactElement, {
-                className: 'w-10 h-10 sm:w-12 sm:h-12',
-                strokeWidth: 2.5,
-              })}
-            </div>
-          </div>
-
           {/* Title */}
-          <h3
-            className="text-base sm:text-lg font-bold text-center px-3 transition-colors duration-300 leading-tight"
-            style={{ color: activeMedia.color }}
-          >
-            {activeMedia.title}
+          <h3 className="text-base sm:text-lg font-bold text-center px-3 text-slate-800 leading-tight mb-2">
+            Select Media
           </h3>
 
           {/* Description */}
-          <p className="text-[10px] sm:text-xs text-gray-600 text-center px-3 leading-snug mt-1.5 font-medium">
-            {activeMedia.description.split(' ').slice(0, 3).join(' ')}
+          <p className="text-[10px] sm:text-xs text-gray-600 text-center px-3 leading-snug font-medium mb-3">
+            Tap any colored section
           </p>
 
           {/* Click indicator */}
-          <div
-            className="mt-2 flex items-center gap-1 text-[9px] sm:text-xs font-semibold"
-            style={{ color: activeMedia.color }}
-          >
+          <div className="flex items-center gap-1 text-[9px] sm:text-xs font-semibold text-emerald-600">
             <svg
               className="w-3 h-3 animate-pulse"
               fill="none"
@@ -246,7 +265,7 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
                 d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
               />
             </svg>
-            <span>Click to select</span>
+            <span>to choose type</span>
           </div>
         </div>
 
