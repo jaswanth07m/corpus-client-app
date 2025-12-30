@@ -412,7 +412,7 @@ const PeerReview: React.FC = () => {
       </div>
       <div
         id="peer-scroll-container"
-        className="peer-container flex justify-center p-4 bg-slate-50 flex-1 overflow-auto"
+        className="peer-container overflow-x-hidden flex justify-center py-4 bg-slate-50 flex-1 overflow-auto"
       >
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

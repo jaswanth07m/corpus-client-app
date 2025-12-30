@@ -227,19 +227,6 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
     }
   };
 
-  const getMediaIcon = (type: string) => {
-    switch (type) {
-      case 'image':
-        return <ImageIcon size={20} className="text-blue-600" />;
-      case 'video':
-        return <Video size={20} className="text-red-600" />;
-      case 'audio':
-        return <Mic size={20} className="text-green-600" />;
-      default:
-        return <div className="text-gray-500 text-sm">?</div>;
-    }
-  };
-
   // fetch history for current record_id (immediate)
   const fetchRecordHistory = async () => {
     if (!record_id) return;
@@ -349,10 +336,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             </div>
           </Link>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-slate-900">
+            <p className="text-sm font-bold text-slate-900">
               {username || user_id}
-            </h3>
-            {getMediaIcon(media_type)}
+            </p>
           </div>
         </div>
 
@@ -547,9 +533,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </div>
         ) : (
           <div className="pt-2">
-            <h1 className="text-center font-bold text-xl text-slate-900">
+            <p className="text-center font-bold text-xl text-slate-900">
               {newTitle}
-            </h1>
+            </p>
           </div>
         )}
 

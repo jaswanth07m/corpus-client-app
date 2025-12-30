@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 const AnnotationsDashboard = () => {
+  const navigate = useNavigate();
   const annotationTools = [
     {
       id: 'proofreading',
@@ -44,14 +45,6 @@ const AnnotationsDashboard = () => {
       path: '/annotations/audio-proofreading',
       comingSoon: true,
     },
-    {
-      id: 'peer-review',
-      title: 'Peer Review',
-      description: "Review and rate your peer's uploads",
-      icon: <MessageSquare className="h-8 w-8 text-green-600" />,
-      path: '/peer-review',
-      comingSoon: false,
-    },
   ];
 
   return (
@@ -76,44 +69,67 @@ const AnnotationsDashboard = () => {
         </div>
       </div>
 
-      <div className="flex-grow max-w-7xl mx-auto p-8 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="flex-grow max-w-7xl mx-auto p-3 w-full">
+        <div className="flex flex-wrap gap-5">
           {annotationTools.map((tool) => (
             <div
               key={tool.id}
-              className={`group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:-translate-y-2 ${
-                tool.comingSoon ? 'opacity-60' : ''
+              style={{
+                width: 'calc(47% - 4px)',
+              }}
+              onClick={() => !tool.comingSoon && navigate(tool.path)}
+              className={`relative overflow-hidden group bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 border-2 ${
+                tool.comingSoon
+                  ? 'cursor-not-allowed border-slate-100 bg-slate-50/50'
+                  : 'cursor-pointer border-slate-200 hover:border-emerald-400 hover:shadow-xl hover:-translate-y-2'
               }`}
             >
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 group-hover:scale-110 transition-transform duration-300">
+              {tool.comingSoon && (
+                <>
+                  <div className="absolute -top-[1px] -right-[1px] z-20">
+                    <div className="bg-slate-200 text-slate-500 text-[9px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-widest border-l border-b border-slate-300">
+                      Planned
+                    </div>
+                  </div>
+
+                  <div
+                    className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{
+                      backgroundImage: `radial-gradient(#000 0.5px, transparent 0.5px)`,
+                      backgroundSize: '10px 10px',
+                    }}
+                  ></div>
+                </>
+              )}
+
+              <div
+                className={`flex flex-col items-center text-center transition-all duration-300 ${tool.comingSoon ? 'opacity-40 grayscale' : ''}`}
+              >
+                <div
+                  className={`mb-4 p-4 rounded-2xl transition-all duration-300 ${
+                    tool.comingSoon
+                      ? 'bg-slate-100 text-slate-400'
+                      : 'bg-gradient-to-br from-slate-50 to-slate-100 group-hover:from-emerald-50 group-hover:to-emerald-100 group-hover:scale-110'
+                  }`}
+                >
                   {tool.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">
+
+                <p
+                  className={`text-md sm:text-2xl font-bold mb-2 transition-colors ${
+                    tool.comingSoon
+                      ? 'text-slate-400'
+                      : 'text-slate-900 group-hover:text-emerald-600'
+                  }`}
+                >
                   {tool.title}
-                </h3>
-                {tool.comingSoon && (
-                  <span className="inline-block bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-                    Coming Soon
-                  </span>
-                )}
-                <p className="text-slate-600 text-base leading-relaxed mb-6">
-                  {tool.description}
                 </p>
-                {tool.comingSoon ? (
-                  <button
-                    className="w-full px-6 py-3 bg-slate-200 text-slate-500 rounded-xl font-semibold cursor-not-allowed"
-                    disabled
-                  >
-                    Coming Soon
-                  </button>
-                ) : (
-                  <Link to={tool.path} className="w-full">
-                    <button className="w-full px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                      Access Tool →
-                    </button>
-                  </Link>
-                )}
+
+                <p className="sm:block hidden text-slate-500 text-sm leading-relaxed mb-2">
+                  {tool.comingSoon
+                    ? 'Dataset ingestion module under calibration.'
+                    : tool.description}
+                </p>
               </div>
             </div>
           ))}
