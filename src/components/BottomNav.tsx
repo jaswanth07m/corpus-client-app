@@ -4,13 +4,7 @@ import { FileCheck, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const BottomNav: React.FC = () => {
-  const { logout } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
-  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-3 z-50 shadow-lg bottom-nav">
@@ -70,14 +64,6 @@ const BottomNav: React.FC = () => {
           <User className="w-6 h-6 text-slate-700" />
           <span className="text-xs text-slate-600">Profile</span>
         </Link>
-
-        <button
-          onClick={handleLogout}
-          className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
-        >
-          <LogOut className="w-6 h-6 text-red-500" />
-          <span className="text-xs text-red-500">Logout</span>
-        </button>
       </div>
     </div>
   );

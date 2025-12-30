@@ -245,104 +245,120 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   const uploadsToday = calculateUploadsToday();
 
   return (
-    <div className="space-y-2">
-      {/* Stats Grid - 2x2 Grid */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-lg p-2 text-white">
-          <div className="flex flex-col items-center text-center">
-            <TrendingUp size={14} className="opacity-80 mb-0.5" />
-            <div className="text-xs font-medium opacity-90">Uploads</div>
-            <div className="text-lg font-bold">
-              {contributions?.totalContributions || 0}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Stats Grid */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {[
+          {
+            label: 'Uploads',
+            value: contributions?.totalContributions || 0,
+            color: 'linear-gradient(135deg, #34d399, #10b981)',
+            icon: <TrendingUp size={14} />,
+          },
+          {
+            label: 'Hours',
+            value: formatDuration(
+              (contributions?.audioDuration || 0) +
+                (contributions?.videoDuration || 0),
+            ),
+            color: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
+            icon: <Clock size={14} />,
+          },
+          {
+            label: 'Streak',
+            value: contributionStreak,
+            color: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+            icon: <Flame size={14} />,
+          },
+          {
+            label: 'Today',
+            value: uploadsToday,
+            color: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
+            icon: <Upload size={14} />,
+          },
+        ].map((item, idx) => (
+          <div
+            key={idx}
+            style={{
+              width: 'calc(50% - 4px)',
+              background: item.color,
+              borderRadius: 8,
+              padding: 8,
+              color: '#fff',
+              textAlign: 'center',
+            }}
+          >
+            <div className="flex justify-center items-center gap-2">
+              <div style={{ fontSize: 12, opacity: 0.9 }}>{item.label}</div>
+              <div style={{ opacity: 0.85, marginBottom: 2 }}>{item.icon}</div>
             </div>
+            <div style={{ fontSize: 18, fontWeight: 'bold' }}>{item.value}</div>
           </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg p-2 text-white">
-          <div className="flex flex-col items-center text-center">
-            <Clock size={14} className="opacity-80 mb-0.5" />
-            <div className="text-xs font-medium opacity-90">Hours</div>
-            <div className="text-lg font-bold">
-              {formatDuration(
-                (contributions?.audioDuration || 0) +
-                  (contributions?.videoDuration || 0),
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-lg p-2 text-white">
-          <div className="flex flex-col items-center text-center">
-            <Flame size={14} className="opacity-80 mb-0.5" />
-            <div className="text-xs font-medium opacity-90">Streak</div>
-            <div className="text-lg font-bold">{contributionStreak}</div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg p-2 text-white">
-          <div className="flex flex-col items-center text-center">
-            <Upload size={14} className="opacity-80 mb-0.5" />
-            <div className="text-xs font-medium opacity-90">Today</div>
-            <div className="text-lg font-bold">{uploadsToday}</div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Contributions by Media Type - 2 Column Grid */}
+      {/* Contributions by Media Type */}
       <div>
-        <h3 className="text-xs font-bold text-slate-900 mb-1.5">
+        <h3 style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 6 }}>
           Contributions by Media Type
         </h3>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-2 text-white">
-            <div className="flex flex-col items-center text-center">
-              <Activity size={14} className="mb-0.5" />
-              <span className="text-xs font-semibold">Text</span>
-              <div className="text-lg font-bold">
-                {contributions?.contributionsByType.text || 0}
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-2 text-white">
-            <div className="flex flex-col items-center text-center">
-              <BarChart size={14} className="mb-0.5" />
-              <span className="text-xs font-semibold">Doc</span>
-              <div className="text-lg font-bold">
-                {contributions?.contributionsByType.document || 0}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {[
+            {
+              label: 'Text',
+              value: contributions?.contributionsByType.text || 0,
+              color: '#3b82f6',
+              icon: <Activity size={14} />,
+            },
+            {
+              label: 'Doc',
+              value: contributions?.contributionsByType.document || 0,
+              color: '#ef4444',
+              icon: <BarChart size={14} />,
+            },
+            {
+              label: 'Image',
+              value: contributions?.contributionsByType.image || 0,
+              color: '#f97316',
+              icon: <Award size={14} />,
+            },
+            {
+              label: 'Audio',
+              value: contributions?.contributionsByType.audio || 0,
+              color: '#22c55e',
+              icon: <TrendingUp size={14} />,
+            },
+            {
+              label: 'Video',
+              value: contributions?.contributionsByType.video || 0,
+              color: '#8b5cf6',
+              icon: <Calendar size={14} />,
+              full: true,
+            },
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                width: item.full ? '100%' : 'calc(50% - 4px)',
+                background: item.color,
+                borderRadius: 8,
+                padding: 8,
+                color: '#fff',
+                textAlign: 'center',
+              }}
+            >
+              <div className="flex justify-center items-center gap-2">
+                <div style={{ fontSize: 12, opacity: 0.9 }}>{item.label}</div>
+                <div style={{ opacity: 0.85, marginBottom: 2 }}>
+                  {item.icon}
+                </div>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 'bold' }}>
+                {item.value}
               </div>
             </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-2 text-white">
-            <div className="flex flex-col items-center text-center">
-              <Award size={14} className="mb-0.5" />
-              <span className="text-xs font-semibold">Image</span>
-              <div className="text-lg font-bold">
-                {contributions?.contributionsByType.image || 0}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-2 text-white">
-            <div className="flex flex-col items-center text-center">
-              <TrendingUp size={14} className="mb-0.5" />
-              <span className="text-xs font-semibold">Audio</span>
-              <div className="text-lg font-bold">
-                {contributions?.contributionsByType.audio || 0}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2 text-white col-span-2">
-            <div className="flex flex-col items-center text-center">
-              <Calendar size={14} className="mb-0.5" />
-              <span className="text-xs font-semibold">Video</span>
-              <div className="text-lg font-bold">
-                {contributions?.contributionsByType.video || 0}
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
