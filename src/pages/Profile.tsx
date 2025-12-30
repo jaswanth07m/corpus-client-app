@@ -791,13 +791,22 @@ function Profile() {
   const isOwnProfile =
     username && currentUsername ? currentUsername === username : false;
 
+  console.log(profile);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 pt-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 sm:mb-12 pt-4 pb-24">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
           {/* Profile Info Section - Mobile Responsive Layout */}
-          <div className="p-4">
+          <div className="p-4 relative">
+            <button
+              onClick={handleLogout}
+              className="flex flex-col absolute right-0 sm:right-5 items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4 text-red-500" />
+            </button>
+
             <div className="flex flex-row gap-6 items-center">
               {/* Avatar - Centered on mobile */}
               <div className="relative flex-shrink-0 group">
@@ -866,7 +875,7 @@ function Profile() {
                       }
                     }}
                     disabled={followLoading}
-                    className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
+                    className={`w-full mt-2 sm:w-auto px-3 py-1.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
                       isFollowing
                         ? 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 border-2 border-slate-300 hover:border-slate-400'
                         : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-emerald-500/50'
@@ -894,9 +903,9 @@ function Profile() {
           <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-2">
               <Activity size={20} className="text-blue-600" />
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+              <p className="text-sm sm:text-md font-bold text-slate-900">
                 Contributions
-              </h2>
+              </p>
             </div>
 
             {/* Compact Toggle - Stacked on mobile */}
@@ -906,7 +915,7 @@ function Profile() {
                   setShowDashboard(true);
                   setContributions(null);
                 }}
-                className={`flex-1 px-10 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
+                className={`flex-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
                   showDashboard
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
@@ -941,6 +950,7 @@ function Profile() {
                 }}
                 contributions={contributions}
                 loading={contributionsLoading}
+                edits={profile?.summary?.edits?.total_edits}
               />
             </div>
           ) : (
@@ -1002,33 +1012,6 @@ function Profile() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Streaks */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
-          <h2 className="text-base sm:text-lg font-semibold text-center text-gray-800 mb-3 sm:mb-4 uppercase tracking-wide font-sans border-b pb-2">
-            Streaks
-          </h2>
-          <div className="flex flex-wrap sm:grid-cols-3 gap-3 sm:gap-4 text-center">
-            <div className="bg-gray-50 flex-1 p-3 sm:p-4 rounded-lg">
-              <p className="text-xs sm:text-sm text-gray-500">Current</p>
-              <p className="text-lg sm:text-xl font-bold text-green-600">
-                {profile?.streaks?.combined_streak?.current ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-3 flex-1 sm:p-4 rounded-lg">
-              <p className="text-xs sm:text-sm text-gray-500">Longest</p>
-              <p className="text-lg sm:text-xl font-bold text-green-600">
-                {profile?.streaks?.combined_streak?.longest ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-3 sm:p-4 flex-1 rounded-lg">
-              <p className="text-xs sm:text-sm text-gray-500">Active Days</p>
-              <p className="text-lg sm:text-xl font-bold text-green-600">
-                {profile?.streaks?.combined_streak?.total_active_days ?? 0}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 

@@ -10,8 +10,10 @@ import {
   Upload,
   Clock,
   Flame,
+  Edit,
 } from 'lucide-react';
 import { formatModernTime, formatDuration, getISTDate } from '@/lib/utils';
+import { Value } from '@radix-ui/react-select';
 
 interface DailyStats {
   uploads_today: number;
@@ -58,12 +60,14 @@ interface ContributionDashboardProps {
   dailyStats: DailyStats | null;
   contributions: UserContributions | null;
   loading: boolean;
+  edits: number;
 }
 
 const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   dailyStats,
   contributions,
   loading,
+  edits,
 }) => {
   if (loading) {
     return (
@@ -256,6 +260,18 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
             icon: <TrendingUp size={14} />,
           },
           {
+            label: 'Edits',
+            value: edits,
+            color: '#aada00ff',
+            icon: <Edit size={14} />,
+          },
+          {
+            label: 'Streak',
+            value: contributionStreak,
+            color: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+            icon: <Flame size={14} />,
+          },
+          {
             label: 'Hours',
             value: formatDuration(
               (contributions?.audioDuration || 0) +
@@ -263,12 +279,6 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
             ),
             color: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
             icon: <Clock size={14} />,
-          },
-          {
-            label: 'Streak',
-            value: contributionStreak,
-            color: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-            icon: <Flame size={14} />,
           },
           {
             label: 'Today',
@@ -280,7 +290,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
           <div
             key={idx}
             style={{
-              width: 'calc(50% - 4px)',
+              width: item.full ? '100%' : 'calc(32% - 4px)',
               background: item.color,
               borderRadius: 8,
               padding: 8,
@@ -297,12 +307,10 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
         ))}
       </div>
 
+      <hr />
+
       {/* Contributions by Media Type */}
       <div>
-        <h3 style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 6 }}>
-          Contributions by Media Type
-        </h3>
-
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {[
             {
@@ -334,13 +342,12 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
               value: contributions?.contributionsByType.video || 0,
               color: '#8b5cf6',
               icon: <Calendar size={14} />,
-              full: true,
             },
           ].map((item, idx) => (
             <div
               key={idx}
               style={{
-                width: item.full ? '100%' : 'calc(50% - 4px)',
+                width: item.full ? '100%' : 'calc(32% - 4px)',
                 background: item.color,
                 borderRadius: 8,
                 padding: 8,
