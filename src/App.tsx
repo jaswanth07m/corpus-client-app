@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
+import LandingPage from './pages/LandingPage';
 import NotFound from './pages/NotFound';
 import ForgotPassword from './pages/ForgotPassword'; // Import the new component
 import Proofreading from './pages/Proofreading';
@@ -37,7 +38,15 @@ const App = () => (
                 </RequireAuth>
               }
             >
-              <Route path="/" element={<Navigate to="/media" replace />} />
+              <Route path="/" element={<Navigate to="/landing" replace />} />
+              <Route
+                path="/landing"
+                element={
+                  <RequireAuth>
+                    <LandingPage />
+                  </RequireAuth>
+                }
+              />
               <Route
                 path="/media"
                 element={

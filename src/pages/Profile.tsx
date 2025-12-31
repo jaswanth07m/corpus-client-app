@@ -15,6 +15,7 @@ import {
   ChevronUp,
   Clock,
   Pencil,
+  LogOut,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
@@ -28,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 const languages = [
   'assamese',
@@ -175,6 +177,12 @@ interface EditHistoryEntry {
 
 function Profile() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -783,88 +791,75 @@ function Profile() {
   const isOwnProfile =
     username && currentUsername ? currentUsername === username : false;
 
+  console.log(profile);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 pt-16 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 sm:mb-12 pt-4 pb-24">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
-          {/* Header Actions Bar */}
-          <div className="bg-gradient-to-r from-slate-50 to-white px-4 py-3 flex items-center justify-between border-b border-slate-100">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-slate-100 rounded-full transition-all duration-200"
-              title="Back"
-            >
-              <ArrowLeft size={20} className="text-slate-600" />
-            </button>
-          </div>
-
           {/* Profile Info Section - Mobile Responsive Layout */}
-          <div className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start mb-6">
+          <div className="p-4 relative">
+            <button
+              onClick={handleLogout}
+              className="flex flex-col absolute right-0 sm:right-5 items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4 text-red-500" />
+            </button>
+
+            <div className="flex flex-row gap-6 items-center">
               {/* Avatar - Centered on mobile */}
               <div className="relative flex-shrink-0 group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-                <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl font-bold shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
+                <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
                   {getInitials(profile?.name)}
                 </div>
                 <div className="absolute bottom-2 right-2 w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
               </div>
 
               {/* User Info & Stats - Stacked on mobile */}
-              <div className="flex-1 text-center sm:text-left">
+              <div className="flex-1 text-left">
                 {/* Name and Username */}
                 <div className="mb-4">
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1">
-                    {profile?.name}
-                  </h1>
+                  <p className="text-sm sm:text-xl mb-1">{profile?.name}</p>
                   <p className="text-slate-500 text-sm">
                     @{profile?.username || profile?.id}
                   </p>
                 </div>
 
-                {/* Stats Row - Stacked on mobile, side by side on larger screens */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
+                {/* Stats Row - Side by side with equal width */}
+                <div className="flex gap-2">
+                  {/* Followers Button */}
                   <button
-                    className="px-4 py-2 bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:-translate-y-0.5"
                     onClick={() => {
-                      if (username) {
-                        fetchFollowers(username);
-                      } else if (currentUserId) {
-                        fetchFollowers(currentUserId);
-                      }
+                      const id = username || currentUserId;
+                      if (id) fetchFollowers(id);
                       setShowFollowersModal(true);
                     }}
+                    className="max-w-20 flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 rounded-xl transition-all duration-200 active:scale-95 group"
                   >
-                    <span className="font-bold text-emerald-700">
+                    <span className="text-emerald-600 font-bold text-base">
                       {followersCount}
                     </span>
-                    <span className="text-emerald-600 ml-1 hidden sm:inline">
-                      followers
-                    </span>
-                    <span className="text-emerald-600 ml-1 sm:hidden">
-                      followers
+                    <span className="text-slate-500 text-[7px] font-medium uppercase tracking-wider group-hover:text-emerald-700">
+                      Followers
                     </span>
                   </button>
+
+                  {/* Following Button */}
                   <button
-                    className="px-4 py-2 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:-translate-y-0.5"
                     onClick={() => {
-                      if (username) {
-                        fetchFollowing(username);
-                      } else if (currentUserId) {
-                        fetchFollowing(currentUserId);
-                      }
+                      const id = username || currentUserId;
+                      if (id) fetchFollowing(id);
                       setShowFollowingModal(true);
                     }}
+                    className="max-w-20 flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-xl transition-all duration-200 active:scale-95 group"
                   >
-                    <span className="font-bold text-blue-700">
+                    <span className="text-blue-600 font-bold text-base">
                       {followingCount}
                     </span>
-                    <span className="text-blue-600 ml-1 hidden sm:inline">
-                      following
-                    </span>
-                    <span className="text-blue-600 ml-1 sm:hidden">
-                      following
+                    <span className="text-slate-500 text-[7px] font-medium uppercase tracking-wider group-hover:text-emerald-700">
+                      Following
                     </span>
                   </button>
                 </div>
@@ -880,7 +875,7 @@ function Profile() {
                       }
                     }}
                     disabled={followLoading}
-                    className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
+                    className={`w-full mt-2 sm:w-auto px-3 py-1.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 ${
                       isFollowing
                         ? 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 border-2 border-slate-300 hover:border-slate-400'
                         : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-emerald-500/50'
@@ -908,9 +903,9 @@ function Profile() {
           <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-2">
               <Activity size={20} className="text-blue-600" />
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+              <p className="text-sm sm:text-md font-bold text-slate-900">
                 Contributions
-              </h2>
+              </p>
             </div>
 
             {/* Compact Toggle - Stacked on mobile */}
@@ -955,6 +950,7 @@ function Profile() {
                 }}
                 contributions={contributions}
                 loading={contributionsLoading}
+                edits={profile?.summary?.edits?.total_edits}
               />
             </div>
           ) : (
@@ -1016,33 +1012,6 @@ function Profile() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Streaks */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
-          <h2 className="text-base sm:text-lg font-semibold text-center text-gray-800 mb-3 sm:mb-4 uppercase tracking-wide font-sans border-b pb-2">
-            Streaks
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
-            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-              <p className="text-xs sm:text-sm text-gray-500">Current</p>
-              <p className="text-lg sm:text-xl font-bold text-green-600">
-                {profile?.streaks?.combined_streak?.current ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-              <p className="text-xs sm:text-sm text-gray-500">Longest</p>
-              <p className="text-lg sm:text-xl font-bold text-green-600">
-                {profile?.streaks?.combined_streak?.longest ?? 0}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-              <p className="text-xs sm:text-sm text-gray-500">Active Days</p>
-              <p className="text-lg sm:text-xl font-bold text-green-600">
-                {profile?.streaks?.combined_streak?.total_active_days ?? 0}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
