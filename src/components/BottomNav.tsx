@@ -54,7 +54,7 @@ const BottomNav: React.FC = () => {
           className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg transition-colors"
         >
           <FileCheck className="w-6 h-6 text-slate-700" />
-          <span className="text-xs text-slate-600">Annotate</span>
+          <span className="text-xs text-slate-600">Tools</span>
         </Link>
 
         <Link
