@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.swecha.corpus',
-  appName: 'corpus-frontend',
+  appId: 'org.swecha.telugu_corpus_collection',
+  appName: 'Swecha Telugu Corpus',
   webDir: 'dist',
   backgroundColor: '#00000000',
   plugins: {
