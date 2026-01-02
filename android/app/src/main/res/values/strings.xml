@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Swecha Telugu Corpus</string>
+    <string name="title_activity_main">Swecha Telugu Corpus</string>
+    <string name="package_name">org.swecha.telugu_corpus_collection</string>
+    <string name="custom_url_scheme">org.swecha.telugu_corpus_collection</string>
+</resources>

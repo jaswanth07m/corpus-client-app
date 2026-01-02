@@ -1,0 +1,22 @@
+[
+  {
+    "pkg": "@capacitor-community/video-recorder",
+    "classpath": "com.capacitorcommunity.videorecorder.VideoRecorderPlugin"
+  },
+  {
+    "pkg": "@capacitor/camera",
+    "classpath": "com.capacitorjs.plugins.camera.CameraPlugin"
+  },
+  {
+    "pkg": "@capacitor/filesystem",
+    "classpath": "com.capacitorjs.plugins.filesystem.FilesystemPlugin"
+  },
+  {
+    "pkg": "@capacitor/geolocation",
+    "classpath": "com.capacitorjs.plugins.geolocation.GeolocationPlugin"
+  },
+  {
+    "pkg": "capacitor-voice-recorder",
+    "classpath": "com.tchvu3.capacitorvoicerecorder.VoiceRecorder"
+  }
+]
