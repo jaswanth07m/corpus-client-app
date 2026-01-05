@@ -31,6 +31,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route
               element={
                 <RequireAuth>
@@ -55,7 +56,6 @@ const App = () => (
                   </RequireAuth>
                 }
               />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route
                 path="/media/:mediaType"
                 element={

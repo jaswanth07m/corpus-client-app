@@ -16,7 +16,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /node_modules
 /.npm
 /.bun/install
-/android
 
 # Production
 /dist
@@ -43,3 +42,10 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 *.sln
 *.sw?
 .npm/
+
+# Android studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/app/build
+/android/app/src/main/assets/public

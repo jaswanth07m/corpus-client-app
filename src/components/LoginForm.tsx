@@ -19,7 +19,6 @@ import {
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
 import { Link } from 'react-router-dom';
-import SwechaLogo from './SwechaLogo';
 
 interface LoginFormProps {
   onLoginSuccess: (token: string, user: unknown) => void;
@@ -583,10 +582,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       <Card className="w-full max-w-md animate-scale-in relative z-10 shadow-2xl border border-slate-200/50 bg-white/90 backdrop-blur-xl">
         <CardHeader className="text-center pb-6 pt-10 px-8">
           <div className="mb-8">
-            <SwechaLogo
-              size="xl"
-              showTagline={true}
-              className="justify-center"
+            <img
+              src="/Swecha_Logo_English.png"
+              alt="Swecha - Technology for Society"
+              className="h-28 mx-auto drop-shadow-lg hover:scale-105 transition-transform duration-300"
             />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-3">
