@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 const AnnotationsDashboard = () => {
+  const navigate = useNavigate();
   const annotationTools = [
     {
       id: 'proofreading',
@@ -44,113 +45,94 @@ const AnnotationsDashboard = () => {
       path: '/annotations/audio-proofreading',
       comingSoon: true,
     },
-    {
-      id: 'peer-review',
-      title: 'Peer Review',
-      description: "Review and rate your peer's uploads",
-      icon: <MessageSquare className="h-8 w-8 text-green-600" />,
-      path: '/peer-review',
-      comingSoon: false,
-    },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-24">
       {/* Header with back button */}
-      <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
-        <div className="max-w-6xl mx-auto">
+      <div className="bg-white border-b border-slate-200 p-6 shadow-sm">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
+                <button className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 border border-slate-200 hover:border-slate-300">
+                  <ArrowLeft className="h-5 w-5 text-slate-700" />
+                </button>
               </Link>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold">
-                  Annotations Dashboard
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                  Tools
                 </h1>
-                <p className="text-purple-100 text-sm sm:text-base">
-                  Select an annotation tool to get started
-                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-grow max-w-6xl mx-auto p-4 sm:p-6 w-full">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-            Annotation Tools
-          </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Access all annotation and proofreading tools from this central hub.
-            Choose the tool that best fits your current task.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+      <div className="flex-grow max-w-7xl mx-auto p-3 w-full">
+        <div className="flex flex-wrap gap-5">
           {annotationTools.map((tool) => (
-            <Card
+            <div
               key={tool.id}
-              className={`cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-2xl overflow-hidden hover:scale-[1.02] ${
-                tool.comingSoon ? 'opacity-70' : ''
+              style={{
+                width: 'calc(47% - 4px)',
+              }}
+              onClick={() => !tool.comingSoon && navigate(tool.path)}
+              className={`relative overflow-hidden group bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 border-2 ${
+                tool.comingSoon
+                  ? 'cursor-not-allowed border-slate-100 bg-slate-50/50'
+                  : 'cursor-pointer border-slate-200 hover:border-emerald-400 hover:shadow-xl hover:-translate-y-2'
               }`}
             >
-              <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <div className="flex items-center space-x-4">
-                  {tool.icon}
-                  <div>
-                    <CardTitle className="text-xl">{tool.title}</CardTitle>
-                    {tool.comingSoon && (
-                      <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full mt-1">
-                        Coming Soon
-                      </span>
-                    )}
+              {tool.comingSoon && (
+                <>
+                  <div className="absolute -top-[1px] -right-[1px] z-20">
+                    <div className="bg-slate-200 text-slate-500 text-[9px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-widest border-l border-b border-slate-300">
+                      Planned
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">{tool.description}</p>
-                {tool.comingSoon ? (
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    disabled={tool.comingSoon}
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Coming Soon
-                  </Button>
-                ) : (
-                  <Link to={tool.path} className="w-full">
-                    <Button className="w-full" variant="outline">
-                      Access Tool
-                    </Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
 
-      {/* Footer Section */}
-      <div className="bg-gray-50 border-t border-gray-200 py-8 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Need Additional Tools?
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-              We're continuously adding new annotation tools to help with
-              various tasks.
-            </p>
-          </div>
+                  <div
+                    className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{
+                      backgroundImage: `radial-gradient(#000 0.5px, transparent 0.5px)`,
+                      backgroundSize: '10px 10px',
+                    }}
+                  ></div>
+                </>
+              )}
+
+              <div
+                className={`flex flex-col items-center text-center transition-all duration-300 ${tool.comingSoon ? 'opacity-40 grayscale' : ''}`}
+              >
+                <div
+                  className={`mb-4 p-4 rounded-2xl transition-all duration-300 ${
+                    tool.comingSoon
+                      ? 'bg-slate-100 text-slate-400'
+                      : 'bg-gradient-to-br from-slate-50 to-slate-100 group-hover:from-emerald-50 group-hover:to-emerald-100 group-hover:scale-110'
+                  }`}
+                >
+                  {tool.icon}
+                </div>
+
+                <p
+                  className={`text-md sm:text-2xl font-bold mb-2 transition-colors ${
+                    tool.comingSoon
+                      ? 'text-slate-400'
+                      : 'text-slate-900 group-hover:text-emerald-600'
+                  }`}
+                >
+                  {tool.title}
+                </p>
+
+                <p className="sm:block hidden text-slate-500 text-sm leading-relaxed mb-2">
+                  {tool.comingSoon
+                    ? 'Dataset ingestion module under calibration.'
+                    : tool.description}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

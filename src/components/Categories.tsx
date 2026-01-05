@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import posthog from 'posthog-js';
+import SwechaLogo from './SwechaLogo';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
@@ -59,9 +60,14 @@ interface CategoriesProps {
   token: string;
   onBack: () => void;
   onLogout: () => void;
-  //onProfile: () => void;
-  onContentInput: (categoryId: string, categoryName: string) => void;
   onSessionExpired?: () => void; // Add this prop for session expiration callback
+  preSelectedMediaType?:
+    | 'text'
+    | 'audio'
+    | 'video'
+    | 'image'
+    | 'document'
+    | null;
 }
 
 interface UploadOption {
@@ -77,14 +83,15 @@ const Categories: React.FC<CategoriesProps> = ({
   onBack,
   onLogout,
   //onProfile,
-  onContentInput,
   onSessionExpired,
+  preSelectedMediaType,
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [showUploadOptions, setShowUploadOptions] = useState(false);
   const [uploadMode, setUploadMode] = useState<
     'text' | 'audio' | 'video' | 'image' | 'document' | null
@@ -187,6 +194,20 @@ const Categories: React.FC<CategoriesProps> = ({
     fetchUserProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-select media type if pre-selected from MediaTypeWheel
+  useEffect(() => {
+    if (preSelectedMediaType) {
+      console.log('Setting upload mode to:', preSelectedMediaType);
+      // Just set upload mode, user will select category from dropdown
+      setUploadMode(preSelectedMediaType);
+      setShowUploadOptions(false);
+      if (!locationRequested && !location) {
+        requestLocation();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preSelectedMediaType]);
 
   // REPLACE YOUR EXISTING fetchUserProfile FUNCTION WITH THIS
   const fetchUserProfile = async () => {
@@ -498,7 +519,16 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('upload_uuid', uploadUuid);
       formData.append('title', title);
       formData.append('description', description);
-      formData.append('category_id', selectedCategory!.id);
+
+      // Send category_ids as a JSON string array instead of individual form fields
+      const categoryIds =
+        selectedCategories && selectedCategories.length > 0
+          ? selectedCategories.map((cat) => cat.id)
+          : selectedCategory
+            ? [selectedCategory.id]
+            : [];
+      formData.append('category_ids', JSON.stringify(categoryIds));
+
       formData.append('user_id', userId);
       formData.append('media_type', uploadMode || '');
       formData.append('latitude', location!.lat.toString());
@@ -593,8 +623,11 @@ const Categories: React.FC<CategoriesProps> = ({
   // Step 3.1: Modify handleUpload Function
   const handleUpload = async () => {
     // Validation checks (existing logic)
-    if (!selectedCategory || !title.trim()) {
-      toast.error('Please provide a title');
+    if (
+      (selectedCategories.length === 0 && !selectedCategory) ||
+      !title.trim()
+    ) {
+      toast.error('Please select at least one category and provide a title');
       return;
     }
 
@@ -667,10 +700,15 @@ const Categories: React.FC<CategoriesProps> = ({
           filename: fileToUpload!.name,
         });
         if (finalized) {
-          toast.success('Content uploaded successfully!');
+          toast.success(
+            'Content uploaded successfully! Redirecting to Peer Review...',
+          );
           resetUploadState();
-          handleBack();
           posthog.capture('upload_success');
+          // Redirect to peer review after successful upload
+          setTimeout(() => {
+            window.location.href = '/peer-review';
+          }, 1500);
         } else {
           posthog.capture('upload_finalization_failed');
           partialResetUploadState();
@@ -692,23 +730,8 @@ const Categories: React.FC<CategoriesProps> = ({
   };
 
   const handleBack = () => {
-    setSelectedCategory(null);
-    setShowUploadOptions(false);
-    setUploadMode(null);
-    setTitle('');
-    setDescription('');
-    setDescriptionError(false);
-    setSelectedLangugae('');
-    setreleaseRights('');
-    setCreator('');
-    setTextContent('');
-    setSelectedFile(null);
-    setLocationRequested(false);
-    setLocation(null);
-    setLocationError('');
-    setShowManualLocation(false);
-    setManualLat('');
-    setManualLng('');
+    // Go back to MediaTypeWheel by calling onBack
+    onBack();
   };
 
   const handleBackToCategories = () => {
@@ -726,20 +749,27 @@ const Categories: React.FC<CategoriesProps> = ({
     setManualLng('');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  // Debug log
+  console.log(
+    'Categories render - uploadMode:',
+    uploadMode,
+    'preSelectedMediaType:',
+    preSelectedMediaType,
+    'loading:',
+    loading,
+  );
 
-  // Upload Interface
-  if (uploadMode && selectedCategory) {
+  // Show upload form if uploadMode is set (even while loading categories)
+  if (uploadMode) {
+    console.log('Rendering ContentInput with uploadMode:', uploadMode);
     return (
       <ContentInput
         uploadMode={uploadMode}
         selectedCategory={selectedCategory}
+        categories={categories}
+        setSelectedCategory={setSelectedCategory}
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
         title={title}
         setTitle={setTitle}
         textContent={textContent}
@@ -784,53 +814,51 @@ const Categories: React.FC<CategoriesProps> = ({
   // Upload Options Modal
   if (showUploadOptions && selectedCategory) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
         {/* Header */}
-        <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
-                onClick={handleBackToCategories}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold mb-1">
-                  {selectedCategory.title}
-                </h1>
-                <p className="text-purple-100 text-sm sm:text-base">
-                  Choose how you'd like to contribute
-                </p>
-              </div>
+        <div className="bg-white border-b border-slate-200 p-6 shadow-sm">
+          <div className="flex items-center gap-4 max-w-7xl mx-auto">
+            <button
+              className="p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 border border-slate-200 hover:border-slate-300"
+              onClick={handleBackToCategories}
+            >
+              <ArrowLeft className="h-5 w-5 text-slate-700" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                {selectedCategory.title}
+              </h1>
+              <p className="text-slate-600 text-base">
+                Choose how you'd like to contribute
+              </p>
             </div>
           </div>
         </div>
 
         {/* Upload Options */}
-        <div className="px-4 sm:px-6 py-6 sm:py-8">
-          <div className="max-w-2xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="px-6 py-10">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {uploadOptions.map((option) => (
-                <Card
+                <div
                   key={option.type}
-                  className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-purple-300 rounded-2xl"
+                  className="group cursor-pointer bg-white rounded-xl p-6 shadow-sm hover:shadow-lg border border-gray-200 hover:border-emerald-400 transition-all duration-300 hover:-translate-y-1"
                   onClick={() => handleUploadOptionSelect(option)}
                 >
-                  <CardContent className="p-6 text-center">
-                    <div className="text-purple-600 mb-4 flex justify-center">
+                  <div className="flex flex-col items-center text-center gap-4">
+                    <div className="text-emerald-600 group-hover:scale-110 transition-transform duration-300">
                       {option.icon}
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">
-                      {option.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      {option.description}
-                    </p>
-                  </CardContent>
-                </Card>
+                    <div>
+                      <h3 className="font-bold text-lg mb-2 text-slate-800 group-hover:text-emerald-600 transition-colors">
+                        {option.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        {option.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -841,118 +869,240 @@ const Categories: React.FC<CategoriesProps> = ({
 
   // Main Categories View
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 ">
-      {/* Header */}
-      <div className="gradient-purple text-white p-4 sm:p-6 rounded-b-3xl shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold mb-1">Categories</h1>
-              <p className="text-purple-100 text-sm sm:text-base">
-                Choose a category to contribute content
-              </p>
-            </div>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Instagram-like Header */}
+      <div className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <SwechaLogo size="sm" showTagline={false} />
+            <span className="text-lg font-semibold text-slate-700">Corpus</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Conditionally render the search input field when visible */}
             {isSearchVisible && (
-              <div className="flex flex-row items-center mr-2">
-                <input
-                  className="text-gray-900 p-2 rounded-bl-xl rounded-tl-xl text-base sm:text-lg w-48 sm:w-64 lg:w-80"
-                  value={userSearch}
-                  onKeyDown={(e) => {
-                    if (e.key == 'Enter') {
-                      e.preventDefault();
-                      window.location.href = `/userProfile/${userSearch}`;
-                      setIsSearchVisible(false); // Hide search bar after pressing Enter
-                    }
-                  }}
-                  onChange={(e) => {
-                    setUserSearch(e.target.value);
-                  }}
-                  placeholder="Type in User ID"
-                  type="text"
-                  autoFocus
-                />
-                <Button
-                  className="px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-br-xl rounded-tr-xl justify-center"
+              <div className="flex flex-row items-center animate-fade-in">
+                <div className="relative">
+                  <input
+                    className="text-slate-900 px-4 py-2.5 pl-10 rounded-l-xl text-sm sm:text-base w-56 sm:w-72 focus:outline-none focus:ring-2 focus:ring-emerald-500 border border-slate-300 shadow-sm"
+                    value={userSearch}
+                    onKeyDown={(e) => {
+                      if (e.key == 'Enter') {
+                        e.preventDefault();
+                        window.location.href = `/profile/${userSearch}`;
+                        setIsSearchVisible(false);
+                      }
+                    }}
+                    onChange={(e) => {
+                      setUserSearch(e.target.value);
+                    }}
+                    placeholder="Search by User ID..."
+                    type="text"
+                    autoFocus
+                  />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                </div>
+                <button
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 rounded-r-xl transition-all duration-200 shadow-sm"
                   onClick={() => {
-                    window.location.href = `/userProfile/${userSearch}`;
-                    setIsSearchVisible(false); // Hide search bar after clicking search
+                    window.location.href = `/profile/${userSearch}`;
+                    setIsSearchVisible(false);
                   }}
                 >
-                  <Search size={20} />
-                </Button>
+                  <Search size={20} className="text-white" />
+                </button>
+                <button
+                  className="ml-2 p-2.5 hover:bg-slate-100 rounded-xl transition-all duration-200 border border-slate-200"
+                  onClick={() => setIsSearchVisible(false)}
+                  title="Close"
+                >
+                  <svg
+                    className="w-5 h-5 text-slate-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
             )}
 
-            {/* Move the search icon button to the right with other icons */}
+            {/* Icon buttons with enhanced styling */}
             {!isSearchVisible && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
-                onClick={() => setIsSearchVisible(true)}
-              >
-                <Search className="h-5 w-5" />
-              </Button>
+              <div className="relative group">
+                <button
+                  className="p-3 hover:bg-emerald-50 rounded-xl transition-all duration-200 border border-slate-200 hover:border-emerald-400 hover:shadow-md"
+                  onClick={() => setIsSearchVisible(true)}
+                >
+                  <Search className="h-5 w-5 text-slate-700 group-hover:text-emerald-600" />
+                </button>
+                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  Search Users
+                </span>
+              </div>
             )}
 
+            <Link to="/peer-review">
+              <div className="relative group">
+                <button className="p-3 hover:bg-emerald-50 rounded-xl transition-all duration-200 border border-slate-200 hover:border-emerald-400 hover:shadow-md">
+                  <svg
+                    className="h-5 w-5 text-slate-700 group-hover:text-emerald-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </button>
+                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  Peer Review
+                </span>
+              </div>
+            </Link>
+
             <Link to="/annotations">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
-              >
-                <FileCheck className="h-5 w-5" />
-              </Button>
+              <div className="relative group">
+                <button className="p-3 hover:bg-amber-50 rounded-xl transition-all duration-200 border border-slate-200 hover:border-amber-400 hover:shadow-md">
+                  <FileCheck className="h-5 w-5 text-slate-700 group-hover:text-amber-600" />
+                </button>
+                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  Annotations
+                </span>
+              </div>
             </Link>
+
             <Link to="/myprofile">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
-              >
-                <User className="h-5 w-5" />
-              </Button>
+              <div className="relative group">
+                <button className="p-3 hover:bg-blue-50 rounded-xl transition-all duration-200 border border-slate-200 hover:border-blue-400 hover:shadow-md">
+                  <User className="h-5 w-5 text-slate-700 group-hover:text-blue-600" />
+                </button>
+                <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  Profile
+                </span>
+              </div>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/20 w-10 h-10 rounded-full"
-              onClick={onLogout}
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+
+            <div className="relative group">
+              <button
+                className="p-3 hover:bg-red-50 rounded-xl transition-all duration-200 border border-slate-200 hover:border-red-400 hover:shadow-md"
+                onClick={onLogout}
+              >
+                <LogOut className="h-5 w-5 text-slate-700 group-hover:text-red-600" />
+              </button>
+              <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                Logout
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Categories Grid */}
-      <div className="px-4 sm:px-6 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      <div className="flex-1 px-4 py-6 pb-24 overflow-y-auto bg-slate-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900 mb-2">
+              Categories
+            </h2>
+            <p className="text-slate-600 text-sm">
+              Choose a category to contribute content
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {categories.map((category) => (
-              <Card
+              <div
                 key={category.id}
-                className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-2xl overflow-hidden hover:scale-105"
                 onClick={() => handleCategoryClick(category)}
+                className="group cursor-pointer bg-white rounded-xl p-6 shadow-sm hover:shadow-lg border border-gray-200 hover:border-emerald-400 transition-all duration-300 hover:-translate-y-1"
               >
-                <CardContent className="p-6">
-                  <div className="text-4xl mb-4 text-center">
+                <div className="flex flex-col items-center text-center gap-3">
+                  <span className="text-5xl group-hover:scale-110 transition-transform duration-300">
                     {getCategoryIcon(category.name)}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-slate-800 mb-2 group-hover:text-emerald-600 transition-colors text-lg">
+                      {category.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+                      {category.description}
+                    </p>
                   </div>
-                  <h3 className="font-semibold text-lg mb-2 text-center text-gray-800">
-                    {category.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm text-center line-clamp-3">
-                    {category.description}
-                  </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Instagram-style Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 z-50 shadow-lg">
+        <div className="flex items-center justify-around max-w-2xl mx-auto">
+          <button
+            onClick={() => (window.location.href = '/')}
+            className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-6 h-6 text-slate-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            <span className="text-xs text-slate-600">Home</span>
+          </button>
+
+          <Link
+            to="/peer-review"
+            className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-6 h-6 text-slate-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <span className="text-xs text-slate-600">Review</span>
+          </Link>
+
+          <Link
+            to="/annotations"
+            className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg transition-colors"
+          >
+            <FileCheck className="w-6 h-6 text-slate-700" />
+            <span className="text-xs text-slate-600">Annotate</span>
+          </Link>
+
+          <Link
+            to="/myprofile"
+            className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg transition-colors"
+          >
+            <User className="w-6 h-6 text-slate-700" />
+            <span className="text-xs text-slate-600">Profile</span>
+          </Link>
         </div>
       </div>
     </div>

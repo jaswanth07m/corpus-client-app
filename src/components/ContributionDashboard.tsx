@@ -7,8 +7,13 @@ import {
   BarChart,
   Zap,
   Globe,
+  Upload,
+  Clock,
+  Flame,
+  Edit,
 } from 'lucide-react';
 import { formatModernTime, formatDuration, getISTDate } from '@/lib/utils';
+import { Value } from '@radix-ui/react-select';
 
 interface DailyStats {
   uploads_today: number;
@@ -55,12 +60,14 @@ interface ContributionDashboardProps {
   dailyStats: DailyStats | null;
   contributions: UserContributions | null;
   loading: boolean;
+  edits: number;
 }
 
 const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   dailyStats,
   contributions,
   loading,
+  edits,
 }) => {
   if (loading) {
     return (
@@ -242,132 +249,125 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   const uploadsToday = calculateUploadsToday();
 
   return (
-    <div className="space-y-6">
-      {/* Daily Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardCard
-          icon={<TrendingUp size={20} className="text-green-600" />}
-          title="Total Uploads"
-          value={contributions?.totalContributions || 0}
-          unit="files"
-          color="bg-green-50"
-        />
-        <DashboardCard
-          icon={<Award size={20} className="text-purple-600" />}
-          title="Total Hours Contributed"
-          value={formatDuration(
-            (contributions?.audioDuration || 0) +
-              (contributions?.videoDuration || 0),
-          )}
-          color="bg-purple-50"
-        />
-        <DashboardCard
-          icon={<Zap size={20} className="text-yellow-600" />}
-          title="Contribution Streak"
-          value={contributionStreak}
-          unit="days"
-          color="bg-yellow-50"
-        />
-        <DashboardCard
-          icon={<Activity size={20} className="text-blue-600" />}
-          title="Uploads Today"
-          value={uploadsToday}
-          unit="files"
-          color="bg-blue-50"
-        />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Stats Grid */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {[
+          {
+            label: 'Uploads',
+            value: contributions?.totalContributions || 0,
+            color: 'linear-gradient(135deg, #34d399, #10b981)',
+            icon: <TrendingUp size={14} />,
+          },
+          {
+            label: 'Edits',
+            value: edits,
+            color: '#aada00ff',
+            icon: <Edit size={14} />,
+          },
+          {
+            label: 'Streak',
+            value: contributionStreak,
+            color: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+            icon: <Flame size={14} />,
+          },
+          {
+            label: 'Hours',
+            value: formatDuration(
+              (contributions?.audioDuration || 0) +
+                (contributions?.videoDuration || 0),
+            ),
+            color: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
+            icon: <Clock size={14} />,
+          },
+          {
+            label: 'Today',
+            value: uploadsToday,
+            color: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
+            icon: <Upload size={14} />,
+          },
+        ].map((item, idx) => (
+          <div
+            key={idx}
+            style={{
+              width: item.full ? '100%' : 'calc(32% - 4px)',
+              background: item.color,
+              borderRadius: 8,
+              padding: 8,
+              color: '#fff',
+              textAlign: 'center',
+            }}
+          >
+            <div className="flex justify-center items-center gap-2">
+              <div style={{ fontSize: 12, opacity: 0.9 }}>{item.label}</div>
+              <div style={{ opacity: 0.85, marginBottom: 2 }}>{item.icon}</div>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 'bold' }}>{item.value}</div>
+          </div>
+        ))}
       </div>
+
+      <hr />
 
       {/* Contributions by Media Type */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Contributions by Media Type
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          <MediaTypeCard
-            type="Text"
-            count={contributions?.contributionsByType.text || 0}
-            icon={<Activity size={20} className="text-blue-600" />}
-            color="bg-blue-50"
-          />
-          <MediaTypeCard
-            type="Document"
-            count={contributions?.contributionsByType.document || 0}
-            icon={<BarChart size={20} className="text-red-600" />}
-            color="bg-red-50"
-          />
-          <MediaTypeCard
-            type="Image"
-            count={contributions?.contributionsByType.image || 0}
-            icon={<Award size={20} className="text-orange-600" />}
-            color="bg-orange-50"
-          />
-          <MediaTypeCard
-            type="Audio"
-            count={contributions?.contributionsByType.audio || 0}
-            duration={contributions?.audioDuration || 0}
-            icon={<TrendingUp size={20} className="text-green-600" />}
-            color="bg-green-50"
-          />
-          <MediaTypeCard
-            type="Video"
-            count={contributions?.contributionsByType.video || 0}
-            duration={contributions?.videoDuration || 0}
-            icon={<Calendar size={20} className="text-purple-600" />}
-            color="bg-purple-50"
-          />
+      <div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {[
+            {
+              label: 'Text',
+              value: contributions?.contributionsByType.text || 0,
+              color: '#3b82f6',
+              icon: <Activity size={14} />,
+            },
+            {
+              label: 'Doc',
+              value: contributions?.contributionsByType.document || 0,
+              color: '#ef4444',
+              icon: <BarChart size={14} />,
+            },
+            {
+              label: 'Image',
+              value: contributions?.contributionsByType.image || 0,
+              color: '#f97316',
+              icon: <Award size={14} />,
+            },
+            {
+              label: 'Audio',
+              value: contributions?.contributionsByType.audio || 0,
+              color: '#22c55e',
+              icon: <TrendingUp size={14} />,
+            },
+            {
+              label: 'Video',
+              value: contributions?.contributionsByType.video || 0,
+              color: '#8b5cf6',
+              icon: <Calendar size={14} />,
+            },
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                width: item.full ? '100%' : 'calc(32% - 4px)',
+                background: item.color,
+                borderRadius: 8,
+                padding: 8,
+                color: '#fff',
+                textAlign: 'center',
+              }}
+            >
+              <div className="flex justify-center items-center gap-2">
+                <div style={{ fontSize: 12, opacity: 0.9 }}>{item.label}</div>
+                <div style={{ opacity: 0.85, marginBottom: 2 }}>
+                  {item.icon}
+                </div>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 'bold' }}>
+                {item.value}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      {/* Language Contributions */}
-      {languageContributions.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Top Languages Contributed To
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {languageContributions.slice(0, 6).map((lang, index) => (
-              <div
-                key={index}
-                className="flex items-center p-3 bg-gray-50 rounded-lg shadow-sm"
-              >
-                <Globe size={18} className="text-gray-600 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {lang.language.charAt(0).toUpperCase() +
-                      lang.language.slice(1)}
-                  </p>
-                  <p className="text-xs text-gray-500">{lang.count} files</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Monthly Contributions */}
-      {monthlyContributions.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Contributions Over Time
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {monthlyContributions.map((data, index) => (
-              <div
-                key={index}
-                className="flex items-center p-3 bg-gray-50 rounded-lg shadow-sm"
-              >
-                <Calendar size={18} className="text-gray-600 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {data.month}
-                  </p>
-                  <p className="text-xs text-gray-500">{data.count} uploads</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

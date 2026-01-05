@@ -35,6 +35,9 @@ export async function validateAudioFile(
     'audio/ogg',
     'audio/webm',
     'audio/flac',
+    'audio/aac',
+    'audio/mp4',
+    'audio/m4a',
   ];
   if (!validAudioFormats.includes(file.type)) {
     errors.push('unsupported_format');
@@ -42,9 +45,11 @@ export async function validateAudioFile(
 
   try {
     // Create audio context for analysis
-    const audioContext = new (window.AudioContext ||
+    const audioContext = new (
+      window.AudioContext ||
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).webkitAudioContext)();
+      (window as any).webkitAudioContext
+    )();
 
     // Read file as ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
