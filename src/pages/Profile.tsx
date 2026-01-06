@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
+import { getPointsStats, DailyPoint } from '@/lib/points';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import PointsHeatmap from '@/components/PointsHeatmap';
 import CategoryTags from '@/components/CategoryTags';
 import {
   Select,
@@ -192,6 +194,8 @@ function Profile() {
   );
   const [contributionsLoading, setContributionsLoading] =
     useState<boolean>(false);
+  const [pointsData, setPointsData] = useState<DailyPoint[] | null>(null);
+  const [pointsError, setPointsError] = useState<string | null>(null);
 
   // States for dashboard functionality
   const [selectedMediaType, setSelectedMediaType] = useState<
@@ -432,6 +436,24 @@ function Profile() {
         setProfile(formattedProfile);
         // Set the targetUserId for API calls since we need the ID, not the username
         setTargetUserId(userData.user_id);
+
+        // For other users, we'll try to fetch their points data if the API supports it
+        // Note: This may require a different endpoint or permission level
+        try {
+          // Attempt to fetch points data for the other user
+          const pointsStats = await getPointsStats(token);
+          setPointsData(pointsStats.daily);
+          setPointsError(null); // Clear any previous error
+        } catch (pointsError) {
+          console.error(
+            'Could not fetch points data for other user:',
+            pointsError,
+          );
+          // Points data might not be available for other users due to privacy settings
+          // This is expected behavior in many cases
+          setPointsData(null);
+          setPointsError(null); // Don't show error for other profiles
+        }
       } catch (err) {
         console.error('Error fetching other users profile', err);
         setError(err instanceof Error ? err.message : 'Error caught in Catch');
@@ -753,6 +775,20 @@ function Profile() {
           fetchFollowing(username);
           // Set the target identifier to the username for own profile
           setTargetUserIdentifier(username);
+
+          // Fetch points data for own profile
+          try {
+            const token = getAuthToken();
+            if (token) {
+              const pointsStats = await getPointsStats(token);
+              setPointsData(pointsStats.daily);
+              setPointsError(null); // Clear any previous error
+            }
+          } catch (error) {
+            console.error('Error fetching points data:', error);
+            setPointsError('Failed to load points data');
+            setPointsData(null);
+          }
         } else {
           // Viewing another user's profile - use the username from URL
           fetchOtherUserProfile(username);
@@ -785,6 +821,7 @@ function Profile() {
     showDashboard,
     selectedMediaType,
     fetchUserContributions,
+    getAuthToken,
   ]);
 
   // Determine if viewing own profile
@@ -897,6 +934,29 @@ function Profile() {
             </div>
           </div>
         </div>
+
+        {/* Points Heatmap Section - Only for current user's profile */}
+        {isOwnProfile && (
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp size={20} className="text-blue-600" />
+              <p className="text-sm sm:text-md font-bold text-slate-900">
+                Points Activity
+              </p>
+            </div>
+            {pointsError ? (
+              <div className="text-center py-4">
+                <p className="text-red-500">{pointsError}</p>
+              </div>
+            ) : pointsData ? (
+              <PointsHeatmap dailyData={pointsData} />
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-500">Loading points data...</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Contributions Section - Mobile Responsive Design */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
