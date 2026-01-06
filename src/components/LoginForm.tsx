@@ -859,7 +859,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       Reset Here
                     </Link>
                   </div>
-                  <div className="font-medium text-gray-800">
+                  {/* <div className="font-medium text-gray-800">
                     Prefer OTP Login?{' '}
                     <button
                       className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
@@ -873,7 +873,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     >
                       Login with OTP
                     </button>
-                  </div>
+                  </div> */}
 
                   <Button
                     onClick={handlePasswordLogin}
