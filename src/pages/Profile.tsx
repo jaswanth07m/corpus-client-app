@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
+import { getPointsStats, DailyPoint } from '@/lib/points';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import PointsHeatmap from '@/components/PointsHeatmap';
 import CategoryTags from '@/components/CategoryTags';
 import {
   Select,
@@ -192,6 +194,8 @@ function Profile() {
   );
   const [contributionsLoading, setContributionsLoading] =
     useState<boolean>(false);
+  const [pointsData, setPointsData] = useState<DailyPoint[] | null>(null);
+  const [pointsError, setPointsError] = useState<string | null>(null);
 
   // States for dashboard functionality
   const [selectedMediaType, setSelectedMediaType] = useState<
@@ -383,128 +387,6 @@ function Profile() {
     });
     return uploadsTodayCount;
   };
-
-  const fetchOtherUserProfile = useCallback(
-    async (username: string) => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const token = getAuthToken();
-        if (!token) {
-          throw new Error('No Authentication token available');
-        }
-
-        const apiUrl =
-          BACKEND_URL +
-          `/users/${username}/profile?include=streaks,timeline,summary&days=30`;
-        const response = await fetch(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status == 401) {
-            throw new Error(
-              'Authentication Failed. Please log in Again. Your session might have expired',
-            );
-          }
-          if (response.status == 404) {
-            throw new Error('User Not Found');
-          }
-          throw new Error(
-            `Failed to fetch profile: ${response.status} ${response.statusText}`,
-          );
-        }
-        const userData = await response.json();
-        const formattedProfile = {
-          id: userData.user_id,
-          name: userData.user_name || 'Unknown User',
-          username: userData.username,
-          streaks: userData.streaks,
-          timeline: userData.timeline,
-          summary: userData.summary,
-        };
-        console.log(formattedProfile);
-
-        setProfile(formattedProfile);
-        // Set the targetUserId for API calls since we need the ID, not the username
-        setTargetUserId(userData.user_id);
-      } catch (err) {
-        console.error('Error fetching other users profile', err);
-        setError(err instanceof Error ? err.message : 'Error caught in Catch');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getAuthToken],
-  );
-
-  const fetchMyUserProfile = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No Authentication token available');
-      }
-
-      const response = await fetch(`${BACKEND_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch profile: ${response.status}`);
-      }
-
-      const userData = await response.json();
-      const formattedProfile = {
-        id: userData.id,
-        name: userData.name || userData.username || 'Unknown User',
-        username: userData.username,
-        streaks: {
-          combined_streak: {
-            current: userData.streak_days || 0,
-            longest: userData.streak_days || 0,
-            total_active_days: userData.total_active_days || 0,
-          },
-        },
-        timeline: {},
-        summary: {
-          contributions: {
-            total_contributions: userData.total_contributions || 0,
-            contributions_by_media_type:
-              userData.contributions_by_media_type || {
-                text: 0,
-                audio: 0,
-                image: 0,
-                video: 0,
-                document: 0,
-              },
-          },
-          edits: {
-            total_edits: userData.total_edits || 0,
-          },
-          overall: {
-            total_activities: userData.total_activities || 0,
-          },
-        },
-      };
-
-      setProfile(formattedProfile);
-    } catch (err) {
-      console.error('Error fetching my profile', err);
-      setError(err instanceof Error ? err.message : 'Error caught in Catch');
-    } finally {
-      setLoading(false);
-    }
-  }, [getAuthToken]);
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -726,6 +608,137 @@ function Profile() {
     [getAuthToken],
   );
 
+  // Unified function to fetch user profile regardless of whether it's own or other's profile
+  const fetchUserProfile = useCallback(
+    async (userIdentifier: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('No Authentication token available');
+        }
+
+        // Determine if we're fetching own profile or other profile
+        const isOwnProfile =
+          userIdentifier === (localStorage.getItem('username') || '');
+        let userData;
+        let formattedProfile;
+
+        if (isOwnProfile) {
+          // Fetch own profile
+          const response = await fetch(`${BACKEND_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch profile: ${response.status}`);
+          }
+
+          userData = await response.json();
+          formattedProfile = {
+            id: userData.id,
+            name: userData.name || userData.username || 'Unknown User',
+            username: userData.username,
+            streaks: {
+              combined_streak: {
+                current: userData.streak_days || 0,
+                longest: userData.streak_days || 0,
+                total_active_days: userData.total_active_days || 0,
+              },
+            },
+            timeline: {},
+            summary: {
+              contributions: {
+                total_contributions: userData.total_contributions || 0,
+                contributions_by_media_type:
+                  userData.contributions_by_media_type || {
+                    text: 0,
+                    audio: 0,
+                    image: 0,
+                    video: 0,
+                    document: 0,
+                  },
+              },
+              edits: {
+                total_edits: userData.total_edits || 0,
+              },
+              overall: {
+                total_activities: userData.total_activities || 0,
+              },
+            },
+          };
+        } else {
+          // Fetch other user's profile
+          const apiUrl =
+            BACKEND_URL +
+            `/users/${userIdentifier}/profile?include=streaks,timeline,summary&days=30`;
+          const response = await fetch(apiUrl, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            if (response.status == 401) {
+              throw new Error(
+                'Authentication Failed. Please log in Again. Your session might have expired',
+              );
+            }
+            if (response.status == 404) {
+              throw new Error('User Not Found');
+            }
+            throw new Error(
+              `Failed to fetch profile: ${response.status} ${response.statusText}`,
+            );
+          }
+
+          userData = await response.json();
+          formattedProfile = {
+            id: userData.user_id,
+            name: userData.user_name || 'Unknown User',
+            username: userData.username,
+            streaks: userData.streaks,
+            timeline: userData.timeline,
+            summary: userData.summary,
+          };
+          console.log(formattedProfile);
+        }
+
+        setProfile(formattedProfile);
+        setTargetUserIdentifier(userIdentifier); // Set the target identifier for API calls
+
+        // Fetch points data for the profile after profile is set
+        try {
+          const pointsStats = await getPointsStats(token, userIdentifier);
+          setPointsData(pointsStats.daily);
+          setPointsError(null); // Clear any previous error
+        } catch (pointsError) {
+          console.error('Error fetching points data:', pointsError);
+          // Points data might not be available for other users due to privacy settings
+          // This is expected behavior in many cases
+          if (isOwnProfile) {
+            // Only show error for own profile
+            setPointsError('Failed to load points data');
+          }
+          setPointsData([]);
+          setPointsError(null); // Don't show error for other profiles
+        }
+      } catch (err) {
+        console.error('Error fetching profile', err);
+        setError(err instanceof Error ? err.message : 'Error caught in Catch');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAuthToken],
+  );
+
   // Effect for initial data fetch
   useEffect(() => {
     const loadInitialData = async () => {
@@ -736,39 +749,27 @@ function Profile() {
       setCurrentUsername(currentUsername);
 
       if (username) {
-        // Check if viewing own profile by comparing username with current user's username
-        const isOwnProfileView = currentUsername === username;
+        // Reset points data before fetching new data
+        setPointsData(null);
+        setPointsError(null);
 
-        if (isOwnProfileView) {
-          // Viewing own profile - use current username for API calls
-          fetchMyUserProfile();
-          // For own profile, fetch contributions for current user
-          if (showDashboard) {
-            fetchUserContributions(username, undefined);
-          } else if (selectedMediaType) {
-            fetchUserContributions(username, selectedMediaType);
-          }
-          // Also fetch followers and following for own profile
-          fetchFollowers(username);
-          fetchFollowing(username);
-          // Set the target identifier to the username for own profile
-          setTargetUserIdentifier(username);
-        } else {
-          // Viewing another user's profile - use the username from URL
-          fetchOtherUserProfile(username);
+        // Use unified function to fetch profile regardless of own or other profile
+        fetchUserProfile(username);
+
+        // Fetch contributions for the user
+        if (showDashboard) {
+          fetchUserContributions(username, undefined);
+        } else if (selectedMediaType) {
+          fetchUserContributions(username, selectedMediaType);
+        }
+
+        // Fetch followers and following
+        fetchFollowers(username);
+        fetchFollowing(username);
+
+        // Check follow status if viewing other user's profile
+        if (currentUsername !== username) {
           checkFollowStatusWithUsername(username);
-          fetchFollowers(username);
-          fetchFollowing(username);
-
-          // Fetch contributions based on view - we'll use the resolved user ID from the profile
-          // But for now, we'll use the username directly
-          if (showDashboard) {
-            fetchUserContributions(username, undefined);
-          } else if (selectedMediaType) {
-            fetchUserContributions(username, selectedMediaType);
-          }
-          // Set the target identifier to the username for other profile
-          setTargetUserIdentifier(username);
         }
       }
     };
@@ -776,8 +777,7 @@ function Profile() {
     loadInitialData();
   }, [
     username,
-    fetchOtherUserProfile,
-    fetchMyUserProfile,
+    fetchUserProfile,
     checkFollowStatusWithUsername,
     fetchFollowers,
     fetchFollowing,
@@ -785,6 +785,7 @@ function Profile() {
     showDashboard,
     selectedMediaType,
     fetchUserContributions,
+    getAuthToken,
   ]);
 
   // Determine if viewing own profile
@@ -896,6 +897,21 @@ function Profile() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Points Heatmap Section - Visible for all user profiles */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
+          {pointsError ? (
+            <div className="text-center py-4">
+              <p className="text-red-500">{pointsError}</p>
+            </div>
+          ) : pointsData ? (
+            <PointsHeatmap dailyData={pointsData} />
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-gray-500">Loading points data...</p>
+            </div>
+          )}
         </div>
 
         {/* Contributions Section - Mobile Responsive Design */}
