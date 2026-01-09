@@ -440,8 +440,8 @@ function Profile() {
         // For other users, we'll try to fetch their points data if the API supports it
         // Note: This may require a different endpoint or permission level
         try {
-          // Attempt to fetch points data for the other user using the user ID from the response
-          const pointsStats = await getPointsStats(token, userData.user_id);
+          // Attempt to fetch points data for the other user using the username from the response
+          const pointsStats = await getPointsStats(token, userData.username);
           setPointsData(pointsStats.daily);
           setPointsError(null); // Clear any previous error
         } catch (pointsError) {
@@ -523,7 +523,7 @@ function Profile() {
 
       // Fetch points data for own profile after profile is set
       try {
-        const pointsStats = await getPointsStats(token, userData.id);
+        const pointsStats = await getPointsStats(token, userData.username);
         setPointsData(pointsStats.daily);
         setPointsError(null); // Clear any previous error
       } catch (pointsError) {
