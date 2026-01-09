@@ -36,8 +36,11 @@ export const getPointsToday = async (token: string): Promise<number> => {
   return data.points_today ?? 0;
 };
 
-export const getPointsStats = async (token: string): Promise<PointsStats> => {
-  const res = await fetch(`${BACKEND_URL}/points/stats`, {
+export const getPointsStats = async (
+  token: string,
+  userIdentifier: string,
+): Promise<PointsStats> => {
+  const res = await fetch(`${BACKEND_URL}/points/stats/${userIdentifier}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to fetch points stats');
