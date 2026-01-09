@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { DailyPoint } from '@/lib/points';
+import { TrendingUp } from 'lucide-react';
 
 interface PointsHeatmapProps {
   dailyData: DailyPoint[];
@@ -62,7 +63,6 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
     const pointsMap = new Map(
       dailyData.map((item) => [item.date, item.points]),
     );
-    const maxPoints = Math.max(1, ...dailyData.map((item) => item.points));
 
     const days = [];
     const currentDate = new Date(startDate);
@@ -78,13 +78,16 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
       const dateStr = currentDate.toISOString().split('T')[0];
       const points = pointsMap.get(dateStr) || 0;
 
+      // Fixed ranges like GitHub's contribution heatmap
       let level = 0;
       if (points > 0) {
-        const percentage = points / maxPoints;
-        if (percentage >= 0.75) level = 4;
-        else if (percentage >= 0.5) level = 3;
-        else if (percentage >= 0.25) level = 2;
-        else level = 1;
+        if (points >= 20)
+          level = 4; // 20+ points: darkest green
+        else if (points >= 10)
+          level = 3; // 10-19 points: medium-dark green
+        else if (points >= 5)
+          level = 2; // 5-9 points: medium-light green
+        else level = 1; // 1-4 points: lightest green
       }
 
       days.push({
@@ -145,7 +148,30 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
   const totalWeeks = Math.ceil(calendarData.length / 7);
 
   return (
-    <div className="mt-6 relative" ref={containerRef}>
+    <div className="relative" ref={containerRef}>
+      {/* --- Heading and Legend --- */}
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={20} className="text-blue-600" />
+          <p className="text-sm font-bold text-slate-900">Points Activity</p>
+        </div>
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <span>Less</span>
+          {panelColors.map((color, index) => (
+            <div
+              key={index}
+              className="rounded-sm"
+              style={{
+                backgroundColor: color,
+                width: `${SQUARE_SIZE - 2}px`,
+                height: `${SQUARE_SIZE - 2}px`,
+              }}
+            />
+          ))}
+          <span>More</span>
+        </div>
+      </div>
+
       {/* --- Custom Tooltip --- */}
       {tooltip.visible && (
         <div
@@ -160,7 +186,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
         </div>
       )}
 
-      <div className="overflow-x-auto pb-2">
+      <div className="overflow-x-auto pb-1">
         <div className="inline-block">
           {/* --- Month Labels --- */}
           <div
@@ -228,23 +254,6 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* --- Legend --- */}
-      <div className="flex justify-end items-center gap-2 mt-2 text-xs text-gray-500">
-        <span>Less</span>
-        {panelColors.map((color, index) => (
-          <div
-            key={index}
-            className="rounded-sm"
-            style={{
-              backgroundColor: color,
-              width: `${SQUARE_SIZE}px`,
-              height: `${SQUARE_SIZE}px`,
-            }}
-          />
-        ))}
-        <span>More</span>
       </div>
     </div>
   );

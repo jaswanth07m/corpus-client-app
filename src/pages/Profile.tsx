@@ -945,12 +945,6 @@ function Profile() {
 
         {/* Points Heatmap Section - Visible for all user profiles */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={20} className="text-blue-600" />
-            <p className="text-sm sm:text-md font-bold text-slate-900">
-              Points Activity
-            </p>
-          </div>
           {pointsError ? (
             <div className="text-center py-4">
               <p className="text-red-500">{pointsError}</p>
