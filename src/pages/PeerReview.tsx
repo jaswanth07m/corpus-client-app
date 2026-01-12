@@ -28,11 +28,18 @@ const PeerReview: React.FC = () => {
   const numberOfRecordsRemoved = 5;
 
   const [recordIdList, setRecordIdList] = useState<PeerReviewCardProps[]>([]);
-  const [allRecords, setAllRecords] = useState<PeerReviewCardProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
+
+  const [bufferIds, setBufferIds] = useState<string[]>([]);
+  const [nextIndex, setNextIndex] = useState(0);
+
   const [error, setError] = useState('');
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [prevSearchQuery, setPrevSearchQuery] = useState('');
+  const [inSearch, setInSearch] = useState(false);
+
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchType, setSearchType] = useState<'records' | 'users'>('records');
@@ -41,9 +48,8 @@ const PeerReview: React.FC = () => {
 
   async function fetchMoreData() {
     // Don't fetch more data if user is searching
-    if (isSearching || isFetching || !hasMore) {
-      return;
-    }
+    if (isFetching || !hasMore) return;
+
     setIsFetching(true);
     console.count('fetchMoreData called');
 
@@ -60,6 +66,7 @@ const PeerReview: React.FC = () => {
       );
 
       if (nextRecordResponse.status === 404) {
+        console.error('404');
         setHasMore(false);
         return;
       }
@@ -72,6 +79,7 @@ const PeerReview: React.FC = () => {
       const responseArray = await nextRecordResponse.json();
 
       if (!Array.isArray(responseArray) || responseArray.length === 0) {
+        console.error('array errors');
         setHasMore(false);
         return;
       }
@@ -118,10 +126,10 @@ const PeerReview: React.FC = () => {
           };
 
           // Only update lists if not searching
-          if (!isSearching) {
-            setRecordIdList((prev) => [...prev, successfull]);
-          }
-          setAllRecords((prev) => [...prev, successfull]);
+          // if (!isSearching) {
+          //   setRecordIdList((prev) => [...prev, successfull]);
+          // }
+          setRecordIdList((prev) => [...prev, successfull]);
 
           // console.log('Record details:', recordDetails);
           // console.log('Username:', successfull.username);
@@ -142,37 +150,50 @@ const PeerReview: React.FC = () => {
   async function searchRecords(query: string) {
     const token = localStorage.getItem('token');
 
-    setIsLoading(true); // Set loading state to true
+    setIsLoading(true);
 
     try {
-      // Call the search API with the query and limit parameters - using records/search (BACKEND_URL already includes /api/v1)
-      const searchResponse = await fetch(
-        `${BACKEND_URL}/records/search?query=${encodeURIComponent(query)}&limit=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+      let currentBuffer = bufferIds;
+      if (query != prevSearchQuery) {
+        const searchResponse = await fetch(
+          `${BACKEND_URL}/records/search?query=${encodeURIComponent(query)}&limit=50`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           },
-        },
-      );
+        );
 
-      if (!searchResponse.ok) {
-        const errorData = await searchResponse.json();
-        throw new Error(errorData.message || 'Error in search');
-      }
+        if (!searchResponse.ok) {
+          const errorData = await searchResponse.json();
+          throw new Error(errorData.message || 'Error in search');
+        }
 
-      const responseArray = await searchResponse.json();
+        const newIds = await searchResponse.json();
+        currentBuffer = newIds;
 
-      if (!Array.isArray(responseArray) || responseArray.length === 0) {
+        setBufferIds(newIds);
         setRecordIdList([]);
-        return;
+        setNextIndex(0);
       }
+      const start = query !== prevSearchQuery ? 0 : nextIndex;
+      const responseArray = currentBuffer.slice(start, start + 10);
+
+      console.log(responseArray);
 
       // Transform the search results to match our PeerReviewCardProps structure
       const searchResults: PeerReviewCardProps[] = [];
 
       for (const item of responseArray) {
         const { record_id } = item;
+
+        const isDuplicate = recordIdList.some((r) => r.record_id === record_id);
+        if (isDuplicate) {
+          console.log('duplicate');
+          continue;
+        }
+
         try {
           const [recordDetailsResponse, recordUrlResponse] = await Promise.all([
             fetch(`${BACKEND_URL}/records/${record_id}`, {
@@ -211,6 +232,7 @@ const PeerReview: React.FC = () => {
             language: recordDetails.language,
             dataUrl: urlData.record_url,
           };
+          setRecordIdList((prev) => [...prev, searchResult]);
 
           searchResults.push(searchResult);
         } catch (err) {
@@ -218,9 +240,13 @@ const PeerReview: React.FC = () => {
           continue;
         }
       }
-
-      setRecordIdList(searchResults);
-      setAllRecords(searchResults); // Update all records with search results
+      setNextIndex(start + 10);
+      setPrevSearchQuery(query);
+      if (start + 10 >= currentBuffer.length) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
     } catch (err) {
       const error = err as Error;
       console.error('Search Error:', error);
@@ -229,6 +255,11 @@ const PeerReview: React.FC = () => {
       setIsLoading(false); // Set loading state to false
     }
   }
+
+  useEffect(() => {
+    console.log(recordIdList);
+    console.log(nextIndex);
+  }, [recordIdList, nextIndex]);
 
   async function searchUsers(query: string) {
     const token = localStorage.getItem('token');
@@ -271,7 +302,7 @@ const PeerReview: React.FC = () => {
     if (query.trim() === '') {
       // Reset to default view when search is cleared
       setRecordIdList([]);
-      setAllRecords([]);
+      setInSearch(false);
       setIsSearching(false);
       setHasMore(true);
       setCurrentPage(0);
@@ -279,6 +310,7 @@ const PeerReview: React.FC = () => {
       // Fetch initial records again
       await fetchMoreData();
     } else {
+      setInSearch(true);
       setIsSearching(true);
       setHasMore(false); // Disable infinite scroll during search
 
@@ -286,6 +318,17 @@ const PeerReview: React.FC = () => {
         await searchRecords(query);
       } else if (searchType === 'users') {
         await searchUsers(query);
+      }
+    }
+  };
+
+  const handleInfiniteScroll = () => {
+    console.log('in Search');
+    if (!isFetching && !isLoading) {
+      if (inSearch) {
+        handleSearch(searchQuery);
+      } else {
+        fetchMoreData();
       }
     }
   };
@@ -420,7 +463,7 @@ const PeerReview: React.FC = () => {
           </div>
         )}
 
-        {recordIdList.length === 0 && isSearching ? (
+        {recordIdList.length === 0 && inSearch ? (
           <div className="text-center py-12">
             <p className="text-slate-600 text-lg mb-4">
               No results found for "{searchQuery}"
@@ -441,9 +484,9 @@ const PeerReview: React.FC = () => {
         ) : (
           <InfiniteScroll
             dataLength={recordIdList.length}
-            next={fetchMoreData}
+            next={handleInfiniteScroll}
             scrollableTarget="peer-scroll-container"
-            hasMore={hasMore && !isSearching} // Disable infinite scroll when searching
+            hasMore={hasMore || !isFetching || !isLoading} // Disable infinite scroll when searching
             loader={
               <div className="flex items-center justify-center gap-2 py-4">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
