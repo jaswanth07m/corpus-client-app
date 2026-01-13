@@ -168,7 +168,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
         toast.success('Content uploaded successfully!');
         // Redirect to peer review
         setTimeout(() => {
-          window.location.href = '/peer-review';
+          window.location.href = '/landing';
         }, 1500);
       } else {
         const error = await response.json();

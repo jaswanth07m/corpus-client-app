@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import posthog from 'posthog-js';
 import { access } from 'fs';
+import { BACKEND_URL } from '@/lib/constants';
 
 type AuthContextType = {
   token: string | null;
@@ -18,6 +19,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isReady, setIsReady] = useState<boolean>(false);
 
   useEffect(() => {
+    const validateToken = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsReady(true);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem('token');
+          setToken(null);
+        }
+      } catch (error) {
+        console.error('Auth validation failed', error);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    validateToken();
+
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
 
