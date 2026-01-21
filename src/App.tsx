@@ -39,9 +39,8 @@ const App = () => (
                 </RequireAuth>
               }
             >
-              <Route path="/" element={<Navigate to="/landing" replace />} />
               <Route
-                path="/landing"
+                path="/"
                 element={
                   <RequireAuth>
                     <LandingPage />

@@ -707,7 +707,7 @@ const Categories: React.FC<CategoriesProps> = ({
           posthog.capture('upload_success');
           // Redirect to landing page after successful upload
           setTimeout(() => {
-            window.location.href = '/landing';
+            window.location.href = '/';
           }, 1500);
         } else {
           posthog.capture('upload_finalization_failed');
