@@ -187,7 +187,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     switch (mediaType) {
       case 'image':
         return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
+          <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg max-h-[50vh]">
             {previewUrl ? (
               <img
                 src={previewUrl}
@@ -204,7 +204,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
       case 'video':
         return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
+          <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg max-h-[50vh]">
             {loading && (
               <div className="w-full h-full flex items-center justify-center">
                 <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
@@ -268,7 +268,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
       case 'audio':
         return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center p-4">
+          <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center p-4 max-h-[30vh]">
             {loading && (
               <div className="flex items-center justify-center">
                 <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
@@ -350,7 +350,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
       case 'document':
         return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+          <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center max-h-[50vh]">
             {loading && (
               <div className="w-full h-full flex items-center justify-center">
                 <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
@@ -522,7 +522,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
       case 'text':
         return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+          <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center max-h-[30vh]">
             <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50">
               <div className="mb-4">
                 <svg
@@ -567,7 +567,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
           <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
@@ -585,7 +585,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
         <div className="p-4 sm:p-6">
           <div className="grid grid-cols-1 gap-4 sm:gap-6">
             {/* Media Preview */}
-            <div className="space-y-4">
+            <div className="space-y-4 max-w-2xl mx-auto">
               {renderMediaPreview()}
 
               {/* Action Buttons - Stacked on mobile */}
