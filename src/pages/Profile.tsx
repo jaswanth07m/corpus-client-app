@@ -202,7 +202,6 @@ function Profile() {
   const [selectedMediaType, setSelectedMediaType] = useState<
     'text' | 'audio' | 'video' | 'image' | 'document' | null
   >(null);
-  const [showDashboard, setShowDashboard] = useState(true);
 
   const { username } = useParams<{ username?: string }>();
 
@@ -228,6 +227,9 @@ function Profile() {
   // State for followers/following modals
   const [showFollowersModal, setShowFollowersModal] = useState<boolean>(false);
   const [showFollowingModal, setShowFollowingModal] = useState<boolean>(false);
+
+  // State for media grid display
+  const [showMediaGrid, setShowMediaGrid] = useState<boolean>(false);
 
   const getAuthToken = useCallback(() => {
     return localStorage.getItem('token');
@@ -757,12 +759,8 @@ function Profile() {
         // Use unified function to fetch profile regardless of own or other profile
         fetchUserProfile(username);
 
-        // Fetch contributions for the user
-        if (showDashboard) {
-          fetchUserContributions(username, undefined);
-        } else if (selectedMediaType) {
-          fetchUserContributions(username, selectedMediaType);
-        }
+        // Fetch all contributions for the user initially
+        fetchUserContributions(username, undefined);
 
         // Fetch followers and following
         fetchFollowers(username);
@@ -783,7 +781,6 @@ function Profile() {
     fetchFollowers,
     fetchFollowing,
     getCurrentUserId,
-    showDashboard,
     selectedMediaType,
     fetchUserContributions,
     getAuthToken,
@@ -924,113 +921,65 @@ function Profile() {
                 Contributions
               </p>
             </div>
-
-            {/* Compact Toggle - Stacked on mobile */}
-            <div className="flex rounded-lg border border-slate-200 p-1 bg-slate-50 shadow-sm w-full sm:w-auto">
-              <button
-                onClick={() => {
-                  setShowDashboard(true);
-                  setContributions(null);
-                }}
-                className={`flex-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
-                  showDashboard
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => {
-                  setShowDashboard(false);
-                  setContributions(null);
-                }}
-                className={`flex-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
-                  !showDashboard
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                All Files
-              </button>
-            </div>
           </div>
 
-          {showDashboard ? (
-            <div className="mt-2 sm:mt-4">
-              <ContributionDashboard
-                dailyStats={{
-                  uploads_today: calculateUploadsToday(),
-                  total_uploads: contributions?.totalContributions || 0,
-                  last_upload_date: new Date().toISOString(),
-                  streak_days: profile?.streaks?.combined_streak?.current || 0,
-                }}
-                contributions={contributions}
-                loading={contributionsLoading}
-                edits={profile?.summary?.edits?.total_edits}
-              />
-            </div>
-          ) : (
-            <div>
-              {/* Media type selector - Responsive layout */}
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 my-4 px-2">
-                {(['text', 'document', 'image', 'audio', 'video'] as const).map(
-                  (type) => (
-                    <ContributionTypeButton
-                      key={type}
-                      type={type}
-                      selectedMediaType={selectedMediaType}
-                      setSelectedMediaType={(newType) => {
-                        setSelectedMediaType(newType);
-                        const targetUserIdentifier = username || currentUserId;
-                        if (targetUserIdentifier) {
-                          fetchUserContributions(targetUserIdentifier, newType);
-                        }
-                      }}
-                    />
-                  ),
-                )}
-              </div>
-              {/* Modernized display of contributions for selected media type */}
-              <div className="mt-4">
-                {selectedMediaType && (
-                  <ContributionsList
-                    contributions={contributions}
-                    selectedMediaType={selectedMediaType}
-                    token={getAuthToken()}
-                    isOwnProfile={isOwnProfile}
-                  />
-                )}
-                {!selectedMediaType && !contributionsLoading && (
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-50 mb-3 sm:mb-4">
-                      <Activity
-                        size={24}
-                        className="text-blue-500 hidden sm:block"
-                      />
-                      <Activity size={20} className="text-blue-500 sm:hidden" />
-                    </div>
-                    <p className="text-gray-500 text-base sm:text-lg font-medium">
-                      Select a media type to view contributions
-                    </p>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
-                      Choose from Text, Document, Image, Audio, or Video
-                    </p>
-                  </div>
-                )}
-                {contributionsLoading && (
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-3 sm:mt-4 text-gray-600 font-medium text-sm sm:text-base">
-                      Loading contributions...
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <div className="mt-2 sm:mt-4">
+            <ContributionDashboard
+              dailyStats={{
+                uploads_today: calculateUploadsToday(),
+                total_uploads: contributions?.totalContributions || 0,
+                last_upload_date: new Date().toISOString(),
+                streak_days: profile?.streaks?.combined_streak?.current || 0,
+              }}
+              contributions={contributions}
+              loading={contributionsLoading}
+              edits={profile?.summary?.edits?.total_edits}
+              onMediaTypeClick={(mediaType) => {
+                setSelectedMediaType(mediaType);
+                const targetUserIdentifier = username || currentUserId;
+                if (targetUserIdentifier) {
+                  fetchUserContributions(targetUserIdentifier, mediaType);
+                }
+                setShowMediaGrid(true); // Show the grid when a media type is clicked
+              }}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Media Grid Overlay - Appears when clicking on media type cards */}
+      {showMediaGrid && selectedMediaType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold capitalize">
+                {selectedMediaType} Contributions
+              </h3>
+              <button
+                onClick={() => {
+                  setShowMediaGrid(false);
+                  // Optionally reset selectedMediaType when closing the grid
+                  // setSelectedMediaType(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Grid Content */}
+            <div className="flex-1 overflow-auto p-4">
+              <ContributionsList
+                contributions={contributions}
+                selectedMediaType={selectedMediaType}
+                token={getAuthToken()}
+                isOwnProfile={isOwnProfile}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Followers and Following Modals */}
       <FollowersModal
