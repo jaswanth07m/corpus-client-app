@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
+import { Flame, Upload, Edit } from 'lucide-react';
 
 const UserStatsSummary = () => {
   const { user, isReady } = useAuth();
@@ -18,25 +19,36 @@ const UserStatsSummary = () => {
   const totalActivities = user.summary?.overall?.total_activities || 0;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+    <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
       {/* Current Streak */}
-      <div className="bg-white rounded-lg shadow p-4 text-center">
-        <p className="text-sm text-gray-600">Streak</p>
-        <p className="text-2xl font-bold text-orange-600">
-          {currentStreak} days
-        </p>
+      <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-lg shadow-sm px-3 py-2 border border-orange-100">
+        <Flame className="w-5 h-5 text-orange-500 flex-shrink-0" />
+        <div>
+          <p className="text-xs text-gray-600 leading-none">Streak</p>
+          <p className="text-lg font-bold text-orange-600 leading-tight">
+            {currentStreak} days
+          </p>
+        </div>
       </div>
-
       {/* Total Uploads */}
-      <div className="bg-white rounded-lg shadow p-4 text-center">
-        <p className="text-sm text-gray-600">Uploads</p>
-        <p className="text-2xl font-bold text-blue-600">{totalUploads}</p>
+      <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-lg shadow-sm px-3 py-2 border border-blue-100">
+        <Upload className="w-5 h-5 text-blue-500 flex-shrink-0" />
+        <div>
+          <p className="text-xs text-gray-600 leading-none">Uploads</p>
+          <p className="text-lg font-bold text-blue-600 leading-tight">
+            {totalUploads}
+          </p>
+        </div>
       </div>
-
       {/* Total Edits */}
-      <div className="bg-white rounded-lg shadow p-4 text-center">
-        <p className="text-sm text-gray-600">Edits</p>
-        <p className="text-2xl font-bold text-green-600">{totalEdits}</p>
+      <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm rounded-lg shadow-sm px-3 py-2 border border-green-100">
+        <Edit className="w-5 h-5 text-green-500 flex-shrink-0" />
+        <div>
+          <p className="text-xs text-gray-600 leading-none">Edits</p>
+          <p className="text-lg font-bold text-green-600 leading-tight">
+            {totalEdits}
+          </p>
+        </div>
       </div>
     </div>
   );
