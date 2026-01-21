@@ -315,6 +315,20 @@ const PeerReview: React.FC = () => {
     fetchMoreData();
   }, []);
 
+  // Effect to disable scrolling when user search modal is open
+  useEffect(() => {
+    if (searchType === 'users' && inSearch) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    // Cleanup function to restore scrolling
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [searchType, inSearch]);
+
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
@@ -483,68 +497,72 @@ const PeerReview: React.FC = () => {
           </div>
         )}
 
-        {/* Render user search results when searchType is 'users' */}
-        {searchType === 'users' && inSearch ? (
-          <div className="w-full max-w-md px-4">
-            <UserSearchResults
-              users={userSearchResults}
-              onSelectUser={handleSelectUser}
-              isLoading={isLoading}
-              error={userSearchError || undefined}
-            />
-          </div>
-        ) : (
-          <>
-            {recordIdList.length === 0 && inSearch ? (
-              <div className="text-center py-12">
-                <p className="text-slate-600 text-lg mb-4">
-                  No results found for "{searchQuery}"
-                </p>
-                <p className="text-slate-500 text-sm mb-6">
-                  The user might not be in the loaded records yet. Try clearing
-                  the search and scrolling to load more records.
-                </p>
-                <button
-                  onClick={() => {
-                    window.location.reload();
-                  }}
-                  className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-                >
-                  Refresh Feed
-                </button>
-              </div>
-            ) : (
-              <InfiniteScroll
-                dataLength={recordIdList.length}
-                next={handleInfiniteScroll}
-                scrollableTarget="peer-scroll-container"
-                hasMore={hasMore || !isFetching || !isLoading} // Disable infinite scroll when searching
-                loader={
-                  <div className="flex items-center justify-center gap-2 py-4">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.1s]"></div>
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
-                  </div>
-                }
-              >
-                {recordIdList.map((record, index) => (
-                  <PeerReviewCard
-                    key={record.record_id}
-                    user_id={record.user_id}
-                    username={record.username}
-                    record_id={record.record_id}
-                    title={record.title}
-                    description={record.description}
-                    media_type={record.media_type}
-                    release_rights={record.release_rights}
-                    language={record.language}
-                    dataUrl={record.dataUrl}
-                  />
-                ))}
-              </InfiniteScroll>
-            )}
-          </>
+        {/* Show user search results as a modal when searchType is 'users' and in search */}
+        {searchType === 'users' && inSearch && (
+          <UserSearchResults
+            users={userSearchResults}
+            onSelectUser={handleSelectUser}
+            isLoading={isLoading}
+            error={userSearchError || undefined}
+            isVisible={true}
+            onClose={() => {
+              setInSearch(false);
+              setUserSearchResults([]); // Clear user search results
+            }}
+          />
         )}
+
+        {/* Always show peer review records in the background */}
+        <>
+          {recordIdList.length === 0 && inSearch && searchType === 'records' ? (
+            <div className="text-center py-12">
+              <p className="text-slate-600 text-lg mb-4">
+                No results found for "{searchQuery}"
+              </p>
+              <p className="text-slate-500 text-sm mb-6">
+                The user might not be in the loaded records yet. Try clearing
+                the search and scrolling to load more records.
+              </p>
+              <button
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+              >
+                Refresh Feed
+              </button>
+            </div>
+          ) : (
+            <InfiniteScroll
+              dataLength={recordIdList.length}
+              next={handleInfiniteScroll}
+              scrollableTarget="peer-scroll-container"
+              hasMore={hasMore || !isFetching || !isLoading} // Disable infinite scroll when searching
+              loader={
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.1s]"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                </div>
+              }
+            >
+              {recordIdList.map((record, index) => (
+                <PeerReviewCard
+                  key={record.record_id}
+                  user_id={record.user_id}
+                  username={record.username}
+                  record_id={record.record_id}
+                  title={record.title}
+                  description={record.description}
+                  media_type={record.media_type}
+                  release_rights={record.release_rights}
+                  language={record.language}
+                  dataUrl={record.dataUrl}
+                />
+              ))}
+            </InfiniteScroll>
+          )}
+        </>
       </div>
     </div>
   );
