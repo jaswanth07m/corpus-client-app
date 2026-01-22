@@ -885,15 +885,6 @@ function Profile() {
           <div className="p-4 relative">
             <div className="flex gap-2 absolute right-0 sm:right-5">
               <button
-                onClick={() => setShowProfileInfo(true)}
-                className="flex flex-col items-center gap-1 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                title={
-                  isOwnProfile ? 'View your profile info' : 'View profile info'
-                }
-              >
-                <Info className="w-4 h-4 text-blue-500" />
-              </button>
-              <button
                 onClick={handleLogout}
                 className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
               >
@@ -969,6 +960,19 @@ function Profile() {
                       Following
                     </span>
                   </button>
+
+                  {/* Profile Info Button */}
+                  <button
+                    onClick={() => setShowProfileInfo(true)}
+                    className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium"
+                    title={
+                      isOwnProfile
+                        ? 'View your profile info'
+                        : 'View profile info'
+                    }
+                  >
+                    Info
+                  </button>
                 </div>
 
                 {/* Follow Button - Full width on mobile */}
@@ -1022,15 +1026,6 @@ function Profile() {
 
         {/* Contributions Section - Mobile Responsive Design */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-3">
-            <div className="flex items-center gap-2">
-              <Activity size={20} className="text-blue-600" />
-              <p className="text-sm sm:text-md font-bold text-slate-900">
-                Contributions
-              </p>
-            </div>
-          </div>
-
           <div className="mt-2 sm:mt-4">
             <ContributionDashboard
               dailyStats={{
