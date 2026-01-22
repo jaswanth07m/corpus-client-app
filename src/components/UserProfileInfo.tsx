@@ -449,40 +449,38 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl shadow-lg border border-gray-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 sm:p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-              Profile Information
-            </h2>
-            <div className="flex gap-2">
-              {currentUserLoaded &&
-                currentUserInfo &&
-                (currentUserInfo.id === userId ||
-                  currentUserInfo.username === userId) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (editing) {
-                        setEditing(false);
-                      } else {
-                        setEditing(true);
-                      }
-                    }}
-                    className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    {editing ? 'Cancel' : 'Edit'}
-                  </Button>
-                )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+          <div className="flex justify-end items-center gap-2">
+            {currentUserLoaded &&
+              currentUserInfo &&
+              (currentUserInfo.id === userId ||
+                currentUserInfo.username === userId) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (editing) {
+                      setEditing(false);
+                    } else {
+                      setEditing(true);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg flex items-center ${
+                    editing
+                      ? 'bg-red-100 hover:bg-red-200 text-red-700'
+                      : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                  }`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
 
           {editing ? (
@@ -1033,7 +1031,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
             // Display mode - show profile information in read-only format with new styling
             <div className="space-y-6">
               {/* Profile Row */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-8">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 mb-6">
                 {profile.profile_picture_path ? (
                   <img
                     src={profile.profile_picture_path}
@@ -1104,18 +1102,21 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 </div>
               </div>
 
-              {/* Short Bio */}
-              {profile.short_bio ? (
-                <div className="mt-6 p-4 border rounded-xl bg-gray-50 w-full">
-                  <p className="text-gray-500 text-sm">Short Bio</p>
-                  <p className="text-gray-900 font-medium break-all">
-                    {profile.short_bio}
-                  </p>
-                </div>
-              ) : null}
-
               {/* Grid Sections */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {profile.short_bio && (
+                  <div className="md:col-span-2">
+                    <div className="p-4 border rounded-xl bg-gray-50 flex items-start gap-2">
+                      <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5" />
+                      <div>
+                        <p className="text-gray-500 text-sm">Short Bio</p>
+                        <p className="text-gray-900 font-medium break-all">
+                          {profile.short_bio}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {profile.date_of_birth && (
                   <InfoBox
                     label="Date of Birth"
@@ -1169,18 +1170,18 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
               </div>
 
               {/* Full width sections */}
-              <div className="mt-6 space-y-4">
+              <div className="mt-3 space-y-2">
                 {/* Language Proficiencies */}
                 {profile.language_proficiencies?.proficiencies &&
                 profile.language_proficiencies.proficiencies.length > 0 ? (
-                  <div className="w-full">
-                    <div className="flex items-start gap-2 mb-2">
+                  <div className="w-full -mt-1">
+                    <div className="flex items-start gap-2 mb-1">
                       <Hash className="w-4 h-4 text-gray-500 mt-0.5" />
                       <p className="text-gray-500 text-sm">
                         Language Proficiencies
                       </p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {profile.language_proficiencies.proficiencies.map(
                         (lang, index) => (
                           <div key={index} className="flex gap-2">
@@ -1214,11 +1215,11 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {profile.places_lived?.places &&
                 profile.places_lived.places.length > 0 ? (
                   <div className="w-full">
-                    <div className="flex items-start gap-2 mb-2">
+                    <div className="flex items-start gap-2 mb-1">
                       <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
                       <p className="text-gray-500 text-sm">Places Lived</p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {profile.places_lived.places.map((place, index) => (
                         <div key={index} className="flex gap-2">
                           <div className="p-3 border rounded-lg bg-gray-50 flex-1">
