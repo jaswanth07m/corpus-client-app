@@ -13,6 +13,7 @@ import {
 import { BACKEND_URL } from '@/lib/constants';
 import { toast } from 'sonner';
 import { X, Pencil } from 'lucide-react';
+import LocationPicker from '@/components/LocationPicker';
 
 interface Coordinates {
   latitude: number;
@@ -20,20 +21,27 @@ interface Coordinates {
 }
 
 interface PlacesLived {
-  place: string;
-  from_date?: string;
-  to_date?: string;
+  places: {
+    latitude: number;
+    longitude: number;
+  }[];
 }
 
 interface SocialMediaProfile {
-  platform: string;
-  username: string;
-  url?: string;
+  platform:
+    | 'instagram'
+    | 'x'
+    | 'linkedin'
+    | 'facebook'
+    | 'youtube'
+    | 'tiktok'
+    | 'custom';
+  url: string;
 }
 
 interface LanguageProficiency {
   language: string;
-  proficiency_level: 'beginner' | 'intermediate' | 'advanced' | 'native';
+  proficiency: 'basic' | 'intermediate' | 'proficient';
 }
 
 interface UserProfile {
@@ -48,10 +56,10 @@ interface UserProfile {
   short_bio?: string | null;
   profession?: string | null;
   organisation?: string | null;
-  places_lived?: PlacesLived[] | null;
+  places_lived?: PlacesLived | null;
   from_place?: Coordinates | null;
-  social_media_profiles?: SocialMediaProfile[] | null;
-  language_proficiencies?: LanguageProficiency[] | null;
+  social_media_profiles?: { profiles: SocialMediaProfile[] } | null;
+  language_proficiencies?: { proficiencies: LanguageProficiency[] } | null;
   is_active?: boolean | null;
   phone_privacy?: string | null;
   email_privacy?: string | null;
@@ -68,6 +76,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
   onClose,
   onUpdate,
 }) => {
+  const [originalProfile, setOriginalProfile] = useState<UserProfile | null>(
+    null,
+  );
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     username: null,
@@ -96,6 +107,10 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
     username: string;
   } | null>(null);
   const [currentUserLoaded, setCurrentUserLoaded] = useState<boolean>(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [currentLocationIndex, setCurrentLocationIndex] = useState<
+    number | null
+  >(null);
 
   // Get current user info to determine if viewing own profile
   useEffect(() => {
@@ -152,6 +167,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
         const data = await response.json();
         setProfile(data);
+        setOriginalProfile({ ...data }); // Store original profile for comparison
         setLoading(false);
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -185,15 +201,40 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
         return;
       }
 
-      // Prepare the update payload - only include fields that are not null
+      // Prepare the update payload - only include fields that have changed
       const updatePayload: Partial<UserProfile> = {};
 
-      (Object.keys(profile) as (keyof UserProfile)[]).forEach((key) => {
-        const value = profile[key];
-        if (value !== null && key !== 'id') {
-          updatePayload[key] = value;
-        }
-      });
+      if (originalProfile) {
+        (Object.keys(profile) as (keyof UserProfile)[]).forEach((key) => {
+          if (key !== 'id') {
+            // Compare the current value with the original value
+            const currentValue = profile[key];
+            const originalValue = originalProfile[key];
+
+            // Only add to payload if the value has changed
+            if (
+              JSON.stringify(currentValue) !== JSON.stringify(originalValue)
+            ) {
+              updatePayload[key] = currentValue;
+            }
+          }
+        });
+      } else {
+        // If no original profile, send all non-null values
+        (Object.keys(profile) as (keyof UserProfile)[]).forEach((key) => {
+          const value = profile[key];
+          if (value !== null && key !== 'id') {
+            updatePayload[key] = value;
+          }
+        });
+      }
+
+      // If no changes detected, show message and return
+      if (Object.keys(updatePayload).length === 0) {
+        toast.info('No changes to save');
+        setEditing(false);
+        return;
+      }
 
       const response = await fetch(`${BACKEND_URL}/users/${userId}`, {
         method: 'PUT',
@@ -385,6 +426,308 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                   />
                 </div>
 
+                {/* Language Proficiencies */}
+                <div className="md:col-span-2">
+                  <Label htmlFor="language_proficiencies">
+                    Language Proficiencies
+                  </Label>
+                  {(profile.language_proficiencies?.proficiencies || []).map(
+                    (lang, index) => (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <Select
+                          value={lang.language}
+                          onValueChange={(value) => {
+                            const updatedLangs = [
+                              ...(profile.language_proficiencies
+                                ?.proficiencies || []),
+                            ];
+                            updatedLangs[index] = {
+                              ...updatedLangs[index],
+                              language: value,
+                            };
+                            handleChange('language_proficiencies', {
+                              proficiencies: updatedLangs,
+                            });
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="assamese">Assamese</SelectItem>
+                            <SelectItem value="bengali">Bengali</SelectItem>
+                            <SelectItem value="bodo">Bodo</SelectItem>
+                            <SelectItem value="dogri">Dogri</SelectItem>
+                            <SelectItem value="gujarati">Gujarati</SelectItem>
+                            <SelectItem value="hindi">Hindi</SelectItem>
+                            <SelectItem value="kannada">Kannada</SelectItem>
+                            <SelectItem value="kashmiri">Kashmiri</SelectItem>
+                            <SelectItem value="konkani">Konkani</SelectItem>
+                            <SelectItem value="maithili">Maithili</SelectItem>
+                            <SelectItem value="malayalam">Malayalam</SelectItem>
+                            <SelectItem value="marathi">Marathi</SelectItem>
+                            <SelectItem value="meitei">Meitei</SelectItem>
+                            <SelectItem value="nepali">Nepali</SelectItem>
+                            <SelectItem value="odia">Odia</SelectItem>
+                            <SelectItem value="punjabi">Punjabi</SelectItem>
+                            <SelectItem value="sanskrit">Sanskrit</SelectItem>
+                            <SelectItem value="santali">Santali</SelectItem>
+                            <SelectItem value="sindhi">Sindhi</SelectItem>
+                            <SelectItem value="tamil">Tamil</SelectItem>
+                            <SelectItem value="telugu">Telugu</SelectItem>
+                            <SelectItem value="urdu">Urdu</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={lang.proficiency}
+                          onValueChange={(value) => {
+                            const updatedLangs = [
+                              ...(profile.language_proficiencies
+                                ?.proficiencies || []),
+                            ];
+                            updatedLangs[index] = {
+                              ...updatedLangs[index],
+                              proficiency: value as
+                                | 'basic'
+                                | 'intermediate'
+                                | 'proficient',
+                            };
+                            handleChange('language_proficiencies', {
+                              proficiencies: updatedLangs,
+                            });
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="basic">Basic</SelectItem>
+                            <SelectItem value="intermediate">
+                              Intermediate
+                            </SelectItem>
+                            <SelectItem value="proficient">
+                              Proficient
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const updatedLangs = [
+                              ...(profile.language_proficiencies
+                                ?.proficiencies || []),
+                            ];
+                            updatedLangs.splice(index, 1);
+                            handleChange('language_proficiencies', {
+                              proficiencies: updatedLangs,
+                            });
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ),
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const newLangProf = {
+                        language: '',
+                        proficiency: 'basic' as const,
+                      };
+                      const updatedLangs = [
+                        ...(profile.language_proficiencies?.proficiencies ||
+                          []),
+                        newLangProf,
+                      ];
+                      handleChange('language_proficiencies', {
+                        proficiencies: updatedLangs,
+                      });
+                    }}
+                  >
+                    Add Language
+                  </Button>
+                </div>
+
+                {/* Places Lived */}
+                <div className="md:col-span-2">
+                  <Label htmlFor="places_lived">Places Lived</Label>
+                  {(profile.places_lived?.places || []).map((place, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">
+                          Lat: {place.latitude.toFixed(4)}, Lng:{' '}
+                          {place.longitude.toFixed(4)}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setCurrentLocationIndex(index);
+                          setShowLocationPicker(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const updatedPlaces = [
+                            ...(profile.places_lived?.places || []),
+                          ];
+                          updatedPlaces.splice(index, 1);
+                          handleChange('places_lived', {
+                            places: updatedPlaces,
+                          });
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setCurrentLocationIndex(
+                        profile.places_lived?.places.length || 0,
+                      );
+                      setShowLocationPicker(true);
+                    }}
+                  >
+                    Add Place
+                  </Button>
+                </div>
+
+                {/* Location Picker Modal */}
+                {showLocationPicker && (
+                  <LocationPicker
+                    onLocationSelect={(lat, lng) => {
+                      // Update the places_lived with the selected location
+                      const updatedPlaces = [
+                        ...(profile.places_lived?.places || []),
+                      ];
+
+                      if (currentLocationIndex !== null) {
+                        if (currentLocationIndex < updatedPlaces.length) {
+                          // Update existing place
+                          updatedPlaces[currentLocationIndex] = {
+                            latitude: lat,
+                            longitude: lng,
+                          };
+                        } else {
+                          // Add new place
+                          updatedPlaces.push({ latitude: lat, longitude: lng });
+                        }
+
+                        handleChange('places_lived', { places: updatedPlaces });
+                      }
+
+                      setShowLocationPicker(false);
+                      setCurrentLocationIndex(null);
+                    }}
+                    onClose={() => {
+                      setShowLocationPicker(false);
+                      setCurrentLocationIndex(null);
+                    }}
+                  />
+                )}
+
+                {/* Social Media Profiles */}
+                <div className="md:col-span-2">
+                  <Label htmlFor="social_media_profiles">
+                    Social Media Profiles
+                  </Label>
+                  {(profile.social_media_profiles?.profiles || []).map(
+                    (social, index) => (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <Select
+                          value={social.platform}
+                          onValueChange={(value) => {
+                            const updatedSocial = [
+                              ...(profile.social_media_profiles?.profiles ||
+                                []),
+                            ];
+                            updatedSocial[index] = {
+                              ...updatedSocial[index],
+                              platform: value,
+                            };
+                            handleChange('social_media_profiles', {
+                              profiles: updatedSocial,
+                            });
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Platform" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="instagram">Instagram</SelectItem>
+                            <SelectItem value="x">X (Twitter)</SelectItem>
+                            <SelectItem value="linkedin">LinkedIn</SelectItem>
+                            <SelectItem value="facebook">Facebook</SelectItem>
+                            <SelectItem value="youtube">YouTube</SelectItem>
+                            <SelectItem value="tiktok">TikTok</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          value={social.url}
+                          onChange={(e) => {
+                            const updatedSocial = [
+                              ...(profile.social_media_profiles?.profiles ||
+                                []),
+                            ];
+                            updatedSocial[index] = {
+                              ...updatedSocial[index],
+                              url: e.target.value,
+                            };
+                            handleChange('social_media_profiles', {
+                              profiles: updatedSocial,
+                            });
+                          }}
+                          placeholder="Profile URL"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const updatedSocial = [
+                              ...(profile.social_media_profiles?.profiles ||
+                                []),
+                            ];
+                            updatedSocial.splice(index, 1);
+                            handleChange('social_media_profiles', {
+                              profiles: updatedSocial,
+                            });
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ),
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const newSocial = { platform: 'instagram', url: '' };
+                      const updatedSocial = [
+                        ...(profile.social_media_profiles?.profiles || []),
+                        newSocial,
+                      ];
+                      handleChange('social_media_profiles', {
+                        profiles: updatedSocial,
+                      });
+                    }}
+                  >
+                    Add Social Media
+                  </Button>
+                </div>
+
                 {/* Phone Number */}
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
@@ -538,6 +881,63 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                   <p className="font-medium">
                     {profile.organisation || 'Not provided'}
                   </p>
+                </div>
+
+                {/* Language Proficiencies */}
+                <div className="md:col-span-2">
+                  <Label className="text-gray-500">
+                    Language Proficiencies
+                  </Label>
+                  {profile.language_proficiencies?.proficiencies &&
+                  profile.language_proficiencies.proficiencies.length > 0 ? (
+                    <div className="space-y-1">
+                      {profile.language_proficiencies.proficiencies.map(
+                        (lang, index) => (
+                          <p key={index} className="font-medium">
+                            {lang.language}: {lang.proficiency}
+                          </p>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    <p className="font-medium">Not provided</p>
+                  )}
+                </div>
+
+                {/* Places Lived */}
+                <div className="md:col-span-2">
+                  <Label className="text-gray-500">Places Lived</Label>
+                  {profile.places_lived?.places &&
+                  profile.places_lived.places.length > 0 ? (
+                    <div className="space-y-1">
+                      {profile.places_lived.places.map((place, index) => (
+                        <p key={index} className="font-medium">
+                          Lat: {place.latitude}, Lng: {place.longitude}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="font-medium">Not provided</p>
+                  )}
+                </div>
+
+                {/* Social Media Profiles */}
+                <div className="md:col-span-2">
+                  <Label className="text-gray-500">Social Media Profiles</Label>
+                  {profile.social_media_profiles?.profiles &&
+                  profile.social_media_profiles.profiles.length > 0 ? (
+                    <div className="space-y-1">
+                      {profile.social_media_profiles.profiles.map(
+                        (social, index) => (
+                          <p key={index} className="font-medium">
+                            {social.platform}: {social.url}
+                          </p>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    <p className="font-medium">Not provided</p>
+                  )}
                 </div>
 
                 {/* Phone Number */}
