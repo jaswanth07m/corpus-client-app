@@ -1,4 +1,5 @@
 import PeerReviewCard from '@/components/PeerReviewCard';
+import UserSearchResults from '@/components/UserSearchResults';
 import { BACKEND_URL } from '@/lib/constants';
 import {
   ArrowLeft,
@@ -45,6 +46,12 @@ const PeerReview: React.FC = () => {
   const [searchType, setSearchType] = useState<'records' | 'users'>('records');
   const [currentPage, setCurrentPage] = useState(0);
   const [isFetching, setIsFetching] = useState(false);
+
+  // State for user search results
+  const [userSearchResults, setUserSearchResults] = useState<
+    { username: string }[]
+  >([]);
+  const [userSearchError, setUserSearchError] = useState<string | null>(null);
 
   async function fetchMoreData() {
     // Don't fetch more data if user is searching
@@ -265,11 +272,12 @@ const PeerReview: React.FC = () => {
     const token = localStorage.getItem('token');
 
     setIsLoading(true); // Set loading state to true
+    setUserSearchError(null); // Clear previous errors
 
     try {
-      // Call the user profile API with the user identifier - using /users/{user_identifier}/profile
+      // Call the user search API with the query - using /users/search?query={query}
       const userResponse = await fetch(
-        `${BACKEND_URL}/users/${encodeURIComponent(query)}/profile`,
+        `${BACKEND_URL}/users/search?query=${encodeURIComponent(query)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -280,28 +288,53 @@ const PeerReview: React.FC = () => {
 
       if (!userResponse.ok) {
         const errorData = await userResponse.json();
-        throw new Error(errorData.message || 'User not found');
+        throw new Error(errorData.message || 'Error searching users');
       }
 
-      // If user is found, redirect to their profile page
-      window.location.href = `/profile/${encodeURIComponent(query)}`;
+      const users = await userResponse.json();
+
+      // Update the user search results state
+      setUserSearchResults(users);
     } catch (err) {
       const error = err as Error;
       console.error('User search Error:', error);
-      setError(error.message);
+      setUserSearchError(error.message);
       setIsLoading(false); // Make sure to reset loading state on error
+    } finally {
+      setIsLoading(false); // Make sure loading state is reset
     }
   }
+
+  // Function to handle user selection from search results
+  const handleSelectUser = (username: string) => {
+    // Redirect to the user's profile page
+    window.location.href = `/profile/${encodeURIComponent(username)}`;
+  };
 
   useEffect(() => {
     fetchMoreData();
   }, []);
+
+  // Effect to disable scrolling when user search modal is open
+  useEffect(() => {
+    if (searchType === 'users' && inSearch) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    // Cleanup function to restore scrolling
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [searchType, inSearch]);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
       // Reset to default view when search is cleared
       setRecordIdList([]);
+      setUserSearchResults([]); // Clear user search results
       setInSearch(false);
       setIsSearching(false);
       setHasMore(true);
@@ -325,9 +358,10 @@ const PeerReview: React.FC = () => {
   const handleInfiniteScroll = () => {
     console.log('in Search');
     if (!isFetching && !isLoading) {
-      if (inSearch) {
+      // Don't trigger infinite scroll when in user search mode
+      if (inSearch && searchType !== 'users') {
         handleSearch(searchQuery);
-      } else {
+      } else if (!inSearch) {
         fetchMoreData();
       }
     }
@@ -463,54 +497,72 @@ const PeerReview: React.FC = () => {
           </div>
         )}
 
-        {recordIdList.length === 0 && inSearch ? (
-          <div className="text-center py-12">
-            <p className="text-slate-600 text-lg mb-4">
-              No results found for "{searchQuery}"
-            </p>
-            <p className="text-slate-500 text-sm mb-6">
-              The user might not be in the loaded records yet. Try clearing the
-              search and scrolling to load more records.
-            </p>
-            <button
-              onClick={() => {
-                window.location.reload();
-              }}
-              className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-            >
-              Refresh Feed
-            </button>
-          </div>
-        ) : (
-          <InfiniteScroll
-            dataLength={recordIdList.length}
-            next={handleInfiniteScroll}
-            scrollableTarget="peer-scroll-container"
-            hasMore={hasMore || !isFetching || !isLoading} // Disable infinite scroll when searching
-            loader={
-              <div className="flex items-center justify-center gap-2 py-4">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.1s]"></div>
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
-              </div>
-            }
-          >
-            {recordIdList.map((record, index) => (
-              <PeerReviewCard
-                key={record.record_id}
-                user_id={record.user_id}
-                username={record.username}
-                record_id={record.record_id}
-                title={record.title}
-                description={record.description}
-                media_type={record.media_type}
-                release_rights={record.release_rights}
-                language={record.language}
-                dataUrl={record.dataUrl}
-              />
-            ))}
-          </InfiniteScroll>
+        {/* Show user search results as a modal when searchType is 'users' and in search */}
+        {searchType === 'users' && inSearch && (
+          <UserSearchResults
+            users={userSearchResults}
+            onSelectUser={handleSelectUser}
+            isLoading={isLoading}
+            error={userSearchError || undefined}
+            isVisible={true}
+            onClose={() => {
+              setInSearch(false);
+              setUserSearchResults([]); // Clear user search results
+            }}
+          />
         )}
+
+        {/* Always show peer review records in the background */}
+        <>
+          {recordIdList.length === 0 && inSearch && searchType === 'records' ? (
+            <div className="text-center py-12">
+              <p className="text-slate-600 text-lg mb-4">
+                No results found for "{searchQuery}"
+              </p>
+              <p className="text-slate-500 text-sm mb-6">
+                The user might not be in the loaded records yet. Try clearing
+                the search and scrolling to load more records.
+              </p>
+              <button
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+              >
+                Refresh Feed
+              </button>
+            </div>
+          ) : (
+            <InfiniteScroll
+              dataLength={recordIdList.length}
+              next={handleInfiniteScroll}
+              scrollableTarget="peer-scroll-container"
+              hasMore={hasMore || !isFetching || !isLoading} // Disable infinite scroll when searching
+              loader={
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.1s]"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                </div>
+              }
+            >
+              {recordIdList.map((record, index) => (
+                <PeerReviewCard
+                  key={record.record_id}
+                  user_id={record.user_id}
+                  username={record.username}
+                  record_id={record.record_id}
+                  title={record.title}
+                  description={record.description}
+                  media_type={record.media_type}
+                  release_rights={record.release_rights}
+                  language={record.language}
+                  dataUrl={record.dataUrl}
+                />
+              ))}
+            </InfiniteScroll>
+          )}
+        </>
       </div>
     </div>
   );

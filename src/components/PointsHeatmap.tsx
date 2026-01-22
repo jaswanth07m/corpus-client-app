@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { DailyPoint } from '@/lib/points';
 import { TrendingUp } from 'lucide-react';
 
@@ -52,6 +52,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
     x: 0,
     y: 0,
   });
+  const [keepTooltipVisible, setKeepTooltipVisible] = useState(false);
 
   // --- Data Preparation (Memoized for performance) ---
   const { calendarData, monthLabels } = useMemo(() => {
@@ -100,26 +101,73 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
 
     // Calculate month label positions
     const mLabels = [];
-    let lastMonth = -1;
-    days.forEach((day, index) => {
+    let lastProcessedMonth = -1;
+
+    for (let i = 0; i < days.length; i++) {
+      const day = days[i];
       if (day) {
         const month = day.date.getMonth();
-        if (month !== lastMonth) {
-          const weekIndex = Math.floor(index / 7);
+
+        // Only add a month label when we encounter the first day of a new month
+        if (month !== lastProcessedMonth) {
+          // Calculate which week this month starts in
+          const weekIndex = Math.floor(i / 7);
+
+          // Add the month label at the correct week position
           mLabels.push({
             label: MONTH_LABELS[month],
             col: weekIndex,
+            date: day.date, // Store the date to identify oldest
           });
-          lastMonth = month;
+
+          lastProcessedMonth = month;
         }
       }
-    });
+    }
 
-    return { calendarData: days, monthLabels: mLabels };
+    // If there are 2 or more month labels, mark the oldest (first) one to be hidden
+    const processedMonthLabels = mLabels.map((label, index) => ({
+      ...label,
+      hide: mLabels.length >= 2 && index === 0,
+    }));
+
+    return { calendarData: days, monthLabels: processedMonthLabels };
   }, [dailyData]);
 
   // --- Tooltip Event Handlers ---
   const handleMouseEnter = (
+    e: React.MouseEvent<HTMLDivElement>,
+    day: CalendarDay | null,
+  ) => {
+    if (!day || !containerRef.current) return;
+    // Only update tooltip if we're not keeping it visible from a click
+    if (!keepTooltipVisible) {
+      const cellRect = e.currentTarget.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const pointsStr = `${day.points.toFixed(1)} points`;
+      const dateStr = day.date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      setTooltip({
+        visible: true,
+        content: `${pointsStr} on ${dateStr}`,
+        x: cellRect.left - containerRect.left + cellRect.width / 2,
+        y: cellRect.top - containerRect.top,
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // Only hide tooltip if we're not keeping it visible from a click
+    if (!keepTooltipVisible) {
+      setTooltip((prev) => ({ ...prev, visible: false }));
+    }
+  };
+
+  const handleClick = (
     e: React.MouseEvent<HTMLDivElement>,
     day: CalendarDay | null,
   ) => {
@@ -133,19 +181,47 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
       day: 'numeric',
     });
 
-    setTooltip({
-      visible: true,
-      content: `${pointsStr} on ${dateStr}`,
-      x: cellRect.left - containerRect.left + cellRect.width / 2,
-      y: cellRect.top - containerRect.top,
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setTooltip((prev) => ({ ...prev, visible: false }));
+    // Toggle tooltip visibility on click
+    if (
+      keepTooltipVisible &&
+      tooltip.content === `${pointsStr} on ${dateStr}`
+    ) {
+      // If clicking the same day again, hide the tooltip
+      setTooltip((prev) => ({ ...prev, visible: false }));
+      setKeepTooltipVisible(false);
+    } else {
+      // Show tooltip for the clicked day and keep it visible
+      setTooltip({
+        visible: true,
+        content: `${pointsStr} on ${dateStr}`,
+        x: cellRect.left - containerRect.left + cellRect.width / 2,
+        y: cellRect.top - containerRect.top,
+      });
+      setKeepTooltipVisible(true);
+    }
   };
 
   const totalWeeks = Math.ceil(calendarData.length / 7);
+
+  // Close tooltip when clicking outside the heatmap
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        if (keepTooltipVisible) {
+          setKeepTooltipVisible(false);
+          setTooltip((prev) => ({ ...prev, visible: false }));
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [keepTooltipVisible]);
 
   return (
     <div className="relative" ref={containerRef}>
@@ -173,7 +249,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
       </div>
 
       {/* --- Custom Tooltip --- */}
-      {tooltip.visible && (
+      {(tooltip.visible || keepTooltipVisible) && (
         <div
           className="absolute z-10 px-2 py-1 text-xs font-semibold text-white bg-gray-900 rounded-md shadow-lg pointer-events-none whitespace-nowrap"
           style={{
@@ -189,26 +265,20 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
       <div className="overflow-x-auto pb-1">
         <div className="inline-block">
           {/* --- Month Labels --- */}
-          <div
-            className="flex"
-            style={{ marginLeft: '24px', paddingBottom: '4px' }}
-          >
-            {monthLabels.map(({ label, col }, index) => {
-              const prevCol = index > 0 ? monthLabels[index - 1].col : 0;
-              const colSpan = col - prevCol;
-              if (colSpan <= 0) return null;
-              return (
+          <div className="relative h-6" style={{ marginLeft: '24px' }}>
+            {monthLabels
+              .filter((monthLabel) => !monthLabel.hide) // Filter out hidden labels
+              .map(({ label, col }) => (
                 <div
                   key={label}
-                  className="text-xs text-gray-500"
+                  className="absolute text-xs text-gray-500 whitespace-nowrap"
                   style={{
-                    minWidth: `${colSpan * (SQUARE_SIZE + SQUARE_GAP)}px`,
+                    left: `${col * (SQUARE_SIZE + SQUARE_GAP)}px`,
                   }}
                 >
                   {label}
                 </div>
-              );
-            })}
+              ))}
           </div>
 
           <div className="flex">
@@ -239,7 +309,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
               {calendarData.map((day, index) => (
                 <div
                   key={index}
-                  className="rounded-sm cursor-pointer"
+                  className="rounded-none cursor-pointer"
                   style={{
                     width: `${SQUARE_SIZE}px`,
                     height: `${SQUARE_SIZE}px`,
@@ -249,6 +319,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
                   }}
                   onMouseEnter={(e) => handleMouseEnter(e, day)}
                   onMouseLeave={handleMouseLeave}
+                  onClick={(e) => handleClick(e, day)}
                 />
               ))}
             </div>
