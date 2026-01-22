@@ -16,6 +16,7 @@ import {
   Clock,
   Pencil,
   LogOut,
+  Info,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
@@ -25,6 +26,7 @@ import PointsHeatmap from '@/components/PointsHeatmap';
 import CategoryTags from '@/components/CategoryTags';
 import { MediaGridItem } from '@/components/MediaGridItem';
 import { ContributionsList } from '@/components/ContributionsList';
+import UserProfileInfo from '@/components/UserProfileInfo';
 import {
   Select,
   SelectContent,
@@ -79,6 +81,7 @@ interface UserProfileData {
   id: string;
   name: string;
   username?: string;
+  profile_picture_path?: string | null;
   streaks: {
     combined_streak: {
       current: number;
@@ -231,6 +234,14 @@ function Profile() {
 
   // State for media grid display
   const [showMediaGrid, setShowMediaGrid] = useState<boolean>(false);
+
+  // State for user profile info modal
+  const [showProfileInfo, setShowProfileInfo] = useState<boolean>(false);
+
+  // State for profile picture update modal
+  const [showProfilePictureModal, setShowProfilePictureModal] =
+    useState<boolean>(false);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
 
   const getAuthToken = useCallback(() => {
     return localStorage.getItem('token');
@@ -400,6 +411,76 @@ function Profile() {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Function to update profile picture
+  const updateProfilePicture = async () => {
+    if (!profilePictureUrl.trim()) {
+      toast.error('Please enter a valid image URL');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token not found');
+        return;
+      }
+
+      // Get current user ID to update their profile
+      const currentProfileResponse = await fetch(`${BACKEND_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!currentProfileResponse.ok) {
+        throw new Error('Could not get current user profile');
+      }
+
+      const currentProfile = await currentProfileResponse.json();
+      const currentUserId = currentProfile.id;
+
+      // Update the profile with the new picture URL
+      const response = await fetch(`${BACKEND_URL}/users/${currentUserId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profile_picture_path: profilePictureUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail ||
+            `Failed to update profile picture: ${response.status}`,
+        );
+      }
+
+      // Update the local profile state
+      if (profile) {
+        setProfile({
+          ...profile,
+          profile_picture_path: profilePictureUrl,
+        });
+      }
+
+      toast.success('Profile picture updated successfully!');
+      setShowProfilePictureModal(false);
+      setProfilePictureUrl('');
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to update profile picture',
+      );
+    }
   };
 
   // Function to get current user's profile to check follow status
@@ -648,6 +729,7 @@ function Profile() {
             id: userData.id,
             name: userData.name || userData.username || 'Unknown User',
             username: userData.username,
+            profile_picture_path: userData.profile_picture_path || null,
             streaks: {
               combined_streak: {
                 current: userData.streak_days || 0,
@@ -707,6 +789,7 @@ function Profile() {
             id: userData.user_id,
             name: userData.user_name || 'Unknown User',
             username: userData.username,
+            profile_picture_path: userData.profile_picture_path || null,
             streaks: userData.streaks,
             timeline: userData.timeline,
             summary: userData.summary,
@@ -800,21 +883,45 @@ function Profile() {
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
           {/* Profile Info Section - Mobile Responsive Layout */}
           <div className="p-4 relative">
-            <button
-              onClick={handleLogout}
-              className="flex flex-col absolute right-0 sm:right-5 items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4 text-red-500" />
-            </button>
+            <div className="flex gap-2 absolute right-0 sm:right-5">
+              <button
+                onClick={() => setShowProfileInfo(true)}
+                className="flex flex-col items-center gap-1 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                title={
+                  isOwnProfile ? 'View your profile info' : 'View profile info'
+                }
+              >
+                <Info className="w-4 h-4 text-blue-500" />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4 text-red-500" />
+              </button>
+            </div>
 
             <div className="flex flex-row gap-6 items-center">
               {/* Avatar - Centered on mobile */}
-              <div className="relative flex-shrink-0 group">
+              <div
+                className={`relative flex-shrink-0 group ${isOwnProfile ? 'cursor-pointer' : ''}`}
+                onClick={() => isOwnProfile && setShowProfilePictureModal(true)}
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-                <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
-                  {getInitials(profile?.name)}
-                </div>
-                <div className="absolute bottom-2 right-2 w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
+                {profile?.profile_picture_path ? (
+                  <img
+                    src={profile.profile_picture_path}
+                    alt={`${profile.name}'s profile`}
+                    className="relative w-20 h-20 sm:w-32 sm:h-32 rounded-full object-cover shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
+                    {getInitials(profile?.name)}
+                  </div>
+                )}
+                {isOwnProfile && (
+                  <div className="absolute bottom-2 right-2 w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
+                )}
               </div>
 
               {/* User Info & Stats - Stacked on mobile */}
@@ -1001,6 +1108,89 @@ function Profile() {
         isOwnProfile={isOwnProfile}
         navigate={navigate}
       />
+
+      {/* User Profile Info Modal */}
+      {showProfileInfo && targetUserIdentifier && (
+        <UserProfileInfo
+          userId={targetUserIdentifier}
+          onClose={() => setShowProfileInfo(false)}
+          onUpdate={(updatedProfile) => {
+            // Optionally update the local profile state with the updated data
+            if (profile) {
+              setProfile({
+                ...profile,
+                name: updatedProfile.name || profile.name,
+                username: updatedProfile.username || profile.username,
+                // Update other fields as needed
+              });
+            }
+          }}
+        />
+      )}
+
+      {/* Profile Picture Update Modal */}
+      {showProfilePictureModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Update Profile Picture
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowProfilePictureModal(false);
+                    setProfilePictureUrl('');
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <label
+                  htmlFor="profilePictureUrl"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Image URL
+                </label>
+                <input
+                  type="text"
+                  id="profilePictureUrl"
+                  value={profilePictureUrl}
+                  onChange={(e) => setProfilePictureUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter a valid image URL for your profile picture
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfilePictureModal(false);
+                    setProfilePictureUrl('');
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={updateProfilePicture}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
