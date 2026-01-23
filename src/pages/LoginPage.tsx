@@ -8,7 +8,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   if (token) {
-    navigate('/media', { replace: true });
+    navigate('/', { replace: true });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

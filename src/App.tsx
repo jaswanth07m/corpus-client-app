@@ -26,7 +26,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner position="top-center" />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
@@ -39,9 +39,8 @@ const App = () => (
                 </RequireAuth>
               }
             >
-              <Route path="/" element={<Navigate to="/landing" replace />} />
               <Route
-                path="/landing"
+                path="/"
                 element={
                   <RequireAuth>
                     <LandingPage />

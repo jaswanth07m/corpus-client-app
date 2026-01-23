@@ -701,13 +701,13 @@ const Categories: React.FC<CategoriesProps> = ({
         });
         if (finalized) {
           toast.success(
-            'Content uploaded successfully! Redirecting to Peer Review...',
+            'Content uploaded successfully! Redirecting to Landing...',
           );
           resetUploadState();
           posthog.capture('upload_success');
-          // Redirect to peer review after successful upload
+          // Redirect to landing page after successful upload
           setTimeout(() => {
-            window.location.href = '/peer-review';
+            window.location.href = '/';
           }, 1500);
         } else {
           posthog.capture('upload_finalization_failed');

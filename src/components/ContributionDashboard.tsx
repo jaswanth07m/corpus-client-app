@@ -61,6 +61,9 @@ interface ContributionDashboardProps {
   contributions: UserContributions | null;
   loading: boolean;
   edits: number;
+  onMediaTypeClick?: (
+    mediaType: 'text' | 'audio' | 'video' | 'image' | 'document',
+  ) => void;
 }
 
 const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
@@ -68,6 +71,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   contributions,
   loading,
   edits,
+  onMediaTypeClick,
 }) => {
   if (loading) {
     return (
@@ -343,29 +347,52 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
               color: '#8b5cf6',
               icon: <Calendar size={14} />,
             },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              style={{
-                width: item.full ? '100%' : 'calc(32% - 4px)',
-                background: item.color,
-                borderRadius: 8,
-                padding: 8,
-                color: '#fff',
-                textAlign: 'center',
-              }}
-            >
-              <div className="flex justify-center items-center gap-2">
-                <div style={{ fontSize: 12, opacity: 0.9 }}>{item.label}</div>
-                <div style={{ opacity: 0.85, marginBottom: 2 }}>
-                  {item.icon}
+          ].map((item, idx) => {
+            // Map labels to media types
+            const mediaTypeMap: {
+              [key: string]: 'text' | 'audio' | 'video' | 'image' | 'document';
+            } = {
+              Text: 'text',
+              Doc: 'document',
+              Image: 'image',
+              Audio: 'audio',
+              Video: 'video',
+            };
+
+            const mediaType = mediaTypeMap[item.label];
+
+            return (
+              <div
+                key={idx}
+                onClick={
+                  mediaType ? () => onMediaTypeClick?.(mediaType) : undefined
+                }
+                style={{
+                  width: item.full ? '100%' : 'calc(32% - 4px)',
+                  background: item.color,
+                  borderRadius: 8,
+                  padding: 8,
+                  color: '#fff',
+                  textAlign: 'center',
+                  cursor: mediaType ? 'pointer' : 'default',
+                  opacity: mediaType ? 1 : 0.6,
+                }}
+                className={
+                  mediaType ? 'hover:brightness-110 transition-all' : ''
+                }
+              >
+                <div className="flex justify-center items-center gap-2">
+                  <div style={{ fontSize: 12, opacity: 0.9 }}>{item.label}</div>
+                  <div style={{ opacity: 0.85, marginBottom: 2 }}>
+                    {item.icon}
+                  </div>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 'bold' }}>
+                  {item.value}
                 </div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 'bold' }}>
-                {item.value}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import PeerReviewCard from '@/components/PeerReviewCard';
+import UserSearchResults from '@/components/UserSearchResults';
 import { BACKEND_URL } from '@/lib/constants';
 import {
   ArrowLeft,
@@ -28,22 +29,34 @@ const PeerReview: React.FC = () => {
   const numberOfRecordsRemoved = 5;
 
   const [recordIdList, setRecordIdList] = useState<PeerReviewCardProps[]>([]);
-  const [allRecords, setAllRecords] = useState<PeerReviewCardProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
+
+  const [bufferIds, setBufferIds] = useState<string[]>([]);
+  const [nextIndex, setNextIndex] = useState(0);
+
   const [error, setError] = useState('');
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [prevSearchQuery, setPrevSearchQuery] = useState('');
+  const [inSearch, setInSearch] = useState(false);
+
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchType, setSearchType] = useState<'records' | 'users'>('records');
   const [currentPage, setCurrentPage] = useState(0);
   const [isFetching, setIsFetching] = useState(false);
 
+  // State for user search results
+  const [userSearchResults, setUserSearchResults] = useState<
+    { username: string }[]
+  >([]);
+  const [userSearchError, setUserSearchError] = useState<string | null>(null);
+
   async function fetchMoreData() {
     // Don't fetch more data if user is searching
-    if (isSearching || isFetching || !hasMore) {
-      return;
-    }
+    if (isFetching || !hasMore) return;
+
     setIsFetching(true);
     console.count('fetchMoreData called');
 
@@ -60,6 +73,7 @@ const PeerReview: React.FC = () => {
       );
 
       if (nextRecordResponse.status === 404) {
+        console.error('404');
         setHasMore(false);
         return;
       }
@@ -72,6 +86,7 @@ const PeerReview: React.FC = () => {
       const responseArray = await nextRecordResponse.json();
 
       if (!Array.isArray(responseArray) || responseArray.length === 0) {
+        console.error('array errors');
         setHasMore(false);
         return;
       }
@@ -118,10 +133,10 @@ const PeerReview: React.FC = () => {
           };
 
           // Only update lists if not searching
-          if (!isSearching) {
-            setRecordIdList((prev) => [...prev, successfull]);
-          }
-          setAllRecords((prev) => [...prev, successfull]);
+          // if (!isSearching) {
+          //   setRecordIdList((prev) => [...prev, successfull]);
+          // }
+          setRecordIdList((prev) => [...prev, successfull]);
 
           // console.log('Record details:', recordDetails);
           // console.log('Username:', successfull.username);
@@ -142,37 +157,50 @@ const PeerReview: React.FC = () => {
   async function searchRecords(query: string) {
     const token = localStorage.getItem('token');
 
-    setIsLoading(true); // Set loading state to true
+    setIsLoading(true);
 
     try {
-      // Call the search API with the query and limit parameters - using records/search (BACKEND_URL already includes /api/v1)
-      const searchResponse = await fetch(
-        `${BACKEND_URL}/records/search?query=${encodeURIComponent(query)}&limit=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+      let currentBuffer = bufferIds;
+      if (query != prevSearchQuery) {
+        const searchResponse = await fetch(
+          `${BACKEND_URL}/records/search?query=${encodeURIComponent(query)}&limit=50`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           },
-        },
-      );
+        );
 
-      if (!searchResponse.ok) {
-        const errorData = await searchResponse.json();
-        throw new Error(errorData.message || 'Error in search');
-      }
+        if (!searchResponse.ok) {
+          const errorData = await searchResponse.json();
+          throw new Error(errorData.message || 'Error in search');
+        }
 
-      const responseArray = await searchResponse.json();
+        const newIds = await searchResponse.json();
+        currentBuffer = newIds;
 
-      if (!Array.isArray(responseArray) || responseArray.length === 0) {
+        setBufferIds(newIds);
         setRecordIdList([]);
-        return;
+        setNextIndex(0);
       }
+      const start = query !== prevSearchQuery ? 0 : nextIndex;
+      const responseArray = currentBuffer.slice(start, start + 10);
+
+      console.log(responseArray);
 
       // Transform the search results to match our PeerReviewCardProps structure
       const searchResults: PeerReviewCardProps[] = [];
 
       for (const item of responseArray) {
         const { record_id } = item;
+
+        const isDuplicate = recordIdList.some((r) => r.record_id === record_id);
+        if (isDuplicate) {
+          console.log('duplicate');
+          continue;
+        }
+
         try {
           const [recordDetailsResponse, recordUrlResponse] = await Promise.all([
             fetch(`${BACKEND_URL}/records/${record_id}`, {
@@ -211,6 +239,7 @@ const PeerReview: React.FC = () => {
             language: recordDetails.language,
             dataUrl: urlData.record_url,
           };
+          setRecordIdList((prev) => [...prev, searchResult]);
 
           searchResults.push(searchResult);
         } catch (err) {
@@ -218,9 +247,13 @@ const PeerReview: React.FC = () => {
           continue;
         }
       }
-
-      setRecordIdList(searchResults);
-      setAllRecords(searchResults); // Update all records with search results
+      setNextIndex(start + 10);
+      setPrevSearchQuery(query);
+      if (start + 10 >= currentBuffer.length) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
     } catch (err) {
       const error = err as Error;
       console.error('Search Error:', error);
@@ -230,15 +263,21 @@ const PeerReview: React.FC = () => {
     }
   }
 
+  useEffect(() => {
+    console.log(recordIdList);
+    console.log(nextIndex);
+  }, [recordIdList, nextIndex]);
+
   async function searchUsers(query: string) {
     const token = localStorage.getItem('token');
 
     setIsLoading(true); // Set loading state to true
+    setUserSearchError(null); // Clear previous errors
 
     try {
-      // Call the user profile API with the user identifier - using /users/{user_identifier}/profile
+      // Call the user search API with the query - using /users/search?query={query}
       const userResponse = await fetch(
-        `${BACKEND_URL}/users/${encodeURIComponent(query)}/profile`,
+        `${BACKEND_URL}/users/search?query=${encodeURIComponent(query)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -249,29 +288,54 @@ const PeerReview: React.FC = () => {
 
       if (!userResponse.ok) {
         const errorData = await userResponse.json();
-        throw new Error(errorData.message || 'User not found');
+        throw new Error(errorData.message || 'Error searching users');
       }
 
-      // If user is found, redirect to their profile page
-      window.location.href = `/profile/${encodeURIComponent(query)}`;
+      const users = await userResponse.json();
+
+      // Update the user search results state
+      setUserSearchResults(users);
     } catch (err) {
       const error = err as Error;
       console.error('User search Error:', error);
-      setError(error.message);
+      setUserSearchError(error.message);
       setIsLoading(false); // Make sure to reset loading state on error
+    } finally {
+      setIsLoading(false); // Make sure loading state is reset
     }
   }
+
+  // Function to handle user selection from search results
+  const handleSelectUser = (username: string) => {
+    // Redirect to the user's profile page
+    window.location.href = `/profile/${encodeURIComponent(username)}`;
+  };
 
   useEffect(() => {
     fetchMoreData();
   }, []);
+
+  // Effect to disable scrolling when user search modal is open
+  useEffect(() => {
+    if (searchType === 'users' && inSearch) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    // Cleanup function to restore scrolling
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [searchType, inSearch]);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
       // Reset to default view when search is cleared
       setRecordIdList([]);
-      setAllRecords([]);
+      setUserSearchResults([]); // Clear user search results
+      setInSearch(false);
       setIsSearching(false);
       setHasMore(true);
       setCurrentPage(0);
@@ -279,6 +343,7 @@ const PeerReview: React.FC = () => {
       // Fetch initial records again
       await fetchMoreData();
     } else {
+      setInSearch(true);
       setIsSearching(true);
       setHasMore(false); // Disable infinite scroll during search
 
@@ -290,8 +355,20 @@ const PeerReview: React.FC = () => {
     }
   };
 
+  const handleInfiniteScroll = () => {
+    console.log('in Search');
+    if (!isFetching && !isLoading) {
+      // Don't trigger infinite scroll when in user search mode
+      if (inSearch && searchType !== 'users') {
+        handleSearch(searchQuery);
+      } else if (!inSearch) {
+        fetchMoreData();
+      }
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen pb-20">
+    <div className="flex flex-col h-screen pb-12">
       {/* Professional Header */}
       <div className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -420,54 +497,72 @@ const PeerReview: React.FC = () => {
           </div>
         )}
 
-        {recordIdList.length === 0 && isSearching ? (
-          <div className="text-center py-12">
-            <p className="text-slate-600 text-lg mb-4">
-              No results found for "{searchQuery}"
-            </p>
-            <p className="text-slate-500 text-sm mb-6">
-              The user might not be in the loaded records yet. Try clearing the
-              search and scrolling to load more records.
-            </p>
-            <button
-              onClick={() => {
-                window.location.reload();
-              }}
-              className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-            >
-              Refresh Feed
-            </button>
-          </div>
-        ) : (
-          <InfiniteScroll
-            dataLength={recordIdList.length}
-            next={fetchMoreData}
-            scrollableTarget="peer-scroll-container"
-            hasMore={hasMore && !isSearching} // Disable infinite scroll when searching
-            loader={
-              <div className="flex items-center justify-center gap-2 py-4">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.1s]"></div>
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
-              </div>
-            }
-          >
-            {recordIdList.map((record, index) => (
-              <PeerReviewCard
-                key={record.record_id}
-                user_id={record.user_id}
-                username={record.username}
-                record_id={record.record_id}
-                title={record.title}
-                description={record.description}
-                media_type={record.media_type}
-                release_rights={record.release_rights}
-                language={record.language}
-                dataUrl={record.dataUrl}
-              />
-            ))}
-          </InfiniteScroll>
+        {/* Show user search results as a modal when searchType is 'users' and in search */}
+        {searchType === 'users' && inSearch && (
+          <UserSearchResults
+            users={userSearchResults}
+            onSelectUser={handleSelectUser}
+            isLoading={isLoading}
+            error={userSearchError || undefined}
+            isVisible={true}
+            onClose={() => {
+              setInSearch(false);
+              setUserSearchResults([]); // Clear user search results
+            }}
+          />
         )}
+
+        {/* Always show peer review records in the background */}
+        <>
+          {recordIdList.length === 0 && inSearch && searchType === 'records' ? (
+            <div className="text-center py-12">
+              <p className="text-slate-600 text-lg mb-4">
+                No results found for "{searchQuery}"
+              </p>
+              <p className="text-slate-500 text-sm mb-6">
+                The user might not be in the loaded records yet. Try clearing
+                the search and scrolling to load more records.
+              </p>
+              <button
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+              >
+                Refresh Feed
+              </button>
+            </div>
+          ) : (
+            <InfiniteScroll
+              dataLength={recordIdList.length}
+              next={handleInfiniteScroll}
+              scrollableTarget="peer-scroll-container"
+              hasMore={hasMore || !isFetching || !isLoading} // Disable infinite scroll when searching
+              loader={
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.1s]"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                </div>
+              }
+            >
+              {recordIdList.map((record, index) => (
+                <PeerReviewCard
+                  key={record.record_id}
+                  user_id={record.user_id}
+                  username={record.username}
+                  record_id={record.record_id}
+                  title={record.title}
+                  description={record.description}
+                  media_type={record.media_type}
+                  release_rights={record.release_rights}
+                  language={record.language}
+                  dataUrl={record.dataUrl}
+                />
+              ))}
+            </InfiniteScroll>
+          )}
+        </>
       </div>
     </div>
   );

@@ -1,26 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  ArrowLeft,
-  Loader2,
-  X,
-  TrendingUp,
-  Award,
-  Activity,
-  BarChart,
-  Zap,
-  Calendar,
-  History,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Pencil,
-  LogOut,
-} from 'lucide-react';
+import { X, LogOut, MessageSquare, Loader2 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
+import { getPointsStats, DailyPoint } from '@/lib/points';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import PointsHeatmap from '@/components/PointsHeatmap';
 import CategoryTags from '@/components/CategoryTags';
+import { MediaGridItem } from '@/components/MediaGridItem';
+import { ContributionsList } from '@/components/ContributionsList';
+import UserProfileInfo from '@/components/UserProfileInfo';
 import {
   Select,
   SelectContent,
@@ -75,6 +64,8 @@ interface UserProfileData {
   id: string;
   name: string;
   username?: string;
+  profile_picture_path?: string | null;
+  short_bio?: string | null;
   streaks: {
     combined_streak: {
       current: number;
@@ -192,12 +183,13 @@ function Profile() {
   );
   const [contributionsLoading, setContributionsLoading] =
     useState<boolean>(false);
+  const [pointsData, setPointsData] = useState<DailyPoint[] | null>(null);
+  const [pointsError, setPointsError] = useState<string | null>(null);
 
   // States for dashboard functionality
   const [selectedMediaType, setSelectedMediaType] = useState<
     'text' | 'audio' | 'video' | 'image' | 'document' | null
   >(null);
-  const [showDashboard, setShowDashboard] = useState(true);
 
   const { username } = useParams<{ username?: string }>();
 
@@ -223,6 +215,43 @@ function Profile() {
   // State for followers/following modals
   const [showFollowersModal, setShowFollowersModal] = useState<boolean>(false);
   const [showFollowingModal, setShowFollowingModal] = useState<boolean>(false);
+
+  // State for media grid display
+  const [showMediaGrid, setShowMediaGrid] = useState<boolean>(false);
+
+  // State for user profile info modal
+  const [showProfileInfo, setShowProfileInfo] = useState<boolean>(false);
+
+  // State for profile picture update modal
+  const [showProfilePictureModal, setShowProfilePictureModal] =
+    useState<boolean>(false);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
+
+  // Effect to hide bottom navigation when any modal is open
+  useEffect(() => {
+    if (
+      showMediaGrid ||
+      showFollowersModal ||
+      showFollowingModal ||
+      showProfileInfo ||
+      showProfilePictureModal
+    ) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [
+    showMediaGrid,
+    showFollowersModal,
+    showFollowingModal,
+    showProfileInfo,
+    showProfilePictureModal,
+  ]);
 
   const getAuthToken = useCallback(() => {
     return localStorage.getItem('token');
@@ -384,128 +413,6 @@ function Profile() {
     return uploadsTodayCount;
   };
 
-  const fetchOtherUserProfile = useCallback(
-    async (username: string) => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const token = getAuthToken();
-        if (!token) {
-          throw new Error('No Authentication token available');
-        }
-
-        const apiUrl =
-          BACKEND_URL +
-          `/users/${username}/profile?include=streaks,timeline,summary&days=30`;
-        const response = await fetch(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status == 401) {
-            throw new Error(
-              'Authentication Failed. Please log in Again. Your session might have expired',
-            );
-          }
-          if (response.status == 404) {
-            throw new Error('User Not Found');
-          }
-          throw new Error(
-            `Failed to fetch profile: ${response.status} ${response.statusText}`,
-          );
-        }
-        const userData = await response.json();
-        const formattedProfile = {
-          id: userData.user_id,
-          name: userData.user_name || 'Unknown User',
-          username: userData.username,
-          streaks: userData.streaks,
-          timeline: userData.timeline,
-          summary: userData.summary,
-        };
-        console.log(formattedProfile);
-
-        setProfile(formattedProfile);
-        // Set the targetUserId for API calls since we need the ID, not the username
-        setTargetUserId(userData.user_id);
-      } catch (err) {
-        console.error('Error fetching other users profile', err);
-        setError(err instanceof Error ? err.message : 'Error caught in Catch');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getAuthToken],
-  );
-
-  const fetchMyUserProfile = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No Authentication token available');
-      }
-
-      const response = await fetch(`${BACKEND_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch profile: ${response.status}`);
-      }
-
-      const userData = await response.json();
-      const formattedProfile = {
-        id: userData.id,
-        name: userData.name || userData.username || 'Unknown User',
-        username: userData.username,
-        streaks: {
-          combined_streak: {
-            current: userData.streak_days || 0,
-            longest: userData.streak_days || 0,
-            total_active_days: userData.total_active_days || 0,
-          },
-        },
-        timeline: {},
-        summary: {
-          contributions: {
-            total_contributions: userData.total_contributions || 0,
-            contributions_by_media_type:
-              userData.contributions_by_media_type || {
-                text: 0,
-                audio: 0,
-                image: 0,
-                video: 0,
-                document: 0,
-              },
-          },
-          edits: {
-            total_edits: userData.total_edits || 0,
-          },
-          overall: {
-            total_activities: userData.total_activities || 0,
-          },
-        },
-      };
-
-      setProfile(formattedProfile);
-    } catch (err) {
-      console.error('Error fetching my profile', err);
-      setError(err instanceof Error ? err.message : 'Error caught in Catch');
-    } finally {
-      setLoading(false);
-    }
-  }, [getAuthToken]);
-
   const getInitials = (name: string) => {
     if (!name) return 'U';
     return name
@@ -514,6 +421,76 @@ function Profile() {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Function to update profile picture
+  const updateProfilePicture = async () => {
+    if (!profilePictureUrl.trim()) {
+      toast.error('Please enter a valid image URL');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token not found');
+        return;
+      }
+
+      // Get current user ID to update their profile
+      const currentProfileResponse = await fetch(`${BACKEND_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!currentProfileResponse.ok) {
+        throw new Error('Could not get current user profile');
+      }
+
+      const currentProfile = await currentProfileResponse.json();
+      const currentUserId = currentProfile.id;
+
+      // Update the profile with the new picture URL
+      const response = await fetch(`${BACKEND_URL}/users/${currentUserId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profile_picture_path: profilePictureUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail ||
+            `Failed to update profile picture: ${response.status}`,
+        );
+      }
+
+      // Update the local profile state
+      if (profile) {
+        setProfile({
+          ...profile,
+          profile_picture_path: profilePictureUrl,
+        });
+      }
+
+      toast.success('Profile picture updated successfully!');
+      setShowProfilePictureModal(false);
+      setProfilePictureUrl('');
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to update profile picture',
+      );
+    }
   };
 
   // Function to get current user's profile to check follow status
@@ -726,6 +703,141 @@ function Profile() {
     [getAuthToken],
   );
 
+  // Unified function to fetch user profile regardless of whether it's own or other's profile
+  const fetchUserProfile = useCallback(
+    async (userIdentifier: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = getAuthToken();
+        if (!token) {
+          throw new Error('No Authentication token available');
+        }
+
+        // Determine if we're fetching own profile or other profile
+        const isOwnProfile =
+          userIdentifier === (localStorage.getItem('username') || '');
+        let userData;
+        let formattedProfile;
+
+        if (isOwnProfile) {
+          // Fetch own profile
+          const response = await fetch(`${BACKEND_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch profile: ${response.status}`);
+          }
+
+          userData = await response.json();
+          formattedProfile = {
+            id: userData.id,
+            name: userData.name || userData.username || 'Unknown User',
+            username: userData.username,
+            profile_picture_path: userData.profile_picture_path || null,
+            short_bio: userData.short_bio || null,
+            streaks: {
+              combined_streak: {
+                current: userData.streak_days || 0,
+                longest: userData.streak_days || 0,
+                total_active_days: userData.total_active_days || 0,
+              },
+            },
+            timeline: {},
+            summary: {
+              contributions: {
+                total_contributions: userData.total_contributions || 0,
+                contributions_by_media_type:
+                  userData.contributions_by_media_type || {
+                    text: 0,
+                    audio: 0,
+                    image: 0,
+                    video: 0,
+                    document: 0,
+                  },
+              },
+              edits: {
+                total_edits: userData.total_edits || 0,
+              },
+              overall: {
+                total_activities: userData.total_activities || 0,
+              },
+            },
+          };
+        } else {
+          // Fetch other user's profile
+          const apiUrl =
+            BACKEND_URL +
+            `/users/${userIdentifier}/profile?include=streaks,timeline,summary&days=30`;
+          const response = await fetch(apiUrl, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            if (response.status == 401) {
+              throw new Error(
+                'Authentication Failed. Please log in Again. Your session might have expired',
+              );
+            }
+            if (response.status == 404) {
+              throw new Error('User Not Found');
+            }
+            throw new Error(
+              `Failed to fetch profile: ${response.status} ${response.statusText}`,
+            );
+          }
+
+          userData = await response.json();
+          formattedProfile = {
+            id: userData.user_id,
+            name: userData.user_name || 'Unknown User',
+            username: userData.username,
+            profile_picture_path: userData.profile_picture_path || null,
+            short_bio: userData.short_bio || null,
+            streaks: userData.streaks,
+            timeline: userData.timeline,
+            summary: userData.summary,
+          };
+          console.log(formattedProfile);
+        }
+
+        setProfile(formattedProfile);
+        setTargetUserIdentifier(userIdentifier); // Set the target identifier for API calls
+
+        // Fetch points data for the profile after profile is set
+        try {
+          const pointsStats = await getPointsStats(token, userIdentifier);
+          setPointsData(pointsStats.daily);
+          setPointsError(null); // Clear any previous error
+        } catch (pointsError) {
+          console.error('Error fetching points data:', pointsError);
+          // Points data might not be available for other users due to privacy settings
+          // This is expected behavior in many cases
+          if (isOwnProfile) {
+            // Only show error for own profile
+            setPointsError('Failed to load points data');
+          }
+          setPointsData([]);
+          setPointsError(null); // Don't show error for other profiles
+        }
+      } catch (err) {
+        console.error('Error fetching profile', err);
+        setError(err instanceof Error ? err.message : 'Error caught in Catch');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAuthToken],
+  );
+
   // Effect for initial data fetch
   useEffect(() => {
     const loadInitialData = async () => {
@@ -736,39 +848,23 @@ function Profile() {
       setCurrentUsername(currentUsername);
 
       if (username) {
-        // Check if viewing own profile by comparing username with current user's username
-        const isOwnProfileView = currentUsername === username;
+        // Reset points data before fetching new data
+        setPointsData(null);
+        setPointsError(null);
 
-        if (isOwnProfileView) {
-          // Viewing own profile - use current username for API calls
-          fetchMyUserProfile();
-          // For own profile, fetch contributions for current user
-          if (showDashboard) {
-            fetchUserContributions(username, undefined);
-          } else if (selectedMediaType) {
-            fetchUserContributions(username, selectedMediaType);
-          }
-          // Also fetch followers and following for own profile
-          fetchFollowers(username);
-          fetchFollowing(username);
-          // Set the target identifier to the username for own profile
-          setTargetUserIdentifier(username);
-        } else {
-          // Viewing another user's profile - use the username from URL
-          fetchOtherUserProfile(username);
+        // Use unified function to fetch profile regardless of own or other profile
+        fetchUserProfile(username);
+
+        // Fetch all contributions for the user initially
+        fetchUserContributions(username, undefined);
+
+        // Fetch followers and following
+        fetchFollowers(username);
+        fetchFollowing(username);
+
+        // Check follow status if viewing other user's profile
+        if (currentUsername !== username) {
           checkFollowStatusWithUsername(username);
-          fetchFollowers(username);
-          fetchFollowing(username);
-
-          // Fetch contributions based on view - we'll use the resolved user ID from the profile
-          // But for now, we'll use the username directly
-          if (showDashboard) {
-            fetchUserContributions(username, undefined);
-          } else if (selectedMediaType) {
-            fetchUserContributions(username, selectedMediaType);
-          }
-          // Set the target identifier to the username for other profile
-          setTargetUserIdentifier(username);
         }
       }
     };
@@ -776,15 +872,14 @@ function Profile() {
     loadInitialData();
   }, [
     username,
-    fetchOtherUserProfile,
-    fetchMyUserProfile,
+    fetchUserProfile,
     checkFollowStatusWithUsername,
     fetchFollowers,
     fetchFollowing,
     getCurrentUserId,
-    showDashboard,
     selectedMediaType,
     fetchUserContributions,
+    getAuthToken,
   ]);
 
   // Determine if viewing own profile
@@ -797,24 +892,39 @@ function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 sm:mb-12 pt-4 pb-24">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
           {/* Profile Info Section - Mobile Responsive Layout */}
           <div className="p-4 relative">
-            <button
-              onClick={handleLogout}
-              className="flex flex-col absolute right-0 sm:right-5 items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4 text-red-500" />
-            </button>
+            <div className="flex gap-2 absolute right-0 sm:right-5">
+              <button
+                onClick={handleLogout}
+                className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4 text-red-500" />
+              </button>
+            </div>
 
             <div className="flex flex-row gap-6 items-center">
               {/* Avatar - Centered on mobile */}
-              <div className="relative flex-shrink-0 group">
+              <div
+                className={`relative flex-shrink-0 group ${isOwnProfile ? 'cursor-pointer' : ''}`}
+                onClick={() => isOwnProfile && setShowProfilePictureModal(true)}
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-                <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
-                  {getInitials(profile?.name)}
-                </div>
-                <div className="absolute bottom-2 right-2 w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
+                {profile?.profile_picture_path ? (
+                  <img
+                    src={profile.profile_picture_path}
+                    alt={`${profile.name}'s profile`}
+                    className="relative w-20 h-20 sm:w-32 sm:h-32 rounded-full object-cover shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-xl ring-4 ring-blue-5 group-hover:ring-6 sm:group-hover:ring-8 group-hover:ring-blue-100 transition-all duration-300 transform group-hover:scale-105">
+                    {getInitials(profile?.name)}
+                  </div>
+                )}
+                {isOwnProfile && (
+                  <div className="absolute bottom-2 right-2 w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full border-4 border-white animate-pulse"></div>
+                )}
               </div>
 
               {/* User Info & Stats - Stacked on mobile */}
@@ -862,6 +972,19 @@ function Profile() {
                       Following
                     </span>
                   </button>
+
+                  {/* Profile Info Button */}
+                  <button
+                    onClick={() => setShowProfileInfo(true)}
+                    className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium"
+                    title={
+                      isOwnProfile
+                        ? 'View your profile info'
+                        : 'View profile info'
+                    }
+                  >
+                    Info
+                  </button>
                 </div>
 
                 {/* Follow Button - Full width on mobile */}
@@ -898,122 +1021,92 @@ function Profile() {
           </div>
         </div>
 
-        {/* Contributions Section - Mobile Responsive Design */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 gap-3">
-            <div className="flex items-center gap-2">
-              <Activity size={20} className="text-blue-600" />
-              <p className="text-sm sm:text-md font-bold text-slate-900">
-                Contributions
+        {/* Bio Section - Visible for all user profiles */}
+        {profile?.short_bio && (
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
+            <div className="flex items-start">
+              <MessageSquare className="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
+              <p className="text-gray-700 text-xs sm:text-sm">
+                {profile.short_bio}
               </p>
             </div>
-
-            {/* Compact Toggle - Stacked on mobile */}
-            <div className="flex rounded-lg border border-slate-200 p-1 bg-slate-50 shadow-sm w-full sm:w-auto">
-              <button
-                onClick={() => {
-                  setShowDashboard(true);
-                  setContributions(null);
-                }}
-                className={`flex-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
-                  showDashboard
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => {
-                  setShowDashboard(false);
-                  setContributions(null);
-                }}
-                className={`flex-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
-                  !showDashboard
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                All Files
-              </button>
-            </div>
           </div>
+        )}
 
-          {showDashboard ? (
-            <div className="mt-2 sm:mt-4">
-              <ContributionDashboard
-                dailyStats={{
-                  uploads_today: calculateUploadsToday(),
-                  total_uploads: contributions?.totalContributions || 0,
-                  last_upload_date: new Date().toISOString(),
-                  streak_days: profile?.streaks?.combined_streak?.current || 0,
-                }}
-                contributions={contributions}
-                loading={contributionsLoading}
-                edits={profile?.summary?.edits?.total_edits}
-              />
+        {/* Points Heatmap Section - Visible for all user profiles */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
+          {pointsError ? (
+            <div className="text-center py-4">
+              <p className="text-red-500">{pointsError}</p>
             </div>
+          ) : pointsData ? (
+            <PointsHeatmap dailyData={pointsData} />
           ) : (
-            <div>
-              {/* Media type selector - Responsive layout */}
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 my-4 px-2">
-                {(['text', 'document', 'image', 'audio', 'video'] as const).map(
-                  (type) => (
-                    <ContributionTypeButton
-                      key={type}
-                      type={type}
-                      selectedMediaType={selectedMediaType}
-                      setSelectedMediaType={(newType) => {
-                        setSelectedMediaType(newType);
-                        const targetUserIdentifier = username || currentUserId;
-                        if (targetUserIdentifier) {
-                          fetchUserContributions(targetUserIdentifier, newType);
-                        }
-                      }}
-                    />
-                  ),
-                )}
-              </div>
-              {/* Modernized display of contributions for selected media type */}
-              <div className="mt-4">
-                {selectedMediaType && (
-                  <ContributionsList
-                    contributions={contributions}
-                    selectedMediaType={selectedMediaType}
-                    token={getAuthToken()}
-                    isOwnProfile={isOwnProfile}
-                  />
-                )}
-                {!selectedMediaType && !contributionsLoading && (
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-50 mb-3 sm:mb-4">
-                      <Activity
-                        size={24}
-                        className="text-blue-500 hidden sm:block"
-                      />
-                      <Activity size={20} className="text-blue-500 sm:hidden" />
-                    </div>
-                    <p className="text-gray-500 text-base sm:text-lg font-medium">
-                      Select a media type to view contributions
-                    </p>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
-                      Choose from Text, Document, Image, Audio, or Video
-                    </p>
-                  </div>
-                )}
-                {contributionsLoading && (
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-3 sm:mt-4 text-gray-600 font-medium text-sm sm:text-base">
-                      Loading contributions...
-                    </p>
-                  </div>
-                )}
-              </div>
+            <div className="text-center py-4">
+              <p className="text-gray-500">Loading points data...</p>
             </div>
           )}
         </div>
+
+        {/* Contributions Section - Mobile Responsive Design */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
+          <div className="mt-1 sm:mt-2">
+            <ContributionDashboard
+              dailyStats={{
+                uploads_today: calculateUploadsToday(),
+                total_uploads: contributions?.totalContributions || 0,
+                last_upload_date: new Date().toISOString(),
+                streak_days: profile?.streaks?.combined_streak?.current || 0,
+              }}
+              contributions={contributions}
+              loading={contributionsLoading}
+              edits={profile?.summary?.edits?.total_edits}
+              onMediaTypeClick={(mediaType) => {
+                setSelectedMediaType(mediaType);
+                const targetUserIdentifier = username || currentUserId;
+                if (targetUserIdentifier) {
+                  fetchUserContributions(targetUserIdentifier, mediaType);
+                }
+                setShowMediaGrid(true); // Show the grid when a media type is clicked
+              }}
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Media Grid Overlay - Appears when clicking on media type cards */}
+      {showMediaGrid && selectedMediaType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold capitalize">
+                {selectedMediaType} Contributions
+              </h3>
+              <button
+                onClick={() => {
+                  setShowMediaGrid(false);
+                  // Optionally reset selectedMediaType when closing the grid
+                  // setSelectedMediaType(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Grid Content */}
+            <div className="flex-1 overflow-auto p-4">
+              <ContributionsList
+                contributions={contributions}
+                selectedMediaType={selectedMediaType}
+                token={getAuthToken()}
+                isOwnProfile={isOwnProfile}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Followers and Following Modals */}
       <FollowersModal
@@ -1034,6 +1127,89 @@ function Profile() {
         isOwnProfile={isOwnProfile}
         navigate={navigate}
       />
+
+      {/* User Profile Info Modal */}
+      {showProfileInfo && targetUserIdentifier && (
+        <UserProfileInfo
+          userId={targetUserIdentifier}
+          onClose={() => setShowProfileInfo(false)}
+          onUpdate={(updatedProfile) => {
+            // Optionally update the local profile state with the updated data
+            if (profile) {
+              setProfile({
+                ...profile,
+                name: updatedProfile.name || profile.name,
+                username: updatedProfile.username || profile.username,
+                // Update other fields as needed
+              });
+            }
+          }}
+        />
+      )}
+
+      {/* Profile Picture Update Modal */}
+      {showProfilePictureModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Update Profile Picture
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowProfilePictureModal(false);
+                    setProfilePictureUrl('');
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <label
+                  htmlFor="profilePictureUrl"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Image URL
+                </label>
+                <input
+                  type="text"
+                  id="profilePictureUrl"
+                  value={profilePictureUrl}
+                  onChange={(e) => setProfilePictureUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter a valid image URL for your profile picture
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfilePictureModal(false);
+                    setProfilePictureUrl('');
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={updateProfilePicture}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1252,1553 +1428,6 @@ interface ContributionsListProps {
 }
 
 // Modal for showing media details
-interface MediaDetailModalProps {
-  item: ContributionItem;
-  mediaType: 'text' | 'audio' | 'video' | 'image' | 'document';
-  previewUrl: string | null;
-  token: string;
-  isOpen: boolean;
-  onClose: () => void;
-  isOwnProfile: boolean;
-}
-
-const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
-  item,
-  mediaType,
-  previewUrl,
-  token,
-  isOpen,
-  onClose,
-  isOwnProfile,
-}) => {
-  const [showHistory, setShowHistory] = useState(false);
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editItem, setEditItem] = useState<ContributionItem>({ ...item });
-  const [sourceLabel, setSourceLabel] = useState<string>('');
-
-  // Effect to hide bottom navigation when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
-  }, [isOpen]);
-
-  // Validation states
-  const [titleError, setTitleError] = useState<string | null>(null);
-  const [descError, setDescError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Function to count meaningful words
-  const countMeaningfulWords = (s: string) =>
-    s.split(' ').filter((w) => w.trim().length > 2).length;
-
-  // Function to fetch media URL on demand
-  const fetchMediaUrl = async () => {
-    if (!isOpen || mediaUrl) return; // Don't fetch if modal is closed or already have URL
-
-    setLoading(true);
-    setError(false);
-    try {
-      const response = await fetch(
-        `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch media URL');
-      }
-
-      const data = await response.json();
-      if (data.record_url) {
-        setMediaUrl(data.record_url);
-      }
-    } catch (err) {
-      console.error('Error fetching media:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch media URL only when needed for audio, document, and video types
-  useEffect(() => {
-    if (
-      isOpen &&
-      !previewUrl &&
-      (mediaType === 'audio' ||
-        mediaType === 'document' ||
-        mediaType === 'video')
-    ) {
-      fetchMediaUrl();
-    }
-  }, [isOpen, previewUrl, mediaType, item.id, token]);
-
-  if (!isOpen) return null;
-
-  const getMediaTypeLabel = () => {
-    return mediaType.charAt(0).toUpperCase() + mediaType.slice(1);
-  };
-
-  const renderMediaPreview = () => {
-    switch (mediaType) {
-      case 'image':
-        return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
-            {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt={item.title || 'Image'}
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-              </div>
-            )}
-          </div>
-        );
-
-      case 'video':
-        return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg">
-            {loading && (
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-              </div>
-            )}
-            {error && (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <div className="text-center p-4">
-                  <svg
-                    className="w-12 h-12 mx-auto text-gray-400 mb-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-xs text-gray-500">Video unavailable</p>
-                </div>
-              </div>
-            )}
-            {!loading && !error && mediaUrl && (
-              <video
-                src={mediaUrl}
-                controls
-                className="w-full h-full object-contain bg-black"
-                onError={() => setError(true)}
-              />
-            )}
-            {!loading && !error && !mediaUrl && (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-purple-200 p-4">
-                <div className="mb-4">
-                  <svg
-                    className="w-16 h-16 text-purple-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <button
-                  onClick={fetchMediaUrl}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Load Video
-                </button>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'audio':
-        return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center p-4">
-            {loading && (
-              <div className="flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-              </div>
-            )}
-            {error && (
-              <div className="text-center p-4">
-                <svg
-                  className="w-12 h-12 mx-auto text-gray-400 mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                  />
-                </svg>
-                <p className="text-xs text-gray-500">Audio unavailable</p>
-              </div>
-            )}
-            {!loading && !error && mediaUrl && (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
-                <div className="mb-4">
-                  <svg
-                    className="w-16 h-16 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                    />
-                  </svg>
-                </div>
-                <audio
-                  src={mediaUrl}
-                  controls
-                  className="w-full max-w-xs"
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                  onEnded={() => setIsPlaying(false)}
-                  onError={() => setError(true)}
-                />
-              </div>
-            )}
-            {!loading && !error && !mediaUrl && (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
-                <div className="mb-4">
-                  <svg
-                    className="w-16 h-16 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                    />
-                  </svg>
-                </div>
-                <button
-                  onClick={fetchMediaUrl}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Load Audio
-                </button>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'document':
-        return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
-            {loading && (
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-              </div>
-            )}
-            {error && (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <div className="text-center p-4">
-                  <svg
-                    className="w-12 h-12 mx-auto text-gray-400 mb-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-xs text-gray-500">Document unavailable</p>
-                </div>
-              </div>
-            )}
-            {!loading && !error && mediaUrl && (
-              <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
-                {/* Check document type and render appropriate preview */}
-                {mediaUrl && (
-                  <div className="w-full h-full flex flex-col items-center">
-                    {mediaUrl.toLowerCase().endsWith('.pdf') ? (
-                      <iframe
-                        src={mediaUrl}
-                        className="w-full h-full border-0"
-                        title="Document Preview"
-                      />
-                    ) : mediaUrl.toLowerCase().endsWith('.docx') ||
-                      mediaUrl.toLowerCase().endsWith('.doc') ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
-                        <div className="mb-2">
-                          <svg
-                            className="w-16 h-16 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-700 mb-4">
-                          {item.title || 'Word Document'}
-                        </p>
-                        <p className="text-gray-500 mb-6 text-center max-w-md">
-                          {item.description || 'Microsoft Word Document'}
-                        </p>
-                        <a
-                          href={mediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
-                        >
-                          Open in New Tab
-                        </a>
-                      </div>
-                    ) : mediaUrl.toLowerCase().endsWith('.txt') ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
-                        <div className="mb-2">
-                          <svg
-                            className="w-16 h-16 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-700 mb-4">
-                          {item.title || 'Text File'}
-                        </p>
-                        <p className="text-gray-500 mb-6 text-center max-w-md">
-                          {item.description || 'Plain Text Document'}
-                        </p>
-                        <a
-                          href={mediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
-                        >
-                          View Text
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
-                        <div className="mb-2">
-                          <svg
-                            className="w-16 h-16 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-700 mb-4">
-                          {item.title || 'Document'}
-                        </p>
-                        <p className="text-gray-500 mb-6 text-center max-w-md">
-                          {item.description || 'Document File'}
-                        </p>
-                        <a
-                          href={mediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
-                        >
-                          Open Document
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-            {!loading && !error && !mediaUrl && (
-              <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
-                <div className="mb-4">
-                  <svg
-                    className="w-16 h-16 text-yellow-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-center text-gray-600 mb-4">
-                  {item.title || 'Document'}
-                </p>
-                <button
-                  onClick={fetchMediaUrl}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Load Document
-                </button>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'text':
-        return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
-            <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50">
-              <div className="mb-4">
-                <svg
-                  className="w-16 h-16 text-blue-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <p className="text-center text-gray-600 mb-4">
-                {item.title || 'Text Content'}
-              </p>
-              <a
-                href={previewUrl || mediaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                View Text
-              </a>
-            </div>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
-            <div className="text-center p-4">
-              <p className="text-xs text-gray-500">Unsupported media type</p>
-            </div>
-          </div>
-        );
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
-            {getMediaTypeLabel()} Details
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={24} className="text-gray-600 hidden sm:block" />
-            <X size={20} className="text-gray-600 sm:hidden" />
-          </button>
-        </div>
-
-        <div className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 gap-4 sm:gap-6">
-            {/* Media Preview */}
-            <div className="space-y-4">
-              {renderMediaPreview()}
-
-              {/* Action Buttons - Stacked on mobile */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                {isEditing ? (
-                  <>
-                    <button
-                      onClick={async () => {
-                        // Clear any previous submit errors
-                        setSubmitError(null);
-
-                        // Validate inputs before submitting
-                        let hasErrors = false;
-
-                        if (
-                          !editItem.title ||
-                          editItem.title.trim().length < 8
-                        ) {
-                          setTitleError(
-                            'Title must be at least 8 characters long.',
-                          );
-                          hasErrors = true;
-                        } else if (countMeaningfulWords(editItem.title) < 2) {
-                          setTitleError(
-                            'Title must contain at least 2 meaningful words.',
-                          );
-                          hasErrors = true;
-                        } else {
-                          setTitleError(null);
-                        }
-
-                        if (
-                          !editItem.description ||
-                          editItem.description.trim().length < 32
-                        ) {
-                          setDescError(
-                            'Description must be at least 32 characters long.',
-                          );
-                          hasErrors = true;
-                        } else if (
-                          countMeaningfulWords(editItem.description) < 10
-                        ) {
-                          setDescError(
-                            'Description must contain at least 10 meaningful words.',
-                          );
-                          hasErrors = true;
-                        } else {
-                          setDescError(null);
-                        }
-
-                        // Check if release rights is 'others' and if source label or creator is required
-                        if (editItem.release_rights === 'others') {
-                          if (
-                            isOwnProfile &&
-                            (!editItem.creator ||
-                              editItem.creator.trim() === '')
-                          ) {
-                            // Creator is required for own profile when release rights is 'others'
-                            // For now we'll just show a general error, but we could add a specific state for this
-                            setSubmitError(
-                              'Creator is required when release rights is set to "Not Done By Author"',
-                            );
-                            hasErrors = true;
-                          } else if (
-                            !isOwnProfile &&
-                            (!sourceLabel || sourceLabel.trim() === '')
-                          ) {
-                            // Source label is required for other profiles when release rights is 'others'
-                            setSubmitError(
-                              'Source label is required when release rights is set to "Not Done By Author"',
-                            );
-                            hasErrors = true;
-                          }
-                        }
-
-                        if (hasErrors) {
-                          return; // Don't submit if there are validation errors
-                        }
-
-                        // Check if there are actual changes to save
-                        if (
-                          item.title === editItem.title &&
-                          item.description === editItem.description &&
-                          item.language === editItem.language &&
-                          item.release_rights === editItem.release_rights &&
-                          item.creator === editItem.creator &&
-                          (!isOwnProfile || sourceLabel === '') // Only check sourceLabel if on other's profile
-                        ) {
-                          toast.info('No changes to save');
-                          return;
-                        }
-
-                        try {
-                          const response = await fetch(
-                            `${BACKEND_URL}/records/${editItem.id}`,
-                            {
-                              method: 'PATCH',
-                              headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                              },
-                              body: JSON.stringify({
-                                title: editItem.title,
-                                description: editItem.description,
-                                language: editItem.language,
-                                release_rights: editItem.release_rights,
-                                ...(editItem.release_rights === 'others' &&
-                                isOwnProfile &&
-                                editItem.creator
-                                  ? { creator: editItem.creator }
-                                  : {}),
-                                ...(editItem.release_rights === 'others' &&
-                                !isOwnProfile &&
-                                sourceLabel
-                                  ? { source_label: sourceLabel }
-                                  : {}),
-                                // Add other fields that can be edited if needed
-                              }),
-                            },
-                          );
-
-                          if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(
-                              errorData.detail || 'Failed to update record',
-                            );
-                          }
-
-                          // Update the original item with edited values
-                          item.title = editItem.title;
-                          item.description = editItem.description;
-                          item.language = editItem.language;
-                          item.release_rights = editItem.release_rights;
-                          item.creator = editItem.creator;
-
-                          setIsEditing(false);
-                        } catch (error) {
-                          console.error('Error updating record:', error);
-                          setSubmitError(
-                            `Error updating record: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                          );
-                        }
-                      }}
-                      className="flex-1 px-4 py-2 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-green-200 hover:border-green-600"
-                    >
-                      <span className="text-sm font-semibold">Save</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        // Cancel editing and revert changes
-                        setEditItem({ ...item });
-                        setSourceLabel(''); // Reset source label
-                        setTitleError(null); // Reset validation errors
-                        setDescError(null);
-                        setSubmitError(null);
-                        setIsEditing(false);
-                      }}
-                      className="flex-1 px-4 py-2 bg-gray-50 text-gray-600 hover:bg-gray-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-gray-200 hover:border-gray-600"
-                    >
-                      <span className="text-sm font-semibold">Cancel</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        setIsEditing(true);
-                        // Initialize validation states
-                        setTitleError(null);
-                        setDescError(null);
-                        setSubmitError(null);
-                        // Initialize source label if release rights is 'others'
-                        if (item.release_rights === 'others') {
-                          setSourceLabel(''); // Initialize to empty, it will be populated if needed
-                        }
-                      }}
-                      className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-blue-200 hover:border-blue-600"
-                    >
-                      <Pencil size={18} />
-                      <span className="text-sm font-semibold">Edit</span>
-                    </button>
-                    <button
-                      onClick={() => setShowHistory(!showHistory)}
-                      className="flex-1 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 border border-purple-200 hover:border-purple-600"
-                    >
-                      <History size={18} />
-                      <span className="text-sm font-semibold">
-                        {showHistory ? 'Hide History' : 'View History'}
-                      </span>
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Details */}
-            <div className="space-y-4 sm:space-y-6">
-              {/* Title and Description */}
-              <div className="space-y-4">
-                {isEditing ? (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={editItem.title}
-                        onChange={(e) => {
-                          const t = e.target.value;
-                          setEditItem({ ...editItem, title: t });
-                          if (t.trim().length < 8) {
-                            setTitleError(
-                              'Title must be at least 8 characters long.',
-                            );
-                          } else if (countMeaningfulWords(t) < 2) {
-                            setTitleError(
-                              'Title must contain at least 2 meaningful words.',
-                            );
-                          } else {
-                            setTitleError(null);
-                          }
-                        }}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                          titleError
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-300 focus:border-blue-500'
-                        }`}
-                      />
-                      {titleError && (
-                        <p className="text-xs text-red-500 mt-1 font-medium">
-                          {titleError}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Description
-                      </label>
-                      <textarea
-                        value={editItem.description}
-                        onChange={(e) => {
-                          const d = e.target.value;
-                          setEditItem({ ...editItem, description: d });
-                          if (d.trim().length < 32) {
-                            setDescError(
-                              'Description must be at least 32 characters long.',
-                            );
-                          } else if (countMeaningfulWords(d) < 10) {
-                            setDescError(
-                              'Description must contain at least 10 meaningful words.',
-                            );
-                          } else {
-                            setDescError(null);
-                          }
-                        }}
-                        rows={4}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 resize-none ${
-                          descError
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-300 focus:border-blue-500'
-                        }`}
-                      />
-                      {descError && (
-                        <p className="text-xs text-red-500 mt-1 font-medium">
-                          {descError}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-1">
-                        {countMeaningfulWords(editItem.description || '')}{' '}
-                        meaningful words
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-                      {item.title || 'Untitled'}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {item.description || 'No description available'}
-                    </p>
-                  </>
-                )}
-              </div>
-
-              {/* Metadata */}
-              <div className="space-y-3 bg-gray-50 rounded-xl p-3 sm:p-4">
-                <h4 className="font-semibold text-gray-900 mb-3">
-                  Information
-                </h4>
-
-                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-                  <Clock
-                    size={18}
-                    className="text-gray-400 mt-0.5 flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">
-                      Timestamp
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {item.timestamp
-                        ? new Date(item.timestamp).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                          })
-                        : 'Not available'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-                  <svg
-                    className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.414A1 1 0 0112.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">
-                      Location
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {item.location &&
-                      typeof item.location.latitude === 'number' &&
-                      typeof item.location.longitude === 'number'
-                        ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
-                        : 'Not available'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-                  <svg
-                    className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">
-                      File Size
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {item.size ? formatSizeMB(item.size) : 'Not available'}
-                    </p>
-                  </div>
-                </div>
-
-                {isEditing ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Language
-                    </label>
-                    <Select
-                      value={editItem.language}
-                      onValueChange={(val) =>
-                        setEditItem({ ...editItem, language: val })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue
-                          placeholder={editItem.language || 'Select language'}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {languages.map((lang) => (
-                          <SelectItem key={lang} value={lang}>
-                            {lang}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-                    <svg
-                      className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700">
-                        Language
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {item.language || 'Not specified'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Release Rights
-                      </label>
-                      <Select
-                        value={editItem.release_rights}
-                        onValueChange={(val) => {
-                          setEditItem((prev) => ({
-                            ...prev,
-                            release_rights: val,
-                            // Clear creator field if not 'others'
-                            creator: val !== 'others' ? '' : prev.creator,
-                          }));
-                          // Clear sourceLabel if not 'others'
-                          if (val !== 'others') {
-                            setSourceLabel('');
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue
-                            placeholder={
-                              editItem.release_rights || 'Select release rights'
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {releaseOptions.map((opt) => (
-                            <SelectItem key={opt.key} value={opt.key}>
-                              {opt.value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {editItem.release_rights === 'others' && (
-                      <>
-                        {isOwnProfile ? (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Creator
-                            </label>
-                            <input
-                              type="text"
-                              value={editItem.creator}
-                              onChange={(e) =>
-                                setEditItem({
-                                  ...editItem,
-                                  creator: e.target.value,
-                                })
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Specify creator"
-                            />
-                          </div>
-                        ) : (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Source Label
-                            </label>
-                            <input
-                              type="text"
-                              value={sourceLabel}
-                              onChange={(e) => setSourceLabel(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Specify source"
-                            />
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-                      <svg
-                        className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                        />
-                      </svg>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700">
-                          Release Rights
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {item.release_rights || 'Not specified'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Category Tags */}
-                    <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-                      <svg
-                        className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                        />
-                      </svg>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700">
-                          Categories
-                        </p>
-                        <div className="mt-1">
-                          <CategoryTags
-                            categoryIds={
-                              item.category_ids ||
-                              (item.category_id ? [item.category_id] : [])
-                            }
-                            token={token}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {item.reviewed && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
-                      ✓ Reviewed
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Edit History Section */}
-          {showHistory && (
-            <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
-              <InlineEditHistory recordId={item.id} token={token} />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Component for image grid view
-interface ImageGridItemProps {
-  item: ContributionItem;
-  token: string;
-  isOwnProfile: boolean;
-}
-
-const ImageGridItem: React.FC<ImageGridItemProps> = ({
-  item,
-  token,
-  isOwnProfile,
-}) => {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(false);
-
-  // Lazy load image URL only when needed
-  useEffect(() => {
-    if (!shouldLoad || imageUrl) return;
-
-    const fetchImageUrl = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch image URL');
-        }
-
-        const data = await response.json();
-        if (data.record_url) {
-          setImageUrl(data.record_url);
-        }
-      } catch (err) {
-        console.error('Error fetching image:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImageUrl();
-  }, [item.id, token, shouldLoad, imageUrl]);
-
-  return (
-    <>
-      <div
-        onClick={() => {
-          setShouldLoad(true);
-          setShowModal(true);
-        }}
-        onMouseEnter={() => setShouldLoad(true)}
-        className="group relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
-      >
-        {/* Image Container */}
-        <div className="aspect-square relative overflow-hidden bg-white">
-          {!shouldLoad && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
-              <svg
-                className="w-12 h-12 sm:w-16 sm:h-16 text-orange-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-          )}
-          {shouldLoad && loading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-blue-500" />
-            </div>
-          )}
-          {shouldLoad && error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-              <div className="text-center p-3 sm:p-4">
-                <svg
-                  className="w-8 h-8 sm:w-12 sm:h-12 mx-auto text-gray-400 mb-1 sm:mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <p className="text-xs text-gray-500">Image unavailable</p>
-              </div>
-            </div>
-          )}
-          {shouldLoad && imageUrl && !loading && !error && (
-            <img
-              src={imageUrl}
-              alt={item.title || 'Image'}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              onError={() => setError(true)}
-            />
-          )}
-
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
-              <p className="font-semibold text-xs sm:text-sm truncate">
-                {item.title || 'Untitled'}
-              </p>
-              <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Info Section */}
-        <div className="p-3 sm:p-4 bg-white">
-          <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-1 sm:mb-2 truncate">
-            {item.title || 'Untitled'}
-          </h3>
-          <p className="text-xs text-gray-500 truncate">
-            {item.description || 'No description'}
-          </p>
-        </div>
-      </div>
-
-      {/* Modal */}
-      <MediaDetailModal
-        item={item}
-        mediaType="image"
-        previewUrl={imageUrl}
-        token={token}
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        isOwnProfile={isOwnProfile}
-      />
-    </>
-  );
-};
-
-// Generic Media Grid Item for all media types
-interface MediaGridItemProps {
-  item: ContributionItem;
-  mediaType: 'text' | 'audio' | 'video' | 'document';
-  token: string;
-  isOwnProfile: boolean;
-}
-
-const MediaGridItem: React.FC<MediaGridItemProps> = ({
-  item,
-  mediaType,
-  token,
-  isOwnProfile,
-}) => {
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(false);
-
-  // Lazy load media URL for text, audio, and document types only (video is handled separately in the modal)
-  useEffect(() => {
-    if (
-      (mediaType === 'text' ||
-        mediaType === 'audio' ||
-        mediaType === 'document') &&
-      shouldLoad &&
-      !mediaUrl
-    ) {
-      const fetchMediaUrl = async () => {
-        setLoading(true);
-        try {
-          const response = await fetch(
-            `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
-            {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          );
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch media URL');
-          }
-
-          const data = await response.json();
-          if (data.record_url) {
-            setMediaUrl(data.record_url);
-          }
-        } catch (err) {
-          console.error('Error fetching media:', err);
-          setError(true);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchMediaUrl();
-    }
-  }, [item.id, token, mediaType, shouldLoad, mediaUrl]);
-
-  const getMediaIcon = () => {
-    switch (mediaType) {
-      case 'text':
-        return (
-          <svg
-            className="w-12 h-12 sm:w-16 sm:h-16 text-blue-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-        );
-      case 'audio':
-        return (
-          <svg
-            className="w-12 h-12 sm:w-16 sm:h-16 text-green-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-            />
-          </svg>
-        );
-      case 'document':
-        return (
-          <svg
-            className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-            />
-          </svg>
-        );
-      case 'video':
-        return (
-          <svg
-            className="w-12 h-12 sm:w-16 sm:h-16 text-purple-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <>
-      <div
-        onClick={() => {
-          setShouldLoad(true);
-          setShowModal(true);
-        }}
-        onMouseEnter={() => setShouldLoad(true)}
-        className="group relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
-      >
-        {/* Media Container */}
-        <div className="aspect-square relative overflow-hidden bg-white">
-          {shouldLoad && loading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-blue-500" />
-            </div>
-          )}
-          {shouldLoad &&
-            mediaUrl &&
-            !loading &&
-            !error &&
-            mediaType === 'video' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black">
-                <video
-                  src={mediaUrl}
-                  className="w-full h-full object-cover"
-                  muted
-                  playsInline
-                />
-              </div>
-            )}
-          {(mediaType === 'text' ||
-            mediaType === 'audio' ||
-            mediaType === 'document' ||
-            mediaType === 'video') && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white to-gray-50">
-              {getMediaIcon()}
-            </div>
-          )}
-
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
-              <p className="font-semibold text-xs sm:text-sm truncate">
-                {item.title || 'Untitled'}
-              </p>
-              <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Info Section */}
-        <div className="p-3 sm:p-4 bg-white">
-          <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-1 sm:mb-2 truncate">
-            {item.title || 'Untitled'}
-          </h3>
-          <p className="text-xs text-gray-500 truncate">
-            {item.description || 'No description'}
-          </p>
-        </div>
-      </div>
-
-      {/* Modal */}
-      <MediaDetailModal
-        item={item}
-        mediaType={mediaType}
-        previewUrl={mediaUrl}
-        token={token}
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        isOwnProfile={isOwnProfile}
-      />
-    </>
-  );
-};
-
-const ContributionsList: React.FC<ContributionsListProps> = ({
-  contributions,
-  selectedMediaType,
-  token,
-  isOwnProfile,
-}) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
-
-  let items: ContributionItem[] = [];
-  if (!contributions || !selectedMediaType) return null;
-
-  if (selectedMediaType === 'text') items = contributions.textContributions;
-  if (selectedMediaType === 'audio') items = contributions.audioContributions;
-  if (selectedMediaType === 'video') items = contributions.videoContributions;
-  if (selectedMediaType === 'image') items = contributions.imageContributions;
-  if (selectedMediaType === 'document')
-    items = contributions.documentContributions;
-
-  if (!items || items.length === 0) {
-    return (
-      <div className="text-center text-gray-400 py-8 text-lg font-medium">
-        No{' '}
-        {selectedMediaType.charAt(0).toUpperCase() + selectedMediaType.slice(1)}{' '}
-        contributions yet.
-      </div>
-    );
-  }
-
-  // Calculate pagination
-  const totalPages = Math.ceil(items.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = items.slice(startIndex, endIndex);
-
-  // Show grid layout for all media types
-  if (selectedMediaType === 'image') {
-    return (
-      <div>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-          {currentItems.map((item) => (
-            <ImageGridItem
-              key={item.id}
-              item={item}
-              token={token}
-              isOwnProfile={isOwnProfile}
-            />
-          ))}
-        </div>
-        {/* Pagination controls */}
-        {totalPages > 1 && (
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        )}
-      </div>
-    );
-  }
-
-  if (
-    selectedMediaType === 'text' ||
-    selectedMediaType === 'audio' ||
-    selectedMediaType === 'video' ||
-    selectedMediaType === 'document'
-  ) {
-    return (
-      <div>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-          {currentItems.map((item) => (
-            <MediaGridItem
-              key={item.id}
-              item={item}
-              mediaType={selectedMediaType}
-              token={token}
-              isOwnProfile={isOwnProfile}
-            />
-          ))}
-        </div>
-        {/* Pagination controls */}
-        {totalPages > 1 && (
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Fallback (should never reach here)
-  return null;
-};
 
 // Dashboard card component
 interface DashboardCardProps {
@@ -2856,170 +1485,6 @@ const MediaTypeCard: React.FC<MediaTypeCardProps> = ({
     )}
   </div>
 );
-
-// NEW: Component to show edit history inline
-interface InlineEditHistoryProps {
-  recordId: string;
-  token: string;
-}
-
-const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
-  recordId,
-  token,
-}) => {
-  const [history, setHistory] = useState<EditHistoryEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
-
-  const formatFieldName = (fieldName: string) => {
-    return fieldName
-      .replace(/_/g, ' ')
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${BACKEND_URL}/history/record/${recordId}/history`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        if (!response.ok) {
-          throw new Error('Failed to fetch edit history');
-        }
-        const data = await response.json();
-        setHistory(data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'An unknown error occurred.',
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHistory();
-  }, [recordId, token]);
-
-  return (
-    <div className="mt-4 pt-4 border-t border-gray-200">
-      <h4 className="text-md font-semibold text-gray-700 mb-2">Edit History</h4>
-      {loading && (
-        <div className="flex justify-center items-center py-4">
-          <Loader2 className="animate-spin text-blue-500" size={24} />
-        </div>
-      )}
-      {error && <p className="text-red-500 text-center py-4">{error}</p>}
-      {!loading && !error && history.length === 0 && (
-        <p className="text-gray-500 text-center py-4">
-          No edit history found for this record.
-        </p>
-      )}
-      {!loading && !error && history.length > 0 && (
-        <ul className="space-y-2">
-          {history.map((entry) => {
-            const isExpanded = expandedEntry === entry.uid;
-            return (
-              <li
-                key={entry.uid}
-                className="border rounded-lg overflow-hidden bg-white"
-              >
-                <button
-                  onClick={() =>
-                    setExpandedEntry(isExpanded ? null : entry.uid)
-                  }
-                  className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="text-left">
-                    <p className="font-semibold text-gray-800">
-                      Version {entry.version_number}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(entry.created_at).toLocaleString()} by{' '}
-                      <span className="font-medium">
-                        {entry.changed_by || 'N/A'}
-                      </span>
-                    </p>
-                  </div>
-                  {isExpanded ? (
-                    <ChevronDown size={20} />
-                  ) : (
-                    <ChevronUp size={20} />
-                  )}
-                </button>
-                {isExpanded && (
-                  <div className="p-4 bg-white">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
-                      <p>
-                        <strong className="text-gray-600">Change Type:</strong>{' '}
-                        <span className="font-mono bg-gray-100 px-1 rounded">
-                          {entry.change_type || 'N/A'}
-                        </span>
-                      </p>
-                      <p>
-                        <strong className="text-gray-600">
-                          Change Source:
-                        </strong>{' '}
-                        <span className="font-mono bg-gray-100 px-1 rounded">
-                          {entry.change_source || 'N/A'}
-                        </span>
-                      </p>
-                    </div>
-                    {entry.field_changes &&
-                      Object.keys(entry.field_changes).length > 0 && (
-                        <div>
-                          <strong className="text-base font-semibold text-gray-700">
-                            Field Changes:
-                          </strong>
-                          <ul className="mt-2 space-y-2">
-                            {Object.entries(entry.field_changes).map(
-                              ([field, change]) => (
-                                <li
-                                  key={field}
-                                  className="p-2 border rounded-md bg-gray-50"
-                                >
-                                  <strong className="font-semibold text-gray-800">
-                                    {formatFieldName(field)}
-                                  </strong>
-                                  <div className="flex items-center mt-1">
-                                    <span className="text-xs font-medium text-red-500 mr-2">
-                                      OLD:
-                                    </span>
-                                    <span className="font-mono text-sm text-red-700 bg-red-50 p-1 rounded line-through">
-                                      {String(change.old_value ?? 'N/A')}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center mt-1">
-                                    <span className="text-xs font-medium text-green-500 mr-2">
-                                      NEW:
-                                    </span>
-                                    <span className="font-mono text-sm text-green-700 bg-green-50 p-1 rounded">
-                                      {String(change.new_value ?? 'N/A')}
-                                    </span>
-                                  </div>
-                                </li>
-                              ),
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
-};
 
 // Pagination Controls Component
 interface PaginationControlsProps {
