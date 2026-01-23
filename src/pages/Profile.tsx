@@ -1,23 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  ArrowLeft,
-  Loader2,
-  X,
-  TrendingUp,
-  Award,
-  Activity,
-  BarChart,
-  Zap,
-  Calendar,
-  History,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Pencil,
-  LogOut,
-  Info,
-} from 'lucide-react';
+import { X, LogOut, MessageSquare, Loader2 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import { getPointsStats, DailyPoint } from '@/lib/points';
@@ -82,6 +65,7 @@ interface UserProfileData {
   name: string;
   username?: string;
   profile_picture_path?: string | null;
+  short_bio?: string | null;
   streaks: {
     combined_streak: {
       current: number;
@@ -730,6 +714,7 @@ function Profile() {
             name: userData.name || userData.username || 'Unknown User',
             username: userData.username,
             profile_picture_path: userData.profile_picture_path || null,
+            short_bio: userData.short_bio || null,
             streaks: {
               combined_streak: {
                 current: userData.streak_days || 0,
@@ -790,6 +775,7 @@ function Profile() {
             name: userData.user_name || 'Unknown User',
             username: userData.username,
             profile_picture_path: userData.profile_picture_path || null,
+            short_bio: userData.short_bio || null,
             streaks: userData.streaks,
             timeline: userData.timeline,
             summary: userData.summary,
@@ -880,7 +866,7 @@ function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 sm:mb-12 pt-4 pb-24">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
           {/* Profile Info Section - Mobile Responsive Layout */}
           <div className="p-4 relative">
             <div className="flex gap-2 absolute right-0 sm:right-5">
@@ -1009,8 +995,20 @@ function Profile() {
           </div>
         </div>
 
+        {/* Bio Section - Visible for all user profiles */}
+        {profile?.short_bio && (
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
+            <div className="flex items-start">
+              <MessageSquare className="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
+              <p className="text-gray-700 text-xs sm:text-sm">
+                {profile.short_bio}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Points Heatmap Section - Visible for all user profiles */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
           {pointsError ? (
             <div className="text-center py-4">
               <p className="text-red-500">{pointsError}</p>
@@ -1025,8 +1023,8 @@ function Profile() {
         </div>
 
         {/* Contributions Section - Mobile Responsive Design */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
-          <div className="mt-2 sm:mt-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
+          <div className="mt-1 sm:mt-2">
             <ContributionDashboard
               dailyStats={{
                 uploads_today: calculateUploadsToday(),

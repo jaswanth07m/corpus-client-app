@@ -43,6 +43,8 @@ import {
   EyeOff,
   Map,
   Navigation,
+  Star,
+  Earth,
 } from 'lucide-react';
 import LocationPicker from '@/components/LocationPicker';
 
@@ -168,7 +170,7 @@ function InfoBox({
 }) {
   return (
     <div className="p-4 border rounded-xl bg-gray-50 flex items-start gap-2">
-      {Icon && <Icon className="w-4 h-4 text-gray-500 mt-0.5" />}
+      {Icon && <Icon className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />}
       <div>
         <p className="text-gray-500 text-sm">{label}</p>
         <p className="text-gray-900 font-medium break-all">{value}</p>
@@ -188,10 +190,121 @@ function InfoBoxFull({
 }) {
   return (
     <div className="p-4 border rounded-xl bg-gray-50 w-full flex items-start gap-2">
-      {Icon && <Icon className="w-4 h-4 text-gray-500 mt-0.5" />}
+      {Icon && <Icon className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />}
       <div>
         <p className="text-gray-500 text-sm">{label}</p>
         <p className="text-gray-900 font-medium break-all">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// Component to display proficiency as stars
+function ProficiencyStars({
+  proficiency,
+}: {
+  proficiency: 'basic' | 'intermediate' | 'proficient';
+}) {
+  const getStarCount = () => {
+    switch (proficiency) {
+      case 'basic':
+        return 1;
+      case 'intermediate':
+        return 2;
+      case 'proficient':
+        return 3;
+      default:
+        return 0;
+    }
+  };
+
+  const filledStars = getStarCount();
+
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3].map((star) => (
+        <Star
+          key={star}
+          className={`w-4 h-4 ${star <= filledStars ? 'text-yellow-500 fill-current' : 'text-gray-300'}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Component to display location timeline
+function LocationTimeline({
+  fromPlace,
+  placesLived,
+  fromPlaceAddress,
+  placesLivedAddresses,
+}: {
+  fromPlace: Coordinates | null;
+  placesLived: PlacesLived | null;
+  fromPlaceAddress: string | null;
+  placesLivedAddresses: { [key: string]: string };
+}) {
+  return (
+    <div className="w-full p-2">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Top Section: From Place */}
+        {fromPlace && (
+          <div className="relative bg-blue-50/80 p-4 border-b border-blue-100">
+            <div className="flex gap-3">
+              {/* Icon Column */}
+              <div className="flex flex-col items-center">
+                <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600 shadow-sm">
+                  <Home size={16} />
+                </div>
+              </div>
+
+              {/* Content Column */}
+              <div className="flex-1 pt-0.5">
+                <p className="text-gray-500 text-sm">From Place</p>
+                <p className="mt-1 text-sm text-gray-700">
+                  {fromPlaceAddress ||
+                    `${fromPlace.latitude.toFixed(6)}, ${fromPlace.longitude.toFixed(6)}`}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Section: Places Lived */}
+        {placesLived?.places && placesLived.places.length > 0 && (
+          <div className="p-4 pt-5">
+            <p className="text-gray-500 text-sm mb-3 ml-10">Places Lived</p>
+
+            <div className="space-y-3">
+              {placesLived.places.map((place, index) => {
+                const addressKey = `${place.latitude},${place.longitude}`;
+                const formattedAddress = placesLivedAddresses[addressKey];
+
+                return (
+                  <div key={index} className="relative flex gap-3 group">
+                    {/* Timeline Line (Background) */}
+                    {index < placesLived.places.length - 1 && (
+                      <div className="absolute top-8 left-4 w-0.5 bg-gray-300 h-10"></div>
+                    )}
+
+                    {/* Icon */}
+                    <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white ring-2 ring-white shadow-sm shrink-0">
+                      <Earth size={14} />
+                    </div>
+
+                    {/* Content Card */}
+                    <div className="flex-1 bg-gray-50 rounded border border-gray-100 p-3 hover:bg-gray-100 transition-colors">
+                      <h4 className="font-medium text-gray-900 text-sm">
+                        {formattedAddress ||
+                          `${place.latitude.toFixed(6)}, ${place.longitude.toFixed(6)}`}
+                      </h4>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -355,7 +468,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
         // Fetch formatted addresses for places lived if they exist
         if (data.places_lived?.places && data.places_lived.places.length > 0) {
           data.places_lived.places.forEach((place) => {
-            fetchPlacesLivedAddress(place.latitude, place.longitude);
+            fetchFormattedAddress(place.latitude, place.longitude, true);
           });
         }
 
@@ -389,7 +502,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
       profile.places_lived.places.length > 0
     ) {
       profile.places_lived.places.forEach((place) => {
-        fetchPlacesLivedAddress(place.latitude, place.longitude);
+        fetchFormattedAddress(place.latitude, place.longitude, true);
       });
     } else {
       setPlacesLivedAddresses({});
@@ -397,43 +510,10 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
   }, [profile.places_lived]);
 
   // Function to fetch formatted address for coordinates
-  const fetchFormattedAddress = async (latitude: number, longitude: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('Authentication token not found');
-        return;
-      }
-
-      const response = await fetch(`${BACKEND_URL}/location/verify-location`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          latitude,
-          longitude,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch location: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setFromPlaceAddress(data.formatted_address);
-    } catch (error) {
-      console.error('Error fetching formatted address:', error);
-      // Fallback to showing coordinates if API fails
-      setFromPlaceAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-    }
-  };
-
-  // Function to fetch formatted address for places lived
-  const fetchPlacesLivedAddress = async (
+  const fetchFormattedAddress = async (
     latitude: number,
     longitude: number,
+    isPlacesLived: boolean = false,
   ) => {
     try {
       const token = localStorage.getItem('token');
@@ -460,31 +540,41 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
       const data = await response.json();
 
-      // Format as "city, state, country"
-      const addressParts = [];
-      if (data.city) addressParts.push(data.city);
-      if (data.state) addressParts.push(data.state);
-      if (data.country) addressParts.push(data.country);
+      if (isPlacesLived) {
+        // Format as "city, state, country" for places lived
+        const addressParts = [];
+        if (data.city) addressParts.push(data.city);
+        if (data.state) addressParts.push(data.state);
+        if (data.country) addressParts.push(data.country);
 
-      const formattedAddress =
-        addressParts.length > 0
-          ? addressParts.join(', ')
-          : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        const formattedAddress =
+          addressParts.length > 0
+            ? addressParts.join(', ')
+            : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 
-      setPlacesLivedAddresses((prev) => ({
-        ...prev,
-        [`${latitude},${longitude}`]: formattedAddress,
-      }));
+        setPlacesLivedAddresses((prev) => ({
+          ...prev,
+          [`${latitude},${longitude}`]: formattedAddress,
+        }));
+      } else {
+        // Use full formatted address for from_place
+        setFromPlaceAddress(
+          data.formatted_address ||
+            `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+        );
+      }
     } catch (error) {
-      console.error(
-        'Error fetching formatted address for places lived:',
-        error,
-      );
-      // Fallback to showing coordinates if API fails
-      setPlacesLivedAddresses((prev) => ({
-        ...prev,
-        [`${latitude},${longitude}`]: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
-      }));
+      console.error('Error fetching formatted address:', error);
+      const fallback = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+
+      if (isPlacesLived) {
+        setPlacesLivedAddresses((prev) => ({
+          ...prev,
+          [`${latitude},${longitude}`]: fallback,
+        }));
+      } else {
+        setFromPlaceAddress(fallback);
+      }
     }
   };
 
@@ -645,29 +735,6 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     value={profile.name || ''}
                     onChange={(e) => handleChange('name', e.target.value)}
                     placeholder="Enter full name"
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profile.email || ''}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    placeholder="Enter email address"
-                  />
-                </div>
-
-                {/* Phone Number */}
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={profile.phone || ''}
-                    onChange={(e) => handleChange('phone', e.target.value)}
-                    placeholder="Enter phone number"
                   />
                 </div>
 
@@ -1113,46 +1180,6 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     Add Social Media
                   </Button>
                 </div>
-
-                {/* Horizontal divider */}
-                <div className="md:col-span-2 my-2 border-t border-gray-200"></div>
-
-                {/* Only show privacy settings for own profile */}
-                {currentUserInfo &&
-                  (currentUserInfo.id === userId ||
-                    currentUserInfo.username === userId) && (
-                    <>
-                      {/* Phone Privacy */}
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="phone_privacy">Phone Privacy</Label>
-                        <Switch
-                          id="phone_privacy"
-                          checked={profile.phone_privacy === 'private'}
-                          onCheckedChange={(checked) =>
-                            handleChange(
-                              'phone_privacy',
-                              checked ? 'private' : 'public',
-                            )
-                          }
-                        />
-                      </div>
-
-                      {/* Email Privacy */}
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="email_privacy">Email Privacy</Label>
-                        <Switch
-                          id="email_privacy"
-                          checked={profile.email_privacy === 'private'}
-                          onCheckedChange={(checked) =>
-                            handleChange(
-                              'email_privacy',
-                              checked ? 'private' : 'public',
-                            )
-                          }
-                        />
-                      </div>
-                    </>
-                  )}
               </div>
 
               {/* Action Buttons */}
@@ -1211,7 +1238,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                   {/* Social Media Profiles */}
                   {profile.social_media_profiles?.profiles &&
                   profile.social_media_profiles.profiles.length > 0 ? (
-                    <div className="flex flex-wrap gap-3 mt-2">
+                    <div className="flex flex-wrap gap-3 mt-2 justify-center sm:justify-start">
                       {profile.social_media_profiles.profiles.map(
                         (social, index) => (
                           <a
@@ -1250,10 +1277,10 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {profile.short_bio && (
                   <div className="md:col-span-2">
                     <div className="p-4 border rounded-xl bg-gray-50 flex items-start gap-2">
-                      <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5" />
+                      <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-gray-500 text-sm">Short Bio</p>
-                        <p className="text-gray-900 font-medium break-all">
+                        <p className="text-gray-900 font-medium break-words text-sm">
                           {profile.short_bio}
                         </p>
                       </div>
@@ -1270,46 +1297,6 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {profile.gender && (
                   <InfoBox label="Gender" value={profile.gender} icon={User} />
                 )}
-                {(currentUserInfo &&
-                (currentUserInfo.id === userId ||
-                  currentUserInfo.username === userId)
-                  ? profile.email !== null
-                  : (profile.email && profile.email_privacy !== 'private') ||
-                    profile.email_privacy === 'public') && (
-                  <InfoBox
-                    label="Email"
-                    value={
-                      currentUserInfo &&
-                      (currentUserInfo.id === userId ||
-                        currentUserInfo.username === userId)
-                        ? profile.email || 'Not provided'
-                        : profile.email_privacy === 'private'
-                          ? '****'
-                          : profile.email || 'Not provided'
-                    }
-                    icon={Mail}
-                  />
-                )}
-                {(currentUserInfo &&
-                (currentUserInfo.id === userId ||
-                  currentUserInfo.username === userId)
-                  ? profile.phone !== null
-                  : (profile.phone && profile.phone_privacy !== 'private') ||
-                    profile.phone_privacy === 'public') && (
-                  <InfoBox
-                    label="Phone Number"
-                    value={
-                      currentUserInfo &&
-                      (currentUserInfo.id === userId ||
-                        currentUserInfo.username === userId)
-                        ? profile.phone || 'Not provided'
-                        : profile.phone_privacy === 'private'
-                          ? '****'
-                          : profile.phone || 'Not provided'
-                    }
-                    icon={Phone}
-                  />
-                )}
               </div>
 
               {/* Full width sections */}
@@ -1319,7 +1306,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 profile.language_proficiencies.proficiencies.length > 0 ? (
                   <div className="w-full -mt-1">
                     <div className="flex items-start gap-2 mb-1">
-                      <Hash className="w-4 h-4 text-gray-500 mt-0.5" />
+                      <Hash className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
                       <p className="text-gray-500 text-sm">
                         Language Proficiencies
                       </p>
@@ -1330,13 +1317,14 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                           <div key={index} className="flex gap-2">
                             <div className="p-3 border rounded-lg bg-gray-50 flex-1">
                               <p className="text-gray-900 font-medium break-all">
-                                {lang.language}
+                                {lang.language.charAt(0).toUpperCase() +
+                                  lang.language.slice(1)}
                               </p>
                             </div>
-                            <div className="p-3 border rounded-lg bg-gray-50 flex-1">
-                              <p className="text-gray-900 font-medium break-all">
-                                {lang.proficiency}
-                              </p>
+                            <div className="p-3 border rounded-lg bg-gray-50 flex-1 flex items-center justify-center">
+                              <ProficiencyStars
+                                proficiency={lang.proficiency}
+                              />
                             </div>
                           </div>
                         ),
@@ -1345,46 +1333,17 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                   </div>
                 ) : null}
 
-                {/* From Place */}
-                {profile.from_place ? (
-                  <InfoBoxFull
-                    label="From Place"
-                    value={
-                      fromPlaceAddress ||
-                      `${profile.from_place.latitude.toFixed(6)}, ${profile.from_place.longitude.toFixed(6)}`
-                    }
-                    icon={Home}
+                {/* Location Timeline - Combines From Place and Places Lived */}
+                {(profile.from_place ||
+                  (profile.places_lived?.places &&
+                    profile.places_lived.places.length > 0)) && (
+                  <LocationTimeline
+                    fromPlace={profile.from_place}
+                    placesLived={profile.places_lived}
+                    fromPlaceAddress={fromPlaceAddress}
+                    placesLivedAddresses={placesLivedAddresses}
                   />
-                ) : null}
-
-                {/* Places Lived */}
-                {profile.places_lived?.places &&
-                profile.places_lived.places.length > 0 ? (
-                  <div className="w-full">
-                    <div className="flex items-start gap-2 mb-1">
-                      <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
-                      <p className="text-gray-500 text-sm">Places Lived</p>
-                    </div>
-                    <div className="space-y-1">
-                      {profile.places_lived.places.map((place, index) => {
-                        const addressKey = `${place.latitude},${place.longitude}`;
-                        const formattedAddress =
-                          placesLivedAddresses[addressKey];
-
-                        return (
-                          <div key={index} className="flex gap-2">
-                            <div className="p-3 border rounded-lg bg-gray-50 flex-1">
-                              <p className="text-gray-900 font-medium break-all">
-                                {formattedAddress ||
-                                  `${place.latitude.toFixed(6)}, ${place.longitude.toFixed(6)}`}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
+                )}
               </div>
             </div>
           )}
