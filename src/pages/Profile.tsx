@@ -227,6 +227,32 @@ function Profile() {
     useState<boolean>(false);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
 
+  // Effect to hide bottom navigation when any modal is open
+  useEffect(() => {
+    if (
+      showMediaGrid ||
+      showFollowersModal ||
+      showFollowingModal ||
+      showProfileInfo ||
+      showProfilePictureModal
+    ) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [
+    showMediaGrid,
+    showFollowersModal,
+    showFollowingModal,
+    showProfileInfo,
+    showProfilePictureModal,
+  ]);
+
   const getAuthToken = useCallback(() => {
     return localStorage.getItem('token');
   }, []);
