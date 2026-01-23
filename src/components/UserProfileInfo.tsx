@@ -282,6 +282,10 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
   const [currentLocationIndex, setCurrentLocationIndex] = useState<
     number | null
   >(null);
+  const [fromPlaceAddress, setFromPlaceAddress] = useState<string | null>(null);
+  const [placesLivedAddresses, setPlacesLivedAddresses] = useState<{
+    [key: string]: string;
+  }>({});
 
   // Get current user info to determine if viewing own profile
   useEffect(() => {
@@ -339,6 +343,22 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
         const data = await response.json();
         setProfile(data);
         setOriginalProfile({ ...data }); // Store original profile for comparison
+
+        // Fetch formatted address for from_place if it exists
+        if (data.from_place) {
+          fetchFormattedAddress(
+            data.from_place.latitude,
+            data.from_place.longitude,
+          );
+        }
+
+        // Fetch formatted addresses for places lived if they exist
+        if (data.places_lived?.places && data.places_lived.places.length > 0) {
+          data.places_lived.places.forEach((place) => {
+            fetchPlacesLivedAddress(place.latitude, place.longitude);
+          });
+        }
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -349,6 +369,124 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
     fetchProfile();
   }, [userId]);
+
+  // Fetch formatted address when from_place changes
+  useEffect(() => {
+    if (profile.from_place) {
+      fetchFormattedAddress(
+        profile.from_place.latitude,
+        profile.from_place.longitude,
+      );
+    } else {
+      setFromPlaceAddress(null);
+    }
+  }, [profile.from_place]);
+
+  // Fetch formatted addresses when places_lived changes
+  useEffect(() => {
+    if (
+      profile.places_lived?.places &&
+      profile.places_lived.places.length > 0
+    ) {
+      profile.places_lived.places.forEach((place) => {
+        fetchPlacesLivedAddress(place.latitude, place.longitude);
+      });
+    } else {
+      setPlacesLivedAddresses({});
+    }
+  }, [profile.places_lived]);
+
+  // Function to fetch formatted address for coordinates
+  const fetchFormattedAddress = async (latitude: number, longitude: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('Authentication token not found');
+        return;
+      }
+
+      const response = await fetch(`${BACKEND_URL}/location/verify-location`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          latitude,
+          longitude,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch location: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setFromPlaceAddress(data.formatted_address);
+    } catch (error) {
+      console.error('Error fetching formatted address:', error);
+      // Fallback to showing coordinates if API fails
+      setFromPlaceAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+    }
+  };
+
+  // Function to fetch formatted address for places lived
+  const fetchPlacesLivedAddress = async (
+    latitude: number,
+    longitude: number,
+  ) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('Authentication token not found');
+        return;
+      }
+
+      const response = await fetch(`${BACKEND_URL}/location/verify-location`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          latitude,
+          longitude,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch location: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Format as "city, state, country"
+      const addressParts = [];
+      if (data.city) addressParts.push(data.city);
+      if (data.state) addressParts.push(data.state);
+      if (data.country) addressParts.push(data.country);
+
+      const formattedAddress =
+        addressParts.length > 0
+          ? addressParts.join(', ')
+          : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+
+      setPlacesLivedAddresses((prev) => ({
+        ...prev,
+        [`${latitude},${longitude}`]: formattedAddress,
+      }));
+    } catch (error) {
+      console.error(
+        'Error fetching formatted address for places lived:',
+        error,
+      );
+      // Fallback to showing coordinates if API fails
+      setPlacesLivedAddresses((prev) => ({
+        ...prev,
+        [`${latitude},${longitude}`]: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+      }));
+    }
+  };
 
   const handleChange = (
     field: keyof UserProfile,
@@ -599,8 +737,8 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     {profile.from_place ? (
                       <div className="flex-1">
                         <p className="text-sm text-gray-500">
-                          {profile.from_place.latitude.toFixed(6)},{' '}
-                          {profile.from_place.longitude.toFixed(6)}
+                          {fromPlaceAddress ||
+                            `${profile.from_place.latitude.toFixed(6)}, ${profile.from_place.longitude.toFixed(6)}`}
                         </p>
                       </div>
                     ) : (
@@ -779,41 +917,46 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {/* Places Lived */}
                 <div className="md:col-span-2">
                   <Label htmlFor="places_lived">Places Lived</Label>
-                  {(profile.places_lived?.places || []).map((place, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-500">
-                          {place.latitude.toFixed(4)},{' '}
-                          {place.longitude.toFixed(4)}
-                        </p>
+                  {(profile.places_lived?.places || []).map((place, index) => {
+                    const addressKey = `${place.latitude},${place.longitude}`;
+                    const formattedAddress = placesLivedAddresses[addressKey];
+
+                    return (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-500">
+                            {formattedAddress ||
+                              `${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setCurrentLocationIndex(index);
+                            setShowLocationPicker(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const updatedPlaces = [
+                              ...(profile.places_lived?.places || []),
+                            ];
+                            updatedPlaces.splice(index, 1);
+                            handleChange('places_lived', {
+                              places: updatedPlaces,
+                            });
+                          }}
+                        >
+                          Remove
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setCurrentLocationIndex(index);
-                          setShowLocationPicker(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          const updatedPlaces = [
-                            ...(profile.places_lived?.places || []),
-                          ];
-                          updatedPlaces.splice(index, 1);
-                          handleChange('places_lived', {
-                            places: updatedPlaces,
-                          });
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <Button
                     type="button"
                     variant="outline"
@@ -1206,7 +1349,10 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {profile.from_place ? (
                   <InfoBoxFull
                     label="From Place"
-                    value={`${profile.from_place.latitude.toFixed(6)}, ${profile.from_place.longitude.toFixed(6)}`}
+                    value={
+                      fromPlaceAddress ||
+                      `${profile.from_place.latitude.toFixed(6)}, ${profile.from_place.longitude.toFixed(6)}`
+                    }
                     icon={Home}
                   />
                 ) : null}
@@ -1220,20 +1366,22 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                       <p className="text-gray-500 text-sm">Places Lived</p>
                     </div>
                     <div className="space-y-1">
-                      {profile.places_lived.places.map((place, index) => (
-                        <div key={index} className="flex gap-2">
-                          <div className="p-3 border rounded-lg bg-gray-50 flex-1">
-                            <p className="text-gray-900 font-medium break-all">
-                              {place.latitude.toFixed(6)}
-                            </p>
+                      {profile.places_lived.places.map((place, index) => {
+                        const addressKey = `${place.latitude},${place.longitude}`;
+                        const formattedAddress =
+                          placesLivedAddresses[addressKey];
+
+                        return (
+                          <div key={index} className="flex gap-2">
+                            <div className="p-3 border rounded-lg bg-gray-50 flex-1">
+                              <p className="text-gray-900 font-medium break-all">
+                                {formattedAddress ||
+                                  `${place.latitude.toFixed(6)}, ${place.longitude.toFixed(6)}`}
+                              </p>
+                            </div>
                           </div>
-                          <div className="p-3 border rounded-lg bg-gray-50 flex-1">
-                            <p className="text-gray-900 font-medium break-all">
-                              {place.longitude.toFixed(6)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ) : null}
