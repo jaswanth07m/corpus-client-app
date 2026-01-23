@@ -368,7 +368,7 @@ const PeerReview: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen pb-20">
+    <div className="flex flex-col h-screen pb-12">
       {/* Professional Header */}
       <div className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50 shadow-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
