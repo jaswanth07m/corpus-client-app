@@ -57,6 +57,9 @@ interface Coordinates {
 
 export interface ContributionItem {
   id: string;
+  user_id?: string;
+  user_name?: string;
+  username?: string;
   size: number;
   category_id?: string;
   category_ids?: string[];
