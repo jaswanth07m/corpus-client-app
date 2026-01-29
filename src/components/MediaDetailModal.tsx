@@ -52,11 +52,11 @@ interface Coordinates {
   longitude: number;
 }
 
-interface ContributionItem {
+export interface ContributionItem {
   id: string;
   size: number;
-  category_id?: string; // Keep for backward compatibility
-  category_ids?: string[]; // New field for multiple categories
+  category_id?: string;
+  category_ids?: string[];
   reviewed: boolean;
   title: string;
   description: string;
