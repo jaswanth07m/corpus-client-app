@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Loader2,
@@ -8,12 +8,9 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
-  MapPin,
-  User,
-  Tag,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
-import { formatSizeMB, formatDuration, getISTDate } from '@/lib/utils';
+import { formatSizeMB } from '@/lib/utils';
 import CategoryTags from '@/components/CategoryTags';
 import { InlineEditHistory } from './InlineEditHistory';
 import {
@@ -57,171 +54,33 @@ interface Coordinates {
 
 export interface ContributionItem {
   id: string;
-  user_id?: string;
-  user_name?: string;
-  username?: string;
   size: number;
-  category_id?: string;
-  category_ids?: string[];
+  category_id?: string; // Keep for backward compatibility
+  category_ids?: string[]; // New field for multiple categories
   reviewed: boolean;
   title: string;
   description: string;
   duration?: number;
   timestamp?: string;
+  // Alternative timestamp field names from different API responses
+  created_at?: string;
+  createdAt?: string;
+  date?: string;
+  uploaded_at?: string;
   location?: Coordinates;
   release_rights: string;
   creator: string;
   language: string;
   file_hash: string;
   snr_frequency: number;
-  media_type?: string;
+  user_id?: string;
+  user_name?: string;
+  username?: string;
+  // Alternative file size field names from different API responses
+  file_size?: number;
+  fileSize?: number;
+  bytes?: number;
 }
-
-// Record Detail View Component (reusable for both modal and page)
-export const RecordDetailView: React.FC<{ item: ContributionItem }> = ({
-  item,
-}) => {
-  return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      {/* Title and Status */}
-      <div className="p-6 border-b">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {item.title || 'Untitled'}
-            </h2>
-            <p className="text-gray-600">
-              {item.description || 'No description'}
-            </p>
-            {/* Record ID Badge */}
-            <div className="mt-3 flex items-center gap-2">
-              <span className="text-xs text-gray-500">ID:</span>
-              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
-                {item.id}
-              </span>
-            </div>
-          </div>
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-medium ${
-              item.reviewed
-                ? 'bg-green-100 text-green-800'
-                : 'bg-yellow-100 text-yellow-800'
-            }`}
-          >
-            {item.reviewed ? 'Reviewed' : 'Pending Review'}
-          </span>
-        </div>
-      </div>
-
-      {/* Details Grid */}
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Language */}
-        <div className="flex items-start gap-3">
-          <User className="w-5 h-5 text-gray-400 mt-0.5" />
-          <div>
-            <p className="text-sm text-gray-500">Language</p>
-            <p className="text-gray-900 capitalize">{item.language || 'N/A'}</p>
-          </div>
-        </div>
-
-        {/* Creator */}
-        <div className="flex items-start gap-3">
-          <User className="w-5 h-5 text-gray-400 mt-0.5" />
-          <div>
-            <p className="text-sm text-gray-500">Contributor</p>
-            <p className="text-gray-900">{item.creator || 'N/A'}</p>
-          </div>
-        </div>
-
-        {/* Size */}
-        <div className="flex items-start gap-3">
-          <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
-          <div>
-            <p className="text-sm text-gray-500">Size</p>
-            <p className="text-gray-900">
-              {item.size !== undefined && item.size > 0
-                ? formatSizeMB(item.size)
-                : '0 bytes'}
-            </p>
-          </div>
-        </div>
-
-        {/* Duration */}
-        {item.duration && item.duration > 0 && (
-          <div className="flex items-start gap-3">
-            <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-sm text-gray-500">Duration</p>
-              <p className="text-gray-900">{formatDuration(item.duration)}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Timestamp */}
-        {item.timestamp && (
-          <div className="flex items-start gap-3">
-            <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-sm text-gray-500">Created At</p>
-              <p className="text-gray-900">
-                {getISTDate(item.timestamp).toLocaleString('en-IN', {
-                  timeZone: 'Asia/Kolkata',
-                })}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Location */}
-        {item.location && (
-          <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-sm text-gray-500">Location</p>
-              <p className="text-gray-900">
-                {item.location.latitude.toFixed(4)},{' '}
-                {item.location.longitude.toFixed(4)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Release Rights */}
-        <div className="flex items-start gap-3">
-          <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
-          <div>
-            <p className="text-sm text-gray-500">Release Rights</p>
-            <p className="text-gray-900">{item.release_rights || 'N/A'}</p>
-          </div>
-        </div>
-
-        {/* SNR Frequency */}
-        {item.snr_frequency > 0 && (
-          <div className="flex items-start gap-3">
-            <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div>
-              <p className="text-sm text-gray-500">SNR Frequency</p>
-              <p className="text-gray-900">
-                {item.snr_frequency.toFixed(2)} dB
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* File Hash */}
-        <div className="flex items-start gap-3 md:col-span-2">
-          <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
-          <div>
-            <p className="text-sm text-gray-500">File Hash</p>
-            <p className="font-mono text-sm text-gray-900 break-all">
-              {item.file_hash}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 interface MediaDetailModalProps {
   item: ContributionItem;
@@ -276,7 +135,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     s.split(' ').filter((w) => w.trim().length > 2).length;
 
   // Function to fetch media URL on demand
-  const fetchMediaUrl = async () => {
+  const fetchMediaUrl = useCallback(async () => {
     if (!isOpen || mediaUrl) return; // Don't fetch if modal is closed or already have URL
 
     setLoading(true);
@@ -307,7 +166,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [isOpen, mediaUrl, item.id, token]);
 
   // Fetch media URL only when needed for audio, document, and video types
   useEffect(() => {
@@ -320,7 +179,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     ) {
       fetchMediaUrl();
     }
-  }, [isOpen, previewUrl, mediaType, item.id, token]);
+  }, [isOpen, previewUrl, mediaType, item.id, token, fetchMediaUrl]);
 
   if (!isOpen) return null;
 
@@ -1324,6 +1183,254 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+// RecordDetailView component for displaying record details standalone
+export const RecordDetailView: React.FC<{
+  item: ContributionItem;
+  token?: string;
+}> = ({ item, token = '' }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-4 space-y-6">
+      {/* Title and Description */}
+      <div>
+        <h3 className="text-xl font-bold text-gray-900 mb-3">
+          {item.title || 'Untitled'}
+        </h3>
+        <p className="text-gray-600 leading-relaxed">
+          {item.description || 'No description available'}
+        </p>
+      </div>
+
+      {/* Metadata Section */}
+      <div className="space-y-4 bg-gray-50 rounded-xl p-4">
+        <h4 className="font-semibold text-gray-900">Information</h4>
+
+        {/* Timestamp */}
+        <div className="flex items-start gap-3">
+          <Clock size={18} className="text-gray-400 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Timestamp</p>
+            <p className="text-sm text-gray-600">
+              {(() => {
+                // Check for multiple possible timestamp field names
+                const timestamp =
+                  item.timestamp ||
+                  item.created_at ||
+                  item.createdAt ||
+                  item.date ||
+                  item.uploaded_at;
+                if (timestamp) {
+                  try {
+                    return new Date(timestamp).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    });
+                  } catch (e) {
+                    return String(timestamp);
+                  }
+                }
+                return 'Not available';
+              })()}
+            </p>
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.414A1 1 0 0112.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Location</p>
+            <p className="text-sm text-gray-600">
+              {item.location &&
+              typeof item.location.latitude === 'number' &&
+              typeof item.location.longitude === 'number'
+                ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                : 'Not available'}
+            </p>
+          </div>
+        </div>
+
+        {/* File Size */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">File Size</p>
+            <p className="text-sm text-gray-600">
+              {(() => {
+                // Check for multiple possible file size field names
+                const size =
+                  item.size || item.file_size || item.fileSize || item.bytes;
+                if (size !== undefined && size !== null) {
+                  return formatSizeMB(size);
+                }
+                return 'Not available';
+              })()}
+            </p>
+          </div>
+        </div>
+
+        {/* Language */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Language</p>
+            <p className="text-sm text-gray-600">
+              {item.language || 'Not specified'}
+            </p>
+          </div>
+        </div>
+
+        {/* Release Rights */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Release Rights</p>
+            <p className="text-sm text-gray-600">
+              {item.release_rights || 'Not specified'}
+            </p>
+          </div>
+        </div>
+
+        {/* Creator */}
+        {item.creator && (
+          <div className="flex items-start gap-3">
+            <svg
+              className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-700">Creator</p>
+              <p className="text-sm text-gray-600">{item.creator}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Categories */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700 mb-2">Categories</p>
+            <CategoryTags
+              categoryIds={
+                item.category_ids ||
+                (item.category_id ? [item.category_id] : [])
+              }
+              token={token}
+            />
+          </div>
+        </div>
+
+        {/* Reviewed Badge */}
+        {item.reviewed && (
+          <div className="pt-2">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
+              ✓ Reviewed
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// MediaPreviewView component for displaying media preview standalone
+export const MediaPreviewView: React.FC<{
+  item: ContributionItem;
+  previewUrl?: string | null;
+}> = ({ item, previewUrl }) => {
+  return (
+    <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+      {previewUrl ? (
+        <div className="w-full h-full flex items-center justify-center p-4">
+          <p className="text-gray-600">Preview: {item.title || 'Media Item'}</p>
+        </div>
+      ) : (
+        <div className="text-center p-4">
+          <p className="text-gray-500">No preview available</p>
+        </div>
+      )}
     </div>
   );
 };
