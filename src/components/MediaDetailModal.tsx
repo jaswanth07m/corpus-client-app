@@ -8,9 +8,12 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  MapPin,
+  User,
+  Tag,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
-import { formatSizeMB } from '@/lib/utils';
+import { formatSizeMB, formatDuration, getISTDate } from '@/lib/utils';
 import CategoryTags from '@/components/CategoryTags';
 import { InlineEditHistory } from './InlineEditHistory';
 import {
@@ -68,7 +71,154 @@ export interface ContributionItem {
   language: string;
   file_hash: string;
   snr_frequency: number;
+  media_type?: string;
 }
+
+// Record Detail View Component (reusable for both modal and page)
+export const RecordDetailView: React.FC<{ item: ContributionItem }> = ({
+  item,
+}) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      {/* Title and Status */}
+      <div className="p-6 border-b">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {item.title || 'Untitled'}
+            </h2>
+            <p className="text-gray-600">
+              {item.description || 'No description'}
+            </p>
+            {/* Record ID Badge */}
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-xs text-gray-500">ID:</span>
+              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
+                {item.id}
+              </span>
+            </div>
+          </div>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              item.reviewed
+                ? 'bg-green-100 text-green-800'
+                : 'bg-yellow-100 text-yellow-800'
+            }`}
+          >
+            {item.reviewed ? 'Reviewed' : 'Pending Review'}
+          </span>
+        </div>
+      </div>
+
+      {/* Details Grid */}
+      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Language */}
+        <div className="flex items-start gap-3">
+          <User className="w-5 h-5 text-gray-400 mt-0.5" />
+          <div>
+            <p className="text-sm text-gray-500">Language</p>
+            <p className="text-gray-900 capitalize">{item.language || 'N/A'}</p>
+          </div>
+        </div>
+
+        {/* Creator */}
+        <div className="flex items-start gap-3">
+          <User className="w-5 h-5 text-gray-400 mt-0.5" />
+          <div>
+            <p className="text-sm text-gray-500">Contributor</p>
+            <p className="text-gray-900">{item.creator || 'N/A'}</p>
+          </div>
+        </div>
+
+        {/* Size */}
+        <div className="flex items-start gap-3">
+          <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
+          <div>
+            <p className="text-sm text-gray-500">Size</p>
+            <p className="text-gray-900">
+              {item.size !== undefined && item.size > 0
+                ? formatSizeMB(item.size)
+                : '0 bytes'}
+            </p>
+          </div>
+        </div>
+
+        {/* Duration */}
+        {item.duration && item.duration > 0 && (
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+            <div>
+              <p className="text-sm text-gray-500">Duration</p>
+              <p className="text-gray-900">{formatDuration(item.duration)}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Timestamp */}
+        {item.timestamp && (
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+            <div>
+              <p className="text-sm text-gray-500">Created At</p>
+              <p className="text-gray-900">
+                {getISTDate(item.timestamp).toLocaleString('en-IN', {
+                  timeZone: 'Asia/Kolkata',
+                })}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Location */}
+        {item.location && (
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+            <div>
+              <p className="text-sm text-gray-500">Location</p>
+              <p className="text-gray-900">
+                {item.location.latitude.toFixed(4)},{' '}
+                {item.location.longitude.toFixed(4)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Release Rights */}
+        <div className="flex items-start gap-3">
+          <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
+          <div>
+            <p className="text-sm text-gray-500">Release Rights</p>
+            <p className="text-gray-900">{item.release_rights || 'N/A'}</p>
+          </div>
+        </div>
+
+        {/* SNR Frequency */}
+        {item.snr_frequency > 0 && (
+          <div className="flex items-start gap-3">
+            <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
+            <div>
+              <p className="text-sm text-gray-500">SNR Frequency</p>
+              <p className="text-gray-900">
+                {item.snr_frequency.toFixed(2)} dB
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* File Hash */}
+        <div className="flex items-start gap-3 md:col-span-2">
+          <Tag className="w-5 h-5 text-gray-400 mt-0.5" />
+          <div>
+            <p className="text-sm text-gray-500">File Hash</p>
+            <p className="font-mono text-sm text-gray-900 break-all">
+              {item.file_hash}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface MediaDetailModalProps {
   item: ContributionItem;
