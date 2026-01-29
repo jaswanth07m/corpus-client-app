@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, X, Pencil, History, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '@/lib/constants';
 import { MediaDetailModal } from './MediaDetailModal';
 
@@ -40,6 +41,7 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
   token,
   isOwnProfile,
 }) => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -276,6 +278,15 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
           <p className="text-xs text-gray-500 truncate">
             {item.description || 'No description'}
           </p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/records/${item.id}`);
+            }}
+            className="mt-2 w-full py-1.5 px-3 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            View Details
+          </button>
         </div>
       </div>
 
