@@ -80,6 +80,8 @@ export interface ContributionItem {
   file_size?: number;
   fileSize?: number;
   bytes?: number;
+  // Media type from API
+  media_type?: string;
 }
 
 interface MediaDetailModalProps {

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import {
   ContributionItem,
   RecordDetailView,
+  MediaPreviewView,
 } from '@/components/MediaDetailModal';
 
 const RecordDetails: React.FC = () => {
@@ -15,6 +16,9 @@ const RecordDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Fetch media preview URL when record is loaded
 
   useEffect(() => {
     const fetchRecordDetails = async () => {
@@ -44,6 +48,33 @@ const RecordDetails: React.FC = () => {
 
         const data = await response.json();
         setRecord(data);
+
+        // Fetch media preview URL for audio, video, document types
+        if (
+          data.media_type &&
+          ['audio', 'video', 'document'].includes(data.media_type)
+        ) {
+          try {
+            const mediaResponse = await fetch(
+              `${BACKEND_URL}/records/${recordId}/record-url?expires_minutes=60`,
+              {
+                method: 'GET',
+                headers: {
+                  Authorization: `Bearer ${storedToken}`,
+                  'Content-Type': 'application/json',
+                },
+              },
+            );
+            if (mediaResponse.ok) {
+              const mediaData = await mediaResponse.json();
+              if (mediaData.record_url) {
+                setPreviewUrl(mediaData.record_url);
+              }
+            }
+          } catch (mediaErr) {
+            console.error('Error fetching media URL:', mediaErr);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -135,6 +166,13 @@ const RecordDetails: React.FC = () => {
           <span className="font-medium">{copied ? 'Copied!' : 'Share'}</span>
         </button>
       </div>
+
+      {/* Media Preview */}
+      {record.media_type && record.media_type !== 'text' && (
+        <div className="mb-6">
+          <MediaPreviewView item={record} previewUrl={previewUrl} />
+        </div>
+      )}
 
       {/* Record Details */}
       <RecordDetailView item={record} token={token} />
