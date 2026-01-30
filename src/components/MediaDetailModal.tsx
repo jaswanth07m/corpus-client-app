@@ -1195,7 +1195,7 @@ export const RecordDetailView: React.FC<{
   token?: string;
 }> = ({ item, token = '' }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 space-y-6">
+    <div className="bg-white rounded-xl shadow-sm p-4 space-y-6 pb-24">
       {/* Title and Description */}
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-3">
