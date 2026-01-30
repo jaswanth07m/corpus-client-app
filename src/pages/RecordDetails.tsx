@@ -177,16 +177,102 @@ const RecordDetails: React.FC = () => {
       {record.media_type && record.media_type !== 'text' && (
         <div className="mb-6">
           <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg relative">
-            {previewUrl ? (
+            {record.media_type === 'document' ? (
+              // Document: Show View File button
+              previewUrl ? (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+                  <div className="mb-4">
+                    <svg
+                      className="w-16 h-16 text-blue-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-700 mb-4">
+                    {record.title || 'Document'}
+                  </p>
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                    View File
+                  </a>
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                  <div className="text-center p-4">
+                    <p className="text-gray-500 mb-4">Click to load document</p>
+                    <button
+                      onClick={() => setShowMediaModal(true)}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                        />
+                      </svg>
+                      View Document
+                    </button>
+                  </div>
+                </div>
+              )
+            ) : previewUrl ? (
+              // Audio/Video/Image: Show media player
               <div className="w-full h-full flex items-center justify-center bg-black">
-                <video
-                  src={previewUrl}
-                  className="max-w-full max-h-full"
-                  controls
-                  preload="metadata"
-                />
+                {record.media_type === 'image' ? (
+                  <img
+                    src={previewUrl}
+                    alt={record.title || 'Image'}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : record.media_type === 'audio' ? (
+                  <audio
+                    src={previewUrl}
+                    controls
+                    className="w-full max-w-md"
+                  />
+                ) : (
+                  <video
+                    src={previewUrl}
+                    className="max-w-full max-h-full"
+                    controls
+                    preload="metadata"
+                  />
+                )}
               </div>
             ) : (
+              // No preview URL yet - show play button
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                 <div className="text-center p-4">
                   <p className="text-gray-500 mb-4">Click to load and play</p>
