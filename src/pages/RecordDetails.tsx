@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { User, Loader2, Copy, Check } from 'lucide-react';
+import { User, Loader2 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { toast } from 'sonner';
+import CopyUrlButton from '@/components/CopyUrlButton';
 import {
   ContributionItem,
   RecordDetailView,
@@ -15,10 +16,10 @@ const RecordDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string>('');
-  const [copied, setCopied] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
 
   // Fetch media preview URL when record is loaded
 
@@ -91,17 +92,37 @@ const RecordDetails: React.FC = () => {
     fetchRecordDetails();
   }, [recordId]);
 
-  // Copy record page URL to clipboard
-  const copyRecordUrl = async () => {
-    const url = window.location.href;
-
+  // Load image directly without modal
+  const loadImage = async () => {
+    if (!recordId || !token) return;
+    setIsLoadingImage(true);
     try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      toast.success('Link copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast.error('Failed to copy link');
+      const mediaResponse = await fetch(
+        `${BACKEND_URL}/records/${recordId}/record-url?expires_minutes=60`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      if (mediaResponse.ok) {
+        const mediaData = await mediaResponse.json();
+        if (mediaData.record_url) {
+          setPreviewUrl(mediaData.record_url);
+          toast.success('Image loaded successfully');
+        } else {
+          toast.error('No image URL found');
+        }
+      } else {
+        toast.error('Failed to fetch image URL');
+      }
+    } catch (mediaErr) {
+      toast.error('Error loading image. Please try again.');
+      console.error('Error fetching image URL:', mediaErr);
+    } finally {
+      setIsLoadingImage(false);
     }
   };
 
@@ -160,17 +181,11 @@ const RecordDetails: React.FC = () => {
         </Link>
 
         {/* Share Button */}
-        <button
-          onClick={copyRecordUrl}
+        <CopyUrlButton
+          url={window.location.href}
+          recordId={recordId || ''}
           className="flex items-center gap-2 px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:brightness-110"
-        >
-          {copied ? (
-            <Check className="w-5 h-5" />
-          ) : (
-            <Copy className="w-5 h-5" />
-          )}
-          <span className="font-medium">{copied ? 'Copied!' : 'Share'}</span>
-        </button>
+        />
       </div>
 
       {/* Media Section with Play Button */}
@@ -247,16 +262,51 @@ const RecordDetails: React.FC = () => {
                   </div>
                 </div>
               )
-            ) : previewUrl ? (
-              // Audio/Video/Image: Show media player
-              <div className="w-full h-full flex items-center justify-center bg-black">
-                {record.media_type === 'image' ? (
+            ) : record.media_type === 'image' ? (
+              // Image: Show image if loaded, otherwise show load button
+              previewUrl ? (
+                <div className="w-full h-full flex items-center justify-center bg-black">
                   <img
                     src={previewUrl}
                     alt={record.title || 'Image'}
                     className="max-w-full max-h-full object-contain"
                   />
-                ) : record.media_type === 'audio' ? (
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                  <div className="text-center p-4">
+                    <p className="text-gray-500 mb-4">Click to load image</p>
+                    <button
+                      onClick={loadImage}
+                      disabled={isLoadingImage}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isLoadingImage ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <svg
+                          className="w-6 h-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      )}
+                      {isLoadingImage ? 'Loading...' : 'Load Image'}
+                    </button>
+                  </div>
+                </div>
+              )
+            ) : previewUrl ? (
+              // Audio/Video: Show media player
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                {record.media_type === 'audio' ? (
                   <audio
                     src={previewUrl}
                     controls
@@ -272,7 +322,7 @@ const RecordDetails: React.FC = () => {
                 )}
               </div>
             ) : (
-              // No preview URL yet - show play button
+              // Audio/Video: Show play button that opens modal
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                 <div className="text-center p-4">
                   <p className="text-gray-500 mb-4">Click to load and play</p>
