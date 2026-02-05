@@ -49,3 +49,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /android/app/release
 /android/app/build
 /android/app/src/main/assets/public
+
+# Test coverage and results
+coverage/
+.tests/
+test-results/
+.vitest/
