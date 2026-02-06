@@ -14,7 +14,11 @@
     "prepare": "husky",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "ci-local": "npm run format && npm-run-all -p lint:fix type-check && npm run build"
+    "ci-local": "npm run format && npm-run-all -p lint:fix type-check && npm run build",
+    "test:run": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --passWithNoTests --coverage",
+    "test:ui": "vitest --ui",
+    "knip": "knip --no-exit-code"
   },
   "prettier": {
     "singleQuote": true,
@@ -99,6 +103,8 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/leaflet": "^1.9.20",
     "@types/node": "^25.0.3",
     "@types/react": "^18.3.3",
@@ -106,6 +112,8 @@
     "@typescript-eslint/eslint-plugin": "^8.0.1",
     "@typescript-eslint/parser": "^8.0.1",
     "@vitejs/plugin-react-swc": "^4.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
     "eslint-plugin-react": "^7.37.5",
@@ -113,6 +121,8 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^15.9.0",
     "husky": "^9.1.7",
+    "jsdom": "^28.0.0",
+    "knip": "^5.82.1",
     "lint-staged": "^16.1.2",
     "lovable-tagger": "^1.1.13",
     "npm-run-all": "^4.1.5",
@@ -121,7 +131,8 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^7.2.6"
+    "vite": "^7.2.6",
+    "vitest": "^4.0.18"
   },
   "trustedDependencies": [
     "@swc/core",
