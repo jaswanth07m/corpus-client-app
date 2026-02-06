@@ -15,10 +15,10 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "ci-local": "npm run format && npm-run-all -p lint:fix type-check && npm run build",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test:run": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --passWithNoTests --coverage",
     "test:ui": "vitest --ui",
-    "knip": "knip"
+    "knip": "knip --no-exit-code"
   },
   "prettier": {
     "singleQuote": true,

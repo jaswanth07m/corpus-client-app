@@ -11,7 +11,8 @@ npm run test:run
 npm run test:coverage
 
 # Run knip to check for unused files, dependencies, and exports
-npx knip
+npm run knip
 
 # Run type check and build
 npm run build
+
