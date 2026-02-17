@@ -32,6 +32,7 @@ import { BACKEND_URL } from '@/lib/constants';
 import MediaUploadComponent from './MediaUploadComponent';
 import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
+import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
 
 interface Category {
   id: string;
@@ -678,19 +679,33 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   };
 
-  const handleSingleFileSelect = (
+  const handleSingleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setSelectedFiles([file]); // keep compatibility with existing logic
-      setRecordedBlob(null);
-      setAudioUrl(null);
-      setVideoUrl(null);
-      toast.success(`File selected: ${file.name}`);
-      handleFileSelect(event);
-    }
+    if (!file) return;
+
+    //uncomment for audio validations
+    //   if (uploadMode === 'audio') {
+    //   toast.loading('Validating audio...');
+    //   const result = await validateAudioFile(file);
+    //   toast.dismiss();
+
+    //   if (!result.isValid) {
+    //     toast.error('Audio validation failed', {
+    //       description: mapAudioErrors(result.errors),
+    //     });
+    //     return;
+    //   }
+    // }
+
+    setSelectedFile(file);
+    setSelectedFiles([file]); // keep compatibility with existing logic
+    setRecordedBlob(null);
+    setAudioUrl(null);
+    setVideoUrl(null);
+    toast.success(`File selected: ${file.name}`);
+    handleFileSelect(event);
   };
 
   const removeFile = (index: number) => {

@@ -15,8 +15,6 @@ import PeerReview from './pages/PeerReview';
 import { AuthProvider } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import RequireAuth from './components/RequireAuth';
-import { User } from 'lucide-react';
-import Categories from './components/Categories';
 import UploadPage from './pages/UploadPage';
 import Layout from './Layout';
 
