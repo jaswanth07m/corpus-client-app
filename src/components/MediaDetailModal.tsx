@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Loader2,
   X,
@@ -98,6 +99,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   onClose,
   isOwnProfile,
 }) => {
+  const { t } = useTranslation();
   const [showHistory, setShowHistory] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -226,7 +228,9 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-xs text-gray-500">Video unavailable</p>
+                  <p className="text-xs text-gray-500">
+                    {t('media.videoUnavailable')}
+                  </p>
                 </div>
               </div>
             )}
@@ -259,7 +263,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   onClick={fetchMediaUrl}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  Load Video
+                  {t('media.loadVideo')}
                 </button>
               </div>
             )}
@@ -289,7 +293,9 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                     d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
                   />
                 </svg>
-                <p className="text-xs text-gray-500">Audio unavailable</p>
+                <p className="text-xs text-gray-500">
+                  {t('media.audioUnavailable')}
+                </p>
               </div>
             )}
             {!loading && !error && mediaUrl && (
@@ -341,7 +347,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   onClick={fetchMediaUrl}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  Load Audio
+                  {t('media.loadAudio')}
                 </button>
               </div>
             )}
@@ -372,7 +378,9 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-xs text-gray-500">Document unavailable</p>
+                  <p className="text-xs text-gray-500">
+                    {t('media.documentUnavailable')}
+                  </p>
                 </div>
               </div>
             )}
@@ -385,7 +393,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       <iframe
                         src={mediaUrl}
                         className="w-full h-full border-0"
-                        title="Document Preview"
+                        title={t('common.documentPreview')}
                       />
                     ) : mediaUrl.toLowerCase().endsWith('.docx') ||
                       mediaUrl.toLowerCase().endsWith('.doc') ? (
@@ -417,7 +425,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           rel="noopener noreferrer"
                           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
                         >
-                          Open in New Tab
+                          {t('common.openInNewTab')}
                         </a>
                       </div>
                     ) : mediaUrl.toLowerCase().endsWith('.txt') ? (
@@ -481,7 +489,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           rel="noopener noreferrer"
                           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
                         >
-                          Open Document
+                          {t('common.openDocument')}
                         </a>
                       </div>
                     )}
@@ -513,7 +521,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   onClick={fetchMediaUrl}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Load Document
+                  {t('media.loadDocument')}
                 </button>
               </div>
             )}
@@ -548,7 +556,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                View Text
+                {t('common.viewText')}
               </a>
             </div>
           </div>
@@ -558,7 +566,9 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
         return (
           <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
             <div className="text-center p-4">
-              <p className="text-xs text-gray-500">Unsupported media type</p>
+              <p className="text-xs text-gray-500">
+                {t('categories.unsupportedMediaType')}
+              </p>
             </div>
           </div>
         );
@@ -674,7 +684,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           item.creator === editItem.creator &&
                           (!isOwnProfile || sourceLabel === '') // Only check sourceLabel if on other's profile
                         ) {
-                          toast.info('No changes to save');
+                          toast.info(t('common.noChangesToSave'));
                           return;
                         }
 
@@ -856,7 +866,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       )}
                       <p className="text-xs text-gray-500 mt-1">
                         {countMeaningfulWords(editItem.description || '')}{' '}
-                        meaningful words
+                        {t('common.meaningful.words')}
                       </p>
                     </div>
                   </>
@@ -952,7 +962,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </svg>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-700">
-                      File Size
+                      {t('media.fileSize')}
                     </p>
                     <p className="text-sm text-gray-600">
                       {item.size ? formatSizeMB(item.size) : 'Not available'}
@@ -1065,20 +1075,20 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                                 })
                               }
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Specify creator"
+                              placeholder={t('common.specify.creator')}
                             />
                           </div>
                         ) : (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Source Label
+                              {t('categories.sourceLabel')}
                             </label>
                             <input
                               type="text"
                               value={sourceLabel}
                               onChange={(e) => setSourceLabel(e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Specify source"
+                              placeholder={t('common.specify.source')}
                             />
                           </div>
                         )}
@@ -1103,7 +1113,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       </svg>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-700">
-                          Release Rights
+                          {t('common.release.rights')}
                         </p>
                         <p className="text-sm text-gray-600">
                           {item.release_rights || 'Not specified'}
@@ -1147,7 +1157,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                 {item.reviewed && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
-                      ✓ Reviewed
+                      {t('common.Reviewed')}
                     </span>
                   </div>
                 )}

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n';
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const currentLanguage = i18n.language;
 
@@ -32,7 +32,7 @@ export function LanguageSwitcher() {
           className="h-9 w-9 hover:bg-gray-100"
         >
           <Globe className="h-5 w-5" />
-          <span className="sr-only">Change language</span>
+          <span className="sr-only">{t('common.change.language')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

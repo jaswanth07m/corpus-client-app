@@ -1,5 +1,6 @@
 // UserContributions.tsx
 import { BACKEND_URL } from '@/lib/constants';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 
 interface Contribution {
@@ -27,6 +28,7 @@ const UserContributions: React.FC<UserContributionsProps> = ({
   mediaType,
   authToken,
 }) => {
+  const { t } = useTranslation();
   const [allContributions, setAllContributions] = useState<Contribution[]>([]);
   const [displayedContributions, setDisplayedContributions] = useState<
     Contribution[]
@@ -96,17 +98,28 @@ const UserContributions: React.FC<UserContributionsProps> = ({
   const hasMoreItems = displayedContributions.length < allContributions.length;
 
   if (loading) {
-    return <div className="loading">Loading {mediaType} contributions...</div>;
+    return (
+      <div className="loading">
+        Loading {mediaType}
+        {t('stats.contributions')}
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="error">Error loading contributions: {error}</div>;
+    return (
+      <div className="error">
+        {t('messages.errorLoadingContributions')}
+        {error}
+      </div>
+    );
   }
 
   if (allContributions.length === 0) {
     return (
       <div className="no-contributions">
-        No {mediaType} contributions found.
+        No {mediaType}
+        {t('stats.contributionsFound')}
       </div>
     );
   }
@@ -143,7 +156,7 @@ const UserContributions: React.FC<UserContributionsProps> = ({
             {loadingMore ? (
               <>
                 <span className="loading-spinner"></span>
-                Loading...
+                {t('messages.loading')}
               </>
             ) : (
               `Load More (${allContributions.length - displayedContributions.length} remaining)`

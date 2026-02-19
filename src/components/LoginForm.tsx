@@ -139,7 +139,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handleSendOTP = async () => {
     if (!isValidPhoneNumber()) {
-      toast.error('Please enter a valid 10-digit phone number');
+      toast.error(t('auth.pleaseEnterAValid10digitPhoneNumber'));
       return;
     }
 
@@ -166,7 +166,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         setShowOtpInput(true);
         setResendTimer(60); // 60 second timer
         setCanResend(false);
-        toast.success('OTP sent successfully!');
+        toast.success(t('messages.otpSentSuccessfully'));
       } else {
         console.error('OTP Send Error:', data);
         toast.error(
@@ -175,14 +175,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       }
     } catch (error) {
       console.error('Network Error:', error);
-      toast.error('Network error. Please check your connection and try again.');
+      toast.error(
+        t('messages.networkErrorPleaseCheckYourConnectionAndTryAgain'),
+      );
     }
     setLoading(false);
   };
 
   const handleVerifyOTP = async () => {
     if (!otp || otp.length !== 6) {
-      toast.error('Please enter a valid 6-digit OTP');
+      toast.error(t('auth.pleaseEnterAValid6digitOtp'));
       return;
     }
 
@@ -210,7 +212,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       if (response.ok) {
         // Check if we have access_token in the response
         if (data.access_token) {
-          toast.success('Login successful!');
+          toast.success(t('messages.loginSuccessful'));
           // Create user object from response data
           const user = {
             user_id: data.user_id,
@@ -220,7 +222,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           onLoginSuccess(data.access_token, user);
         } else {
           console.error('No access token in response:', data);
-          toast.error('Login failed: No access token received');
+          toast.error(t('common.loginFailedNoAccessTokenReceived'));
         }
       } else {
         console.error('OTP Verify Error:', data);
@@ -246,19 +248,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           // Handle HTTP status codes
           switch (response.status) {
             case 400:
-              toast.error('Invalid OTP. Please check and try again.');
+              toast.error(t('auth.invalidOtpPleaseCheckAndTryAgain'));
               break;
             case 401:
-              toast.error('OTP verification failed. Please try again.');
+              toast.error(t('auth.otpVerificationFailedPleaseTryAgain'));
               break;
             case 422:
               toast.error(
-                'OTP has expired or is invalid. Please request a new one.',
+                t('auth.otpHasExpiredOrIsInvalidPleaseRequestANewOne'),
               );
               break;
             case 429:
               toast.error(
-                'Too many attempts. Please wait before trying again.',
+                t('ui.too.many.attempts.please.wait.before.trying.again'),
               );
               break;
             default:
@@ -283,7 +285,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handlePasswordLogin = async () => {
     if (!isValidPhoneNumber() || !password) {
-      toast.error('Please enter a valid phone number and password');
+      toast.error(t('auth.pleaseEnterAValidPhoneNumberAndPassword'));
       return;
     }
 
@@ -334,26 +336,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     }
 
     if (!isValidUserName) {
-      toast.error('Please Enter a Valid UserName');
+      toast.error(t('auth.pleaseEnterAValidUsername'));
     }
 
     if (!signupData.name.trim()) {
-      toast.error('Please enter your name');
+      toast.error(t('user.pleaseEnterYourName'));
       return;
     }
 
     if (!isValidEmail(signupData.email)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t('common.pleaseEnterAValidEmailAddress'));
       return;
     }
 
     if (!signupData.password || signupData.password.length < 6) {
-      toast.error('Password must be at least 6 characters long');
+      toast.error(t('auth.passwordMustBeAtLeast6CharactersLong'));
       return;
     }
 
     if (!signupData.has_given_consent) {
-      toast.error('Please agree to the terms and conditions');
+      toast.error(t('ui.please.agree.to.the.terms.and.conditions'));
       return;
     }
 
@@ -388,7 +390,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         setShowSignupOtpInput(true);
         setResendTimer(60);
         setCanResend(false);
-        toast.success('Signup OTP sent successfully!');
+        toast.success(t('messages.signupOtpSentSuccessfully'));
       } else {
         console.error('Signup Send OTP Error:', data);
         toast.error(
@@ -455,7 +457,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
       if (response.ok) {
         toast.success(
-          'Account created and verified successfully! Please login.',
+          t('messages.accountCreatedAndVerifiedSuccessfullyPleaseLogin'),
         );
         setMode('login');
         resetForm();
@@ -509,7 +511,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       if (response.ok) {
         setResendTimer(60);
         setCanResend(false);
-        toast.success('Signup OTP resent successfully!');
+        toast.success(t('messages.signupOtpResentSuccessfully'));
       } else {
         console.error('Signup Resend OTP Error:', data);
         toast.error(
@@ -592,7 +594,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           <div className="mb-8">
             <img
               src="/Swecha_Logo_English.png"
-              alt="Swecha - Technology for Society"
+              alt={t('common.swechaTechnologyForSociety')}
               className="h-28 mx-auto drop-shadow-lg hover:scale-105 transition-transform duration-300"
             />
           </div>
@@ -637,7 +639,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               }}
             >
               <UserPlus className="h-4 w-4 mr-2" />
-              Sign Up
+              {t('auth.signUp')}
             </Button>
           </div>
 
@@ -650,7 +652,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                     <p className="text-sm text-blue-700 flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      Enter your registered phone number to receive OTP
+                      {t('auth.enterYourRegisteredPhoneNumberToReceiveOtp')}
                     </p>
                   </div>
 
@@ -661,7 +663,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     </div>
                     <Input
                       type="tel"
-                      placeholder="Enter 10-digit phone number"
+                      placeholder={t('auth.enter10digitPhoneNumber')}
                       value={phoneDigits}
                       onChange={(e) =>
                         setPhoneDigits(formatPhoneNumber(e.target.value))
@@ -679,25 +681,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-emerald-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
-                      {phoneDigits.length}/10 digits
+                      {phoneDigits.length}
+                      {t('common.10.digits')}
                     </div>
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
                     >
-                      *Phone number is invalid
+                      {t('auth.phoneNumberIsInvalid')}
                     </div>
                   </div>
 
                   {/* Login with Password */}
                   <div className="font-medium text-gray-800">
-                    Prefer Password Login ?{' '}
+                    {t('nav.preferPasswordLogin')}{' '}
                     <button
                       className="font-bold text-emerald-600 hover:text-emerald-700 transition-colors duration-200"
                       onClick={() => {
                         setLoginMethod('password');
                       }}
                     >
-                      Login with Password
+                      {t('nav.loginWithPassword')}
                     </button>
                   </div>
 
@@ -709,7 +712,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     {loading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Sending...
+                        {t('common.sending')}
                       </div>
                     ) : (
                       'Send OTP'
@@ -724,21 +727,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="bg-green-50 p-4 rounded-xl border border-green-200">
                     <p className="text-sm text-green-700 flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
-                      OTP sent to +91{phoneDigits}
+                      {t('auth.otpSentTo91')}
+                      {phoneDigits}
                     </p>
                   </div>
 
                   <div className="relative">
                     <Input
                       type="text"
-                      placeholder="Enter 6-digit OTP"
+                      placeholder={t('auth.enter6digitOtp')}
                       value={otp}
                       onChange={handleOtpChange}
                       className="h-14 border-2 border-gray-200 focus:border-emerald-500 rounded-xl text-center text-2xl tracking-widest bg-gray-50 focus:bg-white transition-all duration-300"
                       maxLength={6}
                     />
                     <div className="text-xs text-gray-500 mt-1 text-center">
-                      {otp.length}/6 digits
+                      {otp.length}
+                      {t('common.6.digits')}
                     </div>
                   </div>
 
@@ -751,7 +756,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       {loading ? (
                         <div className="flex items-center gap-2">
                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          Verifying...
+                          {t('common.verifying')}
                         </div>
                       ) : (
                         'Verify OTP'
@@ -834,7 +839,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="relative">
                     <Input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter your password"
+                      placeholder={t('auth.enterYourPassword')}
                       value={password}
                       // onKeyDown={(e) => {
                       //   if(e.key == 'Enter'){
@@ -859,12 +864,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
                   {/* forgot password ? Login with OTP */}
                   <div className="font-medium text-gray-800">
-                    Forgot Password?{' '}
+                    {t('auth.forgotPassword')}{' '}
                     <Link
                       to="/forgot-password"
                       className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
                     >
-                      Reset Here
+                      {t('common.resetHere')}
                     </Link>
                   </div>
                   {/* <div className="font-medium text-gray-800">
@@ -891,7 +896,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     {loading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Logging in...
+                        {t('common.logging.in')}
                       </div>
                     ) : (
                       'Login'
@@ -950,7 +955,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
                     <Input
                       type="text"
-                      placeholder="UserName*"
+                      placeholder={t('auth.username')}
                       value={signupData.username}
                       onChange={(e) =>
                         handleSignupInputChange('username', e.target.value)
@@ -978,8 +983,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorUserNameDisplay}`}
                     >
-                      *Username should consist of characters, underscores,
-                      digits only
+                      {t(
+                        'auth.usernameShouldConsistOfCharactersUnderscoresDigitsOnly',
+                      )}
                     </div>
                   </div>
 
@@ -988,7 +994,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
                     <Input
                       type="text"
-                      placeholder="Full Name *"
+                      placeholder={t('user.fullName')}
                       value={signupData.name}
                       onChange={(e) =>
                         handleSignupInputChange('name', e.target.value)
@@ -1012,7 +1018,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorNameDisplay}`}
                     >
-                      *Name should have characters only
+                      {t('user.nameShouldHaveCharactersOnly')}
                     </div>
                   </div>
 
@@ -1021,7 +1027,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Mail className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
                     <Input
                       type="email"
-                      placeholder="Email Address *"
+                      placeholder={t('common.emailAddress')}
                       value={signupData.email}
                       onChange={(e) =>
                         handleSignupInputChange('email', e.target.value)
@@ -1045,7 +1051,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`}
                     >
-                      *Email is invalid
+                      {t('auth.emailIsInvalid')}
                     </div>
                   </div>
 
@@ -1057,7 +1063,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         handleSignupInputChange('gender', e.target.value)
                       }
                       className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
-                      aria-label="Select Gender"
+                      aria-label="{t('common.selectGender')}"
                     >
                       <option value="">Select Gender</option>
                       <option value="male">Male</option>
@@ -1074,7 +1080,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
                     <Input
                       type="date"
-                      placeholder="Date of Birth"
+                      placeholder={t('common.date.of.birth')}
                       min={minDate}
                       max={maxDate}
                       value={signupData.date_of_birth}
@@ -1090,7 +1096,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <MapPin className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
                     <Input
                       type="text"
-                      placeholder="Place (City, State)"
+                      placeholder={t('user.placeCityState')}
                       value={signupData.current_place}
                       onChange={(e) =>
                         handleSignupInputChange('current_place', e.target.value)
@@ -1118,7 +1124,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`}
                     >
-                      *Place should have characters ( , is allowed)
+                      {t('ui.place.should.have.characters.is.allowed')}
                     </div>
                   </div>
 
@@ -1126,7 +1132,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="relative">
                     <Input
                       type={showSignupPassword ? 'text' : 'password'}
-                      placeholder="Create Password *"
+                      placeholder={t('auth.createPassword')}
                       value={signupData.password}
                       onChange={(e) =>
                         handleSignupInputChange('password', e.target.value)
@@ -1195,7 +1201,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         />
                       </div>
                       <div className="text-xs text-gray-500">
-                        Password Strength:{' '}
+                        {t('auth.passwordStrength')}{' '}
                         <span
                           className={
                             !signupData.password
@@ -1225,7 +1231,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         </span>
                         <div className={'font-medium text-xs text-gray-800'}>
                           {' '}
-                          Password should contain :
+                          {t('auth.passwordShouldContain')}
                           <ul className="mb-2 text-xs">
                             <li
                               className={`flex items-center ${/[A-Z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
@@ -1233,7 +1239,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                               <span className="mr-2">
                                 {/[A-Z]/.test(signupData.password) ? '✓' : '○'}
                               </span>
-                              One uppercase letter
+                              {t('common.one.uppercase.letter')}
                             </li>
                             <li
                               className={`flex items-center ${/[a-z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
@@ -1241,7 +1247,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                               <span className="mr-2">
                                 {/[a-z]/.test(signupData.password) ? '✓' : '○'}
                               </span>
-                              One lowercase letter
+                              {t('common.one.lowercase.letter')}
                             </li>
                             <li
                               className={`flex items-center ${/\d/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
@@ -1249,7 +1255,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                               <span className="mr-2">
                                 {/\d/.test(signupData.password) ? '✓' : '○'}
                               </span>
-                              One number
+                              {t('common.one.number')}
                             </li>
                             <li
                               className={`flex items-center ${/[!@#$%^&*(),.?":{}|<>]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
@@ -1261,7 +1267,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                                   ? '✓'
                                   : '○'}
                               </span>
-                              One special character
+                              {t('ui.one.special.character')}
                             </li>
                             <li
                               className={`flex items-center ${signupData.password.length >= 8 ? 'text-green-500' : 'text-gray-500'}`}
@@ -1269,7 +1275,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                               <span className="mr-2">
                                 {signupData.password.length >= 8 ? '✓' : '○'}
                               </span>
-                              Minimum 8 characters
+                              {t('common.minimum.8.characters')}
                             </li>
                           </ul>
                         </div>
@@ -1281,7 +1287,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="relative">
                     <Input
                       type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm Password *"
+                      placeholder={t('common.confirmPassword')}
                       value={signupData.confirmPassword}
                       onChange={(e) =>
                         handleSignupInputChange(
@@ -1322,7 +1328,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPasswordDisplay}`}
                     >
-                      *Passwords do not match
+                      {t('common.passwordsDoNotMatch')}
                     </div>
                   </div>
 
@@ -1344,14 +1350,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       htmlFor="consent"
                       className="text-sm text-gray-700 leading-relaxed"
                     >
-                      I agree to the{' '}
+                      {t('common.i.agree.to.the')}{' '}
                       <a
                         href="https://swecha.org/terms-and-conditions"
                         className="text-purple-600 hover:text-purple-700 cursor-pointer underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Terms of Service
+                        {t('common.terms.of.service')}
                       </a>{' '}
                       and{' '}
                       <a
@@ -1360,7 +1366,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Privacy Policy
+                        {t('common.privacy.policy')}
                       </a>
                     </label>
                   </div>
@@ -1383,12 +1389,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     {loading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Sending OTP...
+                        {t('auth.sendingOtp')}
                       </div>
                     ) : (
                       <>
                         <UserPlus className="h-5 w-5 mr-2" />
-                        Request OTP for Phone Verification
+                        {t('auth.requestOtpForPhoneVerification')}
                       </>
                     )}
                   </Button>
@@ -1456,7 +1462,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         }}
                         className="text-gray-600 hover:bg-gray-50 rounded-xl h-12 transition-all duration-300"
                       >
-                        Back to Signup Form
+                        {t('common.backToSignupForm')}
                       </Button>
                     </div>
                   </div>

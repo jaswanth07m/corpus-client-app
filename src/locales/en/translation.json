@@ -1,5 +1,11 @@
 {
   "common": {
+    "6": {
+      "digits": "/6 digits"
+    },
+    "10": {
+      "digits": "/10 digits"
+    },
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -18,14 +24,225 @@
     "sort": "Sort",
     "yes": "Yes",
     "no": "No",
-    "ok": "OK"
+    "ok": "OK",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "goToPreviousPage": "Go to previous page",
+    "goToNextPage": "Go to next page",
+    "morePages": "More pages",
+    "toggle": {
+      "sidebar": "Toggle Sidebar"
+    },
+    "selectALocation": "Select a Location",
+    "confirmLocation": "Confirm Location",
+    "": "→",
+    "selectMediaType": "Select Media Type",
+    "to": {
+      "choose": "to choose"
+    },
+    "documentUpload": "Document Upload *",
+    "uploadDocumentFilesPdfDocxTxt": "Upload Document Files (PDF, DOCX, TXT)",
+    "selectedFile": "Selected File:",
+    "content": "Content *",
+    "yourBrowserDoesNotSupportTheAudioElement": "Your browser does not support the audio element.",
+    "uploadAudioFilesSingleFile": "Upload Audio Files (Single File)",
+    "switch": {
+      "to": "Switch to"
+    },
+    "yourBrowserDoesNotSupportTheVideoElement": "Your browser does not support the video element.",
+    "uploadVideoFilesSingleFile": "Upload Video Files (Single file)",
+    "selectedFiles": "Selected Files:",
+    "takeAnother": "Take Another",
+    "uploadImageFilesSingleFile": "Upload Image Files (Single file)",
+    "technologyForSociety": "Technology for Society",
+    "userIdNotFoundPleaseTryLoggingInAgain": "User ID not found. Please try logging in again.",
+    "geolocationNotSupported": "Geolocation not supported",
+    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "Please select at least one category and provide a title",
+    "releaseRightsNotFoundCheckForReleaseRights": "Release Rights not found. Check for release rights",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "Upload any works created by you or you can upload works of your family members/friends with their permission.",
+    "selectALangauge": "Select a Langauge",
+    "pleaseSelectAFile": "Please select a file",
+    "uploadFailedPleaseTryAgain": "Upload failed. Please try again.",
+    "searchByUserId": "Search by User ID...",
+    "searchUsers": "Search Users",
+    "peerReview": "Peer Review",
+    "noContributionDataAvailable": "No contribution data available.",
+    "editHistory": "Edit History",
+    "noEditHistoryFoundForThisRecord": "No edit history found for this record.",
+    "change": {
+      "source": "Change Source:",
+      "language": "Change language"
+    },
+    "field": {
+      "changes": "Field Changes:"
+    },
+    "old": "OLD:",
+    "new": "NEW:",
+    "loginFailedNoAccessTokenReceived": "Login failed: No access token received",
+    "pleaseEnterAValidEmailAddress": "Please enter a valid email address",
+    "swechaTechnologyForSociety": "Swecha - Technology for Society",
+    "sending": "Sending...",
+    "verifying": "Verifying...",
+    "resetHere": "Reset Here",
+    "logging": {
+      "in": "Logging in..."
+    },
+    "emailAddress": "Email Address *",
+    "selectGender": "Select Gender",
+    "date": {
+      "of": {
+        "birth": "Date of Birth"
+      }
+    },
+    "one": {
+      "uppercase": {
+        "letter": "One uppercase letter"
+      },
+      "lowercase": {
+        "letter": "One lowercase letter"
+      },
+      "number": "One number"
+    },
+    "minimum": {
+      "8": {
+        "characters": "Minimum 8 characters"
+      }
+    },
+    "confirmPassword": "Confirm Password *",
+    "passwordsDoNotMatch": "*Passwords do not match",
+    "i": {
+      "agree": {
+        "to": {
+          "the": "I agree to the"
+        }
+      }
+    },
+    "terms": {
+      "of": {
+        "service": "Terms of Service"
+      }
+    },
+    "privacy": {
+      "policy": "Privacy Policy"
+    },
+    "backToSignupForm": "Back to Signup Form",
+    "documentPreview": "Document Preview",
+    "openInNewTab": "Open in New Tab",
+    "viewText": "View Text",
+    "openDocument": "Open Document",
+    "noChangesToSave": "No changes to save",
+    "meaningful": {
+      "words": "meaningful words"
+    },
+    "release": {
+      "rights": "Release Rights"
+    },
+    "specify": {
+      "creator": "Specify creator",
+      "source": "Specify source"
+    },
+    "Reviewed": "✓ Reviewed",
+    "media": {
+      "unavailable": "Media unavailable"
+    },
+    "uploadedMedia": "uploaded media",
+    "unsupported": {
+      "media": "Unsupported media"
+    },
+    "showHistory": "Show history",
+    "noHistory": "no history",
+    "source": "Source:",
+    "enter": {
+      "title": "Enter title",
+      "description": "Enter description",
+      "current": {
+        "place": "Enter current place"
+      },
+      "profession": "Enter profession",
+      "organisation": "Enter organisation"
+    },
+    "noUsersFound": "No users found",
+    "from": {
+      "place": "From Place"
+    },
+    "places": {
+      "lived": "Places Lived"
+    },
+    "authenticationTokenNotFound": "Authentication token not found",
+    "current": {
+      "place": "Current Place"
+    },
+    "noLocationSet": "No location set",
+    "selectLanguage": "Select language",
+    "addLanguage": "Add Language",
+    "addPlace": "Add Place",
+    "addSocialMedia": "Add Social Media",
+    "photoCapturedClickStopCameraWhenDone": "Photo captured! Click \"Stop Camera\" when done.",
+    "fileRemoved": "File removed",
+    "textUploadFailed": "Text upload failed",
+    "uploadContent": "Upload Content",
+    "title": "Title *",
+    "description": "Description *",
+    "selectCategories": "Select Categories *",
+    "editLocation": "Edit Location",
+    "pick": {
+      "from": {
+        "map": "Pick from Map"
+      }
+    },
+    "SelectALanguage": "-- Select a language --",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.",
+    "selectReleaseRights": "Select Release Rights",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "I downloaded this from the internet and/or I don't know if it\n                  is free to share.",
+    "creator": "Creator *",
+    "oopsPageNotFound": "Oops! Page not found",
+    "backToLogin": "Back to Login",
+    "confirmNewPassword": "Confirm New Password",
+    "resetPassword": "Reset Password",
+    "backToInitiate": "Back to Initiate",
+    "uploadFiles": "Upload Files",
+    "click": {
+      "to": {
+        "get": {
+          "started": "Click to get started"
+        }
+      }
+    },
+    "contributeToOpenDataAndHelpBuildTheFuture": "Contribute to open data and help build the future",
+    "proofreading": {
+      "tool": "Proofreading Tool"
+    },
+    "reviewAndCorrectOcrTextFromDocuments": "Review and correct OCR text from documents",
+    "proofread": {
+      "ocr": {
+        "text": "Proofread OCR Text"
+      }
+    },
+    "showHints": "Show Hints",
+    "submitPage": "Submit Page",
+    "reviewCommunityContributions": "Review community contributions",
+    "refreshFeed": "Refresh Feed",
+    "noResultsFoundFor": "No results found for \"",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "The user might not be in the loaded records yet. Try clearing\n                the search and scrolling to load more records.",
+    "processing": "Processing...",
+    "noFollowersFound": "No followers found",
+    "noUsersBeingFollowed": "No users being followed"
   },
   "nav": {
     "home": "Home",
     "profile": "Profile",
     "settings": "Settings",
     "logout": "Logout",
-    "login": "Login"
+    "login": "Login",
+    "preferPasswordLogin": "Prefer Password Login ?",
+    "loginWithPassword": "Login with Password",
+    "failedToLoadProfileData": "Failed to load profile data",
+    "tellUsAboutYourself": "Tell us about yourself",
+    "socialMediaProfiles": "Social Media Profiles",
+    "profileUrl": "Profile URL",
+    "returnToHome": "Return to Home",
+    "updateProfilePicture": "Update Profile Picture",
+    "enterAValidImageUrlForYourProfilePicture": "Enter a valid image URL for your profile picture"
   },
   "auth": {
     "email": "Email",
@@ -37,6 +254,297 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "signup": "Sign Up",
-    "securedBy": "Secured by"
+    "securedBy": "Secured by",
+    "pleaseEnterAValid10digitPhoneNumber": "Please enter a valid 10-digit phone number",
+    "pleaseEnterAValid6digitOtp": "Please enter a valid 6-digit OTP",
+    "invalidOtpPleaseCheckAndTryAgain": "Invalid OTP. Please check and try again.",
+    "otpVerificationFailedPleaseTryAgain": "OTP verification failed. Please try again.",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP has expired or is invalid. Please request a new one.",
+    "pleaseEnterAValidPhoneNumberAndPassword": "Please enter a valid phone number and password",
+    "pleaseEnterAValidUsername": "Please Enter a Valid UserName",
+    "passwordMustBeAtLeast6CharactersLong": "Password must be at least 6 characters long",
+    "signUp": "Sign Up",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "Enter your registered phone number to receive OTP",
+    "enter10digitPhoneNumber": "Enter 10-digit phone number",
+    "phoneNumberIsInvalid": "*Phone number is invalid",
+    "otpSentTo91": "OTP sent to +91",
+    "enter6digitOtp": "Enter 6-digit OTP",
+    "enterYourPassword": "Enter your password",
+    "username": "UserName*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*Username should consist of characters, underscores,\n                      digits only",
+    "emailIsInvalid": "*Email is invalid",
+    "createPassword": "Create Password *",
+    "passwordStrength": "Password Strength:",
+    "passwordShouldContain": "Password should contain :",
+    "sendingOtp": "Sending OTP...",
+    "requestOtpForPhoneVerification": "Request OTP for Phone Verification",
+    "enterUsername": "Enter username",
+    "phoneNumber": "Phone Number",
+    "enterYourPhoneNumber": "Enter your phone number",
+    "sendOtp": "Send OTP",
+    "otpCode": "OTP Code",
+    "enterOtp": "Enter OTP",
+    "newPassword": "New Password",
+    "enterNewPassword": "Enter new password",
+    "passwordMustBeAtLeast8CharactersAndContain": "Password must be at least 8 characters and contain:"
+  },
+  "user": {
+    "useMyCurrentLocation": "Use My Current Location",
+    "requestingLocationAccess": "Requesting location access...",
+    "locationAccessGranted": "Location access granted!",
+    "locationSetManually": "Location set manually!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "Location is required. Please enable location access or enter manually.",
+    "pleaseEnterYourName": "Please enter your name",
+    "fullName": "Full Name *",
+    "nameShouldHaveCharactersOnly": "*Name should have characters only",
+    "placeCityState": "Place (City, State)",
+    "enterFullName": "Enter full name",
+    "shortBio": "Short Bio",
+    "verifyingLocation": "Verifying location...",
+    "locationCapturedAwaitingVerification": "Location captured, awaiting verification...",
+    "locationRequired": "Location required",
+    "useCurrentLocation": "Use Current Location"
+  },
+  "ui": {
+    "tap": {
+      "any": {
+        "colored": {
+          "section": "Tap any colored section"
+        }
+      }
+    },
+    "enter": {
+      "your": {
+        "text": {
+          "content": {
+            "here": "Enter your text content here..."
+          }
+        }
+      },
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": "Enter a title for your content"
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": "Enter a creator for your content"
+            }
+          }
+        }
+      }
+    },
+    "failed": {
+      "to": {
+        "get": {
+          "user": {
+            "information": {
+              "please": {
+                "try": {
+                  "logging": {
+                    "in": {
+                      "again": "Failed to get user information. Please try logging in again."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fetch": {
+          "categories": "Failed to fetch categories"
+        }
+      }
+    },
+    "choose": {
+      "how": {
+        "youd": {
+          "like": {
+            "to": {
+              "contribute": "Choose how you'd like to contribute"
+            }
+          }
+        }
+      }
+    },
+    "too": {
+      "many": {
+        "attempts": {
+          "please": {
+            "wait": {
+              "before": {
+                "trying": {
+                  "again": "Too many attempts. Please wait before trying again."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "please": {
+      "agree": {
+        "to": {
+          "the": {
+            "terms": {
+              "and": {
+                "conditions": "Please agree to the terms and conditions"
+              }
+            }
+          }
+        }
+      }
+    },
+    "place": {
+      "should": {
+        "have": {
+          "characters": {
+            "is": {
+              "allowed": "*Place should have characters ( , is allowed)"
+            }
+          }
+        }
+      }
+    },
+    "one": {
+      "special": {
+        "character": "One special character"
+      }
+    },
+    "language": {
+      "proficiencies": "Language Proficiencies"
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": "Provide a detailed description (minimum 32 characters)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": "This work is created by me and anyone is free to use it."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "start": {
+      "typing": {
+        "to": {
+          "get": {
+            "hints": "*Start typing to get hints"
+          }
+        }
+      }
+    },
+    "ocr": {
+      "text": {
+        "will": {
+          "appear": {
+            "here": "OCR text will appear here."
+          }
+        }
+      }
+    }
+  },
+  "media": {
+    "audioRecording": "Audio Recording *",
+    "startRecording": "Start Recording",
+    "stopRecording": "Stop Recording",
+    "recordingPaused": "Recording paused",
+    "recordingCompleted": "Recording completed (",
+    "recordAgain": "Record Again",
+    "videoRecording": "Video Recording *",
+    "startVideoRecording": "Start Video Recording",
+    "photoCapture": "Photo Capture *",
+    "startCamera": "Start Camera",
+    "capturePhoto": "Capture Photo",
+    "stopCamera": "Stop Camera",
+    "photoCaptured": "Photo captured:",
+    "capturedPhoto": "Captured photo",
+    "videoUnavailable": "Video unavailable",
+    "loadVideo": "Load Video",
+    "audioUnavailable": "Audio unavailable",
+    "loadAudio": "Load Audio",
+    "documentUnavailable": "Document unavailable",
+    "loadDocument": "Load Document",
+    "fileSize": "File Size",
+    "imageUnavailable": "Image unavailable",
+    "audioTrack": "Audio Track",
+    "failedToSwitchCamera": "Failed to switch camera",
+    "audioRecordingStarted": "Audio recording started",
+    "videoRecordingStarted": "Video recording started",
+    "failedToPauseRecording": "Failed to pause recording",
+    "recordingResumed": "Recording resumed",
+    "failedToResumeRecording": "Failed to resume recording",
+    "recordingStopped": "Recording stopped",
+    "failedToStopRecording": "Failed to stop recording",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "Failed to capture photo. Please check camera permissions.",
+    "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
+    "imageUrl": "Image URL"
+  },
+  "messages": {
+    "loading": "Loading...",
+    "networkErrorPleaseTryAgain": "Network error. Please try again.",
+    "contentUploadedSuccessfullyRedirectingToLanding": "Content uploaded successfully! Redirecting to Landing...",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "Network error. Please check your connection and try again.",
+    "loadingContributionsDashboard": "Loading contributions dashboard...",
+    "otpSentSuccessfully": "OTP sent successfully!",
+    "loginSuccessful": "Login successful!",
+    "signupOtpSentSuccessfully": "Signup OTP sent successfully!",
+    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "Account created and verified successfully! Please login.",
+    "signupOtpResentSuccessfully": "Signup OTP resent successfully!",
+    "errorLoadingContributions": "Error loading contributions:",
+    "profileUpdatedSuccessfully": "Profile updated successfully!",
+    "loadingProfile": "Loading profile...",
+    "profilePictureUpdatedSuccessfully": "Profile picture updated successfully!",
+    "loadingPointsData": "Loading points data..."
+  },
+  "validation": {
+    "pleaseEnterValidLatitudeAndLongitudeValues": "Please enter valid latitude and longitude values",
+    "latitudeMustBeBetween90And90": "Latitude must be between -90 and 90",
+    "longitudeMustBeBetween180And180": "Longitude must be between -180 and 180",
+    "pleaseEnterTextContent": "Please enter text content"
+  },
+  "categories": {
+    "chooseACategoryToContributeContent": "Choose a category to contribute content",
+    "changeType": "Change Type:",
+    "unsupportedMediaType": "Unsupported media type",
+    "sourceLabel": "Source Label",
+    "type": "Type:"
+  },
+  "stats": {
+    "contributionsYet": "contributions yet.",
+    "pointsActivity": "Points Activity",
+    "contributions": "contributions...",
+    "contributionsFound": "contributions found."
   }
 }

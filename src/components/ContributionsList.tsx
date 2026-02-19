@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MediaGridItem } from './MediaGridItem';
 
 interface Coordinates {
@@ -55,6 +56,7 @@ export const ContributionsList: React.FC<ContributionsListProps> = ({
   token,
   isOwnProfile,
 }) => {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -73,7 +75,7 @@ export const ContributionsList: React.FC<ContributionsListProps> = ({
       <div className="text-center text-gray-400 py-8 text-lg font-medium">
         No{' '}
         {selectedMediaType.charAt(0).toUpperCase() + selectedMediaType.slice(1)}{' '}
-        contributions yet.
+        {t('stats.contributionsYet')}
       </div>
     );
   }

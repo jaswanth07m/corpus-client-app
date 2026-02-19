@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from 'embla-carousel-react';
@@ -56,6 +57,7 @@ const Carousel = React.forwardRef<
     },
     ref,
   ) => {
+    const { t } = useTranslation();
     const [carouselRef, api] = useEmblaCarousel(
       {
         ...opts,
@@ -215,7 +217,7 @@ const CarouselPrevious = React.forwardRef<
       {...props}
     >
       <ArrowLeft className="h-4 w-4" />
-      <span className="sr-only">Previous slide</span>
+      <span className="sr-only">{t('common.previousSlide')}</span>
     </Button>
   );
 });
@@ -244,7 +246,7 @@ const CarouselNext = React.forwardRef<
       {...props}
     >
       <ArrowRight className="h-4 w-4" />
-      <span className="sr-only">Next slide</span>
+      <span className="sr-only">{t('common.nextSlide')}</span>
     </Button>
   );
 });

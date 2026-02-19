@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Slot } from '@radix-ui/react-slot';
 import { VariantProps, cva } from 'class-variance-authority';
 import { PanelLeft } from 'lucide-react';
@@ -65,6 +66,7 @@ const SidebarProvider = React.forwardRef<
     },
     ref,
   ) => {
+    const { t } = useTranslation();
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -301,7 +303,7 @@ const SidebarRail = React.forwardRef<
     <button
       ref={ref}
       data-sidebar="rail"
-      aria-label="Toggle Sidebar"
+      aria-label={t('common.toggle.sidebar')}
       tabIndex={-1}
       onClick={toggleSidebar}
       title="Toggle Sidebar"

@@ -1,5 +1,11 @@
 {
   "common": {
+    "6": {
+      "digits": ""
+    },
+    "10": {
+      "digits": ""
+    },
     "loading": "లోడ్ అవుతోంది...",
     "error": "లోపం",
     "success": "విజయవంతమైంది",
@@ -18,14 +24,225 @@
     "sort": "క్రమపరచు",
     "yes": "అవును",
     "no": "కాదు",
-    "ok": "సరే"
+    "ok": "సరే",
+    "previousSlide": "",
+    "nextSlide": "",
+    "goToPreviousPage": "",
+    "goToNextPage": "",
+    "morePages": "",
+    "toggle": {
+      "sidebar": ""
+    },
+    "selectALocation": "",
+    "confirmLocation": "",
+    "": "",
+    "selectMediaType": "",
+    "to": {
+      "choose": ""
+    },
+    "documentUpload": "",
+    "uploadDocumentFilesPdfDocxTxt": "",
+    "selectedFile": "",
+    "content": "",
+    "yourBrowserDoesNotSupportTheAudioElement": "",
+    "uploadAudioFilesSingleFile": "",
+    "switch": {
+      "to": ""
+    },
+    "yourBrowserDoesNotSupportTheVideoElement": "",
+    "uploadVideoFilesSingleFile": "",
+    "selectedFiles": "",
+    "takeAnother": "",
+    "uploadImageFilesSingleFile": "",
+    "technologyForSociety": "",
+    "userIdNotFoundPleaseTryLoggingInAgain": "",
+    "geolocationNotSupported": "",
+    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "",
+    "releaseRightsNotFoundCheckForReleaseRights": "",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "",
+    "selectALangauge": "",
+    "pleaseSelectAFile": "",
+    "uploadFailedPleaseTryAgain": "",
+    "searchByUserId": "",
+    "searchUsers": "",
+    "peerReview": "",
+    "noContributionDataAvailable": "",
+    "editHistory": "",
+    "noEditHistoryFoundForThisRecord": "",
+    "change": {
+      "source": "",
+      "language": ""
+    },
+    "field": {
+      "changes": ""
+    },
+    "old": "",
+    "new": "",
+    "loginFailedNoAccessTokenReceived": "",
+    "pleaseEnterAValidEmailAddress": "",
+    "swechaTechnologyForSociety": "",
+    "sending": "",
+    "verifying": "",
+    "resetHere": "ఇక్కడ రీసెట్ చేయండి",
+    "logging": {
+      "in": ""
+    },
+    "emailAddress": "",
+    "selectGender": "",
+    "date": {
+      "of": {
+        "birth": ""
+      }
+    },
+    "one": {
+      "uppercase": {
+        "letter": ""
+      },
+      "lowercase": {
+        "letter": ""
+      },
+      "number": ""
+    },
+    "minimum": {
+      "8": {
+        "characters": ""
+      }
+    },
+    "confirmPassword": "",
+    "passwordsDoNotMatch": "",
+    "i": {
+      "agree": {
+        "to": {
+          "the": ""
+        }
+      }
+    },
+    "terms": {
+      "of": {
+        "service": ""
+      }
+    },
+    "privacy": {
+      "policy": ""
+    },
+    "backToSignupForm": "",
+    "documentPreview": "",
+    "openInNewTab": "",
+    "viewText": "",
+    "openDocument": "",
+    "noChangesToSave": "",
+    "meaningful": {
+      "words": ""
+    },
+    "release": {
+      "rights": ""
+    },
+    "specify": {
+      "creator": "",
+      "source": ""
+    },
+    "Reviewed": "",
+    "media": {
+      "unavailable": ""
+    },
+    "uploadedMedia": "",
+    "unsupported": {
+      "media": ""
+    },
+    "showHistory": "",
+    "noHistory": "",
+    "source": "",
+    "enter": {
+      "title": "",
+      "description": "",
+      "current": {
+        "place": ""
+      },
+      "profession": "",
+      "organisation": ""
+    },
+    "noUsersFound": "",
+    "from": {
+      "place": ""
+    },
+    "places": {
+      "lived": ""
+    },
+    "authenticationTokenNotFound": "",
+    "current": {
+      "place": ""
+    },
+    "noLocationSet": "",
+    "selectLanguage": "",
+    "addLanguage": "",
+    "addPlace": "",
+    "addSocialMedia": "",
+    "photoCapturedClickStopCameraWhenDone": "",
+    "fileRemoved": "",
+    "textUploadFailed": "",
+    "uploadContent": "",
+    "title": "",
+    "description": "",
+    "selectCategories": "",
+    "editLocation": "",
+    "pick": {
+      "from": {
+        "map": ""
+      }
+    },
+    "SelectALanguage": "",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "",
+    "selectReleaseRights": "",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "",
+    "creator": "",
+    "oopsPageNotFound": "",
+    "backToLogin": "",
+    "confirmNewPassword": "",
+    "resetPassword": "",
+    "backToInitiate": "",
+    "uploadFiles": "",
+    "click": {
+      "to": {
+        "get": {
+          "started": ""
+        }
+      }
+    },
+    "contributeToOpenDataAndHelpBuildTheFuture": "",
+    "proofreading": {
+      "tool": ""
+    },
+    "reviewAndCorrectOcrTextFromDocuments": "",
+    "proofread": {
+      "ocr": {
+        "text": ""
+      }
+    },
+    "showHints": "",
+    "submitPage": "",
+    "reviewCommunityContributions": "",
+    "refreshFeed": "",
+    "noResultsFoundFor": "",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "",
+    "processing": "",
+    "noFollowersFound": "",
+    "noUsersBeingFollowed": ""
   },
   "nav": {
     "home": "హోమ్",
     "profile": "ప్రొఫైల్",
     "settings": "సెట్టింగ్‌లు",
     "logout": "లాగౌట్",
-    "login": "లాగిన్"
+    "login": "లాగిన్",
+    "preferPasswordLogin": "",
+    "loginWithPassword": "",
+    "failedToLoadProfileData": "",
+    "tellUsAboutYourself": "",
+    "socialMediaProfiles": "",
+    "profileUrl": "",
+    "returnToHome": "",
+    "updateProfilePicture": "",
+    "enterAValidImageUrlForYourProfilePicture": ""
   },
   "auth": {
     "email": "ఇమెయిల్",
@@ -37,6 +254,297 @@
     "noAccount": "ఖాతా లేదా?",
     "hasAccount": "ఇప్పటికే ఖాతా ఉందా?",
     "signup": "సైన్ అప్",
-    "securedBy": "చేత రక్షించబడింది"
+    "securedBy": "చేత రక్షించబడింది",
+    "pleaseEnterAValid10digitPhoneNumber": "",
+    "pleaseEnterAValid6digitOtp": "",
+    "invalidOtpPleaseCheckAndTryAgain": "",
+    "otpVerificationFailedPleaseTryAgain": "",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "",
+    "pleaseEnterAValidPhoneNumberAndPassword": "",
+    "pleaseEnterAValidUsername": "",
+    "passwordMustBeAtLeast6CharactersLong": "",
+    "signUp": "",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "",
+    "enter10digitPhoneNumber": "",
+    "phoneNumberIsInvalid": "",
+    "otpSentTo91": "",
+    "enter6digitOtp": "",
+    "enterYourPassword": "",
+    "username": "",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "",
+    "emailIsInvalid": "",
+    "createPassword": "",
+    "passwordStrength": "",
+    "passwordShouldContain": "",
+    "sendingOtp": "",
+    "requestOtpForPhoneVerification": "",
+    "enterUsername": "",
+    "phoneNumber": "",
+    "enterYourPhoneNumber": "",
+    "sendOtp": "",
+    "otpCode": "",
+    "enterOtp": "",
+    "newPassword": "",
+    "enterNewPassword": "",
+    "passwordMustBeAtLeast8CharactersAndContain": ""
+  },
+  "user": {
+    "useMyCurrentLocation": "",
+    "requestingLocationAccess": "",
+    "locationAccessGranted": "",
+    "locationSetManually": "",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "",
+    "pleaseEnterYourName": "",
+    "fullName": "",
+    "nameShouldHaveCharactersOnly": "",
+    "placeCityState": "",
+    "enterFullName": "",
+    "shortBio": "",
+    "verifyingLocation": "",
+    "locationCapturedAwaitingVerification": "",
+    "locationRequired": "",
+    "useCurrentLocation": ""
+  },
+  "ui": {
+    "tap": {
+      "any": {
+        "colored": {
+          "section": ""
+        }
+      }
+    },
+    "enter": {
+      "your": {
+        "text": {
+          "content": {
+            "here": ""
+          }
+        }
+      },
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": ""
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": ""
+            }
+          }
+        }
+      }
+    },
+    "failed": {
+      "to": {
+        "get": {
+          "user": {
+            "information": {
+              "please": {
+                "try": {
+                  "logging": {
+                    "in": {
+                      "again": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fetch": {
+          "categories": ""
+        }
+      }
+    },
+    "choose": {
+      "how": {
+        "youd": {
+          "like": {
+            "to": {
+              "contribute": ""
+            }
+          }
+        }
+      }
+    },
+    "too": {
+      "many": {
+        "attempts": {
+          "please": {
+            "wait": {
+              "before": {
+                "trying": {
+                  "again": ""
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "please": {
+      "agree": {
+        "to": {
+          "the": {
+            "terms": {
+              "and": {
+                "conditions": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "place": {
+      "should": {
+        "have": {
+          "characters": {
+            "is": {
+              "allowed": ""
+            }
+          }
+        }
+      }
+    },
+    "one": {
+      "special": {
+        "character": ""
+      }
+    },
+    "language": {
+      "proficiencies": ""
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": ""
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "start": {
+      "typing": {
+        "to": {
+          "get": {
+            "hints": ""
+          }
+        }
+      }
+    },
+    "ocr": {
+      "text": {
+        "will": {
+          "appear": {
+            "here": ""
+          }
+        }
+      }
+    }
+  },
+  "media": {
+    "audioRecording": "",
+    "startRecording": "",
+    "stopRecording": "",
+    "recordingPaused": "",
+    "recordingCompleted": "",
+    "recordAgain": "",
+    "videoRecording": "",
+    "startVideoRecording": "",
+    "photoCapture": "",
+    "startCamera": "",
+    "capturePhoto": "",
+    "stopCamera": "",
+    "photoCaptured": "",
+    "capturedPhoto": "",
+    "videoUnavailable": "",
+    "loadVideo": "",
+    "audioUnavailable": "",
+    "loadAudio": "",
+    "documentUnavailable": "",
+    "loadDocument": "",
+    "fileSize": "",
+    "imageUnavailable": "",
+    "audioTrack": "",
+    "failedToSwitchCamera": "",
+    "audioRecordingStarted": "",
+    "videoRecordingStarted": "",
+    "failedToPauseRecording": "",
+    "recordingResumed": "",
+    "failedToResumeRecording": "",
+    "recordingStopped": "",
+    "failedToStopRecording": "",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "",
+    "pleaseEnterAValidImageUrl": "",
+    "imageUrl": ""
+  },
+  "messages": {
+    "loading": "",
+    "networkErrorPleaseTryAgain": "",
+    "contentUploadedSuccessfullyRedirectingToLanding": "",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "",
+    "loadingContributionsDashboard": "",
+    "otpSentSuccessfully": "",
+    "loginSuccessful": "",
+    "signupOtpSentSuccessfully": "",
+    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "",
+    "signupOtpResentSuccessfully": "",
+    "errorLoadingContributions": "",
+    "profileUpdatedSuccessfully": "",
+    "loadingProfile": "",
+    "profilePictureUpdatedSuccessfully": "",
+    "loadingPointsData": ""
+  },
+  "validation": {
+    "pleaseEnterValidLatitudeAndLongitudeValues": "",
+    "latitudeMustBeBetween90And90": "",
+    "longitudeMustBeBetween180And180": "",
+    "pleaseEnterTextContent": ""
+  },
+  "categories": {
+    "chooseACategoryToContributeContent": "",
+    "changeType": "",
+    "unsupportedMediaType": "",
+    "sourceLabel": "",
+    "type": ""
+  },
+  "stats": {
+    "contributionsYet": "",
+    "pointsActivity": "",
+    "contributions": "",
+    "contributionsFound": ""
   }
 }

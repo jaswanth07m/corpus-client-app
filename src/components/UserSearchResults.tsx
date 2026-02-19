@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface User {
   username: string;
@@ -21,6 +22,7 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
   isVisible = true,
   onClose,
 }) => {
+  const { t } = useTranslation();
   if (!isVisible) {
     return null;
   }
@@ -79,7 +81,9 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
 
         {/* Modal Content */}
         <div className="relative z-10 bg-white rounded-lg shadow-xl border border-slate-200 w-full max-w-md p-4">
-          <div className="text-slate-600 text-sm">No users found</div>
+          <div className="text-slate-600 text-sm">
+            {t('common.noUsersFound')}
+          </div>
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
@@ -13,6 +14,7 @@ import { BACKEND_URL } from '@/lib/constants';
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function Proofreading() {
+  const { t } = useTranslation();
   const [bookData, setBookData] = useState(null);
   const [recordId, setRecordId] = useState(null);
   const [fullRecordData, setFullRecordData] = useState(null); // State to hold the original record
@@ -342,9 +344,11 @@ function Proofreading() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-xl font-bold">Proofreading Tool</h1>
+              <h1 className="text-xl font-bold">
+                {t('common.proofreading.tool')}
+              </h1>
               <p className="text-purple-100 text-sm">
-                Review and correct OCR text from documents
+                {t('common.reviewAndCorrectOcrTextFromDocuments')}
               </p>
             </div>
           </div>
@@ -514,7 +518,9 @@ function Proofreading() {
             </h2>
 
             {hintsVisible && (
-              <p className="text-sm text-center">*Start typing to get hints</p>
+              <p className="text-sm text-center">
+                {t('ui.start.typing.to.get.hints')}
+              </p>
             )}
 
             <div className="flex flex-col items-center gap-2 w-full">
@@ -541,7 +547,9 @@ function Proofreading() {
                     checked={hintsVisible}
                     onChange={() => setHintsVisible(!hintsVisible)}
                   />
-                  <label htmlFor="telugu-hints-toggle">Show Hints</label>
+                  <label htmlFor="telugu-hints-toggle">
+                    {t('common.showHints')}
+                  </label>
                 </div>
               )}
             </div>
@@ -549,7 +557,7 @@ function Proofreading() {
 
           <textarea
             className="w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800 min-h-[200px] max-h-60"
-            placeholder="OCR text will appear here."
+            placeholder={t('ui.ocr.text.will.appear.here')}
             disabled={!bookData || isLoading || isSubmitting}
             {...textAreaProps}
           ></textarea>
@@ -651,7 +659,8 @@ function Proofreading() {
                         -
                       </button>
                       <span className="font-semibold">
-                        {Math.round(zoom * 100)}%
+                        {Math.round(zoom * 100)}
+                        {t('common.')}
                       </span>
                       <button
                         className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
@@ -699,7 +708,7 @@ function Proofreading() {
               <div className="w-1/2 flex flex-col p-5 relative">
                 <div className="flex flex-row justify-between">
                   <h2 className="text-xl font-bold mb-3 flex-shrink-0">
-                    Proofread OCR Text
+                    {t('common.proofread.ocr.text')}
                   </h2>
 
                   {hintsVisible && (
@@ -763,7 +772,7 @@ function Proofreading() {
             }}
             disabled={isSubmitting}
           >
-            Submit Page
+            {t('common.submitPage')}
           </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
