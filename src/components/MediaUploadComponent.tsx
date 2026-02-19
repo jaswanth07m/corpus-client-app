@@ -74,6 +74,11 @@ interface MediaUploadComponentProps {
   setFileMetadata?: (
     metadata: { title: string; description: string }[],
   ) => void;
+  // Per-file metadata props
+  fileMetadata?: { title: string; description: string }[];
+  setFileMetadata?: (
+    metadata: { title: string; description: string }[],
+  ) => void;
 }
 
 const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
@@ -126,7 +131,23 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
   fileMetadata = [],
   setFileMetadata,
 }) => {
-  const { t } = useTranslation();
+  // Handler to update file metadata (title/description)
+  const updateFileMetadata = (
+    index: number,
+    field: 'title' | 'description',
+    value: string,
+  ) => {
+    if (setFileMetadata) {
+      const newMetadata = [...fileMetadata];
+      if (newMetadata[index]) {
+        newMetadata[index] = { ...newMetadata[index], [field]: value };
+      } else {
+        newMetadata[index] = { title: '', description: '' };
+        newMetadata[index][field] = value;
+      }
+      setFileMetadata(newMetadata);
+    }
+  };
 
   // Handler to update file metadata (title/description)
   const updateFileMetadata = (
@@ -166,6 +187,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
           <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
             <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
             <span className="text-gray-600 text-sm sm:text-base">
+              Upload Document Files (PDF, DOCX, TXT) - Max 5 files
               {t('common.uploadDocumentFilesPdfDocxTxtMax5Files')}
             </span>
           </div>
@@ -350,6 +372,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600">
                 {t('common.uploadAudioFilesMax5Files')}
+                Upload Audio Files (Max 5 files)
               </span>
             </div>
           </label>
@@ -543,6 +566,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600 text-sm sm:text-base">
+                Upload Video Files (Max 5 files)
                 {t('common.uploadVideoFilesMax5Files')}
               </span>
             </div>
@@ -725,6 +749,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600 text-sm sm:text-base">
+                Upload Image Files (Max 5 files)
                 {t('common.uploadImageFilesMax5Files')}
               </span>
             </div>

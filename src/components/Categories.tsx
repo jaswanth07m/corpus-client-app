@@ -554,18 +554,23 @@ const Categories: React.FC<CategoriesProps> = ({
     filename,
     customTitle,
     customDescription,
+    customTitle,
+    customDescription,
   }: {
     uploadUuid: string;
     totalChunks: number;
     filename: string;
     customTitle?: string;
     customDescription?: string;
+    customTitle?: string;
+    customDescription?: string;
   }): Promise<FinalizeResult> => {
     try {
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
-      formData.append('title', customTitle || title);
-      formData.append('description', customDescription || description);
+      // Use custom title/description if provided, otherwise fall back to component state
+      formData.append('title', customTitle || customTitle || title);
+      formData.append('description', customDescription || customDescription || description);
       const categoryIds =
         selectedCategories && selectedCategories.length > 0
           ? selectedCategories.map((cat) => cat.id)
@@ -704,7 +709,7 @@ const Categories: React.FC<CategoriesProps> = ({
     file?: File,
     description?: string,
     fileTitle?: string,
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     // Use provided parameters or fall back to component state
     const uploadTitle = fileTitle || title;
     const uploadDescription = description || '';
@@ -768,7 +773,7 @@ const Categories: React.FC<CategoriesProps> = ({
       });
     } else if (!fileToUpload) {
       toast.error('Please select a file');
-      return false;
+      return;
     }
 
     // Initialize upload state
@@ -784,38 +789,27 @@ const Categories: React.FC<CategoriesProps> = ({
         newUploadUuid,
       );
 
-      if (!success) {
-        partialResetUploadState();
-        setIsUploading(false);
-        return false;
-      }
+      if (success) {
+        const totalChunks = getTotalChunks(fileToUpload!);
+        // Finalize upload
+        const finalized = await finalizeUpload({
+          uploadUuid: newUploadUuid,
+          totalChunks: totalChunks,
+          filename: fileToUpload!.name,
+          customTitle: uploadTitle,
+          customDescription: uploadDescription,
+        });
+        if (finalized) {
+          posthog.capture('upload_success');
 
-      const totalChunks = getTotalChunks(fileToUpload!);
-      // Finalize upload
-      const finalizeResult = await finalizeUpload({
-        uploadUuid: newUploadUuid,
-        totalChunks: totalChunks,
-        filename: fileToUpload!.name,
-        customTitle: uploadTitle,
-        customDescription: uploadDescription,
-      });
-
-      if (!finalizeResult.success) {
-        partialResetUploadState();
-        setIsUploading(false);
-        if (finalizeResult.errorType === 'STORAGE_FAILURE') {
-          return { success: false, errorType: 'STORAGE_FAILURE' };
-        }
-        return { success: false, errorType: 'GENERIC_FAILURE' };
-      }
-
-      // Only redirect for single file uploads
-      if (!isMultiFileUpload) {
-        toast.success(
-          'Content uploaded successfully! Redirecting to Landing...',
-        );
-        resetUploadState();
-          // Update preferences based on current upload values
+          // Only redirect and reset for single file uploads (when file param is NOT provided)
+          // For multi-file uploads, let the caller handle the redirect
+          if (!isMultiFileUpload) {
+            toast.success(
+              'Content uploaded successfully! Redirecting to Landing...',
+            );
+            resetUploadState();
+            // Update preferences based on current upload values
           setPreferences({
             language: selectedLanguage,
             rights: releaseRights,
@@ -824,9 +818,12 @@ const Categories: React.FC<CategoriesProps> = ({
           language: selectedLanguage,
           rights: releaseRights,
         });
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1500);
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+          }
+          // For multi-file upload, return success without redirecting
+          return;
       }
 
       return { success: true };

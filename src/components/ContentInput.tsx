@@ -714,6 +714,48 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     const newFilesCount = files.length;
     const totalFiles = currentFileCount + newFilesCount;
 
+    if (totalFiles > 5) {
+      toast.error(
+        `You can only upload a maximum of 5 files. You already have ${currentFileCount} file(s) selected.`,
+      );
+      // Only add up to 5 files
+      const filesToAdd = Array.from(files).slice(0, 5 - currentFileCount);
+      if (filesToAdd.length > 0) {
+        const newFiles = [...selectedFiles, ...filesToAdd];
+        setSelectedFiles(newFiles);
+        // Initialize metadata for new files
+        const newMetadata = [...fileMetadata];
+        filesToAdd.forEach(() => {
+          newMetadata.push({ title: '', description: '' });
+        });
+        setFileMetadata(newMetadata);
+        if (newFiles.length > 0) {
+          setSelectedFile(newFiles[0]);
+        }
+      }
+      event.target.value = '';
+      return;
+    }
+
+    // Add all new files
+    const newFiles = [...selectedFiles, ...Array.from(files)];
+    setSelectedFiles(newFiles);
+
+    // Initialize metadata for new files
+    const newMetadata = [...fileMetadata];
+    Array.from(files).forEach(() => {
+      newMetadata.push({ title: '', description: '' });
+    });
+    setFileMetadata(newMetadata);
+
+    if (newFiles.length > 0) {
+      setSelectedFile(newFiles[0]);
+    }
+    // Check file limit (max 5 files)
+    const currentFileCount = selectedFiles.length;
+    const newFilesCount = files.length;
+    const totalFiles = currentFileCount + newFilesCount;
+
     if (totalFiles > 5 || currentFileCount >= 5) {
       toast.error(
         `You can only upload a maximum of 5 files. You already have ${currentFileCount} file(s) selected.`,
@@ -835,8 +877,36 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     let failedCount = 0;
     let hasStorageFailure = false;
 
+    // Validate that each file has title and description
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const metadata = fileMetadata[i];
+      if (!metadata || !metadata.title || metadata.title.trim().length < 8) {
+        toast.error(
+          `Please provide a title (minimum 8 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+      if (
+        !metadata ||
+        !metadata.description ||
+        metadata.description.trim().length < 32
+      ) {
+        toast.error(
+          `Please provide a description (minimum 32 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+    }
+
+    // Upload all files with their individual metadata
+    let allUploadsSuccessful = true;
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
+      const metadata = fileMetadata[i];
+      try {
+        await onUpload(file, metadata.description, metadata.title);
       const metadata = fileMetadata[i];
       console.log(
         `[Bulk Upload] Starting upload ${i + 1}/${selectedFiles.length}:`,
@@ -864,10 +934,28 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         allUploadsSuccessful = false;
         failedCount++;
         hasStorageFailure = true;
+        allUploadsSuccessful = false;
       }
     }
 
     setUploadingFiles(false);
+
+    // Redirect to home after all files are uploaded successfully
+    if (allUploadsSuccessful && selectedFiles.length > 0) {
+      toast.success(
+        `${selectedFiles.length} file(s) uploaded successfully! Redirecting to Home...`,
+      );
+      // Reset the form
+      setSelectedFiles([]);
+      setFileMetadata([]);
+      setSelectedFile(null);
+      setTitle('');
+      setDescription('');
+      // Redirect to home after a short delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+    }
 
     console.log(
       `[Bulk Upload] Completed. Success: ${allUploadsSuccessful}, Failed: ${failedCount}, StorageError: ${hasStorageFailure}`,
@@ -1097,6 +1185,74 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   </div>
                 )}
               </div>
+            {/* Title Input - hide when files are selected for non-text uploads */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    const newTitle = e.target.value;
+                    setTitle(newTitle);
+                    if (newTitle.trim().length < 8) {
+                      setTitleError(
+                        'Title must be at least 8 characters long.',
+                      );
+                    } else if (countMeaningfulWords(newTitle) < 2) {
+                      setTitleError(
+                        'Title must contain at least 2 meaningful words.',
+                      );
+                    } else {
+                      setTitleError(null);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="Enter a title for your content"
+                />
+                {titleError && (
+                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                    {titleError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Description Input - hide when files are selected for non-text uploads */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => {
+                    const newDescription = e.target.value;
+                    setDescription(newDescription);
+                    if (newDescription.trim().length < 32) {
+                      setDescriptionError(
+                        'Description must be at least 32 characters long.',
+                      );
+                    } else if (countMeaningfulWords(newDescription) < 10) {
+                      setDescriptionError(
+                        'Description must contain at least 10 meaningful words.',
+                      );
+                    } else {
+                      setDescriptionError(null);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
+                  placeholder="Provide a detailed description (minimum 32 characters)"
+                />
+                {descriptionError && (
+                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                    {descriptionError}
+                  </div>
+                )}
+              </div>
+            )}
             )}
 
             {/* Multi-Category Selection as Tags */}
