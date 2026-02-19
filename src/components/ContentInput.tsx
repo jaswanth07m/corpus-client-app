@@ -47,6 +47,12 @@ interface Category {
   updated_at: string;
 }
 
+// Per-file metadata interface
+interface FileMetadata {
+  title: string;
+  description: string;
+}
+
 // Re-added the VerifiedLocation interface for the verification flow
 interface VerifiedLocation {
   formatted_address: string;
@@ -96,7 +102,11 @@ interface ContentInputProps {
   setSelectedLangugae: (selectedLanguage: string) => void;
 
   onBack: () => void;
-  onUpload: (file: File, description: string) => Promise<void>;
+  onUpload: (
+    file: File,
+    description: string,
+    fileTitle?: string,
+  ) => Promise<void>;
 
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
@@ -104,6 +114,10 @@ interface ContentInputProps {
 
   chunkedUploadProgress: number;
   isChunkedUploading?: boolean;
+
+  // New props for per-file metadata
+  fileMetadata?: FileMetadata[];
+  setFileMetadata?: (metadata: FileMetadata[]) => void;
 }
 
 const countMeaningfulWords = (s: string) => {
@@ -203,6 +217,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Multiple file upload states
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+
+  // Per-file title and description state
+  const [fileMetadata, setFileMetadata] = useState<FileMetadata[]>([]);
 
   // Multi-category selection state - fallback to empty array if not provided
   const [multiSelectedCategories, setMultiSelectedCategories] = useState<
@@ -687,35 +704,64 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const handleSingleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    //uncomment for audio validations
-    //   if (uploadMode === 'audio') {
-    //   toast.loading('Validating audio...');
-    //   const result = await validateAudioFile(file);
-    //   toast.dismiss();
+    // Check file limit (max 5 files)
+    const currentFileCount = selectedFiles.length;
+    const newFilesCount = files.length;
+    const totalFiles = currentFileCount + newFilesCount;
 
-    //   if (!result.isValid) {
-    //     toast.error('Audio validation failed', {
-    //       description: mapAudioErrors(result.errors),
-    //     });
-    //     return;
-    //   }
-    // }
+    if (totalFiles > 5) {
+      toast.error(
+        `You can only upload a maximum of 5 files. You already have ${currentFileCount} file(s) selected.`,
+      );
+      // Only add up to 5 files
+      const filesToAdd = Array.from(files).slice(0, 5 - currentFileCount);
+      if (filesToAdd.length > 0) {
+        const newFiles = [...selectedFiles, ...filesToAdd];
+        setSelectedFiles(newFiles);
+        // Initialize metadata for new files
+        const newMetadata = [...fileMetadata];
+        filesToAdd.forEach(() => {
+          newMetadata.push({ title: '', description: '' });
+        });
+        setFileMetadata(newMetadata);
+        if (newFiles.length > 0) {
+          setSelectedFile(newFiles[0]);
+        }
+      }
+      event.target.value = '';
+      return;
+    }
 
-    setSelectedFile(file);
-    setSelectedFiles([file]); // keep compatibility with existing logic
+    // Add all new files
+    const newFiles = [...selectedFiles, ...Array.from(files)];
+    setSelectedFiles(newFiles);
+
+    // Initialize metadata for new files
+    const newMetadata = [...fileMetadata];
+    Array.from(files).forEach(() => {
+      newMetadata.push({ title: '', description: '' });
+    });
+    setFileMetadata(newMetadata);
+
+    if (newFiles.length > 0) {
+      setSelectedFile(newFiles[0]);
+    }
     setRecordedBlob(null);
     setAudioUrl(null);
     setVideoUrl(null);
-    toast.success(`File selected: ${file.name}`);
+    toast.success(`${files.length} file(s) selected`);
     handleFileSelect(event);
   };
 
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
     setSelectedFiles(newFiles);
+    // Also remove the corresponding metadata
+    const newMetadata = fileMetadata.filter((_, i) => i !== index);
+    setFileMetadata(newMetadata);
     if (newFiles.length === 0) {
       setSelectedFile(null);
     } else if (newFiles.length === 1) {
@@ -759,17 +805,61 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       return;
     }
 
+    // Validate that each file has title and description
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const metadata = fileMetadata[i];
+      if (!metadata || !metadata.title || metadata.title.trim().length < 8) {
+        toast.error(
+          `Please provide a title (minimum 8 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+      if (
+        !metadata ||
+        !metadata.description ||
+        metadata.description.trim().length < 32
+      ) {
+        toast.error(
+          `Please provide a description (minimum 32 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+    }
+
+    // Upload all files with their individual metadata
+    let allUploadsSuccessful = true;
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
+      const metadata = fileMetadata[i];
       try {
-        await onUpload(file, description);
+        await onUpload(file, metadata.description, metadata.title);
       } catch (err) {
         console.error('Upload failed for', file.name, err);
         toast.error(`Upload failed: ${file.name}`);
+        allUploadsSuccessful = false;
       }
     }
 
     setUploadingFiles(false);
+
+    // Redirect to home after all files are uploaded successfully
+    if (allUploadsSuccessful && selectedFiles.length > 0) {
+      toast.success(
+        `${selectedFiles.length} file(s) uploaded successfully! Redirecting to Home...`,
+      );
+      // Reset the form
+      setSelectedFiles([]);
+      setFileMetadata([]);
+      setSelectedFile(null);
+      setTitle('');
+      setDescription('');
+      // Redirect to home after a short delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+    }
   };
 
   return (
@@ -888,6 +978,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               formatTime={formatTime}
               formatFileSize={formatFileSize}
               removeFile={removeFile}
+              fileMetadata={fileMetadata}
+              setFileMetadata={setFileMetadata}
             />
 
             {/* Title Input */}
@@ -954,6 +1046,74 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 </div>
               )}
             </div>
+            {/* Title Input - hide when files are selected for non-text uploads */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    const newTitle = e.target.value;
+                    setTitle(newTitle);
+                    if (newTitle.trim().length < 8) {
+                      setTitleError(
+                        'Title must be at least 8 characters long.',
+                      );
+                    } else if (countMeaningfulWords(newTitle) < 2) {
+                      setTitleError(
+                        'Title must contain at least 2 meaningful words.',
+                      );
+                    } else {
+                      setTitleError(null);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="Enter a title for your content"
+                />
+                {titleError && (
+                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                    {titleError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Description Input - hide when files are selected for non-text uploads */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => {
+                    const newDescription = e.target.value;
+                    setDescription(newDescription);
+                    if (newDescription.trim().length < 32) {
+                      setDescriptionError(
+                        'Description must be at least 32 characters long.',
+                      );
+                    } else if (countMeaningfulWords(newDescription) < 10) {
+                      setDescriptionError(
+                        'Description must contain at least 10 meaningful words.',
+                      );
+                    } else {
+                      setDescriptionError(null);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
+                  placeholder="Provide a detailed description (minimum 32 characters)"
+                />
+                {descriptionError && (
+                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                    {descriptionError}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Multi-Category Selection as Tags */}
             {categories && categories.length > 0 && (
@@ -1176,18 +1336,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 disabled={
                   uploading ||
                   uploadingFiles ||
-                  !title ||
-                  !!titleError ||
-                  !description ||
-                  !!descriptionError ||
                   !verifiedLocation || // <-- Key change: Disable button until location is VERIFIED
                   !releaseRights ||
                   releaseRights === 'downloaded' ||
                   !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
-                  (uploadMode !== 'text' &&
-                    !selectedFile &&
-                    selectedFiles.length === 0)
+                  // For non-text uploads, check if files are selected
+                  (uploadMode !== 'text' && selectedFiles.length === 0)
                     ? true
                     : false
                 }
