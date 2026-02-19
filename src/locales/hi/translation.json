@@ -1,0 +1,42 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफल",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "submit": "सबमिट करें",
+    "confirm": "पुष्टि करें",
+    "back": "वापस",
+    "next": "आगे",
+    "previous": "पिछला",
+    "close": "बंद करें",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "sort": "क्रमबद्ध करें",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "ok": "ठीक है"
+  },
+  "nav": {
+    "home": "होम",
+    "profile": "प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "logout": "लॉगआउट",
+    "login": "लॉगिन"
+  },
+  "auth": {
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "loginTitle": "कॉर्पस में लॉगिन करें",
+    "loginButton": "लॉगिन",
+    "noAccount": "खाता नहीं है?",
+    "hasAccount": "पहले से खाता है?",
+    "signup": "साइन अप",
+    "securedBy": "द्वारा सुरक्षित"
+  }
+}

@@ -19,12 +19,15 @@ import {
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface LoginFormProps {
   onLoginSuccess: (token: string, user: unknown) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+  const { t } = useTranslation();
   //validation states
   const [validatePhone, setValidatePhone] = useState('border-gray-200');
   const [errorPhoneDisplay, setErrorPhoneDisplay] = useState('hidden');
@@ -580,6 +583,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       </div>
 
       <Card className="w-full max-w-md animate-scale-in relative z-10 shadow-2xl border border-slate-200/50 bg-white/90 backdrop-blur-xl">
+        {/* Language Switcher */}
+        <div className="absolute top-4 right-4 z-50">
+          <LanguageSwitcher />
+        </div>
+
         <CardHeader className="text-center pb-6 pt-10 px-8">
           <div className="mb-8">
             <img
@@ -1460,7 +1468,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           {/* Footer */}
           <div className="text-center pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Secured by{' '}
+              {t('auth.securedBy')}{' '}
               <span className="text-purple-600 font-semibold">Swecha</span>
             </p>
           </div>

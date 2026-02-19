@@ -19,7 +19,9 @@
     "test:run": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --passWithNoTests --coverage",
     "test:ui": "vitest --ui",
-    "knip": "knip --no-exit-code"
+    "knip": "knip --no-exit-code",
+    "i18n:extract": "i18next --config i18next-parser.config.js",
+    "i18n:clean": "rm -rf src/locales"
   },
   "prettier": {
     "singleQuote": true,
@@ -78,6 +80,8 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "fix-webm-duration": "^1.0.6",
+    "i18next": "^25.8.11",
+    "i18next-browser-languagedetector": "^8.2.1",
     "input-otp": "^1.2.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
@@ -88,6 +92,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
+    "react-i18next": "^16.5.4",
     "react-infinite-scroll-component": "^6.1.0",
     "react-leaflet": "^4.2.1",
     "react-pdf": "^10.2.0",
@@ -124,6 +129,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^15.9.0",
     "husky": "^9.1.7",
+    "i18next-parser": "^9.3.0",
     "jsdom": "^28.0.0",
     "knip": "^5.82.1",
     "lint-staged": "^16.1.2",
