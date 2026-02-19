@@ -977,7 +977,7 @@ const Categories: React.FC<CategoriesProps> = ({
               </div>
             </Link>
 
-            <Link to="/annotations">
+            <Link to="/tools">
               <div className="relative group">
                 <button className="p-3 hover:bg-amber-50 rounded-xl transition-all duration-200 border border-slate-200 hover:border-amber-400 hover:shadow-md">
                   <FileCheck className="h-5 w-5 text-slate-700 group-hover:text-amber-600" />
@@ -1095,7 +1095,7 @@ const Categories: React.FC<CategoriesProps> = ({
           </Link>
 
           <Link
-            to="/annotations"
+            to="/tools"
             className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg transition-colors"
           >
             <FileCheck className="w-6 h-6 text-slate-700" />

@@ -337,7 +337,7 @@ function Proofreading() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => {
-                window.location.href = '/annotations';
+                window.location.href = '/tools';
               }}
               className="text-white hover:bg-white/20 w-10 h-10 rounded-full p-2"
             >

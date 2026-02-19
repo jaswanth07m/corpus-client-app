@@ -61,7 +61,7 @@ const App = () => (
                   </RequireAuth>
                 }
               />
-              <Route path="/annotations" element={<AnnotationsDashboard />} />
+              <Route path="/tools" element={<AnnotationsDashboard />} />
               <Route path="/proofreading" element={<AnnotationsDashboard />} />
               <Route
                 path="/myprofile/"
@@ -102,7 +102,7 @@ const App = () => (
             </Route>
 
             <Route
-              path="/annotations/proofreading"
+              path="/tools/proofreading"
               element={
                 <RequireAuth>
                   <Proofreading />

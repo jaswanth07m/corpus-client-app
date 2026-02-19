@@ -19,14 +19,14 @@ const AnnotationsDashboard = () => {
       title: 'Proofreading',
       description: 'Review and correct OCR text from documents',
       icon: <FileCheck className="h-8 w-8 text-blue-600" />,
-      path: '/annotations/proofreading',
+      path: '/tools/proofreading',
     },
     {
       id: 'transcription',
       title: 'Transcription',
       description: 'Convert audio and video content to text',
       icon: <Mic className="h-8 w-8 text-yellow-600" />,
-      path: '/annotations/transcription',
+      path: '/tools/transcription',
       comingSoon: true,
     },
     {
@@ -34,7 +34,7 @@ const AnnotationsDashboard = () => {
       title: 'Text Extraction',
       description: 'Extract text from images and documents',
       icon: <FileType className="h-8 w-8 text-purple-600" />,
-      path: '/annotations/extraction',
+      path: '/tools/extraction',
       comingSoon: true,
     },
     {
@@ -42,7 +42,7 @@ const AnnotationsDashboard = () => {
       title: 'Audio Proofreading',
       description: 'Listen and correct transcribed audio content',
       icon: <AudioLines className="h-8 w-8 text-green-600" />,
-      path: '/annotations/audio-proofreading',
+      path: '/tools/audio-proofreading',
       comingSoon: true,
     },
   ];
