@@ -1,12 +1,12 @@
 {
   "common": {
     "6": {
-      "digits": ""
+      "digits": "/6 अंक"
     },
     "10": {
-      "digits": ""
+      "digits": "/10 अंक"
     },
-    "91": "",
+    "91": "+91",
     "loading": "लोड हो रहा है...",
     "error": "त्रुटि",
     "success": "सफल",
@@ -109,22 +109,22 @@
         "characters": ""
       }
     },
-    "confirmPassword": "",
-    "passwordsDoNotMatch": "",
+    "confirmPassword": "पासवर्ड की पुष्टि करें *",
+    "passwordsDoNotMatch": "*पासवर्ड मेल नहीं खाते",
     "i": {
       "agree": {
         "to": {
-          "the": ""
+          "the": "मैं इससे सहमत हूं"
         }
       }
     },
     "terms": {
       "of": {
-        "service": ""
+        "service": "सेवा की शर्तें"
       }
     },
     "privacy": {
-      "policy": ""
+      "policy": "गोपनीयता नीति"
     },
     "backToSignupForm": "",
     "documentPreview": "",
@@ -288,7 +288,26 @@
     "enterOtp": "OTP दर्ज करें",
     "newPassword": "नया पासवर्ड",
     "enterNewPassword": "नया पासवर्ड दर्ज करें",
-    "passwordMustBeAtLeast8CharactersAndContain": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए और इसमें होना चाहिए:"
+    "passwordMustBeAtLeast8CharactersAndContain": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए और इसमें होना चाहिए:",
+    "welcomeBack": "स्वागत है",
+    "createAccount": "खाता बनाएं",
+    "signInToContinueYourJourney": "अपनी यात्रा जारी रखने के लिए साइन इन करें",
+    "joinOurCommunityToday": "आज ही हमारे समुदाय में शामिल हों",
+    "login": "लॉगिन",
+    "verifyOtp": "OTP सत्यापित करें",
+    "resendOtp": "OTP पुनः भेजें",
+    "resendIn": "में पुनः भेजें",
+    "back": "वापस",
+    "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
+    "loginWithPassword": "पासवर्ड से लॉगिन करें",
+    "loginWithOtp": "OTP से लॉगिन करें",
+    "enterPassword": "पासवर्ड दर्ज करें",
+    "selectGender": "लिंग चुनें",
+    "male": "पुरुष",
+    "female": "महिला",
+    "other": "अन्य",
+    "dateOfBirth": "जन्म तिथि",
+    "gender": "लिंग"
   },
   "user": {
     "useMyCurrentLocation": "मेरा वर्तमान स्थान उपयोग करें",

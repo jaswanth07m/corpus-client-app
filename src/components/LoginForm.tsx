@@ -599,12 +599,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-3">
-            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
           </h1>
           <p className="text-slate-600 text-base">
             {mode === 'login'
-              ? 'Sign in to continue your journey'
-              : 'Join our community today'}
+              ? t('auth.signInToContinueYourJourney')
+              : t('auth.joinOurCommunityToday')}
           </p>
         </CardHeader>
 
@@ -624,7 +624,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               }}
             >
               <LogIn className="h-4 w-4 mr-2" />
-              Login
+              {t('auth.login')}
             </Button>
             <Button
               variant={mode === 'signup' ? 'default' : 'ghost'}
@@ -809,7 +809,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     </div>
                     <Input
                       type="tel"
-                      placeholder="Enter 10-digit phone number"
+                      placeholder={t('auth.enter10digitPhoneNumber')}
                       value={phoneDigits}
                       onChange={(e) =>
                         setPhoneDigits(formatPhoneNumber(e.target.value))
@@ -827,12 +827,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
-                      {phoneDigits.length}/10 digits
+                      {phoneDigits.length}
+                      {t('common.10.digits')}
                     </div>
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
                     >
-                      *Phone number is invalid
+                      {t('auth.phoneNumberIsInvalid')}
                     </div>
                   </div>
 
@@ -899,7 +900,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         {t('common.logging.in')}
                       </div>
                     ) : (
-                      'Login'
+                      t('auth.login')
                     )}
                   </Button>
                 </div>
@@ -920,7 +921,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     </div>
                     <Input
                       type="tel"
-                      placeholder="Enter 10-digit phone number"
+                      placeholder={t('auth.enter10digitPhoneNumber')}
                       value={phoneDigits}
                       onChange={(e) =>
                         setPhoneDigits(formatPhoneNumber(e.target.value))
@@ -941,12 +942,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       className={`pl-20 h-14 border-2 ${validatePhone} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
-                      {phoneDigits.length}/10 digits
+                      {phoneDigits.length}
+                      {t('common.10.digits')}
                     </div>
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
                     >
-                      *Phone number is invalid
+                      {t('auth.phoneNumberIsInvalid')}
                     </div>
                   </div>
 
@@ -1063,19 +1065,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         handleSignupInputChange('gender', e.target.value)
                       }
                       className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
-                      aria-label={t('common.tcommonselectgender')}
+                      aria-label={t('auth.selectGender')}
                     >
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
+                      <option value="">{t('auth.selectGender')}</option>
+                      <option value="male">{t('auth.male')}</option>
+                      <option value="female">{t('auth.female')}</option>
+                      <option value="other">{t('auth.other')}</option>
                     </select>
                   </div>
 
                   {/* Date of Birth */}
                   <div className="relative">
                     <label className="text-sm text-gray-700 mb-1 block">
-                      Date of Birth
+                      {t('auth.dateOfBirth')}
                     </label>
                     <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
                     <Input
@@ -1411,14 +1413,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="relative">
                     <Input
                       type="text"
-                      placeholder="Enter 6-digit OTP"
+                      placeholder={t('auth.enter6digitOtp')}
                       value={signupOtp}
                       onChange={handleSignupOtpChange}
                       className="h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-center text-2xl tracking-widest bg-gray-50 focus:bg-white transition-all duration-300"
                       maxLength={6}
                     />
                     <div className="text-xs text-gray-500 mt-1 text-center">
-                      {signupOtp.length}/6 digits
+                      {signupOtp.length}
+                      {t('common.6.digits')}
                     </div>
                   </div>
 

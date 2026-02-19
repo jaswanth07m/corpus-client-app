@@ -1,10 +1,10 @@
 {
   "common": {
     "6": {
-      "digits": ""
+      "digits": "/6 అంకెలు"
     },
     "10": {
-      "digits": ""
+      "digits": "/10 అంకెలు"
     },
     "91": "+91",
     "loading": "లోడ్ అవుతోంది...",
@@ -109,22 +109,22 @@
         "characters": ""
       }
     },
-    "confirmPassword": "",
-    "passwordsDoNotMatch": "",
+    "confirmPassword": "పాస్‌వర్డ్ నిర్ధారించండి *",
+    "passwordsDoNotMatch": "*పాస్‌వర్డ్‌లు సరిపోలడం లేదు",
     "i": {
       "agree": {
         "to": {
-          "the": ""
+          "the": "నేను దీనికి అంగీకరిస్తున్నాను"
         }
       }
     },
     "terms": {
       "of": {
-        "service": ""
+        "service": "సేవా నిబంధనలు"
       }
     },
     "privacy": {
-      "policy": ""
+      "policy": "గోప్యతా విధానం"
     },
     "backToSignupForm": "",
     "documentPreview": "",
@@ -287,7 +287,26 @@
     "enterOtp": "OTP నమోదు చేయండి",
     "newPassword": "కొత్త పాస్‌వర్డ్",
     "enterNewPassword": "కొత్త పాస్‌వర్డ్‌ను నమోదు చేయండి",
-    "passwordMustBeAtLeast8CharactersAndContain": "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు కలిగి ఉండాలి మరియు కలిగి ఉండాలి:"
+    "passwordMustBeAtLeast8CharactersAndContain": "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు కలిగి ఉండాలి మరియు కలిగి ఉండాలి:",
+    "welcomeBack": "స్వాగతం",
+    "createAccount": "ఖాతా సృష్టించండి",
+    "signInToContinueYourJourney": "మీ ప్రయాణాన్ని కొనసాగించడానికి సైన్ ఇన్ చేయండి",
+    "joinOurCommunityToday": "నేడే మా కమ్యూనిటీలో చేరండి",
+    "login": "లాగిన్",
+    "verifyOtp": "OTP నిర్ధారించండి",
+    "resendOtp": "OTP మళ్లీ పంపు",
+    "resendIn": "లో మళ్లీ పంపు",
+    "back": "వెనుకకు",
+    "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారా?",
+    "loginWithPassword": "పాస్‌వర్డ్‌తో లాగిన్ చేయండి",
+    "loginWithOtp": "OTPతో లాగిన్ చేయండి",
+    "enterPassword": "పాస్‌వర్డ్ నమోదు చేయండి",
+    "selectGender": "లింగం ఎంచుకోండి",
+    "male": "పురుషుడు",
+    "female": "మహిళ",
+    "other": "ఇతర",
+    "dateOfBirth": "పుట్టిన తేదీ",
+    "gender": "లింగం"
   },
   "user": {
     "useMyCurrentLocation": "నా ప్రస్తుత స్థానాన్ని ఉపయోగించు",
