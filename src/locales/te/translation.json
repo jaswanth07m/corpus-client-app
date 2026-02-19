@@ -28,61 +28,61 @@
     "ok": "సరే",
     "previousSlide": "",
     "nextSlide": "",
-    "goToPreviousPage": "",
-    "goToNextPage": "",
-    "morePages": "",
+    "goToPreviousPage": "మునుపటి పేజీకి వెళ్ళు",
+    "goToNextPage": "తర్వాతి పేజీకి వెళ్ళు",
+    "morePages": "మరిన్ని పేజీలు",
     "toggle": {
-      "sidebar": ""
+      "sidebar": "సైడ్‌బార్ టోగుల్ చేయి"
     },
-    "selectALocation": "",
-    "confirmLocation": "",
-    "": "",
-    "selectMediaType": "",
+    "selectALocation": "స్థానాన్ని ఎంచుకోండి",
+    "confirmLocation": "స్థానాన్ని నిర్ధారించండి",
+    "": "→",
+    "selectMediaType": "మీడియా రకం ఎంచుకోండి",
     "to": {
-      "choose": ""
+      "choose": "ఎంచుకోవడానికి"
     },
-    "documentUpload": "",
-    "uploadDocumentFilesPdfDocxTxt": "",
-    "selectedFile": "",
-    "content": "",
-    "yourBrowserDoesNotSupportTheAudioElement": "",
-    "uploadAudioFilesSingleFile": "",
+    "documentUpload": "డాక్యుమెంట్ అప్‌లోడ్ *",
+    "uploadDocumentFilesPdfDocxTxt": "డాక్యుమెంట్ ఫైల్‌లను అప్‌లోడ్ చేయండి (PDF, DOCX, TXT)",
+    "selectedFile": "ఎంచుకున్న ఫైల్:",
+    "content": "కంటెంట్ *",
+    "yourBrowserDoesNotSupportTheAudioElement": "మీ బ్రౌజర్ ఆడియో ఎలిమెంట్‌ను సమర్థించదు.",
+    "uploadAudioFilesSingleFile": "ఆడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
     "switch": {
-      "to": ""
+      "to": "మార్చు"
     },
-    "yourBrowserDoesNotSupportTheVideoElement": "",
-    "uploadVideoFilesSingleFile": "",
-    "selectedFiles": "",
-    "takeAnother": "",
-    "uploadImageFilesSingleFile": "",
-    "technologyForSociety": "",
-    "userIdNotFoundPleaseTryLoggingInAgain": "",
-    "geolocationNotSupported": "",
-    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "",
-    "releaseRightsNotFoundCheckForReleaseRights": "",
-    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "",
-    "selectALangauge": "",
-    "pleaseSelectAFile": "",
-    "uploadFailedPleaseTryAgain": "",
-    "searchByUserId": "",
-    "searchUsers": "",
-    "peerReview": "",
-    "noContributionDataAvailable": "",
-    "editHistory": "",
-    "noEditHistoryFoundForThisRecord": "",
+    "yourBrowserDoesNotSupportTheVideoElement": "మీ బ్రౌజర్ వీడియో ఎలిమెంట్‌ను సమర్థించదు.",
+    "uploadVideoFilesSingleFile": "వీడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
+    "selectedFiles": "ఎంచుకున్న ఫైల్స్:",
+    "takeAnother": "మరొకటి తీసుకోండి",
+    "uploadImageFilesSingleFile": "ఇమేజ్ ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
+    "technologyForSociety": "సమాజం కోసం సాంకేతికత",
+    "userIdNotFoundPleaseTryLoggingInAgain": "యూజర్ ID కనుగొనబడలేదు. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి.",
+    "geolocationNotSupported": "జియోలోకేషన్ సమర్థించబడలేదు",
+    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "దయచేసి కనీసం ఒక వర్గాన్ని ఎంచుకోండి మరియు శీర్షికను అందించండి",
+    "releaseRightsNotFoundCheckForReleaseRights": "విడుదల హక్కులు కనుగొనబడలేదు. విడుదల హక్కులను తనిఖీ చేయండి",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "మీరు సృష్టించిన ఏదైనా పనులను అప్‌లోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్‌లోడ్ చేయండి.",
+    "selectALangauge": "భాషను ఎంచుకోండి",
+    "pleaseSelectAFile": "దయచేసి ఒక ఫైల్‌ను ఎంచుకోండి",
+    "uploadFailedPleaseTryAgain": "అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    "searchByUserId": "యూజర్ ID ద్వారా శోధించండి...",
+    "searchUsers": "యూజర్‌లను శోధించండి",
+    "peerReview": "పీర్ రివ్యూ",
+    "noContributionDataAvailable": "సహకార డేటా అందుబాటులో లేదు.",
+    "editHistory": "సవరణ చరిత్ర",
+    "noEditHistoryFoundForThisRecord": "ఈ రికార్డ్ కోసం సవరణ చరిత్ర కనుగొనబడలేదు.",
     "change": {
-      "source": "",
-      "language": ""
+      "source": "మూలాన్ని మార్చు:",
+      "language": "భాషను మార్చు"
     },
     "field": {
-      "changes": ""
+      "changes": "ఫీల్డ్ మార్పులు:"
     },
-    "old": "",
-    "new": "",
-    "loginFailedNoAccessTokenReceived": "",
-    "pleaseEnterAValidEmailAddress": "",
-    "swechaTechnologyForSociety": "",
-    "sending": "",
+    "old": "పాత:",
+    "new": "కొత్త:",
+    "loginFailedNoAccessTokenReceived": "లాగిన్ విఫలమైంది: యాక్సెస్ టోకెన్ అందలేదు",
+    "pleaseEnterAValidEmailAddress": "దయచేసి సరైన ఇమెయిల్ చిరునామాను నమోదు చేయండి",
+    "swechaTechnologyForSociety": "స్వేచ్ఛా - సమాజం కోసం సాంకేతికత",
+    "sending": "పంపుతోంది...",
     "verifying": "నిర్ధారిస్తుంది",
     "resetHere": "ఇక్కడ రీసెట్ చేయండి",
     "logging": {
@@ -97,16 +97,16 @@
     },
     "one": {
       "uppercase": {
-        "letter": ""
+        "letter": "ఒక పెద్ద అక్షరం"
       },
       "lowercase": {
-        "letter": ""
+        "letter": "ఒక చిన్న అక్షరం"
       },
-      "number": ""
+      "number": "ఒక సంఖ్య"
     },
     "minimum": {
       "8": {
-        "characters": ""
+        "characters": "కనీసం 8 అక్షరాలు"
       }
     },
     "confirmPassword": "పాస్‌వర్డ్ నిర్ధారించండి *",
@@ -126,108 +126,108 @@
     "privacy": {
       "policy": "గోప్యతా విధానం"
     },
-    "backToSignupForm": "",
-    "documentPreview": "",
-    "openInNewTab": "",
-    "viewText": "",
-    "openDocument": "",
-    "noChangesToSave": "",
+    "backToSignupForm": "సైన్అప్ ఫారమ్‌కు తిరిగి వెళ్ళు",
+    "documentPreview": "డాక్యుమెంట్ ప్రివ్యూ",
+    "openInNewTab": "కొత్త ట్యాబ్‌లో తెరవండి",
+    "viewText": "టెక్స్ట్ చూడండి",
+    "openDocument": "డాక్యుమెంట్ తెరవండి",
+    "noChangesToSave": "సేవ్ చేయడానికి మార్పులు లేవు",
     "meaningful": {
-      "words": ""
+      "words": "అర్థవంతమైన పదాలు"
     },
     "release": {
-      "rights": ""
+      "rights": "విడుదల హక్కులు"
     },
     "specify": {
-      "creator": "",
-      "source": ""
+      "creator": "సృష్టికర్తను పేర్కొనండి",
+      "source": "మూలాన్ని పేర్కొనండి"
     },
-    "Reviewed": "",
+    "Reviewed": "✓ సమీక్షించబడింది",
     "media": {
-      "unavailable": ""
+      "unavailable": "మీడియా అందుబాటులో లేదు"
     },
-    "uploadedMedia": "",
+    "uploadedMedia": "అప్‌లోడ్ చేయబడిన మీడియా",
     "unsupported": {
-      "media": ""
+      "media": "సమర్థించని మీడియా"
     },
-    "showHistory": "",
-    "noHistory": "",
-    "source": "",
+    "showHistory": "చరిత్రను చూపించు",
+    "noHistory": "చరిత్ర లేదు",
+    "source": "మూలం:",
     "enter": {
-      "title": "",
-      "description": "",
+      "title": "శీర్షికను నమోదు చేయండి",
+      "description": "వివరణను నమోదు చేయండి",
       "current": {
-        "place": ""
+        "place": "ప్రస్తుత స్థలాన్ని నమోదు చేయండి"
       },
-      "profession": "",
-      "organisation": ""
+      "profession": "వృత్తిని నమోదు చేయండి",
+      "organisation": "సంస్థను నమోదు చేయండి"
     },
-    "noUsersFound": "",
+    "noUsersFound": "యూజర్‌లు కనుగొనబడలేదు",
     "from": {
-      "place": ""
+      "place": "నుండి స్థలం"
     },
     "places": {
-      "lived": ""
+      "lived": "నివసించిన స్థలాలు"
     },
-    "authenticationTokenNotFound": "",
+    "authenticationTokenNotFound": "ధృవీకరణ టోకెన్ కనుగొనబడలేదు",
     "current": {
-      "place": ""
+      "place": "ప్రస్తుత స్థలం"
     },
-    "noLocationSet": "",
-    "selectLanguage": "",
-    "addLanguage": "",
-    "addPlace": "",
-    "addSocialMedia": "",
-    "photoCapturedClickStopCameraWhenDone": "",
-    "fileRemoved": "",
-    "textUploadFailed": "",
-    "uploadContent": "",
-    "title": "",
-    "description": "",
-    "selectCategories": "",
-    "editLocation": "",
+    "noLocationSet": "స్థలం సెట్ చేయబడలేదు",
+    "selectLanguage": "భాషను ఎంచుకోండి",
+    "addLanguage": "భాషను జోడించండి",
+    "addPlace": "స్థలాన్ని జోడించండి",
+    "addSocialMedia": "సోషల్ మీడియాను జోడించండి",
+    "photoCapturedClickStopCameraWhenDone": "ఫోటో తీయబడింది! పూర్తయినప్పుడు \"స్టాప్ కెమెరా\" క్లిక్ చేయండి.",
+    "fileRemoved": "ఫైల్ తొలగించబడింది",
+    "textUploadFailed": "టెక్స్ట్ అప్‌లోడ్ విఫలమైంది",
+    "uploadContent": "కంటెంట్‌ను అప్‌లోడ్ చేయండి",
+    "title": "శీర్షిక *",
+    "description": "వివరణ *",
+    "selectCategories": "వర్గాలను ఎంచుకోండి *",
+    "editLocation": "స్థలాన్ని సవరించండి",
     "pick": {
       "from": {
-        "map": ""
+        "map": "మ్యాప్ నుండి ఎంచుకోండి"
       }
     },
-    "SelectALanguage": "",
-    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "",
-    "selectReleaseRights": "",
-    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "",
-    "creator": "",
-    "oopsPageNotFound": "",
-    "backToLogin": "",
-    "confirmNewPassword": "",
-    "resetPassword": "",
-    "backToInitiate": "",
-    "uploadFiles": "",
+    "SelectALanguage": "-- భాషను ఎంచుకోండి --",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "క్షమించండి! దయచేసి మీరు సృష్టించిన పనులను అప్‌లోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్‌లోడ్ చేయండి.",
+    "selectReleaseRights": "విడుదల హక్కులను ఎంచుకోండి",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "నేను దీనిని ఇంటర్నెట్ నుండి డౌన్‌లోడ్ చేశాను మరియు/లేదా ఇది ఉచితంగా షేర్ చేయడానికి అనుకూలమైనదా అని నాకు తెలియదు.",
+    "creator": "సృష్టికర్త *",
+    "oopsPageNotFound": "అయ్యో! పేజీ కనుగొనబడలేదు",
+    "backToLogin": "లాగిన్‌కు తిరిగి వెళ్ళు",
+    "confirmNewPassword": "కొత్త పాస్‌వర్డ్‌ను నిర్ధారించండి",
+    "resetPassword": "పాస్‌వర్డ్ రీసెట్ చేయండి",
+    "backToInitiate": "ప్రారంభించడానికి తిరిగి వెళ్ళు",
+    "uploadFiles": "ఫైల్‌లను అప్‌లోడ్ చేయండి",
     "click": {
       "to": {
         "get": {
-          "started": ""
+          "started": "ప్రారంభించడానికి క్లిక్ చేయండి"
         }
       }
     },
-    "contributeToOpenDataAndHelpBuildTheFuture": "",
+    "contributeToOpenDataAndHelpBuildTheFuture": "ఓపెన్ డేటాకు సహకరించండి మరియు భవిష్యత్తును నిర్మించడంలో సహాయపడండి",
     "proofreading": {
-      "tool": ""
+      "tool": "ప్రూఫ్‌రీడింగ్ సాధనం"
     },
-    "reviewAndCorrectOcrTextFromDocuments": "",
+    "reviewAndCorrectOcrTextFromDocuments": "డాక్యుమెంట్‌ల నుండి OCR టెక్స్ట్‌ను సమీక్షించండి మరియు సరిదిద్దండి",
     "proofread": {
       "ocr": {
-        "text": ""
+        "text": "OCR టెక్స్ట్‌ను సమీక్షించండి"
       }
     },
-    "showHints": "",
-    "submitPage": "",
-    "reviewCommunityContributions": "",
-    "refreshFeed": "",
-    "noResultsFoundFor": "",
-    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "",
-    "processing": "",
-    "noFollowersFound": "",
-    "noUsersBeingFollowed": ""
+    "showHints": "హింట్‌లను చూపించు",
+    "submitPage": "పేజీని సమర్పించండి",
+    "reviewCommunityContributions": "కమ్యూనిటీ సహకారాలను సమీక్షించండి",
+    "refreshFeed": "ఫీడ్‌ను రిఫ్రెష్ చేయండి",
+    "noResultsFoundFor": "కోసం ఫలితాలు కనుగొనబడలేదు \"",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "యూజర్ లోడ్ చేయబడిన రికార్డ్‌లలో లేకపోవచ్చు. శోధనను క్లియర్ చేసి మరిన్ని రికార్డ్‌లను లోడ్ చేయడానికి స్క్రోల్ చేయడానికి ప్రయత్నించండి.",
+    "processing": "ప్రాసెసింగ్...",
+    "noFollowersFound": "ఫాలోవర్‌లు కనుగొనబడలేదు",
+    "noUsersBeingFollowed": "ఫాలో అవుతున్న యూజర్‌లు లేరు"
   },
   "nav": {
     "home": "హోమ్",
@@ -240,10 +240,10 @@
     "failedToLoadProfileData": "",
     "tellUsAboutYourself": "",
     "socialMediaProfiles": "",
-    "profileUrl": "",
-    "returnToHome": "",
-    "updateProfilePicture": "",
-    "enterAValidImageUrlForYourProfilePicture": ""
+    "profileUrl": "ప్రొఫైల్ URL",
+    "returnToHome": "హోమ్‌కు తిరిగి వెళ్ళు",
+    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్‌డేట్ చేయండి",
+    "enterAValidImageUrlForYourProfilePicture": "మీ ప్రొఫైల్ చిత్రం కోసం సరైన ఇమేజ్ URL నమోదు చేయండి"
   },
   "auth": {
     "email": "ఇమెయిల్",
@@ -329,7 +329,7 @@
     "tap": {
       "any": {
         "colored": {
-          "section": ""
+          "section": "రంగు ఉన్న ఏదైనా విభాగాన్ని ట్యాప్ చేయండి"
         }
       }
     },
@@ -337,7 +337,7 @@
       "your": {
         "text": {
           "content": {
-            "here": ""
+            "here": "మీ టెక్స్ట్ కంటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
           }
         }
       },
@@ -345,14 +345,14 @@
         "title": {
           "for": {
             "your": {
-              "content": ""
+              "content": "మీ కంటెంట్ కోసం శీర్షికను నమోదు చేయండి"
             }
           }
         },
         "creator": {
           "for": {
             "your": {
-              "content": ""
+              "content": "మీ కంటెంట్ కోసం సృష్టికర్తను నమోదు చేయండి"
             }
           }
         }
@@ -367,7 +367,7 @@
                 "try": {
                   "logging": {
                     "in": {
-                      "again": ""
+                      "again": "యూజర్ సమాచారాన్ని పొందడం విఫలమైంది. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి."
                     }
                   }
                 }
@@ -376,7 +376,7 @@
           }
         },
         "fetch": {
-          "categories": ""
+          "categories": "వర్గాలను ఫెచ్ చేయడం విఫలమైంది"
         }
       }
     },
@@ -385,7 +385,7 @@
         "youd": {
           "like": {
             "to": {
-              "contribute": ""
+              "contribute": "మీరు ఎలా సహకరించాలనుకుంటున్నారో ఎంచుకోండి"
             }
           }
         }
@@ -398,7 +398,7 @@
             "wait": {
               "before": {
                 "trying": {
-                  "again": ""
+                  "again": "చాలా ప్రయత్నాలు. దయచేసి మళ్లీ ప్రయత్నించే ముందు వేచి ఉండండి."
                 }
               }
             }
@@ -412,7 +412,7 @@
           "the": {
             "terms": {
               "and": {
-                "conditions": ""
+                "conditions": "దయచేసి నిబంధనలు మరియు షరతులకు అంగీకరించండి"
               }
             }
           }
@@ -424,7 +424,7 @@
         "have": {
           "characters": {
             "is": {
-              "allowed": ""
+              "allowed": "*స్థలం అక్షరాలు కలిగి ఉండాలి ( , అనుమతించబడింది)"
             }
           }
         }
@@ -432,11 +432,11 @@
     },
     "one": {
       "special": {
-        "character": ""
+        "character": "ఒక ప్రత్యేక అక్షరం"
       }
     },
     "language": {
-      "proficiencies": ""
+      "proficiencies": "భాషా నైపుణ్యాలు"
     },
     "provide": {
       "a": {
@@ -444,7 +444,7 @@
           "description": {
             "minimum": {
               "32": {
-                "characters": ""
+                "characters": "వివరణాత్మక వివరణను అందించండి (కనీసం 32 అక్షరాలు)"
               }
             }
           }
@@ -463,7 +463,7 @@
                       "free": {
                         "to": {
                           "use": {
-                            "it": ""
+                            "it": "ఈ పని నా చేత సృష్టించబడింది మరియు ఎవరైనా దీనిని ఉచితంగా ఉపయోగించుకోవచ్చు."
                           }
                         }
                       }
@@ -480,7 +480,7 @@
       "typing": {
         "to": {
           "get": {
-            "hints": ""
+            "hints": "*హింట్‌లను పొందడానికి టైప్ చేయడం ప్రారంభించండి"
           }
         }
       }
@@ -489,82 +489,82 @@
       "text": {
         "will": {
           "appear": {
-            "here": ""
+            "here": "OCR టెక్స్ట్ ఇక్కడ కనిపిస్తుంది."
           }
         }
       }
     }
   },
   "media": {
-    "audioRecording": "",
-    "startRecording": "",
-    "stopRecording": "",
-    "recordingPaused": "",
-    "recordingCompleted": "",
-    "recordAgain": "",
-    "videoRecording": "",
-    "startVideoRecording": "",
-    "photoCapture": "",
-    "startCamera": "",
-    "capturePhoto": "",
-    "stopCamera": "",
-    "photoCaptured": "",
-    "capturedPhoto": "",
-    "videoUnavailable": "",
-    "loadVideo": "",
-    "audioUnavailable": "",
-    "loadAudio": "",
-    "documentUnavailable": "",
-    "loadDocument": "",
-    "fileSize": "",
-    "imageUnavailable": "",
-    "audioTrack": "",
-    "failedToSwitchCamera": "",
-    "audioRecordingStarted": "",
-    "videoRecordingStarted": "",
-    "failedToPauseRecording": "",
-    "recordingResumed": "",
-    "failedToResumeRecording": "",
-    "recordingStopped": "",
-    "failedToStopRecording": "",
-    "failedToCapturePhotoPleaseCheckCameraPermissions": "",
-    "pleaseEnterAValidImageUrl": "",
-    "imageUrl": ""
+    "audioRecording": "ఆడియో రికార్డింగ్ *",
+    "startRecording": "రికార్డింగ్ ప్రారంభించండి",
+    "stopRecording": "రికార్డింగ్ ఆపండి",
+    "recordingPaused": "రికార్డింగ్ నిలిపివేయబడింది",
+    "recordingCompleted": "రికార్డింగ్ పూర్తయింది (",
+    "recordAgain": "మళ్లీ రికార్డ్ చేయండి",
+    "videoRecording": "వీడియో రికార్డింగ్ *",
+    "startVideoRecording": "వీడియో రికార్డింగ్ ప్రారంభించండి",
+    "photoCapture": "ఫోటో క్యాప్చర్ *",
+    "startCamera": "కెమెరా ప్రారంభించండి",
+    "capturePhoto": "ఫోటో తీయండి",
+    "stopCamera": "కెమెరా ఆపండి",
+    "photoCaptured": "ఫోటో తీయబడింది:",
+    "capturedPhoto": "క్యాప్చర్ చేయబడిన ఫోటో",
+    "videoUnavailable": "వీడియో అందుబాటులో లేదు",
+    "loadVideo": "వీడియో లోడ్ చేయండి",
+    "audioUnavailable": "ఆడియో అందుబాటులో లేదు",
+    "loadAudio": "ఆడియో లోడ్ చేయండి",
+    "documentUnavailable": "డాక్యుమెంట్ అందుబాటులో లేదు",
+    "loadDocument": "డాక్యుమెంట్ లోడ్ చేయండి",
+    "fileSize": "ఫైల్ పరిమాణం",
+    "imageUnavailable": "ఇమేజ్ అందుబాటులో లేదు",
+    "audioTrack": "ఆడియో ట్రాక్",
+    "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",
+    "audioRecordingStarted": "ఆడియో రికార్డింగ్ ప్రారంభమైంది",
+    "videoRecordingStarted": "వీడియో రికార్డింగ్ ప్రారంభమైంది",
+    "failedToPauseRecording": "రికార్డింగ్ నిలిపివేయడం విఫలమైంది",
+    "recordingResumed": "రికార్డింగ్ పునఃప్రారంభించబడింది",
+    "failedToResumeRecording": "రికార్డింగ్ పునఃప్రారంభించడం విఫలమైంది",
+    "recordingStopped": "రికార్డింగ్ ఆపబడింది",
+    "failedToStopRecording": "రికార్డింగ్ ఆపడం విఫలమైంది",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "ఫోటో తీయడం విఫలమైంది. దయచేసి కెమెరా అనుమతులను తనిఖీ చేయండి.",
+    "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
+    "imageUrl": "ఇమేజ్ URL"
   },
   "messages": {
-    "loading": "",
-    "networkErrorPleaseTryAgain": "",
-    "contentUploadedSuccessfullyRedirectingToLanding": "",
-    "networkErrorPleaseCheckYourConnectionAndTryAgain": "",
-    "loadingContributionsDashboard": "",
-    "otpSentSuccessfully": "",
-    "loginSuccessful": "",
-    "signupOtpSentSuccessfully": "",
-    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "",
-    "signupOtpResentSuccessfully": "",
-    "errorLoadingContributions": "",
-    "profileUpdatedSuccessfully": "",
-    "loadingProfile": "",
-    "profilePictureUpdatedSuccessfully": "",
-    "loadingPointsData": ""
+    "loading": "లోడ్ అవుతోంది...",
+    "networkErrorPleaseTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    "contentUploadedSuccessfullyRedirectingToLanding": "కంటెంట్ విజయవంతంగా అప్‌లోడ్ అయింది! ల్యాండింగ్‌కు దారిమారుస్తోంది...",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
+    "loadingContributionsDashboard": "సహకార డాష్‌బోర్డ్ లోడ్ అవుతోంది...",
+    "otpSentSuccessfully": "OTP విజయవంతంగా పంపబడింది!",
+    "loginSuccessful": "లాగిన్ విజయవంతమైంది!",
+    "signupOtpSentSuccessfully": "సైన్అప్ OTP విజయవంతంగా పంపబడింది!",
+    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "ఖాతా విజయవంతంగా సృష్టించబడింది మరియు నిర్ధారించబడింది! దయచేసి లాగిన్ చేయండి.",
+    "signupOtpResentSuccessfully": "సైన్అప్ OTP విజయవంతంగా మళ్లీ పంపబడింది!",
+    "errorLoadingContributions": "సహకారాలను లోడ్ చేయడంలో లోపం:",
+    "profileUpdatedSuccessfully": "ప్రొఫైల్ విజయవంతంగా అప్‌డేట్ అయింది!",
+    "loadingProfile": "ప్రొఫైల్ లోడ్ అవుతోంది...",
+    "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
+    "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది..."
   },
   "validation": {
-    "pleaseEnterValidLatitudeAndLongitudeValues": "",
-    "latitudeMustBeBetween90And90": "",
-    "longitudeMustBeBetween180And180": "",
-    "pleaseEnterTextContent": ""
+    "pleaseEnterValidLatitudeAndLongitudeValues": "దయచేసి సరైన అక్షాంశం మరియు రేఖాంశం విలువలను నమోదు చేయండి",
+    "latitudeMustBeBetween90And90": "అక్షాంశం -90 మరియు 90 మధ్య ఉండాలి",
+    "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
+    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి"
   },
   "categories": {
-    "chooseACategoryToContributeContent": "",
-    "changeType": "",
-    "unsupportedMediaType": "",
-    "sourceLabel": "",
-    "type": ""
+    "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",
+    "changeType": "రకాన్ని మార్చు:",
+    "unsupportedMediaType": "సమర్థించని మీడియా రకం",
+    "sourceLabel": "మూలం లేబుల్",
+    "type": "రకం:"
   },
   "stats": {
-    "contributionsYet": "",
-    "pointsActivity": "",
-    "contributions": "",
-    "contributionsFound": ""
+    "contributionsYet": "ఇంకా సహకారాలు లేవు.",
+    "pointsActivity": "పాయింట్ల కార్యకలాపం",
+    "contributions": "సహకారాలు...",
+    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి."
   }
 }
