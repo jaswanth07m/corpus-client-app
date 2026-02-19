@@ -659,7 +659,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 h-5 w-5 text-emerald-600" />
                     <div className="absolute left-12 top-4 text-gray-500 font-medium">
-                      +91
+                      {t('common.91')}
                     </div>
                     <Input
                       type="tel"
@@ -1063,7 +1063,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         handleSignupInputChange('gender', e.target.value)
                       }
                       className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
-                      aria-label="{t('common.selectGender')}"
+                      aria-label={t('common.tcommonselectgender')}
                     >
                       <option value="">Select Gender</option>
                       <option value="male">Male</option>

@@ -154,7 +154,7 @@ const ForgotPassword = () => {
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium select-none">
-                            +91
+                            {t('common.91')}
                           </span>
                           <Input
                             type="tel"

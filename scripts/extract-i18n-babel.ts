@@ -36,8 +36,6 @@ const IGNORE_PATTERNS: RegExp[] = [
   /^#/, // Hex colors or anchors
   /^\./, // File extensions
   /@/, // Email addresses or imports
-  /^[0-9a-f]{6,}$/i, // Long hex strings (IDs, hashes)
-  /^[\d\s\-+/()]+$|^[\d\s×÷+-()]+$/, // Math expressions
   /^&[a-z]+;$/, // HTML entities
   /^[{}[\],;:=<>!&|?]+$/, // Operators/punctuation only
   /^\s*$/, // Empty or whitespace only

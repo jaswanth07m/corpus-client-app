@@ -6,6 +6,7 @@
     "10": {
       "digits": ""
     },
+    "91": "",
     "loading": "లోడ్ అవుతోంది...",
     "error": "లోపం",
     "success": "విజయవంతమైంది",
@@ -226,7 +227,8 @@
     "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "",
     "processing": "",
     "noFollowersFound": "",
-    "noUsersBeingFollowed": ""
+    "noUsersBeingFollowed": "",
+    "tcommonselectgender": ""
   },
   "nav": {
     "home": "హోమ్",

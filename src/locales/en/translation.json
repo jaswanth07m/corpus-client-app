@@ -6,6 +6,7 @@
     "10": {
       "digits": "/10 digits"
     },
+    "91": "+91",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -226,7 +227,8 @@
     "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "The user might not be in the loaded records yet. Try clearing\n                the search and scrolling to load more records.",
     "processing": "Processing...",
     "noFollowersFound": "No followers found",
-    "noUsersBeingFollowed": "No users being followed"
+    "noUsersBeingFollowed": "No users being followed",
+    "tcommonselectgender": "{t('common.selectGender')}"
   },
   "nav": {
     "home": "Home",
