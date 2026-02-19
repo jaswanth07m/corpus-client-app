@@ -567,5 +567,40 @@
     "pointsActivity": "పాయింట్ల కార్యకలాపం",
     "contributions": "సహకారాలు...",
     "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి."
+  },
+  "tools": {
+    "heading": "సాధనాలు",
+    "proofreading": "ప్రూఫ్‌రీడింగ్",
+    "proofreadingDescription": "డాక్యుమెంట్‌ల నుండి OCR టెక్స్ట్‌ను సమీక్షించండి మరియు సరిదిద్దండి",
+    "transcription": "ట్రాన్స్‌క్రిప్షన్",
+    "transcriptionDescription": "ఆడియో మరియు వీడియో కంటెంట్‌ను టెక్స్ట్‌గా మార్చండి",
+    "textExtraction": "టెక్స్ట్ ఎక్స్‌ట్రాక్షన్",
+    "textExtractionDescription": "ఇమేజ్‌లు మరియు డాక్యుమెంట్‌ల నుండి టెక్స్ట్‌ను సంగ్రహించండి",
+    "audioProofreading": "ఆడియో ప్రూఫ్‌రీడింగ్",
+    "audioProofreadingDescription": "ట్రాన్స్‌క్రిప్ట్ చేయబడిన ఆడియో కంటెంట్‌ను వినండి మరియు సరిదిద్దండి",
+    "planned": "ప్రణాళిక చేయబడింది",
+    "comingSoonDescription": "డేటాసెట్ ఇంజెక్షన్ మాడ్యూల్ కాలిబ్రేషన్లో ఉంది."
+  },
+  "proofreading": {
+    "getNextRecord": "తర్వాతి రికార్డ్ పొందండి",
+    "page": "పేజీ",
+    "pages": "పేజీలు",
+    "loadingPdf": "PDF లోడ్ అవుతోంది...",
+    "fetchingRecord": "రికార్డ్ తెచ్చుకుంటున్నారు...",
+    "pleaseGetRecord": "ప్రారంభించడానికి దయచేసి ఒక రికార్డ్ పొందండి.",
+    "noRecordLoaded": "ఎటువంటి రికార్డ్ లోడ్ కాలేదు",
+    "noUrlFound": "URL కనుగొనబడలేదు",
+    "submitPage": "పేజీని సమర్పించండి",
+    "submitting": "సమర్పిస్తున్నారు...",
+    "pageSubmitted": "పేజీ విజయవంతంగా సమర్పించబడింది!",
+    "submissionError": "సమర్పణ లోపం",
+    "cannotSubmit": "సమర్పించలేము: ప్రస్తుతం ఎటువంటి రికార్డ్ లోడ్ కాలేదు.",
+    "ocrTextPlaceholder": "OCR టెక్స్ట్ ఇక్కడ కనిపిస్తుంది.",
+    "submitPageAlert": "పేజీ {page} విజయవంతంగా సమర్పించబడింది!"
+  },
+  "languages": {
+    "telugu": "తెలుగు",
+    "english": "ఇంగ్లీష్",
+    "hindi": "హిందీ"
   }
 }

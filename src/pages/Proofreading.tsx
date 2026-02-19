@@ -358,7 +358,7 @@ function Proofreading() {
             onClick={fetchNextRecord}
             disabled={isLoading}
           >
-            {isLoading ? 'Loading...' : 'Get Next Record'}
+            {isLoading ? t('common.loading') : t('proofreading.getNextRecord')}
           </button>
         </div>
 
@@ -375,7 +375,7 @@ function Proofreading() {
           {bookData && (
             <>
               <h3 className="text-sm font-bold mb-2 text-center">
-                Page {pageNumber}
+                {t('proofreading.page')} {pageNumber}
               </h3>
               <div className="w-full overflow-x-auto overflow-y-visible flex flex-row items-center justify-start gap-1 pb-2 scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
                 {Array.from(new Array(numPages || 0), (el, index) => {
@@ -579,7 +579,7 @@ function Proofreading() {
             {bookData && (
               <>
                 <h3 className="text-md font-bold mt-4 mb-2 text-center">
-                  Pages
+                  {t('proofreading.pages')}
                 </h3>
                 <div className="w-full flex-grow overflow-y-auto pr-2 flex flex-col items-center">
                   {Array.from(new Array(numPages || 0), (el, index) => {
@@ -680,7 +680,7 @@ function Proofreading() {
                       <Document
                         file={bookData.pdfUrl}
                         onLoadSuccess={onDocumentLoadSuccess}
-                        loading="Loading PDF..."
+                        loading={t('proofreading.loadingPdf')}
                         className="mx-auto"
                       >
                         <Page
@@ -696,8 +696,8 @@ function Proofreading() {
                   <div className="flex justify-center items-center h-full">
                     <p className="text-xl">
                       {isLoading
-                        ? 'Fetching record...'
-                        : 'Please get a record to begin.'}
+                        ? t('proofreading.fetchingRecord')
+                        : t('proofreading.pleaseGetRecord')}
                     </p>
                   </div>
                 )}
@@ -711,7 +711,9 @@ function Proofreading() {
                   </h2>
 
                   {hintsVisible && (
-                    <p className="text-sm">*Start typing to get hints</p>
+                    <p className="text-sm">
+                      {t('ui.start.typing.to.get.hints')}
+                    </p>
                   )}
 
                   <div>
@@ -726,7 +728,7 @@ function Proofreading() {
                         }
                       />
                       <label className="cursor-pointer" htmlFor="telugu-toggle">
-                        Telugu
+                        {t('languages.telugu')}
                       </label>
                     </div>
 

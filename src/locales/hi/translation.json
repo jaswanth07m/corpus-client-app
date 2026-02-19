@@ -567,5 +567,40 @@
     "pointsActivity": "पॉइंट्स गतिविधि",
     "contributions": "योगदान...",
     "contributionsFound": "योगदान मिले।"
+  },
+  "tools": {
+    "heading": "उपकरण",
+    "proofreading": "प्रूफरीडिंग",
+    "proofreadingDescription": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
+    "transcription": "ट्रांस्क्रिप्शन",
+    "transcriptionDescription": "ऑडियो और वीडियो सामग्री को टेक्स्ट में बदलें",
+    "textExtraction": "टेक्स्ट एक्सट्रैक्शन",
+    "textExtractionDescription": "छवियों और दस्तावेज़ों से टेक्स्ट निकालें",
+    "audioProofreading": "ऑडियो प्रूफरीडिंग",
+    "audioProofreadingDescription": "ट्रांस्क्राइब किए गए ऑडियो सामग्री को सुनें और सही करें",
+    "planned": "योजनाबद्ध",
+    "comingSoonDescription": "डेटासेट इंजेक्शन मॉड्यूल कैलिब्रेशन के अंतर्गत है।"
+  },
+  "proofreading": {
+    "getNextRecord": "अगला रिकॉर्ड प्राप्त करें",
+    "page": "पृष्ठ",
+    "pages": "पृष्ठ",
+    "loadingPdf": "PDF लोड हो रहा है...",
+    "fetchingRecord": "रिकॉर्ड लाया जा रहा है...",
+    "pleaseGetRecord": "शुरू करने के लिए कृपया एक रिकॉर्ड प्राप्त करें।",
+    "noRecordLoaded": "कोई रिकॉर्ड लोड नहीं है",
+    "noUrlFound": "कोई URL नहीं मिला",
+    "submitPage": "पृष्ठ सबमिट करें",
+    "submitting": "सबमिट कर रहे हैं...",
+    "pageSubmitted": "पृष्ठ सफलतापूर्वक सबमिट किया गया!",
+    "submissionError": "सबमिशन त्रुटि",
+    "cannotSubmit": "सबमिट नहीं कर सकते: वर्तमान में कोई रिकॉर्ड लोड नहीं है।",
+    "ocrTextPlaceholder": "OCR टेक्स्ट यहां दिखाई देगा।",
+    "submitPageAlert": "पृष्ठ {page} सफलतापूर्वक सबमिट किया गया!"
+  },
+  "languages": {
+    "telugu": "तेलुगु",
+    "english": "अंग्रेजी",
+    "hindi": "हिंदी"
   }
 }

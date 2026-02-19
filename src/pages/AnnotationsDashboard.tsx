@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,35 +13,36 @@ import {
 } from 'lucide-react';
 
 const AnnotationsDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const annotationTools = [
     {
       id: 'proofreading',
-      title: 'Proofreading',
-      description: 'Review and correct OCR text from documents',
+      title: t('tools.proofreading'),
+      description: t('tools.proofreadingDescription'),
       icon: <FileCheck className="h-8 w-8 text-blue-600" />,
       path: '/tools/proofreading',
     },
     {
       id: 'transcription',
-      title: 'Transcription',
-      description: 'Convert audio and video content to text',
+      title: t('tools.transcription'),
+      description: t('tools.transcriptionDescription'),
       icon: <Mic className="h-8 w-8 text-yellow-600" />,
       path: '/tools/transcription',
       comingSoon: true,
     },
     {
       id: 'extraction',
-      title: 'Text Extraction',
-      description: 'Extract text from images and documents',
+      title: t('tools.textExtraction'),
+      description: t('tools.textExtractionDescription'),
       icon: <FileType className="h-8 w-8 text-purple-600" />,
       path: '/tools/extraction',
       comingSoon: true,
     },
     {
       id: 'audio-proofreading',
-      title: 'Audio Proofreading',
-      description: 'Listen and correct transcribed audio content',
+      title: t('tools.audioProofreading'),
+      description: t('tools.audioProofreadingDescription'),
       icon: <AudioLines className="h-8 w-8 text-green-600" />,
       path: '/tools/audio-proofreading',
       comingSoon: true,
@@ -61,7 +63,7 @@ const AnnotationsDashboard = () => {
               </Link>
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                  Tools
+                  {t('tools.heading')}
                 </h1>
               </div>
             </div>
@@ -88,7 +90,7 @@ const AnnotationsDashboard = () => {
                 <>
                   <div className="absolute -top-[1px] -right-[1px] z-20">
                     <div className="bg-slate-200 text-slate-500 text-[9px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-widest border-l border-b border-slate-300">
-                      Planned
+                      {t('tools.planned')}
                     </div>
                   </div>
 
@@ -127,7 +129,7 @@ const AnnotationsDashboard = () => {
 
                 <p className="sm:block hidden text-slate-500 text-sm leading-relaxed mb-2">
                   {tool.comingSoon
-                    ? 'Dataset ingestion module under calibration.'
+                    ? t('tools.comingSoonDescription')
                     : tool.description}
                 </p>
               </div>

@@ -567,5 +567,40 @@
     "pointsActivity": "Points Activity",
     "contributions": "contributions...",
     "contributionsFound": "contributions found."
+  },
+  "tools": {
+    "heading": "Tools",
+    "proofreading": "Proofreading",
+    "proofreadingDescription": "Review and correct OCR text from documents",
+    "transcription": "Transcription",
+    "transcriptionDescription": "Convert audio and video content to text",
+    "textExtraction": "Text Extraction",
+    "textExtractionDescription": "Extract text from images and documents",
+    "audioProofreading": "Audio Proofreading",
+    "audioProofreadingDescription": "Listen and correct transcribed audio content",
+    "planned": "Planned",
+    "comingSoonDescription": "Dataset ingestion module under calibration."
+  },
+  "proofreading": {
+    "getNextRecord": "Get Next Record",
+    "page": "Page",
+    "pages": "Pages",
+    "loadingPdf": "Loading PDF...",
+    "fetchingRecord": "Fetching record...",
+    "pleaseGetRecord": "Please get a record to begin.",
+    "noRecordLoaded": "No record loaded",
+    "noUrlFound": "No URL found",
+    "submitPage": "Submit Page",
+    "submitting": "Submitting...",
+    "pageSubmitted": "Page submitted successfully!",
+    "submissionError": "Submission error",
+    "cannotSubmit": "Cannot submit: No record is currently loaded.",
+    "ocrTextPlaceholder": "OCR text will appear here.",
+    "submitPageAlert": "Page {page} submitted successfully!"
+  },
+  "languages": {
+    "telugu": "Telugu",
+    "english": "English",
+    "hindi": "Hindi"
   }
 }
