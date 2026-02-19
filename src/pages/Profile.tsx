@@ -956,7 +956,7 @@ function Profile() {
                       {followersCount}
                     </span>
                     <span className="text-slate-500 text-[7px] font-medium uppercase tracking-wider group-hover:text-emerald-700">
-                      Followers
+                      {t('profile.followers')}
                     </span>
                   </button>
 
@@ -973,7 +973,7 @@ function Profile() {
                       {followingCount}
                     </span>
                     <span className="text-slate-500 text-[7px] font-medium uppercase tracking-wider group-hover:text-emerald-700">
-                      Following
+                      {t('profile.following')}
                     </span>
                   </button>
 
@@ -983,11 +983,11 @@ function Profile() {
                     className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium"
                     title={
                       isOwnProfile
-                        ? 'View your profile info'
-                        : 'View profile info'
+                        ? t('profile.viewYourProfileInfo')
+                        : t('profile.viewProfileInfo')
                     }
                   >
-                    Info
+                    {t('profile.info')}
                   </button>
                 </div>
 
@@ -1014,9 +1014,9 @@ function Profile() {
                         {t('common.processing')}
                       </span>
                     ) : isFollowing ? (
-                      'Following'
+                      t('profile.following')
                     ) : (
-                      'Follow'
+                      t('profile.follow')
                     )}
                   </button>
                 )}
@@ -1085,7 +1085,7 @@ function Profile() {
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold capitalize">
-                {selectedMediaType} Contributions
+                {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
               </h3>
               <button
                 onClick={() => {
@@ -1242,7 +1242,7 @@ const FollowersModal: React.FC<{
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
-          <h3 className="text-lg font-semibold">Followers</h3>
+          <h3 className="text-lg font-semibold">{t('profile.followers')}</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -1328,7 +1328,7 @@ const FollowingModal: React.FC<{
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
-          <h3 className="text-lg font-semibold">Following</h3>
+          <h3 className="text-lg font-semibold">{t('profile.following')}</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"

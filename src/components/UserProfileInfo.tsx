@@ -720,7 +720,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 {/* Username */}
                 <div>
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">{t('auth.username')}</Label>
                   <Input
                     id="username"
                     value={profile.username || ''}
@@ -744,7 +744,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Gender */}
                 <div>
-                  <Label htmlFor="gender">Gender</Label>
+                  <Label htmlFor="gender">{t('auth.gender')}</Label>
                   <Select
                     value={profile.gender || ''}
                     onValueChange={(value) => handleChange('gender', value)}
@@ -755,7 +755,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     <SelectContent>
                       {GENDER_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {t(`auth.${option.value}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -764,7 +764,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Date of Birth */}
                 <div>
-                  <Label htmlFor="date_of_birth">Date of Birth</Label>
+                  <Label htmlFor="date_of_birth">{t('auth.dateOfBirth')}</Label>
                   <Input
                     id="date_of_birth"
                     type="date"
@@ -775,9 +775,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                   />
                 </div>
 
-                {/* {t('user.shortBio')} */}
+                {/* Short Bio */}
                 <div className="md:col-span-2">
-                  <Label htmlFor="short_bio">Short Bio</Label>
+                  <Label htmlFor="short_bio">{t('user.shortBio')}</Label>
                   <Textarea
                     id="short_bio"
                     value={profile.short_bio || ''}
@@ -788,9 +788,11 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                   />
                 </div>
 
-                {/* {t('common.current.place')} */}
+                {/* Current Place */}
                 <div>
-                  <Label htmlFor="current_place">Current Place</Label>
+                  <Label htmlFor="current_place">
+                    {t('common.current.place')}
+                  </Label>
                   <Input
                     id="current_place"
                     value={profile.current_place || ''}
@@ -803,7 +805,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* From Place */}
                 <div className="md:col-span-2">
-                  <Label htmlFor="from_place">From Place</Label>
+                  <Label htmlFor="from_place">{t('common.from.place')}</Label>
                   <div className="flex gap-2 mt-1">
                     {profile.from_place ? (
                       <div className="flex-1">
@@ -825,7 +827,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                         setShowLocationPicker(true);
                       }}
                     >
-                      {profile.from_place ? 'Edit' : 'Set Location'}
+                      {profile.from_place
+                        ? t('common.edit')
+                        : t('profile.setLocation')}
                     </Button>
                     {profile.from_place && (
                       <Button
@@ -835,7 +839,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                           handleChange('from_place', null);
                         }}
                       >
-                        Remove
+                        {t('common.remove')}
                       </Button>
                     )}
                   </div>
@@ -843,7 +847,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Profession */}
                 <div>
-                  <Label htmlFor="profession">Profession</Label>
+                  <Label htmlFor="profession">{t('user.profession')}</Label>
                   <Input
                     id="profession"
                     value={profile.profession || ''}
@@ -855,7 +859,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Organisation */}
                 <div>
-                  <Label htmlFor="organisation">Organisation</Label>
+                  <Label htmlFor="organisation">{t('user.organisation')}</Label>
                   <Input
                     id="organisation"
                     value={profile.organisation || ''}
@@ -873,7 +877,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {/* Language Proficiencies */}
                 <div className="md:col-span-2">
                   <Label htmlFor="language_proficiencies">
-                    Language Proficiencies
+                    {t('ui.language.proficiencies')}
                   </Label>
                   {(profile.language_proficiencies?.proficiencies || []).map(
                     (lang, index) => (

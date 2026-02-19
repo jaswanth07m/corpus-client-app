@@ -324,7 +324,9 @@
     "verifyingLocation": "स्थान सत्यापित कर रहे हैं...",
     "locationCapturedAwaitingVerification": "स्थान कैप्चर किया गया, सत्यापन की प्रतीक्षा कर रहे हैं...",
     "locationRequired": "स्थान आवश्यक है",
-    "useCurrentLocation": "वर्तमान स्थान उपयोग करें"
+    "useCurrentLocation": "वर्तमान स्थान उपयोग करें",
+    "profession": "व्यवसाय",
+    "organisation": "संगठन"
   },
   "ui": {
     "tap": {
@@ -602,5 +604,28 @@
     "telugu": "तेलुगु",
     "english": "अंग्रेजी",
     "hindi": "हिंदी"
+  },
+  "profile": {
+    "following": "फॉलो कर रहे हैं",
+    "follow": "फॉलो करें",
+    "unfollow": "अनफॉलो",
+    "followers": "फॉलोअर्स",
+    "noFollowers": "अभी तक कोई फॉलोअर नहीं",
+    "noFollowing": "अभी तक किसी को फॉलो नहीं कर रहे",
+    "viewProfile": "प्रोफ़ाइल देखें",
+    "editProfile": "प्रोफ़ाइल संपादित करें",
+    "updateProfilePicture": "प्रोफ़ाइल चित्र अपडेट करें",
+    "enterProfilePictureUrl": "प्रोफ़ाइल चित्र URL दर्ज करें",
+    "shortBio": "संक्षिप्त परिचय",
+    "loading": "प्रोफ़ाइल लोड हो रही है...",
+    "error": "प्रोफ़ाइल लोड करने में त्रुटि",
+    "userNotFound": "उपयोगकर्ता नहीं मिला",
+    "authenticationFailed": "प्रमाणीकरण विफल। कृपया पुनः लॉगिन करें.",
+    "setLocation": "स्थान सेट करें",
+    "edit": "संपादित करें",
+    "remove": "हटाएं",
+    "info": "जानकारी",
+    "viewYourProfileInfo": "अपनी प्रोफ़ाइल जानकारी देखें",
+    "viewProfileInfo": "प्रोफ़ाइल जानकारी देखें"
   }
 }

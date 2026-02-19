@@ -303,11 +303,11 @@
     "loginWithOtp": "Login with OTP",
     "enterPassword": "Enter Password",
     "selectGender": "Select Gender",
+    "gender": "Gender",
     "male": "Male",
     "female": "Female",
     "other": "Other",
-    "dateOfBirth": "Date of Birth",
-    "gender": "Gender"
+    "dateOfBirth": "Date of Birth"
   },
   "user": {
     "useMyCurrentLocation": "Use My Current Location",
@@ -324,7 +324,9 @@
     "verifyingLocation": "Verifying location...",
     "locationCapturedAwaitingVerification": "Location captured, awaiting verification...",
     "locationRequired": "Location required",
-    "useCurrentLocation": "Use Current Location"
+    "useCurrentLocation": "Use Current Location",
+    "profession": "Profession",
+    "organisation": "Organisation"
   },
   "ui": {
     "tap": {
@@ -602,5 +604,28 @@
     "telugu": "Telugu",
     "english": "English",
     "hindi": "Hindi"
+  },
+  "profile": {
+    "following": "Following",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "followers": "Followers",
+    "noFollowers": "No followers yet",
+    "noFollowing": "Not following anyone yet",
+    "viewProfile": "View Profile",
+    "editProfile": "Edit Profile",
+    "updateProfilePicture": "Update Profile Picture",
+    "enterProfilePictureUrl": "Enter profile picture URL",
+    "shortBio": "Short Bio",
+    "loading": "Loading profile...",
+    "error": "Error loading profile",
+    "userNotFound": "User not found",
+    "authenticationFailed": "Authentication failed. Please log in again.",
+    "setLocation": "Set Location",
+    "edit": "Edit",
+    "remove": "Remove",
+    "info": "Info",
+    "viewYourProfileInfo": "View your profile info",
+    "viewProfileInfo": "View profile info"
   }
 }

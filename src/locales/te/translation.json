@@ -324,7 +324,9 @@
     "verifyingLocation": "స్థానాన్ని నిర్ధారిస్తుంది...",
     "locationCapturedAwaitingVerification": "స్థానం సంగ్రహించబడింది, నిర్ధారణ కోసం వేచి ఉంది...",
     "locationRequired": "స్థానం అవసరం",
-    "useCurrentLocation": "ప్రస్తుత స్థానాన్ని ఉపయోగించు"
+    "useCurrentLocation": "ప్రస్తుత స్థానాన్ని ఉపయోగించు",
+    "profession": "వృత్తి",
+    "organisation": "సంస్థ"
   },
   "ui": {
     "tap": {
@@ -602,5 +604,28 @@
     "telugu": "తెలుగు",
     "english": "ఇంగ్లీష్",
     "hindi": "హిందీ"
+  },
+  "profile": {
+    "following": "ఫాలో అవుతున్నారు",
+    "follow": "ఫాలో అవ్వండి",
+    "unfollow": "అన్‌ఫాలో",
+    "followers": "ఫాలోవర్స్",
+    "noFollowers": "ఇంకా ఫాలోవర్స్ లేరు",
+    "noFollowing": "ఇంకా ఎవరినీ ఫాలో అవ్వలేదు",
+    "viewProfile": "ప్రొఫైల్ చూడండి",
+    "editProfile": "ప్రొఫైల్ సవరించండి",
+    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్‌డేట్ చేయండి",
+    "enterProfilePictureUrl": "ప్రొఫైల్ చిత్రం URL నమోదు చేయండి",
+    "shortBio": "చిన్న పరిచయం",
+    "loading": "ప్రొఫైల్ లోడ్ అవుతోంది...",
+    "error": "ప్రొఫైల్ లోడ్ చేయడంలో లోపం",
+    "userNotFound": "వాడుకరి కనుగొనబడలేదు",
+    "authenticationFailed": "ధృవీకరణ విఫలమైంది. దయచేసి మళ్లీ లాగిన్ అవ్వండి.",
+    "setLocation": "స్థానాన్ని సెట్ చేయండి",
+    "edit": "సవరించు",
+    "remove": "తొలగించు",
+    "info": "సమాచారం",
+    "viewYourProfileInfo": "మీ ప్రొఫైల్ సమాచారాన్ని చూడండి",
+    "viewProfileInfo": "ప్రొఫైల్ సమాచారాన్ని చూడండి"
   }
 }
