@@ -64,13 +64,13 @@ const CategoryTags: React.FC<CategoryTagsProps> = ({ categoryIds, token }) => {
   }
 
   return (
-    <div className="flex flex-wrap gap-2 mt-2">
+    <div className="flex flex-wrap gap-2">
       {categories.map((category) => (
         <span
           key={category.id}
-          className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
+          className="inline-flex items-center px-3.5 py-1.5 bg-blue-50 text-blue-700 text-sm font-medium rounded-full hover:bg-blue-100 transition-colors cursor-default"
         >
-          <span className="truncate max-w-[100px]">{category.title}</span>
+          {category.title}
         </span>
       ))}
     </div>

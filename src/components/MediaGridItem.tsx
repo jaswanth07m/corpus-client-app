@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Loader2, X, Pencil, History, Clock } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '@/lib/constants';
-import { MediaDetailModal } from './MediaDetailModal';
 
 interface Coordinates {
   latitude: number;
@@ -32,70 +30,63 @@ interface MediaGridItemProps {
   item: ContributionItem;
   mediaType: 'text' | 'audio' | 'video' | 'image' | 'document';
   token: string;
-  isOwnProfile: boolean;
 }
 
 export const MediaGridItem: React.FC<MediaGridItemProps> = ({
   item,
   mediaType,
   token,
-  isOwnProfile,
 }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(false);
 
-  // Lazy load media URL for all media types
+  // Auto-load media URL for all media types on mount
   useEffect(() => {
-    if (shouldLoad && !mediaUrl) {
-      const fetchMediaUrl = async () => {
-        setLoading(true);
-        try {
-          const response = await fetch(
-            `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
-            {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
+    const fetchMediaUrl = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/records/${item.id}/record-url?expires_minutes=60`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
             },
-          );
+          },
+        );
 
-          if (!response.ok) {
-            throw new Error('Failed to fetch media URL');
-          }
-
-          const data = await response.json();
-          if (data.record_url) {
-            setMediaUrl(data.record_url);
-          }
-        } catch (err) {
-          console.error('Error fetching media:', err);
-          setError(true);
-        } finally {
-          setLoading(false);
+        if (!response.ok) {
+          throw new Error('Failed to fetch media URL');
         }
-      };
 
-      fetchMediaUrl();
-    }
-  }, [item.id, token, shouldLoad, mediaUrl]);
+        const data = await response.json();
+        if (data.record_url) {
+          setMediaUrl(data.record_url);
+        }
+      } catch (err) {
+        console.error('Error fetching media:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMediaUrl();
+  }, [item.id, token]);
 
   const getMediaPreview = () => {
     if (mediaType === 'image') {
       return (
         <>
-          {shouldLoad && loading && (
+          {loading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-blue-500" />
             </div>
           )}
-          {shouldLoad && error && (
+          {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
               <div className="text-center p-3 sm:p-4">
                 <svg
@@ -111,13 +102,11 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-xs text-gray-500">
-                  {t('media.imageUnavailable')}
-                </p>
+                <p className="text-xs text-gray-500">Image unavailable</p>
               </div>
             </div>
           )}
-          {shouldLoad && mediaUrl && !loading && !error && (
+          {mediaUrl && !loading && !error && (
             <img
               src={mediaUrl}
               alt={item.title || 'Image'}
@@ -139,9 +128,7 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
           {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
               <div className="text-center p-3 sm:p-4">
-                <p className="text-xs text-gray-500">
-                  {t('common.media.unavailable')}
-                </p>
+                <p className="text-xs text-gray-500">Media unavailable</p>
               </div>
             </div>
           )}
@@ -227,79 +214,36 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
   };
 
   return (
-    <>
-      <div
-        onClick={() => {
-          setShouldLoad(true);
-          setShowModal(true);
-        }}
-        onMouseEnter={() => setShouldLoad(true)}
-        className="group relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
-      >
-        {/* Media Container */}
-        <div className="aspect-square relative overflow-hidden bg-white">
-          {/* Placeholder for non-loaded images */}
-          {!shouldLoad && mediaType === 'image' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
-              <svg
-                className="w-12 h-12 sm:w-16 sm:h-16 text-orange-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-          )}
+    <div
+      onClick={() => {
+        navigate(`/records/${item.id}`);
+      }}
+      className="group relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+    >
+      {/* Media Container */}
+      <div className="aspect-square relative overflow-hidden bg-white">
+        {getMediaPreview()}
 
-          {getMediaPreview()}
-
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
-              <p className="font-semibold text-xs sm:text-sm truncate">
-                {item.title || 'Untitled'}
-              </p>
-              <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
-            </div>
+        {/* Overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
+            <p className="font-semibold text-xs sm:text-sm truncate">
+              {item.title || 'Untitled'}
+            </p>
+            <p className="text-xs opacity-90">{item.language || 'N/A'}</p>
           </div>
-        </div>
-
-        {/* Info Section */}
-        <div className="p-3 sm:p-4 bg-white">
-          <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-1 sm:mb-2 truncate">
-            {item.title || 'Untitled'}
-          </h3>
-          <p className="text-xs text-gray-500 truncate">
-            {item.description || 'No description'}
-          </p>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/records/${item.id}`);
-            }}
-            className="mt-2 w-full py-1.5 px-3 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            View Details
-          </button>
         </div>
       </div>
 
-      {/* Modal */}
-      <MediaDetailModal
-        item={item}
-        mediaType={mediaType}
-        previewUrl={mediaUrl}
-        token={token}
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        isOwnProfile={isOwnProfile}
-      />
-    </>
+      {/* Info Section */}
+      <div className="p-3 sm:p-4 bg-white">
+        <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-1 sm:mb-2 truncate">
+          {item.title || 'Untitled'}
+        </h3>
+        <p className="text-xs text-gray-500 truncate">
+          {item.description || 'No description'}
+        </p>
+      </div>
+    </div>
   );
 };

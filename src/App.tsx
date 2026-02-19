@@ -114,6 +114,10 @@ const App = () => (
                   </RequireAuth>
                 }
               />
+              <Route
+                path="/shared/:recordId"
+                element={<RecordDetails isSharedView={true} />}
+              />
             </Route>
 
             <Route

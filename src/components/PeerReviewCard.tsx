@@ -383,17 +383,10 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             <p className="text-sm font-bold text-slate-900">
               {username || user_id}
             </p>
-            {categoryName && (
-              <span className="px-2.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 shadow-sm">
-                {categoryName}
-              </span>
-            )}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <CopyUrlButton url={recordUrl} recordId={record_id} />
-
           <button
             type="button"
             onClick={async () => {
@@ -636,9 +629,24 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           </div>
         ) : (
           <div className="pt-2">
-            <p className="text-center text-slate-700 leading-relaxed">
-              {newDescription}
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-slate-700 leading-relaxed flex-1">
+                {newDescription}
+              </p>
+              <CopyUrlButton url={recordUrl} recordId={record_id} />
+            </div>
+          </div>
+        )}
+
+        {/* Category */}
+        {categoryName && (
+          <div className="pt-3">
+            <p className="text-xs font-semibold text-slate-500 mb-1.5">
+              Category
             </p>
+            <span className="inline-block px-3 py-1.5 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 shadow-sm">
+              {categoryName}
+            </span>
           </div>
         )}
 

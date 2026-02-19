@@ -65,17 +65,14 @@ const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({
       variant="ghost"
       size="sm"
       onClick={handleCopy}
-      className={`flex items-center gap-1.5 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors ${className}`}
+      className={`flex items-center gap-1.5 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors p-2 ${className}`}
       title="Copy record URL"
     >
       {copied ? (
-        <Check size={16} className="text-emerald-500" />
+        <Check size={18} className="text-emerald-500" />
       ) : (
-        <Copy size={16} />
+        <Copy size={18} />
       )}
-      <span className="text-xs font-medium">
-        {copied ? 'Copied!' : 'Copy URL'}
-      </span>
     </Button>
   );
 };
