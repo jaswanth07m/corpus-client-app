@@ -36,7 +36,6 @@
     },
     "selectALocation": "Select a Location",
     "confirmLocation": "Confirm Location",
-    "": "→",
     "selectMediaType": "Select Media Type",
     "to": {
       "choose": "to choose"
@@ -65,6 +64,7 @@
     "pleaseSelectAFile": "Please select a file",
     "uploadFailedPleaseTryAgain": "Upload failed. Please try again.",
     "searchByUserId": "Search by User ID...",
+    "searchByTitleDescription": "Search by title, description...",
     "searchUsers": "Search Users",
     "peerReview": "Peer Review",
     "noContributionDataAvailable": "No contribution data available.",
@@ -235,6 +235,7 @@
     "settings": "Settings",
     "logout": "Logout",
     "login": "Login",
+    "searchUsers": "Search for users...",
     "preferPasswordLogin": "Prefer Password Login ?",
     "loginWithPassword": "Login with Password",
     "failedToLoadProfileData": "Failed to load profile data",

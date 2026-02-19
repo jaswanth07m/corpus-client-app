@@ -823,8 +823,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                       : 'Uploading...'}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {Math.round(chunkedUploadProgress)}
-                    {t('common.')}
+                    {Math.round(chunkedUploadProgress)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">

@@ -36,7 +36,6 @@
     },
     "selectALocation": "एक स्थान चुनें",
     "confirmLocation": "स्थान की पुष्टि करें",
-    "": "→",
     "selectMediaType": "मीडिया प्रकार चुनें",
     "to": {
       "choose": "चुनने के लिए"
@@ -65,6 +64,7 @@
     "pleaseSelectAFile": "कृपया एक फ़ाइल चुनें",
     "uploadFailedPleaseTryAgain": "अपलोड विफल। कृपया पुनः प्रयास करें।",
     "searchByUserId": "उपयोगकर्ता ID द्वारा खोजें...",
+    "searchByTitleDescription": "शीर्षक, विवरण द्वारा खोजें...",
     "searchUsers": "उपयोगकर्ताओं को खोजें",
     "peerReview": "पीयर समीक्षा",
     "noContributionDataAvailable": "कोई योगदान डेटा उपलब्ध नहीं है।",
@@ -235,6 +235,7 @@
     "settings": "सेटिंग्स",
     "logout": "लॉगआउट",
     "login": "लॉगिन",
+    "searchUsers": "उपयोगकर्ताओं के लिए खोजें...",
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
     "loginWithPassword": "पासवर्ड से लॉगिन करें",
     "failedToLoadProfileData": "प्रोफ़ाइल डेटा लोड करने में विफल",

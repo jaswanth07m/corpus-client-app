@@ -7,19 +7,6 @@ import enTranslation from '@/locales/en/translation.json';
 import teTranslation from '@/locales/te/translation.json';
 import hiTranslation from '@/locales/hi/translation.json';
 
-// Define available resources
-export const resources = {
-  en: {
-    translation: enTranslation,
-  },
-  te: {
-    translation: teTranslation,
-  },
-  hi: {
-    translation: hiTranslation,
-  },
-};
-
 // Supported languages
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', native: 'English' },
@@ -37,13 +24,20 @@ i18n
   // Initialize i18next
   .init({
     // Resources for each language
-    resources,
+    resources: {
+      en: {
+        translation: enTranslation,
+      },
+      te: {
+        translation: teTranslation,
+      },
+      hi: {
+        translation: hiTranslation,
+      },
+    },
 
     // Fallback language
     fallbackLng: 'en',
-
-    // Default language
-    lng: 'en',
 
     // Supported languages
     supportedLngs: SUPPORTED_LANGUAGES.map((lang) => lang.code),
@@ -71,6 +65,3 @@ i18n
     // Load translations on demand (optional - for large apps)
     // partialBundledLanguages: true,
   });
-
-// Export for use in components
-export default i18n;

@@ -263,7 +263,6 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               <span className="text-green-700 font-medium text-sm truncate max-w-full">
                 {t('media.recordingCompleted')}
                 {formatTime?.(recordingTime || 0)}
-                {t('common.')}
               </span>
               <Button
                 onClick={resetRecording}

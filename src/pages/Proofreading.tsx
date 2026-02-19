@@ -659,8 +659,7 @@ function Proofreading() {
                         -
                       </button>
                       <span className="font-semibold">
-                        {Math.round(zoom * 100)}
-                        {t('common.')}
+                        {Math.round(zoom * 100)}%
                       </span>
                       <button
                         className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
