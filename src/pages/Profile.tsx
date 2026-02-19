@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { X, LogOut, MessageSquare, Loader2 } from 'lucide-react';
+import { X, LogOut, MessageSquare, Loader2, Globe } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import { getPointsStats, DailyPoint } from '@/lib/points';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import PointsHeatmap from '@/components/PointsHeatmap';
 import CategoryTags from '@/components/CategoryTags';
 import { MediaGridItem } from '@/components/MediaGridItem';
@@ -898,6 +899,7 @@ function Profile() {
           {/* Profile Info Section - Mobile Responsive Layout */}
           <div className="p-4 relative">
             <div className="flex gap-2 absolute right-0 sm:right-5">
+              <LanguageSwitcher />
               <button
                 onClick={handleLogout}
                 className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
