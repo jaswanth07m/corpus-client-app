@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function SuggestionBar({ suggestions }) {
+  const { t } = useTranslation();
   if (!suggestions || suggestions.length === 0) {
     return null;
   }

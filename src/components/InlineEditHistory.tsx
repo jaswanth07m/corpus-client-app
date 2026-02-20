@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 
@@ -26,6 +27,7 @@ export const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
   recordId,
   token,
 }) => {
+  const { t } = useTranslation();
   const [history, setHistory] = useState<EditHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +71,9 @@ export const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-200">
-      <h4 className="text-md font-semibold text-gray-700 mb-2">Edit History</h4>
+      <h4 className="text-md font-semibold text-gray-700 mb-2">
+        {t('common.editHistory')}
+      </h4>
       {loading && (
         <div className="flex justify-center items-center py-4">
           <Loader2 className="animate-spin text-blue-500" size={24} />
@@ -78,7 +82,7 @@ export const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
       {error && <p className="text-red-500 text-center py-4">{error}</p>}
       {!loading && !error && history.length === 0 && (
         <p className="text-gray-500 text-center py-4">
-          No edit history found for this record.
+          {t('common.noEditHistoryFoundForThisRecord')}
         </p>
       )}
       {!loading && !error && history.length > 0 && (
@@ -117,14 +121,16 @@ export const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
                   <div className="p-4 bg-white">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
                       <p>
-                        <strong className="text-gray-600">Change Type:</strong>{' '}
+                        <strong className="text-gray-600">
+                          {t('categories.changeType')}
+                        </strong>{' '}
                         <span className="font-mono bg-gray-100 px-1 rounded">
                           {entry.change_type || 'N/A'}
                         </span>
                       </p>
                       <p>
                         <strong className="text-gray-600">
-                          Change Source:
+                          {t('common.change.source')}
                         </strong>{' '}
                         <span className="font-mono bg-gray-100 px-1 rounded">
                           {entry.change_source || 'N/A'}
@@ -135,7 +141,7 @@ export const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
                       Object.keys(entry.field_changes).length > 0 && (
                         <div>
                           <strong className="text-base font-semibold text-gray-700">
-                            Field Changes:
+                            {t('common.field.changes')}
                           </strong>
                           <ul className="mt-2 space-y-2">
                             {Object.entries(entry.field_changes).map(
@@ -149,7 +155,7 @@ export const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
                                   </strong>
                                   <div className="flex items-center mt-1">
                                     <span className="text-xs font-medium text-red-500 mr-2">
-                                      OLD:
+                                      {t('common.old')}
                                     </span>
                                     <span className="font-mono text-sm text-red-700 bg-red-50 p-1 rounded line-through">
                                       {String(change.old_value ?? 'N/A')}
@@ -157,7 +163,7 @@ export const InlineEditHistory: React.FC<InlineEditHistoryProps> = ({
                                   </div>
                                   <div className="flex items-center mt-1">
                                     <span className="text-xs font-medium text-green-500 mr-2">
-                                      NEW:
+                                      {t('common.new')}
                                     </span>
                                     <span className="font-mono text-sm text-green-700 bg-green-50 p-1 rounded">
                                       {String(change.new_value ?? 'N/A')}

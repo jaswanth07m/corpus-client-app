@@ -1,5 +1,6 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
@@ -13,6 +14,7 @@ import { BACKEND_URL } from '@/lib/constants';
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function Proofreading() {
+  const { t } = useTranslation();
   const [bookData, setBookData] = useState(null);
   const [recordId, setRecordId] = useState(null);
   const [fullRecordData, setFullRecordData] = useState(null); // State to hold the original record
@@ -335,16 +337,18 @@ function Proofreading() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => {
-                window.location.href = '/annotations';
+                window.location.href = '/tools';
               }}
               className="text-white hover:bg-white/20 w-10 h-10 rounded-full p-2"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-xl font-bold">Proofreading Tool</h1>
+              <h1 className="text-xl font-bold">
+                {t('common.proofreading.tool')}
+              </h1>
               <p className="text-purple-100 text-sm">
-                Review and correct OCR text from documents
+                {t('common.reviewAndCorrectOcrTextFromDocuments')}
               </p>
             </div>
           </div>
@@ -354,7 +358,7 @@ function Proofreading() {
             onClick={fetchNextRecord}
             disabled={isLoading}
           >
-            {isLoading ? 'Loading...' : 'Get Next Record'}
+            {isLoading ? t('common.loading') : t('proofreading.getNextRecord')}
           </button>
         </div>
 
@@ -371,7 +375,7 @@ function Proofreading() {
           {bookData && (
             <>
               <h3 className="text-sm font-bold mb-2 text-center">
-                Page {pageNumber}
+                {t('proofreading.page')} {pageNumber}
               </h3>
               <div className="w-full overflow-x-auto overflow-y-visible flex flex-row items-center justify-start gap-1 pb-2 scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
                 {Array.from(new Array(numPages || 0), (el, index) => {
@@ -514,7 +518,9 @@ function Proofreading() {
             </h2>
 
             {hintsVisible && (
-              <p className="text-sm text-center">*Start typing to get hints</p>
+              <p className="text-sm text-center">
+                {t('ui.start.typing.to.get.hints')}
+              </p>
             )}
 
             <div className="flex flex-col items-center gap-2 w-full">
@@ -541,7 +547,9 @@ function Proofreading() {
                     checked={hintsVisible}
                     onChange={() => setHintsVisible(!hintsVisible)}
                   />
-                  <label htmlFor="telugu-hints-toggle">Show Hints</label>
+                  <label htmlFor="telugu-hints-toggle">
+                    {t('common.showHints')}
+                  </label>
                 </div>
               )}
             </div>
@@ -549,7 +557,7 @@ function Proofreading() {
 
           <textarea
             className="w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800 min-h-[200px] max-h-60"
-            placeholder="OCR text will appear here."
+            placeholder={t('ui.ocr.text.will.appear.here')}
             disabled={!bookData || isLoading || isSubmitting}
             {...textAreaProps}
           ></textarea>
@@ -571,7 +579,7 @@ function Proofreading() {
             {bookData && (
               <>
                 <h3 className="text-md font-bold mt-4 mb-2 text-center">
-                  Pages
+                  {t('proofreading.pages')}
                 </h3>
                 <div className="w-full flex-grow overflow-y-auto pr-2 flex flex-col items-center">
                   {Array.from(new Array(numPages || 0), (el, index) => {
@@ -672,7 +680,7 @@ function Proofreading() {
                       <Document
                         file={bookData.pdfUrl}
                         onLoadSuccess={onDocumentLoadSuccess}
-                        loading="Loading PDF..."
+                        loading={t('proofreading.loadingPdf')}
                         className="mx-auto"
                       >
                         <Page
@@ -688,8 +696,8 @@ function Proofreading() {
                   <div className="flex justify-center items-center h-full">
                     <p className="text-xl">
                       {isLoading
-                        ? 'Fetching record...'
-                        : 'Please get a record to begin.'}
+                        ? t('proofreading.fetchingRecord')
+                        : t('proofreading.pleaseGetRecord')}
                     </p>
                   </div>
                 )}
@@ -699,11 +707,13 @@ function Proofreading() {
               <div className="w-1/2 flex flex-col p-5 relative">
                 <div className="flex flex-row justify-between">
                   <h2 className="text-xl font-bold mb-3 flex-shrink-0">
-                    Proofread OCR Text
+                    {t('common.proofread.ocr.text')}
                   </h2>
 
                   {hintsVisible && (
-                    <p className="text-sm">*Start typing to get hints</p>
+                    <p className="text-sm">
+                      {t('ui.start.typing.to.get.hints')}
+                    </p>
                   )}
 
                   <div>
@@ -718,7 +728,7 @@ function Proofreading() {
                         }
                       />
                       <label className="cursor-pointer" htmlFor="telugu-toggle">
-                        Telugu
+                        {t('languages.telugu')}
                       </label>
                     </div>
 
@@ -763,7 +773,7 @@ function Proofreading() {
             }}
             disabled={isSubmitting}
           >
-            Submit Page
+            {t('common.submitPage')}
           </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -247,7 +248,7 @@ function LocationTimeline({
   return (
     <div className="w-full p-2">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {/* Top Section: From Place */}
+        {/* Top Section: {t('common.from.place')} */}
         {fromPlace && (
           <div className="relative bg-blue-50/80 p-4 border-b border-blue-100">
             <div className="flex gap-3">
@@ -270,7 +271,7 @@ function LocationTimeline({
           </div>
         )}
 
-        {/* Bottom Section: Places Lived */}
+        {/* Bottom Section: {t('common.places.lived')} */}
         {placesLived?.places && placesLived.places.length > 0 && (
           <div className="p-4 pt-5">
             <p className="text-gray-500 text-sm mb-3 ml-10">Places Lived</p>
@@ -359,6 +360,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
   onClose,
   onUpdate,
 }) => {
+  const { t } = useTranslation();
   const [originalProfile, setOriginalProfile] = useState<UserProfile | null>(
     null,
   );
@@ -438,7 +440,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          toast.error('Authentication token not found');
+          toast.error(t('common.authenticationTokenNotFound'));
           return;
         }
 
@@ -475,7 +477,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
         setLoading(false);
       } catch (error) {
         console.error('Error fetching profile:', error);
-        toast.error('Failed to load profile data');
+        toast.error(t('nav.failedToLoadProfileData'));
         setLoading(false);
       }
     };
@@ -630,7 +632,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
       // If no changes detected, show message and return
       if (Object.keys(updatePayload).length === 0) {
-        toast.info('No changes to save');
+        toast.info(t('common.noChangesToSave'));
         setEditing(false);
         return;
       }
@@ -653,7 +655,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
       const updatedProfile = await response.json();
       onUpdate(updatedProfile);
-      toast.success('Profile updated successfully!');
+      toast.success(t('messages.profileUpdatedSuccessfully'));
       setEditing(false); // Exit editing mode after successful update
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -668,7 +670,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg">Loading profile...</div>
+        <div className="bg-white p-6 rounded-lg">
+          {t('messages.loadingProfile')}
+        </div>
       </div>
     );
   }
@@ -716,12 +720,12 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                 {/* Username */}
                 <div>
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">{t('auth.username')}</Label>
                   <Input
                     id="username"
                     value={profile.username || ''}
                     onChange={(e) => handleChange('username', e.target.value)}
-                    placeholder="Enter username"
+                    placeholder={t('auth.enterUsername')}
                     minLength={3}
                     maxLength={50}
                   />
@@ -729,29 +733,29 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Name */}
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name">{t('user.fullName')}</Label>
                   <Input
                     id="name"
                     value={profile.name || ''}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="Enter full name"
+                    placeholder={t('user.enterFullName')}
                   />
                 </div>
 
                 {/* Gender */}
                 <div>
-                  <Label htmlFor="gender">Gender</Label>
+                  <Label htmlFor="gender">{t('auth.gender')}</Label>
                   <Select
                     value={profile.gender || ''}
                     onValueChange={(value) => handleChange('gender', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
+                      <SelectValue placeholder={t('common.selectGender')} />
                     </SelectTrigger>
                     <SelectContent>
                       {GENDER_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {t(`auth.${option.value}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -760,7 +764,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Date of Birth */}
                 <div>
-                  <Label htmlFor="date_of_birth">Date of Birth</Label>
+                  <Label htmlFor="date_of_birth">{t('auth.dateOfBirth')}</Label>
                   <Input
                     id="date_of_birth"
                     type="date"
@@ -773,12 +777,12 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Short Bio */}
                 <div className="md:col-span-2">
-                  <Label htmlFor="short_bio">Short Bio</Label>
+                  <Label htmlFor="short_bio">{t('user.shortBio')}</Label>
                   <Textarea
                     id="short_bio"
                     value={profile.short_bio || ''}
                     onChange={(e) => handleChange('short_bio', e.target.value)}
-                    placeholder="Tell us about yourself"
+                    placeholder={t('nav.tellUsAboutYourself')}
                     maxLength={500}
                     rows={4}
                   />
@@ -786,20 +790,22 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Current Place */}
                 <div>
-                  <Label htmlFor="current_place">Current Place</Label>
+                  <Label htmlFor="current_place">
+                    {t('common.current.place')}
+                  </Label>
                   <Input
                     id="current_place"
                     value={profile.current_place || ''}
                     onChange={(e) =>
                       handleChange('current_place', e.target.value)
                     }
-                    placeholder="Enter current place"
+                    placeholder={t('common.enter.current.place')}
                   />
                 </div>
 
                 {/* From Place */}
                 <div className="md:col-span-2">
-                  <Label htmlFor="from_place">From Place</Label>
+                  <Label htmlFor="from_place">{t('common.from.place')}</Label>
                   <div className="flex gap-2 mt-1">
                     {profile.from_place ? (
                       <div className="flex-1">
@@ -810,7 +816,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500 flex-1">
-                        No location set
+                        {t('common.noLocationSet')}
                       </p>
                     )}
                     <Button
@@ -821,7 +827,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                         setShowLocationPicker(true);
                       }}
                     >
-                      {profile.from_place ? 'Edit' : 'Set Location'}
+                      {profile.from_place
+                        ? t('common.edit')
+                        : t('profile.setLocation')}
                     </Button>
                     {profile.from_place && (
                       <Button
@@ -831,7 +839,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                           handleChange('from_place', null);
                         }}
                       >
-                        Remove
+                        {t('common.remove')}
                       </Button>
                     )}
                   </div>
@@ -839,26 +847,26 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
                 {/* Profession */}
                 <div>
-                  <Label htmlFor="profession">Profession</Label>
+                  <Label htmlFor="profession">{t('user.profession')}</Label>
                   <Input
                     id="profession"
                     value={profile.profession || ''}
                     onChange={(e) => handleChange('profession', e.target.value)}
-                    placeholder="Enter profession"
+                    placeholder={t('common.enter.profession')}
                     maxLength={200}
                   />
                 </div>
 
                 {/* Organisation */}
                 <div>
-                  <Label htmlFor="organisation">Organisation</Label>
+                  <Label htmlFor="organisation">{t('user.organisation')}</Label>
                   <Input
                     id="organisation"
                     value={profile.organisation || ''}
                     onChange={(e) =>
                       handleChange('organisation', e.target.value)
                     }
-                    placeholder="Enter organisation"
+                    placeholder={t('common.enter.organisation')}
                     maxLength={200}
                   />
                 </div>
@@ -869,7 +877,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {/* Language Proficiencies */}
                 <div className="md:col-span-2">
                   <Label htmlFor="language_proficiencies">
-                    Language Proficiencies
+                    {t('ui.language.proficiencies')}
                   </Label>
                   {(profile.language_proficiencies?.proficiencies || []).map(
                     (lang, index) => (
@@ -891,7 +899,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                           }}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Select language" />
+                            <SelectValue
+                              placeholder={t('common.selectLanguage')}
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {LANGUAGE_OPTIONS.map((option) => (
@@ -974,7 +984,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                       });
                     }}
                   >
-                    Add Language
+                    {t('common.addLanguage')}
                   </Button>
                 </div>
 
@@ -1034,7 +1044,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                       setShowLocationPicker(true);
                     }}
                   >
-                    Add Place
+                    {t('common.addPlace')}
                   </Button>
                 </div>
 
@@ -1092,7 +1102,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 {/* Social Media Profiles */}
                 <div className="md:col-span-2">
                   <Label htmlFor="social_media_profiles">
-                    Social Media Profiles
+                    {t('nav.socialMediaProfiles')}
                   </Label>
                   {(profile.social_media_profiles?.profiles || []).map(
                     (social, index) => (
@@ -1142,7 +1152,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                               profiles: updatedSocial,
                             });
                           }}
-                          placeholder="Profile URL"
+                          placeholder={t('nav.profileUrl')}
                         />
                         <Button
                           type="button"
@@ -1177,7 +1187,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                       });
                     }}
                   >
-                    Add Social Media
+                    {t('common.addSocialMedia')}
                   </Button>
                 </div>
               </div>
@@ -1289,7 +1299,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 )}
                 {profile.date_of_birth && (
                   <InfoBox
-                    label="Date of Birth"
+                    label={t('common.date.of.birth')}
                     value={profile.date_of_birth}
                     icon={Calendar}
                   />
@@ -1308,7 +1318,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     <div className="flex items-start gap-2 mb-1">
                       <Hash className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
                       <p className="text-gray-500 text-sm">
-                        Language Proficiencies
+                        {t('ui.language.proficiencies')}
                       </p>
                     </div>
                     <div className="space-y-1">

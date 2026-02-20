@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SwechaLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -11,6 +12,7 @@ const SwechaLogo: React.FC<SwechaLogoProps> = ({
   showTagline = false,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const textSizes = {
     sm: 'text-xl',
     md: 'text-3xl',
@@ -93,7 +95,7 @@ const SwechaLogo: React.FC<SwechaLogoProps> = ({
               letterSpacing: '0.05em',
             }}
           >
-            Technology for Society
+            {t('common.technologyForSociety')}
           </span>
         )}
       </div>

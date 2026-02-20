@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Type, Mic, Video, FileText, Image } from 'lucide-react';
 
 interface MediaType {
@@ -63,6 +64,7 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
   onSelect,
   selectedType,
 }) => {
+  const { t } = useTranslation();
   const activeType = selectedType;
 
   const handleMediaSelect = (
@@ -209,12 +211,12 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
         >
           {/* Title */}
           <h3 className="text-sm sm:text-base md:text-lg font-bold text-center px-3 text-slate-800 leading-tight mb-2">
-            Select Media Type
+            {t('common.selectMediaType')}
           </h3>
 
           {/* Description */}
           <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 text-center px-3 leading-snug font-medium mb-2">
-            Tap any colored section
+            {t('ui.tap.any.colored.section')}
           </p>
 
           {/* Click indicator */}
@@ -232,7 +234,7 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
                 d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
               />
             </svg>
-            <span>to choose</span>
+            <span>{t('common.to.choose')}</span>
           </div>
         </div>
 

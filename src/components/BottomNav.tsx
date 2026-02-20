@@ -57,11 +57,11 @@ const BottomNav: React.FC = () => {
         </Link>
 
         <Link
-          to="/annotations"
-          className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${isActive('/annotations') ? 'text-blue-600' : 'hover:bg-slate-50 text-slate-700'}`}
+          to="/tools"
+          className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${isActive('/tools') ? 'text-blue-600' : 'hover:bg-slate-50 text-slate-700'}`}
         >
           <PencilRuler
-            className={`w-6 h-6 ${isActive('/annotations') ? 'text-blue-600' : 'text-slate-700'}`}
+            className={`w-6 h-6 ${isActive('/tools') ? 'text-blue-600' : 'text-slate-700'}`}
           />
         </Link>
 

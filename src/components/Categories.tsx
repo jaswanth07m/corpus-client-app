@@ -15,6 +15,7 @@ import {
   Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import posthog from 'posthog-js';
@@ -86,6 +87,7 @@ const Categories: React.FC<CategoriesProps> = ({
   onSessionExpired,
   preSelectedMediaType,
 }) => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -255,14 +257,14 @@ const Categories: React.FC<CategoriesProps> = ({
           setUserId(userId.toString());
         } else {
           console.error('User ID not found in profile response:', userData);
-          toast.error('User ID not found. Please try logging in again.');
+          toast.error(t('common.userIdNotFoundPleaseTryLoggingInAgain'));
         }
       } else {
         console.error('Failed to fetch user profile, status:', response.status);
         const errorData = await response.json().catch(() => ({}));
         console.error('Profile fetch error:', errorData);
         toast.error(
-          'Failed to get user information. Please try logging in again.',
+          t('ui.failed.to.get.user.information.please.try.logging.in.again'),
         );
       }
     } catch (error) {
@@ -296,11 +298,11 @@ const Categories: React.FC<CategoriesProps> = ({
           .sort((a: Category, b: Category) => a.rank - b.rank);
         setCategories(publishedCategories);
       } else {
-        toast.error('Failed to fetch categories');
+        toast.error(t('ui.failed.to.fetch.categories'));
       }
     } catch (error) {
       console.error('Categories Error:', error);
-      toast.error('Network error. Please try again.');
+      toast.error(t('messages.networkErrorPleaseTryAgain'));
     }
     setLoading(false);
   };
@@ -352,12 +354,12 @@ const Categories: React.FC<CategoriesProps> = ({
     setLocationRequested(true);
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by this browser.');
-      toast.error('Geolocation not supported');
+      toast.error(t('common.geolocationNotSupported'));
       setShowManualLocation(true);
       return;
     }
 
-    toast.info('Requesting location access...');
+    toast.info(t('user.requestingLocationAccess'));
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -367,7 +369,7 @@ const Categories: React.FC<CategoriesProps> = ({
         });
         setLocationError('');
         setShowManualLocation(false);
-        toast.success('Location access granted!');
+        toast.success(t('user.locationAccessGranted'));
       },
       (error) => {
         console.error('Location error:', error);
@@ -406,24 +408,24 @@ const Categories: React.FC<CategoriesProps> = ({
     const lng = parseFloat(manualLng);
 
     if (isNaN(lat) || isNaN(lng)) {
-      toast.error('Please enter valid latitude and longitude values');
+      toast.error(t('validation.pleaseEnterValidLatitudeAndLongitudeValues'));
       return;
     }
 
     if (lat < -90 || lat > 90) {
-      toast.error('Latitude must be between -90 and 90');
+      toast.error(t('validation.latitudeMustBeBetween90And90'));
       return;
     }
 
     if (lng < -180 || lng > 180) {
-      toast.error('Longitude must be between -180 and 180');
+      toast.error(t('validation.longitudeMustBeBetween180And180'));
       return;
     }
 
     setLocation({ lat, lng });
     setLocationError('');
     setShowManualLocation(false);
-    toast.success('Location set manually!');
+    toast.success(t('user.locationSetManually'));
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -627,13 +629,13 @@ const Categories: React.FC<CategoriesProps> = ({
       (selectedCategories.length === 0 && !selectedCategory) ||
       !title.trim()
     ) {
-      toast.error('Please select at least one category and provide a title');
+      toast.error(t('common.pleaseSelectAtLeastOneCategoryAndProvideATitle'));
       return;
     }
 
     if (!location) {
       toast.error(
-        'Location is required. Please enable location access or enter manually.',
+        t('user.locationIsRequiredPleaseEnableLocationAccessOrEnterManually'),
       );
       if (!showManualLocation) {
         setShowManualLocation(true);
@@ -647,26 +649,28 @@ const Categories: React.FC<CategoriesProps> = ({
     }
 
     if (!releaseRights) {
-      toast.error('Release Rights not found. Check for release rights');
+      toast.error(t('common.releaseRightsNotFoundCheckForReleaseRights'));
       return;
     }
 
     if (releaseRights == 'downloaded') {
       toast.error(
-        'Upload any works created by you or you can upload works of your family members/friends with their permission.',
+        t(
+          'common.uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission',
+        ),
       );
       return; // <-- Add return here to block upload if releaseRights is 'internet'
     }
 
     if (!selectedLanguage) {
-      toast.error('Select a Langauge');
+      toast.error(t('common.selectALangauge'));
     }
 
     // Prepare file for upload
     let fileToUpload = selectedFile;
     if (uploadMode === 'text') {
       if (!textContent.trim()) {
-        toast.error('Please enter text content');
+        toast.error(t('validation.pleaseEnterTextContent'));
         return;
       }
       const textBlob = new Blob([textContent], { type: 'text/plain' });
@@ -674,7 +678,7 @@ const Categories: React.FC<CategoriesProps> = ({
         type: 'text/plain',
       });
     } else if (!selectedFile) {
-      toast.error('Please select a file');
+      toast.error(t('common.pleaseSelectAFile'));
       return;
     }
 
@@ -701,7 +705,7 @@ const Categories: React.FC<CategoriesProps> = ({
         });
         if (finalized) {
           toast.success(
-            'Content uploaded successfully! Redirecting to Landing...',
+            t('messages.contentUploadedSuccessfullyRedirectingToLanding'),
           );
           resetUploadState();
           posthog.capture('upload_success');
@@ -715,12 +719,14 @@ const Categories: React.FC<CategoriesProps> = ({
         }
       } else {
         posthog.capture('upload_error');
-        toast.error('Upload failed. Please try again.');
+        toast.error(t('common.uploadFailedPleaseTryAgain'));
         partialResetUploadState();
       }
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Network error. Please check your connection and try again.');
+      toast.error(
+        t('messages.networkErrorPleaseCheckYourConnectionAndTryAgain'),
+      );
       partialResetUploadState();
       posthog.capture('upload_error');
       posthog.captureException(error);
@@ -829,7 +835,7 @@ const Categories: React.FC<CategoriesProps> = ({
                 {selectedCategory.title}
               </h1>
               <p className="text-slate-600 text-base">
-                Choose how you'd like to contribute
+                {t('ui.choose.how.youd.like.to.contribute')}
               </p>
             </div>
           </div>
@@ -896,7 +902,7 @@ const Categories: React.FC<CategoriesProps> = ({
                     onChange={(e) => {
                       setUserSearch(e.target.value);
                     }}
-                    placeholder="Search by User ID..."
+                    placeholder={t('common.searchByUserId')}
                     type="text"
                     autoFocus
                   />
@@ -943,7 +949,7 @@ const Categories: React.FC<CategoriesProps> = ({
                   <Search className="h-5 w-5 text-slate-700 group-hover:text-emerald-600" />
                 </button>
                 <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  Search Users
+                  {t('common.searchUsers')}
                 </span>
               </div>
             )}
@@ -966,12 +972,12 @@ const Categories: React.FC<CategoriesProps> = ({
                   </svg>
                 </button>
                 <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  Peer Review
+                  {t('common.peerReview')}
                 </span>
               </div>
             </Link>
 
-            <Link to="/annotations">
+            <Link to="/tools">
               <div className="relative group">
                 <button className="p-3 hover:bg-amber-50 rounded-xl transition-all duration-200 border border-slate-200 hover:border-amber-400 hover:shadow-md">
                   <FileCheck className="h-5 w-5 text-slate-700 group-hover:text-amber-600" />
@@ -1016,7 +1022,7 @@ const Categories: React.FC<CategoriesProps> = ({
               Categories
             </h2>
             <p className="text-slate-600 text-sm">
-              Choose a category to contribute content
+              {t('categories.chooseACategoryToContributeContent')}
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -1089,7 +1095,7 @@ const Categories: React.FC<CategoriesProps> = ({
           </Link>
 
           <Link
-            to="/annotations"
+            to="/tools"
             className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-lg transition-colors"
           >
             <FileCheck className="w-6 h-6 text-slate-700" />

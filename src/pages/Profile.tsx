@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { X, LogOut, MessageSquare, Loader2 } from 'lucide-react';
+import { X, LogOut, MessageSquare, Loader2, Globe } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import { getPointsStats, DailyPoint } from '@/lib/points';
 import ContributionDashboard from '@/components/ContributionDashboard';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import PointsHeatmap from '@/components/PointsHeatmap';
 import CategoryTags from '@/components/CategoryTags';
 import { MediaGridItem } from '@/components/MediaGridItem';
@@ -167,6 +169,7 @@ interface EditHistoryEntry {
 }
 
 function Profile() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -426,14 +429,14 @@ function Profile() {
   // Function to update profile picture
   const updateProfilePicture = async () => {
     if (!profilePictureUrl.trim()) {
-      toast.error('Please enter a valid image URL');
+      toast.error(t('media.pleaseEnterAValidImageUrl'));
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        toast.error('Authentication token not found');
+        toast.error(t('common.authenticationTokenNotFound'));
         return;
       }
 
@@ -480,7 +483,7 @@ function Profile() {
         });
       }
 
-      toast.success('Profile picture updated successfully!');
+      toast.success(t('messages.profilePictureUpdatedSuccessfully'));
       setShowProfilePictureModal(false);
       setProfilePictureUrl('');
     } catch (error) {
@@ -896,6 +899,7 @@ function Profile() {
           {/* Profile Info Section - Mobile Responsive Layout */}
           <div className="p-4 relative">
             <div className="flex gap-2 absolute right-0 sm:right-5">
+              <LanguageSwitcher />
               <button
                 onClick={handleLogout}
                 className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
@@ -952,7 +956,7 @@ function Profile() {
                       {followersCount}
                     </span>
                     <span className="text-slate-500 text-[7px] font-medium uppercase tracking-wider group-hover:text-emerald-700">
-                      Followers
+                      {t('profile.followers')}
                     </span>
                   </button>
 
@@ -969,7 +973,7 @@ function Profile() {
                       {followingCount}
                     </span>
                     <span className="text-slate-500 text-[7px] font-medium uppercase tracking-wider group-hover:text-emerald-700">
-                      Following
+                      {t('profile.following')}
                     </span>
                   </button>
 
@@ -979,11 +983,11 @@ function Profile() {
                     className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors text-sm font-medium"
                     title={
                       isOwnProfile
-                        ? 'View your profile info'
-                        : 'View profile info'
+                        ? t('profile.viewYourProfileInfo')
+                        : t('profile.viewProfileInfo')
                     }
                   >
-                    Info
+                    {t('profile.info')}
                   </button>
                 </div>
 
@@ -1007,12 +1011,12 @@ function Profile() {
                     {followLoading ? (
                       <span className="flex items-center justify-center sm:justify-start gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Processing...
+                        {t('common.processing')}
                       </span>
                     ) : isFollowing ? (
-                      'Following'
+                      t('profile.following')
                     ) : (
-                      'Follow'
+                      t('profile.follow')
                     )}
                   </button>
                 )}
@@ -1043,7 +1047,7 @@ function Profile() {
             <PointsHeatmap dailyData={pointsData} />
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-500">Loading points data...</p>
+              <p className="text-gray-500">{t('messages.loadingPointsData')}</p>
             </div>
           )}
         </div>
@@ -1081,7 +1085,7 @@ function Profile() {
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold capitalize">
-                {selectedMediaType} Contributions
+                {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
               </h3>
               <button
                 onClick={() => {
@@ -1154,7 +1158,7 @@ function Profile() {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-gray-800">
-                  Update Profile Picture
+                  {t('nav.updateProfilePicture')}
                 </h3>
                 <button
                   onClick={() => {
@@ -1172,7 +1176,7 @@ function Profile() {
                   htmlFor="profilePictureUrl"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Image URL
+                  {t('media.imageUrl')}
                 </label>
                 <input
                   type="text"
@@ -1183,7 +1187,7 @@ function Profile() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Enter a valid image URL for your profile picture
+                  {t('nav.enterAValidImageUrlForYourProfilePicture')}
                 </p>
               </div>
 
@@ -1238,7 +1242,7 @@ const FollowersModal: React.FC<{
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
-          <h3 className="text-lg font-semibold">Followers</h3>
+          <h3 className="text-lg font-semibold">{t('profile.followers')}</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -1291,7 +1295,7 @@ const FollowersModal: React.FC<{
             </ul>
           ) : (
             <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500">No followers found</p>
+              <p className="text-gray-500">{t('common.noFollowersFound')}</p>
             </div>
           )}
         </div>
@@ -1324,7 +1328,7 @@ const FollowingModal: React.FC<{
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
-          <h3 className="text-lg font-semibold">Following</h3>
+          <h3 className="text-lg font-semibold">{t('profile.following')}</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -1379,7 +1383,9 @@ const FollowingModal: React.FC<{
             </ul>
           ) : (
             <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500">No users being followed</p>
+              <p className="text-gray-500">
+                {t('common.noUsersBeingFollowed')}
+              </p>
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,6 +47,7 @@ const confirmSchema = z
   });
 
 const ForgotPassword = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [step, setStep] = useState<'initiate' | 'confirm'>('initiate');
@@ -132,7 +134,9 @@ const ForgotPassword = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Forgot Password</CardTitle>
+          <CardTitle className="text-center">
+            {t('auth.forgotPassword')}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {step === 'initiate' ? (
@@ -146,17 +150,17 @@ const ForgotPassword = () => {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>{t('auth.phoneNumber')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium select-none">
-                            +91
+                            {t('common.91')}
                           </span>
                           <Input
                             type="tel"
                             pattern="[0-9]*"
                             inputMode="numeric"
-                            placeholder="Enter your phone number"
+                            placeholder={t('auth.enterYourPhoneNumber')}
                             value={field.value}
                             maxLength={10}
                             onChange={(e) => {
@@ -176,7 +180,7 @@ const ForgotPassword = () => {
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Send OTP
+                  {t('auth.sendOtp')}
                 </Button>
                 <Button
                   type="button"
@@ -184,7 +188,7 @@ const ForgotPassword = () => {
                   className="w-full"
                   onClick={() => navigate('/')}
                 >
-                  Back to Login
+                  {t('common.backToLogin')}
                 </Button>
               </form>
             </Form>
@@ -216,9 +220,9 @@ const ForgotPassword = () => {
                   name="otp_code"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>OTP Code</FormLabel>
+                      <FormLabel>{t('auth.otpCode')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter OTP" {...field} />
+                        <Input placeholder={t('auth.enterOtp')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -229,22 +233,22 @@ const ForgotPassword = () => {
                   name="new_password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>New Password</FormLabel>
+                      <FormLabel>{t('auth.newPassword')}</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="Enter new password"
+                          placeholder={t('auth.enterNewPassword')}
                           {...field}
                         />
                       </FormControl>
                       <FormMessage />
                       <div className="text-xs text-gray-500 mt-1">
-                        Password must be at least 8 characters and contain:
+                        {t('auth.passwordMustBeAtLeast8CharactersAndContain')}
                         <ul className="list-disc list-inside ml-2">
-                          <li>One uppercase letter</li>
-                          <li>One lowercase letter</li>
-                          <li>One number</li>
-                          <li>One special character</li>
+                          <li>{t('common.one.uppercase.letter')}</li>
+                          <li>{t('common.one.lowercase.letter')}</li>
+                          <li>{t('common.one.number')}</li>
+                          <li>{t('ui.one.special.character')}</li>
                         </ul>
                       </div>
                     </FormItem>
@@ -259,7 +263,7 @@ const ForgotPassword = () => {
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="Confirm new password"
+                          placeholder={t('common.confirmNewPassword')}
                           {...field}
                         />
                       </FormControl>
@@ -271,7 +275,7 @@ const ForgotPassword = () => {
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Reset Password
+                  {t('common.resetPassword')}
                 </Button>
                 <Button
                   type="button"
@@ -280,7 +284,7 @@ const ForgotPassword = () => {
                   onClick={() => setStep('initiate')}
                   disabled={isLoading}
                 >
-                  Back to Initiate
+                  {t('common.backToInitiate')}
                 </Button>
               </form>
             </Form>

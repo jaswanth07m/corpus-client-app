@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, X, Pencil, History, Clock } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { MediaDetailModal } from './MediaDetailModal';
@@ -39,6 +40,7 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
   token,
   isOwnProfile,
 }) => {
+  const { t } = useTranslation();
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -107,7 +109,9 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-xs text-gray-500">Image unavailable</p>
+                <p className="text-xs text-gray-500">
+                  {t('media.imageUnavailable')}
+                </p>
               </div>
             </div>
           )}
@@ -133,7 +137,9 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
           {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
               <div className="text-center p-3 sm:p-4">
-                <p className="text-xs text-gray-500">Media unavailable</p>
+                <p className="text-xs text-gray-500">
+                  {t('common.media.unavailable')}
+                </p>
               </div>
             </div>
           )}
