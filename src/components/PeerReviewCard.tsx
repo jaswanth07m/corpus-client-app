@@ -10,6 +10,7 @@ import {
   Video,
   Mic,
   Music,
+  CornerUpRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from './ui/input';
@@ -21,7 +22,6 @@ import {
   SelectValue,
 } from './ui/select';
 import { BACKEND_URL } from '@/lib/constants';
-import CopyUrlButton from './CopyUrlButton';
 
 interface PeerReviewCardProps {
   user_id: string;
@@ -633,7 +633,14 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               <p className="text-slate-700 leading-relaxed flex-1">
                 {newDescription}
               </p>
-              <CopyUrlButton url={recordUrl} recordId={record_id} />
+              <button
+                type="button"
+                onClick={() => window.open(`/records/${record_id}`, '_blank')}
+                className="flex items-center gap-1.5 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors p-2"
+                title="Share"
+              >
+                <CornerUpRight size={18} strokeWidth={3} />
+              </button>
             </div>
           </div>
         )}
