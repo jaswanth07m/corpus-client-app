@@ -15,8 +15,6 @@ import PeerReview from './pages/PeerReview';
 import { AuthProvider } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import RequireAuth from './components/RequireAuth';
-import { User } from 'lucide-react';
-import Categories from './components/Categories';
 import UploadPage from './pages/UploadPage';
 import Layout from './Layout';
 
@@ -63,7 +61,7 @@ const App = () => (
                   </RequireAuth>
                 }
               />
-              <Route path="/annotations" element={<AnnotationsDashboard />} />
+              <Route path="/tools" element={<AnnotationsDashboard />} />
               <Route path="/proofreading" element={<AnnotationsDashboard />} />
               <Route
                 path="/myprofile/"
@@ -104,7 +102,7 @@ const App = () => (
             </Route>
 
             <Route
-              path="/annotations/proofreading"
+              path="/tools/proofreading"
               element={
                 <RequireAuth>
                   <Proofreading />

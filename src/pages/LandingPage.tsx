@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CloudUpload } from 'lucide-react';
 import UserStatsSummary from '@/components/UserStatsSummary';
 
 const LandingPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -20,7 +22,7 @@ const LandingPage = () => {
           <div className="animate-fade-in-smooth">
             <img
               src="/Swecha_Logo_English.png"
-              alt="Swecha - Technology for Society"
+              alt={t('common.swechaTechnologyForSociety')}
               className="h-28 mx-auto drop-shadow-lg hover:scale-105 transition-transform duration-300"
             />
           </div>
@@ -54,10 +56,10 @@ const LandingPage = () => {
 
                 <div className="space-y-2">
                   <h2 className="text-3xl font-bold text-white drop-shadow-md">
-                    Upload Files
+                    {t('common.uploadFiles')}
                   </h2>
                   <p className="text-white/80 text-sm font-medium">
-                    Click to get started
+                    {t('common.click.to.get.started')}
                   </p>
                 </div>
               </div>
@@ -67,7 +69,7 @@ const LandingPage = () => {
           </div>
 
           <p className="text-slate-500 text-sm animate-fade-in-late">
-            Contribute to open data and help build the future
+            {t('common.contributeToOpenDataAndHelpBuildTheFuture')}
           </p>
         </div>
       </div>

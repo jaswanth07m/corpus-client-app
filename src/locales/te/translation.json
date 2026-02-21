@@ -1,0 +1,631 @@
+{
+  "common": {
+    "6": {
+      "digits": "/6 అంకెలు"
+    },
+    "10": {
+      "digits": "/10 అంకెలు"
+    },
+    "91": "+91",
+    "loading": "లోడ్ అవుతోంది...",
+    "error": "లోపం",
+    "success": "విజయవంతమైంది",
+    "cancel": "రద్దు చేయి",
+    "save": "సేవ్ చేయి",
+    "delete": "తొలగించు",
+    "edit": "సవరించు",
+    "submit": "సమర్పించు",
+    "confirm": "నిర్ధారించు",
+    "back": "వెనుకకు",
+    "next": "తర్వాత",
+    "previous": "మునుపటి",
+    "close": "మూసివేయి",
+    "search": "శోధన",
+    "filter": "ఫిల్టర్",
+    "sort": "క్రమపరచు",
+    "yes": "అవును",
+    "no": "కాదు",
+    "ok": "సరే",
+    "previousSlide": "",
+    "nextSlide": "",
+    "goToPreviousPage": "మునుపటి పేజీకి వెళ్ళు",
+    "goToNextPage": "తర్వాతి పేజీకి వెళ్ళు",
+    "morePages": "మరిన్ని పేజీలు",
+    "toggle": {
+      "sidebar": "సైడ్‌బార్ టోగుల్ చేయి"
+    },
+    "selectALocation": "స్థానాన్ని ఎంచుకోండి",
+    "confirmLocation": "స్థానాన్ని నిర్ధారించండి",
+    "selectMediaType": "మీడియా రకం ఎంచుకోండి",
+    "to": {
+      "choose": "ఎంచుకోవడానికి"
+    },
+    "documentUpload": "డాక్యుమెంట్ అప్‌లోడ్ *",
+    "uploadDocumentFilesPdfDocxTxt": "డాక్యుమెంట్ ఫైల్‌లను అప్‌లోడ్ చేయండి (PDF, DOCX, TXT)",
+    "selectedFile": "ఎంచుకున్న ఫైల్:",
+    "content": "కంటెంట్ *",
+    "yourBrowserDoesNotSupportTheAudioElement": "మీ బ్రౌజర్ ఆడియో ఎలిమెంట్‌ను సమర్థించదు.",
+    "uploadAudioFilesSingleFile": "ఆడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
+    "switch": {
+      "to": "మార్చు"
+    },
+    "yourBrowserDoesNotSupportTheVideoElement": "మీ బ్రౌజర్ వీడియో ఎలిమెంట్‌ను సమర్థించదు.",
+    "uploadVideoFilesSingleFile": "వీడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
+    "selectedFiles": "ఎంచుకున్న ఫైల్స్:",
+    "takeAnother": "మరొకటి తీసుకోండి",
+    "uploadImageFilesSingleFile": "ఇమేజ్ ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
+    "technologyForSociety": "సమాజం కోసం సాంకేతికత",
+    "userIdNotFoundPleaseTryLoggingInAgain": "యూజర్ ID కనుగొనబడలేదు. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి.",
+    "geolocationNotSupported": "జియోలోకేషన్ సమర్థించబడలేదు",
+    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "దయచేసి కనీసం ఒక వర్గాన్ని ఎంచుకోండి మరియు శీర్షికను అందించండి",
+    "releaseRightsNotFoundCheckForReleaseRights": "విడుదల హక్కులు కనుగొనబడలేదు. విడుదల హక్కులను తనిఖీ చేయండి",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "మీరు సృష్టించిన ఏదైనా పనులను అప్‌లోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్‌లోడ్ చేయండి.",
+    "selectALangauge": "భాషను ఎంచుకోండి",
+    "pleaseSelectAFile": "దయచేసి ఒక ఫైల్‌ను ఎంచుకోండి",
+    "uploadFailedPleaseTryAgain": "అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    "searchByUserId": "యూజర్ ID ద్వారా శోధించండి...",
+    "searchByTitleDescription": "శీర్షిక, వివరణ ద్వారా శోధించండి...",
+    "searchUsers": "యూజర్‌లను శోధించండి",
+    "peerReview": "పీర్ రివ్యూ",
+    "noContributionDataAvailable": "సహకార డేటా అందుబాటులో లేదు.",
+    "editHistory": "సవరణ చరిత్ర",
+    "noEditHistoryFoundForThisRecord": "ఈ రికార్డ్ కోసం సవరణ చరిత్ర కనుగొనబడలేదు.",
+    "change": {
+      "source": "మూలాన్ని మార్చు:",
+      "language": "భాషను మార్చు"
+    },
+    "field": {
+      "changes": "ఫీల్డ్ మార్పులు:"
+    },
+    "old": "పాత:",
+    "new": "కొత్త:",
+    "loginFailedNoAccessTokenReceived": "లాగిన్ విఫలమైంది: యాక్సెస్ టోకెన్ అందలేదు",
+    "pleaseEnterAValidEmailAddress": "దయచేసి సరైన ఇమెయిల్ చిరునామాను నమోదు చేయండి",
+    "swechaTechnologyForSociety": "స్వేచ్ఛా - సమాజం కోసం సాంకేతికత",
+    "sending": "పంపుతోంది...",
+    "verifying": "నిర్ధారిస్తుంది",
+    "resetHere": "ఇక్కడ రీసెట్ చేయండి",
+    "logging": {
+      "in": "లాగిన్ అవుతోంది"
+    },
+    "emailAddress": "ఇమెయిల్ చిరునామా *",
+    "selectGender": "లింగం ఎంచుకోండి",
+    "date": {
+      "of": {
+        "birth": "పుట్టిన తేదీ"
+      }
+    },
+    "one": {
+      "uppercase": {
+        "letter": "ఒక పెద్ద అక్షరం"
+      },
+      "lowercase": {
+        "letter": "ఒక చిన్న అక్షరం"
+      },
+      "number": "ఒక సంఖ్య"
+    },
+    "minimum": {
+      "8": {
+        "characters": "కనీసం 8 అక్షరాలు"
+      }
+    },
+    "confirmPassword": "పాస్‌వర్డ్ నిర్ధారించండి *",
+    "passwordsDoNotMatch": "*పాస్‌వర్డ్‌లు సరిపోలడం లేదు",
+    "i": {
+      "agree": {
+        "to": {
+          "the": "నేను దీనికి అంగీకరిస్తున్నాను"
+        }
+      }
+    },
+    "terms": {
+      "of": {
+        "service": "సేవా నిబంధనలు"
+      }
+    },
+    "privacy": {
+      "policy": "గోప్యతా విధానం"
+    },
+    "backToSignupForm": "సైన్అప్ ఫారమ్‌కు తిరిగి వెళ్ళు",
+    "documentPreview": "డాక్యుమెంట్ ప్రివ్యూ",
+    "openInNewTab": "కొత్త ట్యాబ్‌లో తెరవండి",
+    "viewText": "టెక్స్ట్ చూడండి",
+    "openDocument": "డాక్యుమెంట్ తెరవండి",
+    "noChangesToSave": "సేవ్ చేయడానికి మార్పులు లేవు",
+    "meaningful": {
+      "words": "అర్థవంతమైన పదాలు"
+    },
+    "release": {
+      "rights": "విడుదల హక్కులు"
+    },
+    "specify": {
+      "creator": "సృష్టికర్తను పేర్కొనండి",
+      "source": "మూలాన్ని పేర్కొనండి"
+    },
+    "Reviewed": "✓ సమీక్షించబడింది",
+    "media": {
+      "unavailable": "మీడియా అందుబాటులో లేదు"
+    },
+    "uploadedMedia": "అప్‌లోడ్ చేయబడిన మీడియా",
+    "unsupported": {
+      "media": "సమర్థించని మీడియా"
+    },
+    "showHistory": "చరిత్రను చూపించు",
+    "noHistory": "చరిత్ర లేదు",
+    "source": "మూలం:",
+    "enter": {
+      "title": "శీర్షికను నమోదు చేయండి",
+      "description": "వివరణను నమోదు చేయండి",
+      "current": {
+        "place": "ప్రస్తుత స్థలాన్ని నమోదు చేయండి"
+      },
+      "profession": "వృత్తిని నమోదు చేయండి",
+      "organisation": "సంస్థను నమోదు చేయండి"
+    },
+    "noUsersFound": "యూజర్‌లు కనుగొనబడలేదు",
+    "from": {
+      "place": "నుండి స్థలం"
+    },
+    "places": {
+      "lived": "నివసించిన స్థలాలు"
+    },
+    "authenticationTokenNotFound": "ధృవీకరణ టోకెన్ కనుగొనబడలేదు",
+    "current": {
+      "place": "ప్రస్తుత స్థలం"
+    },
+    "noLocationSet": "స్థలం సెట్ చేయబడలేదు",
+    "selectLanguage": "భాషను ఎంచుకోండి",
+    "addLanguage": "భాషను జోడించండి",
+    "addPlace": "స్థలాన్ని జోడించండి",
+    "addSocialMedia": "సోషల్ మీడియాను జోడించండి",
+    "photoCapturedClickStopCameraWhenDone": "ఫోటో తీయబడింది! పూర్తయినప్పుడు \"స్టాప్ కెమెరా\" క్లిక్ చేయండి.",
+    "fileRemoved": "ఫైల్ తొలగించబడింది",
+    "textUploadFailed": "టెక్స్ట్ అప్‌లోడ్ విఫలమైంది",
+    "uploadContent": "కంటెంట్‌ను అప్‌లోడ్ చేయండి",
+    "title": "శీర్షిక *",
+    "description": "వివరణ *",
+    "selectCategories": "వర్గాలను ఎంచుకోండి *",
+    "editLocation": "స్థలాన్ని సవరించండి",
+    "pick": {
+      "from": {
+        "map": "మ్యాప్ నుండి ఎంచుకోండి"
+      }
+    },
+    "SelectALanguage": "-- భాషను ఎంచుకోండి --",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "క్షమించండి! దయచేసి మీరు సృష్టించిన పనులను అప్‌లోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్‌లోడ్ చేయండి.",
+    "selectReleaseRights": "విడుదల హక్కులను ఎంచుకోండి",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "నేను దీనిని ఇంటర్నెట్ నుండి డౌన్‌లోడ్ చేశాను మరియు/లేదా ఇది ఉచితంగా షేర్ చేయడానికి అనుకూలమైనదా అని నాకు తెలియదు.",
+    "creator": "సృష్టికర్త *",
+    "oopsPageNotFound": "అయ్యో! పేజీ కనుగొనబడలేదు",
+    "backToLogin": "లాగిన్‌కు తిరిగి వెళ్ళు",
+    "confirmNewPassword": "కొత్త పాస్‌వర్డ్‌ను నిర్ధారించండి",
+    "resetPassword": "పాస్‌వర్డ్ రీసెట్ చేయండి",
+    "backToInitiate": "ప్రారంభించడానికి తిరిగి వెళ్ళు",
+    "uploadFiles": "ఫైల్‌లను అప్‌లోడ్ చేయండి",
+    "click": {
+      "to": {
+        "get": {
+          "started": "ప్రారంభించడానికి క్లిక్ చేయండి"
+        }
+      }
+    },
+    "contributeToOpenDataAndHelpBuildTheFuture": "ఓపెన్ డేటాకు సహకరించండి మరియు భవిష్యత్తును నిర్మించడంలో సహాయపడండి",
+    "proofreading": {
+      "tool": "ప్రూఫ్‌రీడింగ్ సాధనం"
+    },
+    "reviewAndCorrectOcrTextFromDocuments": "డాక్యుమెంట్‌ల నుండి OCR టెక్స్ట్‌ను సమీక్షించండి మరియు సరిదిద్దండి",
+    "proofread": {
+      "ocr": {
+        "text": "OCR టెక్స్ట్‌ను సమీక్షించండి"
+      }
+    },
+    "showHints": "హింట్‌లను చూపించు",
+    "submitPage": "పేజీని సమర్పించండి",
+    "reviewCommunityContributions": "కమ్యూనిటీ సహకారాలను సమీక్షించండి",
+    "refreshFeed": "ఫీడ్‌ను రిఫ్రెష్ చేయండి",
+    "noResultsFoundFor": "కోసం ఫలితాలు కనుగొనబడలేదు \"",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "యూజర్ లోడ్ చేయబడిన రికార్డ్‌లలో లేకపోవచ్చు. శోధనను క్లియర్ చేసి మరిన్ని రికార్డ్‌లను లోడ్ చేయడానికి స్క్రోల్ చేయడానికి ప్రయత్నించండి.",
+    "processing": "ప్రాసెసింగ్...",
+    "noFollowersFound": "ఫాలోవర్‌లు కనుగొనబడలేదు",
+    "noUsersBeingFollowed": "ఫాలో అవుతున్న యూజర్‌లు లేరు"
+  },
+  "nav": {
+    "home": "హోమ్",
+    "profile": "ప్రొఫైల్",
+    "settings": "సెట్టింగ్‌లు",
+    "logout": "లాగౌట్",
+    "login": "లాగిన్",
+    "searchUsers": "యూజర్‌ల కోసం శోధించండి...",
+    "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారు?",
+    "loginWithPassword": "పాస్‌వర్డ్‌తో లాగిన్ చేయండి",
+    "failedToLoadProfileData": "ప్రొఫైల్ డేటా లోడ్ చేయడం విఫలమైంది",
+    "tellUsAboutYourself": "మీ గురించి మాకు చెప్పండి",
+    "socialMediaProfiles": "సోషల్ మీడియా ప్రొఫైల్‌లు",
+    "profileUrl": "ప్రొఫైల్ URL",
+    "returnToHome": "హోమ్‌కు తిరిగి వెళ్ళు",
+    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్‌డేట్ చేయండి",
+    "enterAValidImageUrlForYourProfilePicture": "మీ ప్రొఫైల్ చిత్రం కోసం సరైన ఇమేజ్ URL నమోదు చేయండి"
+  },
+  "auth": {
+    "email": "ఇమెయిల్",
+    "password": "పాస్‌వర్డ్",
+    "forgotPassword": "పాస్‌వర్డ్ మర్చిపోయారా?",
+    "resetPassword": "పాస్‌వర్డ్ రీసెట్ చేయి",
+    "loginTitle": "కార్పస్‌కు లాగిన్ అవ్వండి",
+    "loginButton": "లాగిన్",
+    "noAccount": "ఖాతా లేదా?",
+    "hasAccount": "ఇప్పటికే ఖాతా ఉందా?",
+    "signup": "సైన్ అప్",
+    "securedBy": "చేత రక్షించబడింది",
+    "pleaseEnterAValid10digitPhoneNumber": "దయచేసి సరైన 10 అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి",
+    "pleaseEnterAValid6digitOtp": "దయచేసి సరైన 6 అంకెల OTP ని నమోదు చేయండి",
+    "invalidOtpPleaseCheckAndTryAgain": "చెల్లని OTP. దయచేసి తనిఖీ చేసి మళ్లీ ప్రయత్నించండి",
+    "otpVerificationFailedPleaseTryAgain": "OTP నిర్ధారణ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP గడువు ముగిసింది లేదా చెల్లదు. దయచేసి కొత్తదాన్ని అభ్యర్థించండి",
+    "pleaseEnterAValidPhoneNumberAndPassword": "దయచేసి సరైన ఫోన్ నంబర్ మరియు పాస్‌వర్డ్‌ను నమోదు చేయండి",
+    "pleaseEnterAValidUsername": "దయచేసి సరైన యూజర్‌నేమ్‌ను నమోదు చేయండి",
+    "passwordMustBeAtLeast6CharactersLong": "పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి",
+    "signUp": "సైన్ అప్",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP స్వీకరించడానికి మీ నమోదిత ఫోన్ నంబర్‌ను నమోదు చేయండి",
+    "enter10digitPhoneNumber": "10 అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి",
+    "phoneNumberIsInvalid": "*ఫోన్ నంబర్ చెల్లదు",
+    "otpSentTo91": "+91 కు OTP పంపబడింది",
+    "enter6digitOtp": "6 అంకెల OTP ని నమోదు చేయండి",
+    "enterYourPassword": "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
+    "username": "యూజర్‌నేమ్*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*యూజర్‌నేమ్ అక్షరాలు, అండర్‌స్కోర్లు, అంకెలు మాత్రమే కలిగి ఉండాలి",
+    "emailIsInvalid": "*ఇమెయిల్ చెల్లదు",
+    "createPassword": "పాస్‌వర్డ్ సృష్టించండి *",
+    "passwordStrength": "పాస్‌వర్డ్ బలం:",
+    "passwordShouldContain": "పాస్‌వర్డ్ కలిగి ఉండాలి :",
+    "sendingOtp": "OTP పంపుతోంది...",
+    "requestOtpForPhoneVerification": "ఫోన్ నిర్ధారణ కోసం OTP ని అభ్యర్థించండి",
+    "enterUsername": "యూజర్‌నేమ్ నమోదు చేయండి",
+    "phoneNumber": "ఫోన్ నంబర్",
+    "enterYourPhoneNumber": "మీ ఫోన్ నంబర్‌ను నమోదు చేయండి",
+    "sendOtp": "OTP పంపు",
+    "otpCode": "OTP కోడ్",
+    "enterOtp": "OTP నమోదు చేయండి",
+    "newPassword": "కొత్త పాస్‌వర్డ్",
+    "enterNewPassword": "కొత్త పాస్‌వర్డ్‌ను నమోదు చేయండి",
+    "passwordMustBeAtLeast8CharactersAndContain": "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు కలిగి ఉండాలి మరియు కలిగి ఉండాలి:",
+    "welcomeBack": "స్వాగతం",
+    "createAccount": "ఖాతా సృష్టించండి",
+    "signInToContinueYourJourney": "మీ ప్రయాణాన్ని కొనసాగించడానికి సైన్ ఇన్ చేయండి",
+    "joinOurCommunityToday": "నేడే మా కమ్యూనిటీలో చేరండి",
+    "login": "లాగిన్",
+    "verifyOtp": "OTP నిర్ధారించండి",
+    "resendOtp": "OTP మళ్లీ పంపు",
+    "resendIn": "లో మళ్లీ పంపు",
+    "back": "వెనుకకు",
+    "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారా?",
+    "loginWithPassword": "పాస్‌వర్డ్‌తో లాగిన్ చేయండి",
+    "loginWithOtp": "OTPతో లాగిన్ చేయండి",
+    "enterPassword": "పాస్‌వర్డ్ నమోదు చేయండి",
+    "selectGender": "లింగం ఎంచుకోండి",
+    "male": "పురుషుడు",
+    "female": "మహిళ",
+    "other": "ఇతర",
+    "dateOfBirth": "పుట్టిన తేదీ",
+    "gender": "లింగం"
+  },
+  "user": {
+    "useMyCurrentLocation": "నా ప్రస్తుత స్థానాన్ని ఉపయోగించు",
+    "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
+    "locationAccessGranted": "స్థానం యాక్సెస్ మంజూరు చేయబడింది!",
+    "locationSetManually": "స్థానం మానువల్‌గా సెట్ చేయబడింది!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "స్థానం అవసరం. దయచేసి స్థాన యాక్సెస్‌ను ప్రారంభించండి లేదా మానువల్‌గా నమోదు చేయండి",
+    "pleaseEnterYourName": "దయచేసి మీ పేరును నమోదు చేయండి",
+    "fullName": "పూర్తి పేరు *",
+    "nameShouldHaveCharactersOnly": "*పేరు కేవలం అక్షరాలు మాత్రమే కలిగి ఉండాలి",
+    "placeCityState": "స్థలం (నగరం, రాష్ట్రం)",
+    "enterFullName": "పూర్తి పేరు నమోదు చేయండి",
+    "shortBio": "చిన్న పరిచయం",
+    "verifyingLocation": "స్థానాన్ని నిర్ధారిస్తుంది...",
+    "locationCapturedAwaitingVerification": "స్థానం సంగ్రహించబడింది, నిర్ధారణ కోసం వేచి ఉంది...",
+    "locationRequired": "స్థానం అవసరం",
+    "useCurrentLocation": "ప్రస్తుత స్థానాన్ని ఉపయోగించు",
+    "profession": "వృత్తి",
+    "organisation": "సంస్థ"
+  },
+  "ui": {
+    "tap": {
+      "any": {
+        "colored": {
+          "section": "రంగు ఉన్న ఏదైనా విభాగాన్ని ట్యాప్ చేయండి"
+        }
+      }
+    },
+    "enter": {
+      "your": {
+        "text": {
+          "content": {
+            "here": "మీ టెక్స్ట్ కంటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
+          }
+        }
+      },
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": "మీ కంటెంట్ కోసం శీర్షికను నమోదు చేయండి"
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": "మీ కంటెంట్ కోసం సృష్టికర్తను నమోదు చేయండి"
+            }
+          }
+        }
+      }
+    },
+    "failed": {
+      "to": {
+        "get": {
+          "user": {
+            "information": {
+              "please": {
+                "try": {
+                  "logging": {
+                    "in": {
+                      "again": "యూజర్ సమాచారాన్ని పొందడం విఫలమైంది. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fetch": {
+          "categories": "వర్గాలను ఫెచ్ చేయడం విఫలమైంది"
+        }
+      }
+    },
+    "choose": {
+      "how": {
+        "youd": {
+          "like": {
+            "to": {
+              "contribute": "మీరు ఎలా సహకరించాలనుకుంటున్నారో ఎంచుకోండి"
+            }
+          }
+        }
+      }
+    },
+    "too": {
+      "many": {
+        "attempts": {
+          "please": {
+            "wait": {
+              "before": {
+                "trying": {
+                  "again": "చాలా ప్రయత్నాలు. దయచేసి మళ్లీ ప్రయత్నించే ముందు వేచి ఉండండి."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "please": {
+      "agree": {
+        "to": {
+          "the": {
+            "terms": {
+              "and": {
+                "conditions": "దయచేసి నిబంధనలు మరియు షరతులకు అంగీకరించండి"
+              }
+            }
+          }
+        }
+      }
+    },
+    "place": {
+      "should": {
+        "have": {
+          "characters": {
+            "is": {
+              "allowed": "*స్థలం అక్షరాలు కలిగి ఉండాలి ( , అనుమతించబడింది)"
+            }
+          }
+        }
+      }
+    },
+    "one": {
+      "special": {
+        "character": "ఒక ప్రత్యేక అక్షరం"
+      }
+    },
+    "language": {
+      "proficiencies": "భాషా నైపుణ్యాలు"
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": "వివరణాత్మక వివరణను అందించండి (కనీసం 32 అక్షరాలు)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": "ఈ పని నా చేత సృష్టించబడింది మరియు ఎవరైనా దీనిని ఉచితంగా ఉపయోగించుకోవచ్చు."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "start": {
+      "typing": {
+        "to": {
+          "get": {
+            "hints": "*హింట్‌లను పొందడానికి టైప్ చేయడం ప్రారంభించండి"
+          }
+        }
+      }
+    },
+    "ocr": {
+      "text": {
+        "will": {
+          "appear": {
+            "here": "OCR టెక్స్ట్ ఇక్కడ కనిపిస్తుంది."
+          }
+        }
+      }
+    }
+  },
+  "media": {
+    "audioRecording": "ఆడియో రికార్డింగ్ *",
+    "startRecording": "రికార్డింగ్ ప్రారంభించండి",
+    "stopRecording": "రికార్డింగ్ ఆపండి",
+    "recordingPaused": "రికార్డింగ్ నిలిపివేయబడింది",
+    "recordingCompleted": "రికార్డింగ్ పూర్తయింది (",
+    "recordAgain": "మళ్లీ రికార్డ్ చేయండి",
+    "videoRecording": "వీడియో రికార్డింగ్ *",
+    "startVideoRecording": "వీడియో రికార్డింగ్ ప్రారంభించండి",
+    "photoCapture": "ఫోటో క్యాప్చర్ *",
+    "startCamera": "కెమెరా ప్రారంభించండి",
+    "capturePhoto": "ఫోటో తీయండి",
+    "stopCamera": "కెమెరా ఆపండి",
+    "photoCaptured": "ఫోటో తీయబడింది:",
+    "capturedPhoto": "క్యాప్చర్ చేయబడిన ఫోటో",
+    "videoUnavailable": "వీడియో అందుబాటులో లేదు",
+    "loadVideo": "వీడియో లోడ్ చేయండి",
+    "audioUnavailable": "ఆడియో అందుబాటులో లేదు",
+    "loadAudio": "ఆడియో లోడ్ చేయండి",
+    "documentUnavailable": "డాక్యుమెంట్ అందుబాటులో లేదు",
+    "loadDocument": "డాక్యుమెంట్ లోడ్ చేయండి",
+    "fileSize": "ఫైల్ పరిమాణం",
+    "imageUnavailable": "ఇమేజ్ అందుబాటులో లేదు",
+    "audioTrack": "ఆడియో ట్రాక్",
+    "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",
+    "audioRecordingStarted": "ఆడియో రికార్డింగ్ ప్రారంభమైంది",
+    "videoRecordingStarted": "వీడియో రికార్డింగ్ ప్రారంభమైంది",
+    "failedToPauseRecording": "రికార్డింగ్ నిలిపివేయడం విఫలమైంది",
+    "recordingResumed": "రికార్డింగ్ పునఃప్రారంభించబడింది",
+    "failedToResumeRecording": "రికార్డింగ్ పునఃప్రారంభించడం విఫలమైంది",
+    "recordingStopped": "రికార్డింగ్ ఆపబడింది",
+    "failedToStopRecording": "రికార్డింగ్ ఆపడం విఫలమైంది",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "ఫోటో తీయడం విఫలమైంది. దయచేసి కెమెరా అనుమతులను తనిఖీ చేయండి.",
+    "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
+    "imageUrl": "ఇమేజ్ URL"
+  },
+  "messages": {
+    "loading": "లోడ్ అవుతోంది...",
+    "networkErrorPleaseTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    "contentUploadedSuccessfullyRedirectingToLanding": "కంటెంట్ విజయవంతంగా అప్‌లోడ్ అయింది! ల్యాండింగ్‌కు దారిమారుస్తోంది...",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
+    "loadingContributionsDashboard": "సహకార డాష్‌బోర్డ్ లోడ్ అవుతోంది...",
+    "otpSentSuccessfully": "OTP విజయవంతంగా పంపబడింది!",
+    "loginSuccessful": "లాగిన్ విజయవంతమైంది!",
+    "signupOtpSentSuccessfully": "సైన్అప్ OTP విజయవంతంగా పంపబడింది!",
+    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "ఖాతా విజయవంతంగా సృష్టించబడింది మరియు నిర్ధారించబడింది! దయచేసి లాగిన్ చేయండి.",
+    "signupOtpResentSuccessfully": "సైన్అప్ OTP విజయవంతంగా మళ్లీ పంపబడింది!",
+    "errorLoadingContributions": "సహకారాలను లోడ్ చేయడంలో లోపం:",
+    "profileUpdatedSuccessfully": "ప్రొఫైల్ విజయవంతంగా అప్‌డేట్ అయింది!",
+    "loadingProfile": "ప్రొఫైల్ లోడ్ అవుతోంది...",
+    "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
+    "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది..."
+  },
+  "validation": {
+    "pleaseEnterValidLatitudeAndLongitudeValues": "దయచేసి సరైన అక్షాంశం మరియు రేఖాంశం విలువలను నమోదు చేయండి",
+    "latitudeMustBeBetween90And90": "అక్షాంశం -90 మరియు 90 మధ్య ఉండాలి",
+    "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
+    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి"
+  },
+  "categories": {
+    "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",
+    "changeType": "రకాన్ని మార్చు:",
+    "unsupportedMediaType": "సమర్థించని మీడియా రకం",
+    "sourceLabel": "మూలం లేబుల్",
+    "type": "రకం:"
+  },
+  "stats": {
+    "contributionsYet": "ఇంకా సహకారాలు లేవు.",
+    "pointsActivity": "పాయింట్ల కార్యకలాపం",
+    "contributions": "సహకారాలు...",
+    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి."
+  },
+  "tools": {
+    "heading": "సాధనాలు",
+    "proofreading": "ప్రూఫ్‌రీడింగ్",
+    "proofreadingDescription": "డాక్యుమెంట్‌ల నుండి OCR టెక్స్ట్‌ను సమీక్షించండి మరియు సరిదిద్దండి",
+    "transcription": "ట్రాన్స్‌క్రిప్షన్",
+    "transcriptionDescription": "ఆడియో మరియు వీడియో కంటెంట్‌ను టెక్స్ట్‌గా మార్చండి",
+    "textExtraction": "టెక్స్ట్ ఎక్స్‌ట్రాక్షన్",
+    "textExtractionDescription": "ఇమేజ్‌లు మరియు డాక్యుమెంట్‌ల నుండి టెక్స్ట్‌ను సంగ్రహించండి",
+    "audioProofreading": "ఆడియో ప్రూఫ్‌రీడింగ్",
+    "audioProofreadingDescription": "ట్రాన్స్‌క్రిప్ట్ చేయబడిన ఆడియో కంటెంట్‌ను వినండి మరియు సరిదిద్దండి",
+    "planned": "ప్రణాళిక చేయబడింది",
+    "comingSoonDescription": "డేటాసెట్ ఇంజెక్షన్ మాడ్యూల్ కాలిబ్రేషన్లో ఉంది."
+  },
+  "proofreading": {
+    "getNextRecord": "తర్వాతి రికార్డ్ పొందండి",
+    "page": "పేజీ",
+    "pages": "పేజీలు",
+    "loadingPdf": "PDF లోడ్ అవుతోంది...",
+    "fetchingRecord": "రికార్డ్ తెచ్చుకుంటున్నారు...",
+    "pleaseGetRecord": "ప్రారంభించడానికి దయచేసి ఒక రికార్డ్ పొందండి.",
+    "noRecordLoaded": "ఎటువంటి రికార్డ్ లోడ్ కాలేదు",
+    "noUrlFound": "URL కనుగొనబడలేదు",
+    "submitPage": "పేజీని సమర్పించండి",
+    "submitting": "సమర్పిస్తున్నారు...",
+    "pageSubmitted": "పేజీ విజయవంతంగా సమర్పించబడింది!",
+    "submissionError": "సమర్పణ లోపం",
+    "cannotSubmit": "సమర్పించలేము: ప్రస్తుతం ఎటువంటి రికార్డ్ లోడ్ కాలేదు.",
+    "ocrTextPlaceholder": "OCR టెక్స్ట్ ఇక్కడ కనిపిస్తుంది.",
+    "submitPageAlert": "పేజీ {page} విజయవంతంగా సమర్పించబడింది!"
+  },
+  "languages": {
+    "telugu": "తెలుగు",
+    "english": "ఇంగ్లీష్",
+    "hindi": "హిందీ"
+  },
+  "profile": {
+    "following": "ఫాలో అవుతున్నారు",
+    "follow": "ఫాలో అవ్వండి",
+    "unfollow": "అన్‌ఫాలో",
+    "followers": "ఫాలోవర్స్",
+    "noFollowers": "ఇంకా ఫాలోవర్స్ లేరు",
+    "noFollowing": "ఇంకా ఎవరినీ ఫాలో అవ్వలేదు",
+    "viewProfile": "ప్రొఫైల్ చూడండి",
+    "editProfile": "ప్రొఫైల్ సవరించండి",
+    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్‌డేట్ చేయండి",
+    "enterProfilePictureUrl": "ప్రొఫైల్ చిత్రం URL నమోదు చేయండి",
+    "shortBio": "చిన్న పరిచయం",
+    "loading": "ప్రొఫైల్ లోడ్ అవుతోంది...",
+    "error": "ప్రొఫైల్ లోడ్ చేయడంలో లోపం",
+    "userNotFound": "వాడుకరి కనుగొనబడలేదు",
+    "authenticationFailed": "ధృవీకరణ విఫలమైంది. దయచేసి మళ్లీ లాగిన్ అవ్వండి.",
+    "setLocation": "స్థానాన్ని సెట్ చేయండి",
+    "edit": "సవరించు",
+    "remove": "తొలగించు",
+    "info": "సమాచారం",
+    "viewYourProfileInfo": "మీ ప్రొఫైల్ సమాచారాన్ని చూడండి",
+    "viewProfileInfo": "ప్రొఫైల్ సమాచారాన్ని చూడండి"
+  }
+}

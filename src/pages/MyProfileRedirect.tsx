@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '@/lib/constants';
 
 const MyProfileRedirect = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,7 +56,7 @@ const MyProfileRedirect = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading profile...</p>
+        <p className="mt-4 text-gray-600">{t('messages.loadingProfile')}</p>
       </div>
     </div>
   );

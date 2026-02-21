@@ -1,6 +1,7 @@
 import PeerReviewCard from '@/components/PeerReviewCard';
 import UserSearchResults from '@/components/UserSearchResults';
 import { BACKEND_URL } from '@/lib/constants';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   ChevronDown,
@@ -25,6 +26,7 @@ interface PeerReviewCardProps {
 }
 
 const PeerReview: React.FC = () => {
+  const { t } = useTranslation();
   const numberOfRecordsFetched = 10;
   const numberOfRecordsRemoved = 5;
 
@@ -382,9 +384,11 @@ const PeerReview: React.FC = () => {
               <ArrowLeft className="w-6 h-6 text-slate-700" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Peer Review</h1>
+              <h1 className="text-2xl font-bold text-slate-900">
+                {t('common.peerReview')}
+              </h1>
               <p className="text-slate-600 text-sm">
-                Review community contributions
+                {t('common.reviewCommunityContributions')}
               </p>
             </div>
           </div>
@@ -408,8 +412,8 @@ const PeerReview: React.FC = () => {
                   type="text"
                   placeholder={
                     searchType === 'records'
-                      ? 'Search by title, description ...'
-                      : 'Search for users...'
+                      ? t('common.searchByTitleDescription')
+                      : t('nav.searchUsers')
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -517,11 +521,13 @@ const PeerReview: React.FC = () => {
           {recordIdList.length === 0 && inSearch && searchType === 'records' ? (
             <div className="text-center py-12">
               <p className="text-slate-600 text-lg mb-4">
-                No results found for "{searchQuery}"
+                {t('common.noResultsFoundFor')}
+                {searchQuery}"
               </p>
               <p className="text-slate-500 text-sm mb-6">
-                The user might not be in the loaded records yet. Try clearing
-                the search and scrolling to load more records.
+                {t(
+                  'common.theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords',
+                )}
               </p>
               <button
                 onClick={() => {
@@ -529,7 +535,7 @@ const PeerReview: React.FC = () => {
                 }}
                 className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
               >
-                Refresh Feed
+                {t('common.refreshFeed')}
               </button>
             </div>
           ) : (

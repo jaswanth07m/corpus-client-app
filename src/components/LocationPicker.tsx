@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Button } from '@/components/ui/button';
 import { MapPin, Navigation, Check, Loader2, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface LeafletIconPrototype {
   _getIconUrl?: string;
@@ -28,6 +29,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   onLocationSelect,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [position, setPosition] = useState<[number, number]>([17.385, 78.4867]); // Default to Hyderabad
   const [loading, setLoading] = useState(false);
   const markerRef = useRef<L.Marker>(null);
@@ -81,7 +83,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-1/2 p-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Select a Location</h2>
+          <h2 className="text-xl font-bold">{t('common.selectALocation')}</h2>
           <Button onClick={onClose} variant="ghost" size="sm">
             <X className="w-5 h-5" />
           </Button>
@@ -110,14 +112,14 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             ) : (
               <Navigation className="mr-2 h-4 w-4" />
             )}
-            Use My Current Location
+            {t('user.useMyCurrentLocation')}
           </Button>
           <Button
             onClick={handleConfirmLocation}
             className="flex-1 bg-green-600 hover:bg-green-700"
           >
             <Check className="mr-2 h-4 w-4" />
-            Confirm Location
+            {t('common.confirmLocation')}
           </Button>
         </div>
       </div>

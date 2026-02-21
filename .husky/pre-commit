@@ -1,1 +1,21 @@
+#!/usr/bin/env sh
+set -e
+
+# Run formatting on staged files
 npx lint-staged
+
+# Run tests to ensure they pass before committing
+npm run test:run
+
+# Run coverage to ensure code quality
+npm run test:coverage
+
+# Run knip to check for unused files, dependencies, and exports
+npm run knip
+
+# Run type check and build
+npm run build
+
+# Run rolldown build to ensure compatibility
+npm run build:rd
+

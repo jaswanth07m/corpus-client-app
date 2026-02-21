@@ -17,6 +17,20 @@ export interface AudioValidationResult {
   errors: AudioErrorCode[];
 }
 
+export const mapAudioErrors = (errors: AudioErrorCode[]) => {
+  const messages: Record<AudioErrorCode, string> = {
+    audio_too_short: 'Recording must be at least 10 seconds.',
+    audio_too_long: 'Recording must be under 15 minutes.',
+    audio_too_quiet: 'Audio is too quiet. Please speak clearly.',
+    excessive_noise: 'Too much background noise detected.',
+    unsupported_format: 'Unsupported audio format.',
+    file_corrupt: 'Audio file appears corrupted.',
+    incorrect_bitrate: 'Invalid audio bitrate.',
+  };
+
+  return errors.map((e) => messages[e]).join(' ');
+};
+
 /**
  * Validates audio file duration and quality
  * @param file The audio file to validate

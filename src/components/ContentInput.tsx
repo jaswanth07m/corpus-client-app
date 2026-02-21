@@ -27,11 +27,13 @@ import {
   X as XIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import LocationPicker from './LocationPicker';
 import { BACKEND_URL } from '@/lib/constants';
 import MediaUploadComponent from './MediaUploadComponent';
 import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
+import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
 
 interface Category {
   id: string;
@@ -177,6 +179,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   chunkedUploadProgress = 0,
   isChunkedUploading = false,
 }) => {
+  const { t } = useTranslation();
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -403,7 +406,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       }
     } catch (error) {
       console.error('Camera switch error:', error);
-      toast.error('Failed to switch camera');
+      toast.error(t('media.failedToSwitchCamera'));
     }
   };
 
@@ -419,7 +422,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setIsRecording(true);
           setIsPaused(false);
           setRecordingTime(0);
-          toast.success('Audio recording started');
+          toast.success(t('media.audioRecordingStarted'));
         } else {
           toast.error(result.error || 'Failed to start audio recording');
         }
@@ -464,7 +467,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             };
           }
 
-          toast.success('Video recording started');
+          toast.success(t('media.videoRecordingStarted'));
         } else {
           toast.error(result.error || 'Failed to start video recording');
         }
@@ -484,9 +487,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
         if (result.success) {
           setIsPaused(true);
-          toast.success('Recording paused');
+          toast.success(t('media.recordingPaused'));
         } else {
-          toast.error(result.error || 'Failed to pause recording');
+          toast.error(result.error || t('media.failedToPauseRecording'));
         }
       } else if (uploadMode === 'video' && isRecording) {
         setIsPaused(true);
@@ -507,9 +510,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
         if (result.success) {
           setIsPaused(false);
-          toast.success('Recording resumed');
+          toast.success(t('media.recordingResumed'));
         } else {
-          toast.error(result.error || 'Failed to resume recording');
+          toast.error(result.error || t('media.failedToResumeRecording'));
         }
       } else if (uploadMode === 'video' && isRecording && isPaused) {
         setIsPaused(false);
@@ -535,9 +538,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setAudioUrl(URL.createObjectURL(result.file));
           setIsRecording(false);
           setIsPaused(false);
-          toast.success('Recording stopped');
+          toast.success(t('media.recordingStopped'));
         } else {
-          toast.error(result.error || 'Failed to stop recording');
+          toast.error(result.error || t('media.failedToStopRecording'));
         }
       } else if (uploadMode === 'video' && isRecording) {
         const result = await videoRecordingService.stopRecording();
@@ -613,7 +616,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                             setSelectedFile(file);
                             setSelectedFiles([file]);
                             toast.success(
-                              'Photo captured! Click "Stop Camera" when done.',
+                              t('common.photoCapturedClickStopCameraWhenDone'),
                             );
                             resolve(blob);
                           } else {
@@ -638,7 +641,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       }
     } catch (error) {
       console.error('Photo capture error:', error);
-      toast.error('Failed to capture photo. Please check camera permissions.');
+      toast.error(t('media.failedToCapturePhotoPleaseCheckCameraPermissions'));
     }
   };
 
@@ -678,19 +681,33 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   };
 
-  const handleSingleFileSelect = (
+  const handleSingleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setSelectedFiles([file]); // keep compatibility with existing logic
-      setRecordedBlob(null);
-      setAudioUrl(null);
-      setVideoUrl(null);
-      toast.success(`File selected: ${file.name}`);
-      handleFileSelect(event);
-    }
+    if (!file) return;
+
+    //uncomment for audio validations
+    //   if (uploadMode === 'audio') {
+    //   toast.loading('Validating audio...');
+    //   const result = await validateAudioFile(file);
+    //   toast.dismiss();
+
+    //   if (!result.isValid) {
+    //     toast.error('Audio validation failed', {
+    //       description: mapAudioErrors(result.errors),
+    //     });
+    //     return;
+    //   }
+    // }
+
+    setSelectedFile(file);
+    setSelectedFiles([file]); // keep compatibility with existing logic
+    setRecordedBlob(null);
+    setAudioUrl(null);
+    setVideoUrl(null);
+    toast.success(`File selected: ${file.name}`);
+    handleFileSelect(event);
   };
 
   const removeFile = (index: number) => {
@@ -701,7 +718,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     } else if (newFiles.length === 1) {
       setSelectedFile(newFiles[0]);
     }
-    toast.success('File removed');
+    toast.success(t('common.fileRemoved'));
   };
 
   const handleFileSelectInternal = (
@@ -726,7 +743,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       try {
         await onUpload(textFile, description);
       } catch (err) {
-        console.error('Text upload failed', err);
+        console.error(t('common.textUploadFailed'), err);
         toast.error('Text upload failed');
       }
       setUploadingFiles(false);
@@ -788,10 +805,10 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Upload Content
+                  {t('common.uploadContent')}
                 </h2>
                 <p className="text-gray-600">
-                  Choose how you'd like to contribute
+                  {t('ui.choose.how.youd.like.to.contribute')}
                 </p>
               </div>
             </div>
@@ -873,7 +890,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             {/* Title Input */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
+                {t('common.title')}
               </label>
               <input
                 type="text"
@@ -892,7 +909,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   }
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder="Enter a title for your content"
+                placeholder={t('ui.enter.a.title.for.your.content')}
               />
               {titleError && (
                 <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
@@ -904,7 +921,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             {/* Description Input */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
+                {t('common.description')}
               </label>
               <textarea
                 value={description}
@@ -924,7 +941,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   }
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
-                placeholder="Provide a detailed description (minimum 32 characters)"
+                placeholder={t(
+                  'ui.provide.a.detailed.description.minimum.32.characters',
+                )}
               />
               {descriptionError && (
                 <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
@@ -937,7 +956,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             {categories && categories.length > 0 && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Categories *
+                  {t('common.selectCategories')}
                 </label>
 
                 {/* Selected Categories Display */}
@@ -1016,7 +1035,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               {isVerifyingLocation ? (
                 <div className="flex items-center gap-2 text-blue-600">
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Verifying location...</span>
+                  <span className="text-sm">{t('user.verifyingLocation')}</span>
                 </div>
               ) : verifiedLocation ? (
                 <div>
@@ -1033,7 +1052,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     className="mt-2"
                   >
                     <Pencil className="w-3 h-3 mr-1" />
-                    Edit Location
+                    {t('common.editLocation')}
                   </Button>
                 </div>
               ) : locationError ? (
@@ -1045,13 +1064,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 <div className="flex items-center gap-2 text-orange-600">
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-sm">
-                    Location captured, awaiting verification...
+                    {t('user.locationCapturedAwaitingVerification')}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-orange-600">
                   <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">Location required</span>
+                  <span className="text-sm">{t('user.locationRequired')}</span>
                 </div>
               )}
 
@@ -1063,7 +1082,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     variant={'outline'}
                   >
                     <MapPin className="w-4 h-4 mr-1" />
-                    Use Current Location
+                    {t('user.useCurrentLocation')}
                   </Button>
                   <Button
                     onClick={() => setShowLocationPicker(true)}
@@ -1071,7 +1090,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     className="bg-emerald-600 hover:bg-emerald-700"
                   >
                     <Pencil className="w-4 h-4 mr-1" />
-                    Pick from Map
+                    {t('common.pick.from.map')}
                   </Button>
                 </div>
               )}
@@ -1079,14 +1098,14 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
             <div className="mb-6">
               <label className="block font-medium mb-2">
-                Select Language *
+                {t('common.selectLanguage')}
               </label>
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLangugae(e.target.value)}
               >
-                <option value="">-- Select a language --</option>
+                <option value="">{t('common.SelectALanguage')}</option>
                 {languages.map((lang) => (
                   <option key={lang} value={lang}>
                     {lang}
@@ -1095,7 +1114,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </select>
             </div>
 
-            {/* Release Rights */}
+            {/* {t('common.release.rights')}/}
             <div className="mb-6">
               <label className="block font-medium mb-2">Release Rights *</label>
               <select
@@ -1104,7 +1123,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   const value = e.target.value;
                   if (value === 'downloaded') {
                     toast.error(
-                      'Sorry! Please upload any works created by you or you can upload works of your family members/friends with their permission.',
+                      t('common.sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission'),
                     );
                   }
                   setreleaseRights(value);
@@ -1112,27 +1131,22 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 {!releaseRights && (
-                  <option value="">Select Release Rights</option>
+                  <option value="">{t('common.selectReleaseRights')}</option>
                 )}
-                <option value="creator">
-                  This work is created by me and anyone is free to use it.
-                </option>
+                <option value="creator">{t('ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it')}</option>
                 <option value="others">Others</option>
-                <option value="downloaded">
-                  I downloaded this from the internet and/or I don't know if it
-                  is free to share.
-                </option>
+                <option value="downloaded">{t('common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare')}</option>
               </select>
 
               {releaseRights === 'others' && (
                 <div className="mt-3">
-                  <label className="block font-medium mb-2">Creator *</label>
+                  <label className="block font-medium mb-2">{t('common.creator')}</label>
                   <input
                     type="text"
                     value={creator}
                     onChange={(e) => setCreator(e.target.value)}
                     className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter a creator for your content"
+                    placeholder={t('ui.enter.a.creator.for.your.content')}
                   />
                 </div>
               )}

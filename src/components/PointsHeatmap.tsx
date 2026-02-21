@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DailyPoint } from '@/lib/points';
 import { TrendingUp } from 'lucide-react';
 
@@ -45,6 +46,7 @@ interface CalendarDay {
 }
 
 const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<TooltipData>({
     visible: false,
@@ -229,7 +231,9 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
           <TrendingUp size={20} className="text-blue-600" />
-          <p className="text-sm font-bold text-slate-900">Points Activity</p>
+          <p className="text-sm font-bold text-slate-900">
+            {t('stats.pointsActivity')}
+          </p>
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <span>Less</span>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Activity,
   TrendingUp,
@@ -73,11 +74,14 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   edits,
   onMediaTypeClick,
 }) => {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading contributions dashboard...</p>
+        <p className="mt-4 text-gray-600">
+          {t('messages.loadingContributionsDashboard')}
+        </p>
       </div>
     );
   }
@@ -85,7 +89,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   if (!dailyStats && !contributions) {
     return (
       <div className="text-center text-gray-500 py-8">
-        No contribution data available.
+        {t('common.noContributionDataAvailable')}
       </div>
     );
   }

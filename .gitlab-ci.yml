@@ -2,7 +2,29 @@
 # Optimized pipeline with lockfile-based npm caching
 
 stages:
+  - test
   - build
+
+test:
+  stage: test
+  image: node:latest
+  before_script:
+    - apt-get update && apt-get install -y git
+    - npm install
+  script:
+    - npm run test:coverage
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+  coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)%/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 build-job:
   stage: build
