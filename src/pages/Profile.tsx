@@ -1121,6 +1121,7 @@ function Profile() {
         currentUserId={currentUserId}
         isOwnProfile={isOwnProfile}
         navigate={navigate}
+        t={t}
       />
       <FollowingModal
         isOpen={showFollowingModal}
@@ -1130,6 +1131,7 @@ function Profile() {
         currentUserId={currentUserId}
         isOwnProfile={isOwnProfile}
         navigate={navigate}
+        t={t}
       />
 
       {/* User Profile Info Modal */}
@@ -1227,6 +1229,7 @@ const FollowersModal: React.FC<{
   currentUserId: string | null;
   isOwnProfile: boolean;
   navigate: (path: string) => void;
+  t: (key: string) => string;
 }> = ({
   isOpen,
   onClose,
@@ -1235,6 +1238,7 @@ const FollowersModal: React.FC<{
   currentUserId,
   isOwnProfile,
   navigate,
+  t,
 }) => {
   if (!isOpen) return null;
 
@@ -1257,22 +1261,27 @@ const FollowersModal: React.FC<{
             </div>
           ) : followers.length > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {followers.map((follower) => {
+              {followers.map((follower, index) => {
                 const userId = follower.id || follower.user_id;
+                const username = follower.username || userId;
                 const isCurrentUser = userId === currentUserId;
+                const uniqueKey = userId || `follower-${index}`;
 
                 return (
                   <li
-                    key={userId}
+                    key={uniqueKey}
                     className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => {
-                      if (isCurrentUser) {
-                        navigate('/profile');
-                      } else {
-                        navigate(`/profile/${follower.username || userId}`);
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (username) {
+                        if (isCurrentUser) {
+                          navigate('/profile');
+                        } else {
+                          navigate(`/profile/${username}`);
+                        }
+                        // Close the modal after navigation
+                        onClose();
                       }
-                      // Close the modal after navigation
-                      onClose();
                     }}
                   >
                     <div className="flex items-center">
@@ -1313,6 +1322,7 @@ const FollowingModal: React.FC<{
   currentUserId: string | null;
   isOwnProfile: boolean;
   navigate: (path: string) => void;
+  t: (key: string) => string;
 }> = ({
   isOpen,
   onClose,
@@ -1321,6 +1331,7 @@ const FollowingModal: React.FC<{
   currentUserId,
   isOwnProfile,
   navigate,
+  t,
 }) => {
   if (!isOpen) return null;
 
@@ -1343,22 +1354,27 @@ const FollowingModal: React.FC<{
             </div>
           ) : following.length > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {following.map((followedUser) => {
+              {following.map((followedUser, index) => {
                 const userId = followedUser.id || followedUser.user_id;
+                const username = followedUser.username || userId;
                 const isCurrentUser = userId === currentUserId;
+                const uniqueKey = userId || `following-${index}`;
 
                 return (
                   <li
-                    key={userId}
+                    key={uniqueKey}
                     className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => {
-                      if (isCurrentUser) {
-                        navigate('/profile');
-                      } else {
-                        navigate(`/profile/${followedUser.username || userId}`);
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (username) {
+                        if (isCurrentUser) {
+                          navigate('/profile');
+                        } else {
+                          navigate(`/profile/${username}`);
+                        }
+                        // Close the modal after navigation
+                        onClose();
                       }
-                      // Close the modal after navigation
-                      onClose();
                     }}
                   >
                     <div className="flex items-center">
