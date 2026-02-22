@@ -1141,7 +1141,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     'ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it',
                   )}
                 </option>
-                <option value="others">Others</option>
+                <option value="others">{t('common.others')}</option>
                 <option value="downloaded">
                   {t(
                     'common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare',

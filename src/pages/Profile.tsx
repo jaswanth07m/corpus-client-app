@@ -47,16 +47,6 @@ const languages = [
   'urdu',
 ];
 
-const releaseOptions = [
-  { key: 'creator', value: 'This work is created by Author' },
-  {
-    key: 'downloaded',
-    value:
-      "Author downloaded this from the internet and/or Author don't know if it is free to share",
-  },
-  { key: 'others', value: 'Not Done By Author' },
-];
-
 interface FollowedUser {
   id?: string;
   user_id?: string;
