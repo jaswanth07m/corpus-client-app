@@ -1114,16 +1114,19 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </select>
             </div>
 
-            {/* {t('common.release.rights')}/}
             <div className="mb-6">
-              <label className="block font-medium mb-2">Release Rights *</label>
+              <label className="block font-medium mb-2">
+                {t('common.release.rights')} *
+              </label>
               <select
                 value={releaseRights}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value === 'downloaded') {
                     toast.error(
-                      t('common.sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission'),
+                      t(
+                        'common.sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission',
+                      ),
                     );
                   }
                   setreleaseRights(value);
@@ -1133,14 +1136,24 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 {!releaseRights && (
                   <option value="">{t('common.selectReleaseRights')}</option>
                 )}
-                <option value="creator">{t('ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it')}</option>
-                <option value="others">Others</option>
-                <option value="downloaded">{t('common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare')}</option>
+                <option value="creator">
+                  {t(
+                    'ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it',
+                  )}
+                </option>
+                <option value="others">{t('common.others')}</option>
+                <option value="downloaded">
+                  {t(
+                    'common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare',
+                  )}
+                </option>
               </select>
 
               {releaseRights === 'others' && (
                 <div className="mt-3">
-                  <label className="block font-medium mb-2">{t('common.creator')}</label>
+                  <label className="block font-medium mb-2">
+                    {t('common.creator')}
+                  </label>
                   <input
                     type="text"
                     value={creator}

@@ -59,6 +59,8 @@
     "geolocationNotSupported": "Geolocation not supported",
     "pleaseSelectAtLeastOneCategoryAndProvideATitle": "Please select at least one category and provide a title",
     "releaseRightsNotFoundCheckForReleaseRights": "Release Rights not found. Check for release rights",
+    "others": "Others",
+    "notDoneByAuthor": "Not Done By Author",
     "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "Upload any works created by you or you can upload works of your family members/friends with their permission.",
     "selectALangauge": "Select a Langauge",
     "pleaseSelectAFile": "Please select a file",
