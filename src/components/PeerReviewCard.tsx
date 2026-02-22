@@ -70,16 +70,6 @@ const languages = [
   'urdu',
 ];
 
-const releaseOptions = [
-  { key: 'creator', value: 'This work is created by Author' },
-  {
-    key: 'downloaded',
-    value:
-      "Author downloaded this from the internet and/or Author don't know if it is free to share",
-  },
-  { key: 'others', value: 'Not Done By Author' },
-];
-
 function formatDate(ts?: string) {
   try {
     return ts ? new Date(ts).toLocaleString() : 'N/A';
@@ -660,11 +650,19 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 />
               </SelectTrigger>
               <SelectContent>
-                {releaseOptions.map((opt) => (
-                  <SelectItem key={opt.key} value={opt.key}>
-                    {opt.value}
-                  </SelectItem>
-                ))}
+                <SelectItem value="creator">
+                  {t(
+                    'ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it',
+                  )}
+                </SelectItem>
+                <SelectItem value="others">
+                  {t('common.notDoneByAuthor')}
+                </SelectItem>
+                <SelectItem value="downloaded">
+                  {t(
+                    'common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare',
+                  )}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
