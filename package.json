@@ -24,7 +24,8 @@
     "i18n:clean": "rm -rf src/locales",
     "i18n:scan": "bun run scripts/extract-i18n-babel.ts",
     "i18n:replace": "bun run scripts/extract-i18n-babel.ts --write",
-    "i18n:check": "bun run scripts/extract-i18n-babel.ts --check"
+    "i18n:check": "bun run scripts/extract-i18n-babel.ts --check",
+    "commitlint": "commitlint --edit"
   },
   "prettier": {
     "singleQuote": true,
@@ -116,6 +117,8 @@
     "@babel/traverse": "^7.29.0",
     "@babel/types": "^7.29.0",
     "@capacitor/cli": "^7.4.4",
+    "@commitlint/cli": "^20.4.3",
+    "@commitlint/config-conventional": "^20.4.3",
     "@eslint/js": "^9.9.0",
     "@rollup/plugin-url": "^8.0.2",
     "@shadcn/ui": "^0.0.4",
