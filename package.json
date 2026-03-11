@@ -23,7 +23,8 @@
     "i18n:extract": "i18next --config i18next-parser.config.ts",
     "i18n:clean": "rm -rf src/locales",
     "i18n:scan": "bun run scripts/extract-i18n-babel.ts",
-    "i18n:replace": "bun run scripts/extract-i18n-babel.ts --write"
+    "i18n:replace": "bun run scripts/extract-i18n-babel.ts --write",
+    "i18n:check": "bun run scripts/extract-i18n-babel.ts --check"
   },
   "prettier": {
     "singleQuote": true,
