@@ -86,7 +86,7 @@ function Proofreading() {
         setValue(currentPageText);
       }
     }
-  }, [ocrTexts, pageNumber, setValue, isTeluguTypingEnabled]);
+  }, [ocrTexts, pageNumber, setValue, isTeluguTypingEnabled, value]);
 
   const handleTextChange = (newValue) => {
     // 1. Update the local input state immediately for responsiveness
@@ -102,10 +102,10 @@ function Proofreading() {
 
   // Reset header timeout ref on unmount to avoid memory leaks
   useEffect(() => {
+    const timeoutRef = headerTimeoutRef;
     return () => {
-      const timeoutId = headerTimeoutRef.current;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
   }, []);
@@ -665,7 +665,7 @@ function Proofreading() {
                         className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
                         onClick={() => setZoom((prev) => prev + 0.2)}
                       >
-                        +
+                        {t('common.')}
                       </button>
                     </div>
                     {/* Added overflow-x-auto to ensure horizontal scrolling is possible */}

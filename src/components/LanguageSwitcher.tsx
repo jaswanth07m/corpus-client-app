@@ -27,6 +27,7 @@ export function LanguageSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          id="tour-language-switcher"
           variant="ghost"
           size="icon"
           className="h-9 w-9 hover:bg-gray-100"
