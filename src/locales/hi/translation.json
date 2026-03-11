@@ -7,6 +7,12 @@
       "digits": "/10 अंक"
     },
     "91": "+91",
+    "proofread": {
+      "ocr": {
+        "text": "OCR टेक्स्ट की समीक्षा करें"
+      }
+    },
+    "submitPage": "पृष्ठ सबमिट करें",
     "loading": "लोड हो रहा है...",
     "error": "त्रुटि",
     "success": "सफल",
@@ -52,7 +58,6 @@
     "yourBrowserDoesNotSupportTheVideoElement": "आपका ब्राउज़र वीडियो तत्व का समर्थन नहीं करता है।",
     "uploadVideoFilesSingleFile": "वीडियो फ़ाइलें अपलोड करें (एकल फ़ाइल)",
     "selectedFiles": "चयनित फ़ाइलें:",
-    "takeAnother": "एक और लें",
     "uploadImageFilesSingleFile": "छवि फ़ाइलें अपलोड करें (एकल फ़ाइल)",
     "technologyForSociety": "समाज के लिए प्रौद्योगिकी",
     "userIdNotFoundPleaseTryLoggingInAgain": "उपयोगकर्ता ID नहीं मिली। कृपया फिर से लॉगिन करने का प्रयास करें।",
@@ -180,7 +185,6 @@
     "addLanguage": "भाषा जोड़ें",
     "addPlace": "स्थान जोड़ें",
     "addSocialMedia": "सोशल मीडिया जोड़ें",
-    "photoCapturedClickStopCameraWhenDone": "फ़ोटो कैप्चर किया गया! जब पूरा हो जाए तो \"कैमरा रोकें\" पर क्लिक करें।",
     "fileRemoved": "फ़ाइल हटाई गई",
     "textUploadFailed": "टेक्स्ट अपलोड विफल",
     "uploadContent": "सामग्री अपलोड करें",
@@ -216,13 +220,7 @@
       "tool": "प्रूफरीडिंग टूल"
     },
     "reviewAndCorrectOcrTextFromDocuments": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
-    "proofread": {
-      "ocr": {
-        "text": "OCR टेक्स्ट की समीक्षा करें"
-      }
-    },
     "showHints": "संकेत दिखाएं",
-    "submitPage": "पृष्ठ सबमिट करें",
     "reviewCommunityContributions": "समुदाय योगदानों की समीक्षा करें",
     "refreshFeed": "फीड रिफ्रेश करें",
     "noResultsFoundFor": "के लिए कोई परिणाम नहीं मिला \"",
@@ -231,138 +229,7 @@
     "noFollowersFound": "कोई फ़ॉलोअर नहीं मिला",
     "noUsersBeingFollowed": "कोई उपयोगकर्ता फ़ॉलो नहीं किए जा रहे"
   },
-  "nav": {
-    "home": "होम",
-    "profile": "प्रोफ़ाइल",
-    "settings": "सेटिंग्स",
-    "logout": "लॉगआउट",
-    "login": "लॉगिन",
-    "searchUsers": "उपयोगकर्ताओं के लिए खोजें...",
-    "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
-    "loginWithPassword": "पासवर्ड से लॉगिन करें",
-    "failedToLoadProfileData": "प्रोफ़ाइल डेटा लोड करने में विफल",
-    "tellUsAboutYourself": "हमें अपने बारे में बताएं",
-    "socialMediaProfiles": "सोशल मीडिया प्रोफ़ाइल",
-    "profileUrl": "प्रोफ़ाइल URL",
-    "returnToHome": "होम पर वापस जाएं",
-    "updateProfilePicture": "प्रोफ़ाइल चित्र अपडेट करें",
-    "enterAValidImageUrlForYourProfilePicture": "अपनी प्रोफ़ाइल चित्र के लिए एक मान्य छवि URL दर्ज करें"
-  },
-  "auth": {
-    "email": "ईमेल",
-    "password": "पासवर्ड",
-    "forgotPassword": "पासवर्ड भूल गए?",
-    "resetPassword": "पासवर्ड रीसेट करें",
-    "loginTitle": "कॉर्पस में लॉगिन करें",
-    "loginButton": "लॉगिन",
-    "noAccount": "खाता नहीं है?",
-    "hasAccount": "पहले से खाता है?",
-    "signup": "साइन अप",
-    "securedBy": "द्वारा सुरक्षित",
-    "pleaseEnterAValid10digitPhoneNumber": "कृपया एक मान्य 10 अंकों वाला फोन नंबर दर्ज करें",
-    "pleaseEnterAValid6digitOtp": "कृपया एक मान्य 6 अंकों वाला OTP दर्ज करें",
-    "invalidOtpPleaseCheckAndTryAgain": "अमान्य OTP। कृपया जांच करें और पुनः प्रयास करें",
-    "otpVerificationFailedPleaseTryAgain": "OTP सत्यापन विफल। कृपया पुनः प्रयास करें",
-    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP की समय सीमा समाप्त हो गई है या अमान्य है। कृपया नया अनुरोध करें",
-    "pleaseEnterAValidPhoneNumberAndPassword": "कृपया एक मान्य फोन नंबर और पासवर्ड दर्ज करें",
-    "pleaseEnterAValidUsername": "कृपया एक मान्य यूजरनेम दर्ज करें",
-    "passwordMustBeAtLeast6CharactersLong": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
-    "signUp": "साइन अप",
-    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP प्राप्त करने के लिए अपना पंजीकृत फोन नंबर दर्ज करें",
-    "enter10digitPhoneNumber": "10 अंकों वाला फोन नंबर दर्ज करें",
-    "phoneNumberIsInvalid": "*फोन नंबर अमान्य है",
-    "otpSentTo91": "+91 पर OTP भेजा गया",
-    "enter6digitOtp": "6 अंकों वाला OTP दर्ज करें",
-    "enterYourPassword": "अपना पासवर्ड दर्ज करें",
-    "username": "यूजरनेम*",
-    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*यूजरनेम में केवल अक्षर, अंडरस्कोर और अंक होने चाहिए",
-    "emailIsInvalid": "*ईमेल अमान्य है",
-    "createPassword": "पासवर्ड बनाएं *",
-    "passwordStrength": "पासवर्ड मजबूती:",
-    "passwordShouldContain": "पासवर्ड में होना चाहिए :",
-    "sendingOtp": "OTP भेज रहे हैं...",
-    "requestOtpForPhoneVerification": "फोन सत्यापन के लिए OTP अनुरोधित करें",
-    "enterUsername": "यूजरनेम दर्ज करें",
-    "phoneNumber": "फोन नंबर",
-    "enterYourPhoneNumber": "अपना फोन नंबर दर्ज करें",
-    "sendOtp": "OTP भेजें",
-    "otpCode": "OTP कोड",
-    "enterOtp": "OTP दर्ज करें",
-    "newPassword": "नया पासवर्ड",
-    "enterNewPassword": "नया पासवर्ड दर्ज करें",
-    "passwordMustBeAtLeast8CharactersAndContain": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए और इसमें होना चाहिए:",
-    "welcomeBack": "स्वागत है",
-    "createAccount": "खाता बनाएं",
-    "signInToContinueYourJourney": "अपनी यात्रा जारी रखने के लिए साइन इन करें",
-    "joinOurCommunityToday": "आज ही हमारे समुदाय में शामिल हों",
-    "login": "लॉगिन",
-    "verifyOtp": "OTP सत्यापित करें",
-    "resendOtp": "OTP पुनः भेजें",
-    "resendIn": "में पुनः भेजें",
-    "back": "वापस",
-    "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
-    "loginWithPassword": "पासवर्ड से लॉगिन करें",
-    "loginWithOtp": "OTP से लॉगिन करें",
-    "enterPassword": "पासवर्ड दर्ज करें",
-    "selectGender": "लिंग चुनें",
-    "male": "पुरुष",
-    "female": "महिला",
-    "other": "अन्य",
-    "dateOfBirth": "जन्म तिथि",
-    "gender": "लिंग"
-  },
-  "user": {
-    "useMyCurrentLocation": "मेरा वर्तमान स्थान उपयोग करें",
-    "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
-    "locationAccessGranted": "स्थान एक्सेस प्रदान किया गया!",
-    "locationSetManually": "स्थान मैन्युअल रूप से सेट किया गया!",
-    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "स्थान आवश्यक है। कृपया स्थान एक्सेस सक्षम करें या मैन्युअल रूप से दर्ज करें",
-    "pleaseEnterYourName": "कृपया अपना नाम दर्ज करें",
-    "fullName": "पूरा नाम *",
-    "nameShouldHaveCharactersOnly": "*नाम में केवल अक्षर होने चाहिए",
-    "placeCityState": "स्थान (शहर, राज्य)",
-    "enterFullName": "पूरा नाम दर्ज करें",
-    "shortBio": "संक्षिप्त परिचय",
-    "verifyingLocation": "स्थान सत्यापित कर रहे हैं...",
-    "locationCapturedAwaitingVerification": "स्थान कैप्चर किया गया, सत्यापन की प्रतीक्षा कर रहे हैं...",
-    "locationRequired": "स्थान आवश्यक है",
-    "useCurrentLocation": "वर्तमान स्थान उपयोग करें",
-    "profession": "व्यवसाय",
-    "organisation": "संगठन"
-  },
   "ui": {
-    "tap": {
-      "any": {
-        "colored": {
-          "section": "रंगीन अनुभाग में से किसी पर टैप करें"
-        }
-      }
-    },
-    "enter": {
-      "your": {
-        "text": {
-          "content": {
-            "here": "अपनी टेक्स्ट सामग्री को यहां दर्ज करें..."
-          }
-        }
-      },
-      "a": {
-        "title": {
-          "for": {
-            "your": {
-              "content": "अपनी सामग्री के लिए एक शीर्षक दर्ज करें"
-            }
-          }
-        },
-        "creator": {
-          "for": {
-            "your": {
-              "content": "अपनी सामग्री के लिए एक निर्माता दर्ज करें"
-            }
-          }
-        }
-      }
-    },
     "failed": {
       "to": {
         "get": {
@@ -391,6 +258,69 @@
           "like": {
             "to": {
               "contribute": "चुनें कि आप कैसे योगदान देना चाहते हैं"
+            }
+          }
+        }
+      }
+    },
+    "enter": {
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": "अपनी सामग्री के लिए एक शीर्षक दर्ज करें"
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": "अपनी सामग्री के लिए एक निर्माता दर्ज करें"
+            }
+          }
+        }
+      },
+      "your": {
+        "text": {
+          "content": {
+            "here": "अपनी टेक्स्ट सामग्री को यहां दर्ज करें..."
+          }
+        }
+      }
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": "एक विस्तृत विवरण प्रदान करें (न्यूनतम 32 अक्षर)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": "यह कार्य मेरे द्वारा बनाया गया है और कोई भी इसे मुफ्त में उपयोग कर सकता है।"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -440,46 +370,15 @@
         "character": "एक विशेष वर्ण"
       }
     },
+    "tap": {
+      "any": {
+        "colored": {
+          "section": "रंगीन अनुभाग में से किसी पर टैप करें"
+        }
+      }
+    },
     "language": {
       "proficiencies": "भाषा दक्षता"
-    },
-    "provide": {
-      "a": {
-        "detailed": {
-          "description": {
-            "minimum": {
-              "32": {
-                "characters": "एक विस्तृत विवरण प्रदान करें (न्यूनतम 32 अक्षर)"
-              }
-            }
-          }
-        }
-      }
-    },
-    "this": {
-      "work": {
-        "is": {
-          "created": {
-            "by": {
-              "me": {
-                "and": {
-                  "anyone": {
-                    "is": {
-                      "free": {
-                        "to": {
-                          "use": {
-                            "it": "यह कार्य मेरे द्वारा बनाया गया है और कोई भी इसे मुफ्त में उपयोग कर सकता है।"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
     },
     "start": {
       "typing": {
@@ -500,44 +399,7 @@
       }
     }
   },
-  "media": {
-    "audioRecording": "ऑडियो रिकॉर्डिंग *",
-    "startRecording": "रिकॉर्डिंग प्रारंभ करें",
-    "stopRecording": "रिकॉर्डिंग रोकें",
-    "recordingPaused": "रिकॉर्डिंग रोक दी गई",
-    "recordingCompleted": "रिकॉर्डिंग पूरी हुई (",
-    "recordAgain": "फिर से रिकॉर्ड करें",
-    "videoRecording": "वीडियो रिकॉर्डिंग *",
-    "startVideoRecording": "वीडियो रिकॉर्डिंग प्रारंभ करें",
-    "photoCapture": "फ़ोटो कैप्चर *",
-    "startCamera": "कैमरा प्रारंभ करें",
-    "capturePhoto": "फ़ोटो खींचें",
-    "stopCamera": "कैमरा रोकें",
-    "photoCaptured": "फ़ोटो कैप्चर किया गया:",
-    "capturedPhoto": "कैप्चर की गई फ़ोटो",
-    "videoUnavailable": "वीडियो अनुपलब्ध",
-    "loadVideo": "वीडियो लोड करें",
-    "audioUnavailable": "ऑडियो अनुपलब्ध",
-    "loadAudio": "ऑडियो लोड करें",
-    "documentUnavailable": "दस्तावेज़ अनुपलब्ध",
-    "loadDocument": "दस्तावेज़ लोड करें",
-    "fileSize": "फ़ाइल आकार",
-    "imageUnavailable": "छवि अनुपलब्ध",
-    "audioTrack": "ऑडियो ट्रैक",
-    "failedToSwitchCamera": "कैमरा बदलने में विफल",
-    "audioRecordingStarted": "ऑडियो रिकॉर्डिंग प्रारंभ हुई",
-    "videoRecordingStarted": "वीडियो रिकॉर्डिंग प्रारंभ हुई",
-    "failedToPauseRecording": "रिकॉर्डिंग रोकने में विफल",
-    "recordingResumed": "रिकॉर्डिंग फिर से शुरू हुई",
-    "failedToResumeRecording": "रिकॉर्डिंग फिर से शुरू करने में विफल",
-    "recordingStopped": "रिकॉर्डिंग रोक दी गई",
-    "failedToStopRecording": "रिकॉर्डिंग रोकने में विफल",
-    "failedToCapturePhotoPleaseCheckCameraPermissions": "फ़ोटो कैप्चर करने में विफल। कृपया कैमरा अनुमतियों की जांच करें।",
-    "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
-    "imageUrl": "छवि URL"
-  },
   "messages": {
-    "loading": "लोड हो रहा है...",
     "networkErrorPleaseTryAgain": "नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।",
     "contentUploadedSuccessfullyRedirectingToLanding": "सामग्री सफलतापूर्वक अपलोड हो गई! लैंडिंग पर रीडायरेक्ट कर रहे हैं...",
     "networkErrorPleaseCheckYourConnectionAndTryAgain": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।",
@@ -547,11 +409,31 @@
     "signupOtpSentSuccessfully": "साइनअप OTP सफलतापूर्वक भेजा गया!",
     "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "खाता सफलतापूर्वक बनाया और सत्यापित किया गया! कृपया लॉगिन करें।",
     "signupOtpResentSuccessfully": "साइनअप OTP सफलतापूर्वक फिर से भेजा गया!",
+    "loading": "लोड हो रहा है...",
     "errorLoadingContributions": "योगदान लोड करने में त्रुटि:",
     "profileUpdatedSuccessfully": "प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई!",
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है..."
+  },
+  "user": {
+    "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
+    "locationAccessGranted": "स्थान एक्सेस प्रदान किया गया!",
+    "locationSetManually": "स्थान मैन्युअल रूप से सेट किया गया!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "स्थान आवश्यक है। कृपया स्थान एक्सेस सक्षम करें या मैन्युअल रूप से दर्ज करें",
+    "verifyingLocation": "स्थान सत्यापित कर रहे हैं...",
+    "locationCapturedAwaitingVerification": "स्थान कैप्चर किया गया, सत्यापन की प्रतीक्षा कर रहे हैं...",
+    "locationRequired": "स्थान आवश्यक है",
+    "useCurrentLocation": "वर्तमान स्थान उपयोग करें",
+    "useMyCurrentLocation": "मेरा वर्तमान स्थान उपयोग करें",
+    "pleaseEnterYourName": "कृपया अपना नाम दर्ज करें",
+    "fullName": "पूरा नाम *",
+    "nameShouldHaveCharactersOnly": "*नाम में केवल अक्षर होने चाहिए",
+    "placeCityState": "स्थान (शहर, राज्य)",
+    "enterFullName": "पूरा नाम दर्ज करें",
+    "shortBio": "संक्षिप्त परिचय",
+    "profession": "व्यवसाय",
+    "organisation": "संगठन"
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "कृपया मान्य अक्षांश और देशांतर मान दर्ज करें",
@@ -566,14 +448,214 @@
     "sourceLabel": "स्रोत लेबल",
     "type": "प्रकार:"
   },
+  "media": {
+    "failedToSwitchCamera": "कैमरा बदलने में विफल",
+    "audioRecordingStarted": "ऑडियो रिकॉर्डिंग प्रारंभ हुई",
+    "videoRecordingStarted": "वीडियो रिकॉर्डिंग प्रारंभ हुई",
+    "recordingPaused": "रिकॉर्डिंग रोक दी गई",
+    "failedToPauseRecording": "रिकॉर्डिंग रोकने में विफल",
+    "recordingResumed": "रिकॉर्डिंग फिर से शुरू हुई",
+    "failedToResumeRecording": "रिकॉर्डिंग फिर से शुरू करने में विफल",
+    "recordingStopped": "रिकॉर्डिंग रोक दी गई",
+    "failedToStopRecording": "रिकॉर्डिंग रोकने में विफल",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "फ़ोटो कैप्चर करने में विफल। कृपया कैमरा अनुमतियों की जांच करें।",
+    "videoUnavailable": "वीडियो अनुपलब्ध",
+    "loadVideo": "वीडियो लोड करें",
+    "audioUnavailable": "ऑडियो अनुपलब्ध",
+    "loadAudio": "ऑडियो लोड करें",
+    "documentUnavailable": "दस्तावेज़ अनुपलब्ध",
+    "loadDocument": "दस्तावेज़ लोड करें",
+    "fileSize": "फ़ाइल आकार",
+    "imageUnavailable": "छवि अनुपलब्ध",
+    "audioRecording": "ऑडियो रिकॉर्डिंग *",
+    "startRecording": "रिकॉर्डिंग प्रारंभ करें",
+    "stopRecording": "रिकॉर्डिंग रोकें",
+    "recordingCompleted": "रिकॉर्डिंग पूरी हुई (",
+    "recordAgain": "फिर से रिकॉर्ड करें",
+    "videoRecording": "वीडियो रिकॉर्डिंग *",
+    "startVideoRecording": "वीडियो रिकॉर्डिंग प्रारंभ करें",
+    "photoCapture": "फ़ोटो कैप्चर *",
+    "startCamera": "कैमरा प्रारंभ करें",
+    "capturePhoto": "फ़ोटो खींचें",
+    "stopCamera": "कैमरा रोकें",
+    "photoCaptured": "फ़ोटो कैप्चर किया गया:",
+    "capturedPhoto": "कैप्चर की गई फ़ोटो",
+    "audioTrack": "ऑडियो ट्रैक",
+    "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
+    "imageUrl": "छवि URL"
+  },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",
     "pointsActivity": "पॉइंट्स गतिविधि",
     "contributions": "योगदान...",
     "contributionsFound": "योगदान मिले।"
   },
+  "auth": {
+    "pleaseEnterAValid10digitPhoneNumber": "कृपया एक मान्य 10 अंकों वाला फोन नंबर दर्ज करें",
+    "pleaseEnterAValid6digitOtp": "कृपया एक मान्य 6 अंकों वाला OTP दर्ज करें",
+    "invalidOtpPleaseCheckAndTryAgain": "अमान्य OTP। कृपया जांच करें और पुनः प्रयास करें",
+    "otpVerificationFailedPleaseTryAgain": "OTP सत्यापन विफल। कृपया पुनः प्रयास करें",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP की समय सीमा समाप्त हो गई है या अमान्य है। कृपया नया अनुरोध करें",
+    "pleaseEnterAValidPhoneNumberAndPassword": "कृपया एक मान्य फोन नंबर और पासवर्ड दर्ज करें",
+    "pleaseEnterAValidUsername": "कृपया एक मान्य यूजरनेम दर्ज करें",
+    "passwordMustBeAtLeast6CharactersLong": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+    "welcomeBack": "स्वागत है",
+    "createAccount": "खाता बनाएं",
+    "signInToContinueYourJourney": "अपनी यात्रा जारी रखने के लिए साइन इन करें",
+    "joinOurCommunityToday": "आज ही हमारे समुदाय में शामिल हों",
+    "login": "लॉगिन",
+    "signUp": "साइन अप",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP प्राप्त करने के लिए अपना पंजीकृत फोन नंबर दर्ज करें",
+    "enter10digitPhoneNumber": "10 अंकों वाला फोन नंबर दर्ज करें",
+    "phoneNumberIsInvalid": "*फोन नंबर अमान्य है",
+    "otpSentTo91": "+91 पर OTP भेजा गया",
+    "enter6digitOtp": "6 अंकों वाला OTP दर्ज करें",
+    "enterYourPassword": "अपना पासवर्ड दर्ज करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "username": "यूजरनेम*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*यूजरनेम में केवल अक्षर, अंडरस्कोर और अंक होने चाहिए",
+    "emailIsInvalid": "*ईमेल अमान्य है",
+    "selectGender": "लिंग चुनें",
+    "male": "पुरुष",
+    "female": "महिला",
+    "other": "",
+    "dateOfBirth": "जन्म तिथि",
+    "createPassword": "पासवर्ड बनाएं *",
+    "passwordStrength": "पासवर्ड मजबूती:",
+    "passwordShouldContain": "पासवर्ड में होना चाहिए :",
+    "sendingOtp": "OTP भेज रहे हैं...",
+    "requestOtpForPhoneVerification": "फोन सत्यापन के लिए OTP अनुरोधित करें",
+    "securedBy": "द्वारा सुरक्षित",
+    "enterUsername": "यूजरनेम दर्ज करें",
+    "gender": "लिंग",
+    "phoneNumber": "फोन नंबर",
+    "enterYourPhoneNumber": "अपना फोन नंबर दर्ज करें",
+    "sendOtp": "OTP भेजें",
+    "otpCode": "OTP कोड",
+    "enterOtp": "OTP दर्ज करें",
+    "newPassword": "नया पासवर्ड",
+    "enterNewPassword": "नया पासवर्ड दर्ज करें",
+    "passwordMustBeAtLeast8CharactersAndContain": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए और इसमें होना चाहिए:",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "loginTitle": "कॉर्पस में लॉगिन करें",
+    "loginButton": "लॉगिन",
+    "noAccount": "खाता नहीं है?",
+    "hasAccount": "पहले से खाता है?",
+    "signup": "साइन अप",
+    "verifyOtp": "OTP सत्यापित करें",
+    "resendOtp": "OTP पुनः भेजें",
+    "resendIn": "में पुनः भेजें",
+    "back": "वापस",
+    "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
+    "loginWithPassword": "पासवर्ड से लॉगिन करें",
+    "loginWithOtp": "OTP से लॉगिन करें",
+    "enterPassword": "पासवर्ड दर्ज करें"
+  },
+  "nav": {
+    "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
+    "loginWithPassword": "पासवर्ड से लॉगिन करें",
+    "failedToLoadProfileData": "प्रोफ़ाइल डेटा लोड करने में विफल",
+    "tellUsAboutYourself": "हमें अपने बारे में बताएं",
+    "socialMediaProfiles": "सोशल मीडिया प्रोफ़ाइल",
+    "profileUrl": "प्रोफ़ाइल URL",
+    "returnToHome": "होम पर वापस जाएं",
+    "searchUsers": "उपयोगकर्ताओं के लिए खोजें...",
+    "updateProfilePicture": "प्रोफ़ाइल चित्र अपडेट करें",
+    "enterAValidImageUrlForYourProfilePicture": "अपनी प्रोफ़ाइल चित्र के लिए एक मान्य छवि URL दर्ज करें",
+    "home": "होम",
+    "profile": "प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "logout": "लॉगआउट",
+    "login": "लॉगिन"
+  },
+  "profile": {
+    "setLocation": "स्थान सेट करें",
+    "followers": "फॉलोअर्स",
+    "following": "फॉलो कर रहे हैं",
+    "viewYourProfileInfo": "अपनी प्रोफ़ाइल जानकारी देखें",
+    "viewProfileInfo": "प्रोफ़ाइल जानकारी देखें",
+    "info": "जानकारी",
+    "follow": "फॉलो करें",
+    "unfollow": "अनफॉलो",
+    "noFollowers": "अभी तक कोई फॉलोअर नहीं",
+    "noFollowing": "अभी तक किसी को फॉलो नहीं कर रहे",
+    "viewProfile": "प्रोफ़ाइल देखें",
+    "editProfile": "प्रोफ़ाइल संपादित करें",
+    "updateProfilePicture": "प्रोफ़ाइल चित्र अपडेट करें",
+    "enterProfilePictureUrl": "प्रोफ़ाइल चित्र URL दर्ज करें",
+    "shortBio": "संक्षिप्त परिचय",
+    "loading": "प्रोफ़ाइल लोड हो रही है...",
+    "error": "प्रोफ़ाइल लोड करने में त्रुटि",
+    "userNotFound": "उपयोगकर्ता नहीं मिला",
+    "authenticationFailed": "प्रमाणीकरण विफल। कृपया पुनः लॉगिन करें.",
+    "edit": "संपादित करें",
+    "remove": "हटाएं"
+  },
+  "tour": {
+    "upload": {
+      "title": "फाइलें अपलोड करें",
+      "description": "मीडिया फाइलें अपलोड करने और योगदान शुरू करने के लिए यहाँ क्लिक करें।"
+    },
+    "media": {
+      "title": "मीडिया प्रकार चुनें",
+      "description": "वह सामग्री प्रकार चुनें जिसका आप योगदान करना चाहते हैं।"
+    },
+    "stats": {
+      "title": "आपका योगदान",
+      "description": "यहाँ आप अपने अंक और प्लेटफॉर्म पर अपने कुल योगदान देख सकते हैं।"
+    },
+    "home": {
+      "title": "होम",
+      "description": "किसी भी समय इस डैशबोर्ड पर वापस आएं।"
+    },
+    "tools": {
+      "title": "उपकरण (Tools)",
+      "description": "एनोटेशन और प्रूफरीडिंग टूल्स तक पहुंचें।"
+    },
+    "peerReviewTool": {
+      "title": "सहकर्मी समीक्षा",
+      "description": "सभी प्रकार के सामुदायिक योगदानों की समीक्षा करने के लिए वैश्विक उपकरण।"
+    },
+    "imageReview": {
+      "title": "छवि एनोटेशन",
+      "description": "छवि योगदानों को एनोटेट और समीक्षा करने के लिए केंद्रित उपकरण।"
+    },
+    "audioReview": {
+      "title": "ऑडियो उपकरण",
+      "description": "ऑडियो रिकॉर्डिंग की समीक्षा करने के लिए विशेष उपकरण।"
+    },
+    "videoReview": {
+      "title": "वीडियो उपकरण",
+      "description": "वीडियो सामग्री समीक्षा के लिए समर्पित इंटरफ़ेस।"
+    },
+    "proofreading": {
+      "title": "प्रूफरीडिंग",
+      "description": "पाठ योगदानों की प्रूफरीडिंग करके डेटा गुणवत्ता में सुधार करने में सहायता करें।"
+    },
+    "futureTools": {
+      "title": "आगामी सुविधाएँ",
+      "description": "RAG, कहानी जनरेटर, एजेंट वर्कफ़्लो और बहुत कुछ के लिए बने रहें!"
+    },
+    "profile": {
+      "title": "प्रोफ़ाइल",
+      "description": "यहाँ अपने आंकड़े देखें और सेटिंग्स प्रबंधित करें।"
+    },
+    "language": {
+      "title": "भाषा",
+      "description": "यहाँ एप्लिकेशन भाषा बदलें।"
+    },
+    "heatmap": {
+      "title": "गतिविधि हीटमैप",
+      "description": "समय के साथ अपने दैनिक योगदान और स्ट्रीक्स को ट्रैक करें।"
+    },
+    "dashboard": {
+      "title": "योगदान डैशबोर्ड",
+      "description": "मीडिया प्रकार द्वारा व्यवस्थित अपने योगदान देखें।"
+    }
+  },
   "tools": {
-    "heading": "उपकरण",
     "proofreading": "प्रूफरीडिंग",
     "proofreadingDescription": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
     "transcription": "ट्रांस्क्रिप्शन",
@@ -582,6 +664,7 @@
     "textExtractionDescription": "छवियों और दस्तावेज़ों से टेक्स्ट निकालें",
     "audioProofreading": "ऑडियो प्रूफरीडिंग",
     "audioProofreadingDescription": "ट्रांस्क्राइब किए गए ऑडियो सामग्री को सुनें और सही करें",
+    "heading": "उपकरण",
     "planned": "योजनाबद्ध",
     "comingSoonDescription": "डेटासेट इंजेक्शन मॉड्यूल कैलिब्रेशन के अंतर्गत है।"
   },
@@ -606,28 +689,5 @@
     "telugu": "तेलुगु",
     "english": "अंग्रेजी",
     "hindi": "हिंदी"
-  },
-  "profile": {
-    "following": "फॉलो कर रहे हैं",
-    "follow": "फॉलो करें",
-    "unfollow": "अनफॉलो",
-    "followers": "फॉलोअर्स",
-    "noFollowers": "अभी तक कोई फॉलोअर नहीं",
-    "noFollowing": "अभी तक किसी को फॉलो नहीं कर रहे",
-    "viewProfile": "प्रोफ़ाइल देखें",
-    "editProfile": "प्रोफ़ाइल संपादित करें",
-    "updateProfilePicture": "प्रोफ़ाइल चित्र अपडेट करें",
-    "enterProfilePictureUrl": "प्रोफ़ाइल चित्र URL दर्ज करें",
-    "shortBio": "संक्षिप्त परिचय",
-    "loading": "प्रोफ़ाइल लोड हो रही है...",
-    "error": "प्रोफ़ाइल लोड करने में त्रुटि",
-    "userNotFound": "उपयोगकर्ता नहीं मिला",
-    "authenticationFailed": "प्रमाणीकरण विफल। कृपया पुनः लॉगिन करें.",
-    "setLocation": "स्थान सेट करें",
-    "edit": "संपादित करें",
-    "remove": "हटाएं",
-    "info": "जानकारी",
-    "viewYourProfileInfo": "अपनी प्रोफ़ाइल जानकारी देखें",
-    "viewProfileInfo": "प्रोफ़ाइल जानकारी देखें"
   }
 }

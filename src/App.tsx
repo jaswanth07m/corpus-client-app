@@ -12,6 +12,9 @@ import AnnotationsDashboard from './pages/AnnotationsDashboard';
 import Profile from './pages/Profile';
 import MyProfileRedirect from './pages/MyProfileRedirect';
 import PeerReview from './pages/PeerReview';
+import ImageReviewPage from './pages/ImageReviewPage';
+import AudioReviewPage from './pages/AudioReviewPage';
+import VideoReviewPage from './pages/VideoReviewPage';
 import { AuthProvider } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import RequireAuth from './components/RequireAuth';
@@ -106,6 +109,33 @@ const App = () => (
               element={
                 <RequireAuth>
                   <Proofreading />
+                </RequireAuth>
+              }
+            />
+
+            <Route
+              path="/tools/image-review"
+              element={
+                <RequireAuth>
+                  <ImageReviewPage />
+                </RequireAuth>
+              }
+            />
+
+            <Route
+              path="/tools/audio-review"
+              element={
+                <RequireAuth>
+                  <AudioReviewPage />
+                </RequireAuth>
+              }
+            />
+
+            <Route
+              path="/tools/video-review"
+              element={
+                <RequireAuth>
+                  <VideoReviewPage />
                 </RequireAuth>
               }
             />

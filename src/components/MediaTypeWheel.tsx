@@ -204,6 +204,7 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
 
         {/* Center circle with instructions - Responsive sizing */}
         <div
+          id="tour-media-type-wheel"
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] rounded-full bg-white shadow-2xl flex flex-col items-center justify-center z-30 transition-all duration-300"
           style={{
             boxShadow: `0 8px 32px rgba(0,0,0,0.12), inset 0 2px 12px rgba(0,0,0,0.05)`,
