@@ -151,6 +151,74 @@ git checkout -b feature/your-feature-name
 
 ### 4. Commit Your Changes
 
+This project follows [Conventional Commits](https://www.conventionalcommits.org/) specification. Commit messages are validated automatically using commitlint.
+
+#### Commit Message Format
+
+```
+<type>: <subject>
+
+[optional body]
+
+[optional footer]
+```
+
+#### Available Types
+
+| Type       | Description                                       |
+| ---------- | ------------------------------------------------- |
+| `feat`     | New feature                                       |
+| `fix`      | Bug fix                                           |
+| `docs`     | Documentation changes                             |
+| `style`    | Code style changes (formatting, semicolons, etc.) |
+| `refactor` | Code refactoring (not a feature or fix)           |
+| `test`     | Adding or updating tests                          |
+| `build`    | Build system or external dependencies             |
+| `ci`       | CI configuration changes                          |
+| `chore`    | Other changes that don't modify src/test files    |
+| `revert`   | Reverting a previous commit                       |
+
+#### Commit Message Rules
+
+- **Subject**:
+  - Use imperative tense ("add" not "added")
+  - No period at the end
+  - Maximum 72 characters
+  - Lowercase only
+
+- **Type**:
+  - Must be one of the types listed above
+  - Lowercase only
+
+#### Examples
+
+```bash
+# Valid commit messages
+git commit -m "feat: add user authentication"
+git commit -m "fix: resolve null pointer exception"
+git commit -m "docs: update README with installation instructions"
+git commit -m "refactor: extract validation logic"
+git commit -m "test: add unit tests for login component"
+
+# Invalid commit messages
+git commit -m "added new feature"           # Missing type
+git commit -m "feat: Added new feature"     # Subject should be imperative
+git commit -m "feat: Add new feature."      # No period at the end
+git commit -m "PERF: improve speed"         # Type must be lowercase
+```
+
+#### Testing Your Commit Message
+
+Before committing, you can test your message:
+
+```bash
+# Test a commit message
+echo "feat: add new feature" | npx commitlint
+
+# Or test against a file
+npm run commitlint -- -E <file-with-message>
+```
+
 ```bash
 git add .
 git commit -m "feat: add new feature description"

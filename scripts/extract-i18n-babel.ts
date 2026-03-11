@@ -10,6 +10,13 @@
  * Usage:
  *   bun run scripts/extract-i18n-babel.ts          # Dry run (preview changes)
  *   bun run scripts/extract-i18n-babel.ts --write  # Apply changes
+ *   bun run scripts/extract-i18n-babel.ts --check  # Check mode (for pre-commit hook)
+ *
+ * Features:
+ *   - Ignores single special characters (%, (, ), etc.)
+ *   - Skips strings that already exist in translations (by value matching)
+ *   - Validates against existing keys before adding new ones
+ *   - Check mode exits with error code if untranslated strings found
  */
 
 import fs from 'fs';
@@ -45,7 +52,62 @@ const IGNORE_PATTERNS: RegExp[] = [
   /=>|===|!==|==|!=|<=|>=/, // Code operators
   /^\[?\d+\.?\d*,?\s*\d+\.?\d*\]?$/, // Coordinates
   /displayName|forwardRef|ComponentProps/, // React internals
+  /^[%()]+$/, // Single special characters like %, (, )
+  /^[+\-*/]$/, // Single math operators
+  /^[|&^~]$/, // Single bitwise operators
 ];
+
+// Additional single characters to ignore
+const IGNORE_SINGLE_CHARS = new Set([
+  '%',
+  '(',
+  ')',
+  '[',
+  ']',
+  '{',
+  '}',
+  '+',
+  '-',
+  '*',
+  '/',
+  '|',
+  '&',
+  '^',
+  '~',
+  '<',
+  '>',
+  '=',
+  '!',
+  ',',
+  ';',
+  ':',
+  '.',
+  '?',
+  '/',
+  '\\',
+  '@',
+  '#',
+  '$',
+  '€',
+  '£',
+  '¥',
+  '`',
+  "'",
+  '"',
+  '→',
+  '←',
+  '↑',
+  '↓', // Arrow characters
+  '•',
+  '·',
+  '…', // Special bullets and ellipsis
+  '✕',
+  '×',
+  '✓',
+  '✔',
+  '✗',
+  '✘', // Check/cross marks
+]);
 
 // JSX attributes that commonly contain user-visible text
 const TEXT_ATTRIBUTES = [
@@ -263,6 +325,11 @@ function shouldIgnore(str: string): boolean {
   const trimmed = str.trim();
   if (trimmed.length === 0) return true;
   if (trimmed.length > 200) return true;
+
+  // Ignore single characters
+  if (trimmed.length === 1 && IGNORE_SINGLE_CHARS.has(trimmed)) {
+    return true;
+  }
 
   return IGNORE_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
@@ -533,6 +600,60 @@ function getAllKeys(
 }
 
 /**
+ * Search for a string value in translations (case-insensitive)
+ * Returns the key if found, undefined otherwise
+ */
+function findExistingKeyByValue(
+  translations: Record<string, unknown>,
+  searchText: string,
+  prefix = '',
+): string | undefined {
+  const normalizedSearch = searchText.toLowerCase().trim();
+
+  for (const [key, value] of Object.entries(translations)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const found = findExistingKeyByValue(
+        value as Record<string, unknown>,
+        searchText,
+        fullKey,
+      );
+      if (found) return found;
+    } else if (typeof value === 'string') {
+      // Check for exact match or normalized match
+      if (
+        value.toLowerCase().trim() === normalizedSearch ||
+        value.trim() === searchText.trim()
+      ) {
+        return fullKey;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Check if a key already exists in translations
+ */
+function keyExists(
+  translations: Record<string, unknown>,
+  key: string,
+): boolean {
+  const parts = key.split('.');
+  let current: Record<string, unknown> = translations;
+
+  for (const part of parts) {
+    if (!(part in current)) {
+      return false;
+    }
+    current = current[part] as Record<string, unknown>;
+  }
+
+  return true;
+}
+
+/**
  * Find all TSX/TS files
  */
 function findFiles(dir: string): string[] {
@@ -571,13 +692,16 @@ function findFiles(dir: string): string[] {
 async function main() {
   const args = process.argv.slice(2);
   const writeMode = args.includes('--write');
-  const dryRun = !writeMode;
+  const checkMode = args.includes('--check');
+  const dryRun = !writeMode && !checkMode;
 
   console.log('🌍 i18n String Extractor (Babel AST)');
   console.log('====================================\n');
-  console.log(
-    `Mode: ${dryRun ? '👀 DRY RUN (no changes will be made)' : '✏️  WRITING CHANGES'}\n`,
-  );
+
+  let modeLabel = '👀 DRY RUN (no changes will be made)';
+  if (writeMode) modeLabel = '✏️  WRITING CHANGES';
+  if (checkMode) modeLabel = '🔍 CHECK MODE (validate translations)';
+  console.log(`Mode: ${modeLabel}\n`);
 
   // Load existing translations
   const locales = ['en', 'te', 'hi'];
@@ -595,7 +719,9 @@ async function main() {
   // Process each file
   const allStrings = new Map<string, StringInfo>();
   const fileChanges: FileChange[] = [];
+  const alreadyTranslated = new Map<string, string>(); // Maps original string to existing key
 
+  // First pass: find all strings and check if they already exist in translations
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf-8');
     const strings = extractStringsFromAST(content, file);
@@ -606,6 +732,24 @@ async function main() {
 
       // Track unique strings
       strings.forEach((str) => {
+        // Check if this string already exists in English translations by value
+        const existingKey = findExistingKeyByValue(
+          translations['en'],
+          str.original,
+        );
+
+        if (existingKey) {
+          // String already exists, skip it
+          alreadyTranslated.set(str.original, existingKey);
+          return;
+        }
+
+        // Check if the generated key already exists
+        if (keyExists(translations['en'], str.key)) {
+          alreadyTranslated.set(str.original, str.key);
+          return;
+        }
+
         if (!allStrings.has(str.key)) {
           allStrings.set(str.key, {
             original: str.original,
@@ -622,17 +766,26 @@ async function main() {
         }
       });
 
-      // Generate replacements
-      const { newContent, replacements } = replaceStrings(content, strings);
+      // Generate replacements only for new strings
+      const newStrings = strings.filter(
+        (str) => !alreadyTranslated.has(str.original),
+      );
 
-      if (replacements.length > 0) {
-        stats.stringsReplaced += replacements.length;
-        fileChanges.push({
-          file,
-          originalContent: content,
-          newContent,
-          replacements,
-        });
+      if (newStrings.length > 0) {
+        const { newContent, replacements } = replaceStrings(
+          content,
+          newStrings,
+        );
+
+        if (replacements.length > 0) {
+          stats.stringsReplaced += replacements.length;
+          fileChanges.push({
+            file,
+            originalContent: content,
+            newContent,
+            replacements,
+          });
+        }
       }
     }
   }
@@ -641,13 +794,30 @@ async function main() {
   console.log('📊 Statistics:');
   console.log(`   Files scanned: ${stats.filesScanned}`);
   console.log(`   Strings found: ${stats.stringsFound}`);
-  console.log(`   Unique keys: ${allStrings.size}`);
+  console.log(`   Already translated: ${alreadyTranslated.size}`);
+  console.log(`   New unique keys: ${allStrings.size}`);
   console.log(`   Replacements to make: ${stats.stringsReplaced}`);
   console.log(`   Files to modify: ${fileChanges.length}\n`);
 
+  // Show already translated strings (for reference)
+  if (alreadyTranslated.size > 0) {
+    console.log('✅ Already translated strings (skipped):\n');
+    let shown = 0;
+    alreadyTranslated.forEach((key, original) => {
+      if (shown < 10) {
+        console.log(`   - "${original}" → ${key}`);
+        shown++;
+      }
+    });
+    if (alreadyTranslated.size > 10) {
+      console.log(`   ... and ${alreadyTranslated.size - 10} more`);
+    }
+    console.log('');
+  }
+
   // Show unique strings to be added
   if (allStrings.size > 0) {
-    console.log('📝 Unique translation keys to add:\n');
+    console.log('📝 New translation keys to add:\n');
 
     // Group by category
     const byCategory: Record<string, StringInfo[]> = {};
@@ -751,6 +921,19 @@ async function main() {
     console.log('   2. Add translations for Telugu (te) and Hindi (hi)');
     console.log('   3. Run the app and test the translations');
     console.log('   4. Run this script again to catch any missed strings\n');
+  } else if (checkMode) {
+    // Check mode: exit with error if there are untranslated strings
+    if (allStrings.size > 0) {
+      console.log('\n❌ Pre-commit check failed: Found untranslated strings\n');
+      console.log('📌 To fix, run:');
+      console.log('   bun run scripts/extract-i18n-babel.ts --write');
+      console.log('   Then add translations for Telugu (te) and Hindi (hi)\n');
+      process.exit(1);
+    } else {
+      console.log(
+        '\n✅ All strings are translated! Pre-commit check passed.\n',
+      );
+    }
   } else {
     console.log('\n💡 To apply changes, run:');
     console.log('   bun run scripts/extract-i18n-babel.ts --write\n');

@@ -4,6 +4,9 @@ set -e
 # Run formatting on staged files
 npx lint-staged
 
+# Check for untranslated i18n strings
+npm run i18n:check
+
 # Run tests to ensure they pass before committing
 npm run test:run
 
