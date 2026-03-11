@@ -7,6 +7,12 @@
       "digits": "/10 digits"
     },
     "91": "+91",
+    "proofread": {
+      "ocr": {
+        "text": "Proofread OCR Text"
+      }
+    },
+    "submitPage": "Submit Page",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -52,7 +58,6 @@
     "yourBrowserDoesNotSupportTheVideoElement": "Your browser does not support the video element.",
     "uploadVideoFilesSingleFile": "Upload Video Files (Single file)",
     "selectedFiles": "Selected Files:",
-    "takeAnother": "Take Another",
     "uploadImageFilesSingleFile": "Upload Image Files (Single file)",
     "technologyForSociety": "Technology for Society",
     "userIdNotFoundPleaseTryLoggingInAgain": "User ID not found. Please try logging in again.",
@@ -180,7 +185,6 @@
     "addLanguage": "Add Language",
     "addPlace": "Add Place",
     "addSocialMedia": "Add Social Media",
-    "photoCapturedClickStopCameraWhenDone": "Photo captured! Click \"Stop Camera\" when done.",
     "fileRemoved": "File removed",
     "textUploadFailed": "Text upload failed",
     "uploadContent": "Upload Content",
@@ -216,13 +220,7 @@
       "tool": "Proofreading Tool"
     },
     "reviewAndCorrectOcrTextFromDocuments": "Review and correct OCR text from documents",
-    "proofread": {
-      "ocr": {
-        "text": "Proofread OCR Text"
-      }
-    },
     "showHints": "Show Hints",
-    "submitPage": "Submit Page",
     "reviewCommunityContributions": "Review community contributions",
     "refreshFeed": "Refresh Feed",
     "noResultsFoundFor": "No results found for \"",
@@ -231,138 +229,7 @@
     "noFollowersFound": "No followers found",
     "noUsersBeingFollowed": "No users being followed"
   },
-  "nav": {
-    "home": "Home",
-    "profile": "Profile",
-    "settings": "Settings",
-    "logout": "Logout",
-    "login": "Login",
-    "searchUsers": "Search for users...",
-    "preferPasswordLogin": "Prefer Password Login ?",
-    "loginWithPassword": "Login with Password",
-    "failedToLoadProfileData": "Failed to load profile data",
-    "tellUsAboutYourself": "Tell us about yourself",
-    "socialMediaProfiles": "Social Media Profiles",
-    "profileUrl": "Profile URL",
-    "returnToHome": "Return to Home",
-    "updateProfilePicture": "Update Profile Picture",
-    "enterAValidImageUrlForYourProfilePicture": "Enter a valid image URL for your profile picture"
-  },
-  "auth": {
-    "email": "Email",
-    "password": "Password",
-    "forgotPassword": "Forgot Password?",
-    "resetPassword": "Reset Password",
-    "loginTitle": "Login to Corpus",
-    "loginButton": "Login",
-    "noAccount": "Don't have an account?",
-    "hasAccount": "Already have an account?",
-    "signup": "Sign Up",
-    "securedBy": "Secured by",
-    "pleaseEnterAValid10digitPhoneNumber": "Please enter a valid 10-digit phone number",
-    "pleaseEnterAValid6digitOtp": "Please enter a valid 6-digit OTP",
-    "invalidOtpPleaseCheckAndTryAgain": "Invalid OTP. Please check and try again.",
-    "otpVerificationFailedPleaseTryAgain": "OTP verification failed. Please try again.",
-    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP has expired or is invalid. Please request a new one.",
-    "pleaseEnterAValidPhoneNumberAndPassword": "Please enter a valid phone number and password",
-    "pleaseEnterAValidUsername": "Please Enter a Valid UserName",
-    "passwordMustBeAtLeast6CharactersLong": "Password must be at least 6 characters long",
-    "signUp": "Sign Up",
-    "enterYourRegisteredPhoneNumberToReceiveOtp": "Enter your registered phone number to receive OTP",
-    "enter10digitPhoneNumber": "Enter 10-digit phone number",
-    "phoneNumberIsInvalid": "*Phone number is invalid",
-    "otpSentTo91": "OTP sent to +91",
-    "enter6digitOtp": "Enter 6-digit OTP",
-    "enterYourPassword": "Enter your password",
-    "username": "UserName*",
-    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*Username should consist of characters, underscores,\n                      digits only",
-    "emailIsInvalid": "*Email is invalid",
-    "createPassword": "Create Password *",
-    "passwordStrength": "Password Strength:",
-    "passwordShouldContain": "Password should contain :",
-    "sendingOtp": "Sending OTP...",
-    "requestOtpForPhoneVerification": "Request OTP for Phone Verification",
-    "enterUsername": "Enter username",
-    "phoneNumber": "Phone Number",
-    "enterYourPhoneNumber": "Enter your phone number",
-    "sendOtp": "Send OTP",
-    "otpCode": "OTP Code",
-    "enterOtp": "Enter OTP",
-    "newPassword": "New Password",
-    "enterNewPassword": "Enter new password",
-    "passwordMustBeAtLeast8CharactersAndContain": "Password must be at least 8 characters and contain:",
-    "welcomeBack": "Welcome Back",
-    "createAccount": "Create Account",
-    "signInToContinueYourJourney": "Sign in to continue your journey",
-    "joinOurCommunityToday": "Join our community today",
-    "login": "Login",
-    "verifyOtp": "Verify OTP",
-    "resendOtp": "Resend OTP",
-    "resendIn": "Resend in",
-    "back": "Back",
-    "preferPasswordLogin": "Prefer Password Login?",
-    "loginWithPassword": "Login with Password",
-    "loginWithOtp": "Login with OTP",
-    "enterPassword": "Enter Password",
-    "selectGender": "Select Gender",
-    "gender": "Gender",
-    "male": "Male",
-    "female": "Female",
-    "other": "Other",
-    "dateOfBirth": "Date of Birth"
-  },
-  "user": {
-    "useMyCurrentLocation": "Use My Current Location",
-    "requestingLocationAccess": "Requesting location access...",
-    "locationAccessGranted": "Location access granted!",
-    "locationSetManually": "Location set manually!",
-    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "Location is required. Please enable location access or enter manually.",
-    "pleaseEnterYourName": "Please enter your name",
-    "fullName": "Full Name *",
-    "nameShouldHaveCharactersOnly": "*Name should have characters only",
-    "placeCityState": "Place (City, State)",
-    "enterFullName": "Enter full name",
-    "shortBio": "Short Bio",
-    "verifyingLocation": "Verifying location...",
-    "locationCapturedAwaitingVerification": "Location captured, awaiting verification...",
-    "locationRequired": "Location required",
-    "useCurrentLocation": "Use Current Location",
-    "profession": "Profession",
-    "organisation": "Organisation"
-  },
   "ui": {
-    "tap": {
-      "any": {
-        "colored": {
-          "section": "Tap any colored section"
-        }
-      }
-    },
-    "enter": {
-      "your": {
-        "text": {
-          "content": {
-            "here": "Enter your text content here..."
-          }
-        }
-      },
-      "a": {
-        "title": {
-          "for": {
-            "your": {
-              "content": "Enter a title for your content"
-            }
-          }
-        },
-        "creator": {
-          "for": {
-            "your": {
-              "content": "Enter a creator for your content"
-            }
-          }
-        }
-      }
-    },
     "failed": {
       "to": {
         "get": {
@@ -391,6 +258,69 @@
           "like": {
             "to": {
               "contribute": "Choose how you'd like to contribute"
+            }
+          }
+        }
+      }
+    },
+    "enter": {
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": "Enter a title for your content"
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": "Enter a creator for your content"
+            }
+          }
+        }
+      },
+      "your": {
+        "text": {
+          "content": {
+            "here": "Enter your text content here..."
+          }
+        }
+      }
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": "Provide a detailed description (minimum 32 characters)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": "This work is created by me and anyone is free to use it."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -440,46 +370,15 @@
         "character": "One special character"
       }
     },
+    "tap": {
+      "any": {
+        "colored": {
+          "section": "Tap any colored section"
+        }
+      }
+    },
     "language": {
       "proficiencies": "Language Proficiencies"
-    },
-    "provide": {
-      "a": {
-        "detailed": {
-          "description": {
-            "minimum": {
-              "32": {
-                "characters": "Provide a detailed description (minimum 32 characters)"
-              }
-            }
-          }
-        }
-      }
-    },
-    "this": {
-      "work": {
-        "is": {
-          "created": {
-            "by": {
-              "me": {
-                "and": {
-                  "anyone": {
-                    "is": {
-                      "free": {
-                        "to": {
-                          "use": {
-                            "it": "This work is created by me and anyone is free to use it."
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
     },
     "start": {
       "typing": {
@@ -500,44 +399,7 @@
       }
     }
   },
-  "media": {
-    "audioRecording": "Audio Recording *",
-    "startRecording": "Start Recording",
-    "stopRecording": "Stop Recording",
-    "recordingPaused": "Recording paused",
-    "recordingCompleted": "Recording completed (",
-    "recordAgain": "Record Again",
-    "videoRecording": "Video Recording *",
-    "startVideoRecording": "Start Video Recording",
-    "photoCapture": "Photo Capture *",
-    "startCamera": "Start Camera",
-    "capturePhoto": "Capture Photo",
-    "stopCamera": "Stop Camera",
-    "photoCaptured": "Photo captured:",
-    "capturedPhoto": "Captured photo",
-    "videoUnavailable": "Video unavailable",
-    "loadVideo": "Load Video",
-    "audioUnavailable": "Audio unavailable",
-    "loadAudio": "Load Audio",
-    "documentUnavailable": "Document unavailable",
-    "loadDocument": "Load Document",
-    "fileSize": "File Size",
-    "imageUnavailable": "Image unavailable",
-    "audioTrack": "Audio Track",
-    "failedToSwitchCamera": "Failed to switch camera",
-    "audioRecordingStarted": "Audio recording started",
-    "videoRecordingStarted": "Video recording started",
-    "failedToPauseRecording": "Failed to pause recording",
-    "recordingResumed": "Recording resumed",
-    "failedToResumeRecording": "Failed to resume recording",
-    "recordingStopped": "Recording stopped",
-    "failedToStopRecording": "Failed to stop recording",
-    "failedToCapturePhotoPleaseCheckCameraPermissions": "Failed to capture photo. Please check camera permissions.",
-    "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
-    "imageUrl": "Image URL"
-  },
   "messages": {
-    "loading": "Loading...",
     "networkErrorPleaseTryAgain": "Network error. Please try again.",
     "contentUploadedSuccessfullyRedirectingToLanding": "Content uploaded successfully! Redirecting to Landing...",
     "networkErrorPleaseCheckYourConnectionAndTryAgain": "Network error. Please check your connection and try again.",
@@ -547,11 +409,31 @@
     "signupOtpSentSuccessfully": "Signup OTP sent successfully!",
     "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "Account created and verified successfully! Please login.",
     "signupOtpResentSuccessfully": "Signup OTP resent successfully!",
+    "loading": "Loading...",
     "errorLoadingContributions": "Error loading contributions:",
     "profileUpdatedSuccessfully": "Profile updated successfully!",
     "loadingProfile": "Loading profile...",
     "profilePictureUpdatedSuccessfully": "Profile picture updated successfully!",
     "loadingPointsData": "Loading points data..."
+  },
+  "user": {
+    "requestingLocationAccess": "Requesting location access...",
+    "locationAccessGranted": "Location access granted!",
+    "locationSetManually": "Location set manually!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "Location is required. Please enable location access or enter manually.",
+    "verifyingLocation": "Verifying location...",
+    "locationCapturedAwaitingVerification": "Location captured, awaiting verification...",
+    "locationRequired": "Location required",
+    "useCurrentLocation": "Use Current Location",
+    "useMyCurrentLocation": "Use My Current Location",
+    "pleaseEnterYourName": "Please enter your name",
+    "fullName": "Full Name *",
+    "nameShouldHaveCharactersOnly": "*Name should have characters only",
+    "placeCityState": "Place (City, State)",
+    "enterFullName": "Enter full name",
+    "shortBio": "Short Bio",
+    "profession": "Profession",
+    "organisation": "Organisation"
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "Please enter valid latitude and longitude values",
@@ -566,14 +448,214 @@
     "sourceLabel": "Source Label",
     "type": "Type:"
   },
+  "media": {
+    "failedToSwitchCamera": "Failed to switch camera",
+    "audioRecordingStarted": "Audio recording started",
+    "videoRecordingStarted": "Video recording started",
+    "recordingPaused": "Recording paused",
+    "failedToPauseRecording": "Failed to pause recording",
+    "recordingResumed": "Recording resumed",
+    "failedToResumeRecording": "Failed to resume recording",
+    "recordingStopped": "Recording stopped",
+    "failedToStopRecording": "Failed to stop recording",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "Failed to capture photo. Please check camera permissions.",
+    "videoUnavailable": "Video unavailable",
+    "loadVideo": "Load Video",
+    "audioUnavailable": "Audio unavailable",
+    "loadAudio": "Load Audio",
+    "documentUnavailable": "Document unavailable",
+    "loadDocument": "Load Document",
+    "fileSize": "File Size",
+    "imageUnavailable": "Image unavailable",
+    "audioRecording": "Audio Recording *",
+    "startRecording": "Start Recording",
+    "stopRecording": "Stop Recording",
+    "recordingCompleted": "Recording completed (",
+    "recordAgain": "Record Again",
+    "videoRecording": "Video Recording *",
+    "startVideoRecording": "Start Video Recording",
+    "photoCapture": "Photo Capture *",
+    "startCamera": "Start Camera",
+    "capturePhoto": "Capture Photo",
+    "stopCamera": "Stop Camera",
+    "photoCaptured": "Photo captured:",
+    "capturedPhoto": "Captured photo",
+    "audioTrack": "Audio Track",
+    "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
+    "imageUrl": "Image URL"
+  },
   "stats": {
     "contributionsYet": "contributions yet.",
     "pointsActivity": "Points Activity",
     "contributions": "contributions...",
     "contributionsFound": "contributions found."
   },
+  "auth": {
+    "pleaseEnterAValid10digitPhoneNumber": "Please enter a valid 10-digit phone number",
+    "pleaseEnterAValid6digitOtp": "Please enter a valid 6-digit OTP",
+    "invalidOtpPleaseCheckAndTryAgain": "Invalid OTP. Please check and try again.",
+    "otpVerificationFailedPleaseTryAgain": "OTP verification failed. Please try again.",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP has expired or is invalid. Please request a new one.",
+    "pleaseEnterAValidPhoneNumberAndPassword": "Please enter a valid phone number and password",
+    "pleaseEnterAValidUsername": "Please Enter a Valid UserName",
+    "passwordMustBeAtLeast6CharactersLong": "Password must be at least 6 characters long",
+    "welcomeBack": "Welcome Back",
+    "createAccount": "Create Account",
+    "signInToContinueYourJourney": "Sign in to continue your journey",
+    "joinOurCommunityToday": "Join our community today",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "Enter your registered phone number to receive OTP",
+    "enter10digitPhoneNumber": "Enter 10-digit phone number",
+    "phoneNumberIsInvalid": "*Phone number is invalid",
+    "otpSentTo91": "OTP sent to +91",
+    "enter6digitOtp": "Enter 6-digit OTP",
+    "enterYourPassword": "Enter your password",
+    "forgotPassword": "Forgot Password?",
+    "username": "UserName*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*Username should consist of characters, underscores,\n                      digits only",
+    "emailIsInvalid": "*Email is invalid",
+    "selectGender": "Select Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "auth.other",
+    "dateOfBirth": "Date of Birth",
+    "createPassword": "Create Password *",
+    "passwordStrength": "Password Strength:",
+    "passwordShouldContain": "Password should contain :",
+    "sendingOtp": "Sending OTP...",
+    "requestOtpForPhoneVerification": "Request OTP for Phone Verification",
+    "securedBy": "Secured by",
+    "enterUsername": "Enter username",
+    "gender": "Gender",
+    "phoneNumber": "Phone Number",
+    "enterYourPhoneNumber": "Enter your phone number",
+    "sendOtp": "Send OTP",
+    "otpCode": "OTP Code",
+    "enterOtp": "Enter OTP",
+    "newPassword": "New Password",
+    "enterNewPassword": "Enter new password",
+    "passwordMustBeAtLeast8CharactersAndContain": "Password must be at least 8 characters and contain:",
+    "email": "Email",
+    "password": "Password",
+    "resetPassword": "Reset Password",
+    "loginTitle": "Login to Corpus",
+    "loginButton": "Login",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signup": "Sign Up",
+    "verifyOtp": "Verify OTP",
+    "resendOtp": "Resend OTP",
+    "resendIn": "Resend in",
+    "back": "Back",
+    "preferPasswordLogin": "Prefer Password Login?",
+    "loginWithPassword": "Login with Password",
+    "loginWithOtp": "Login with OTP",
+    "enterPassword": "Enter Password"
+  },
+  "nav": {
+    "preferPasswordLogin": "Prefer Password Login ?",
+    "loginWithPassword": "Login with Password",
+    "failedToLoadProfileData": "Failed to load profile data",
+    "tellUsAboutYourself": "Tell us about yourself",
+    "socialMediaProfiles": "Social Media Profiles",
+    "profileUrl": "Profile URL",
+    "returnToHome": "Return to Home",
+    "searchUsers": "Search for users...",
+    "updateProfilePicture": "Update Profile Picture",
+    "enterAValidImageUrlForYourProfilePicture": "Enter a valid image URL for your profile picture",
+    "home": "Home",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "profile": {
+    "setLocation": "Set Location",
+    "followers": "Followers",
+    "following": "Following",
+    "viewYourProfileInfo": "View your profile info",
+    "viewProfileInfo": "View profile info",
+    "info": "Info",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "noFollowers": "No followers yet",
+    "noFollowing": "Not following anyone yet",
+    "viewProfile": "View Profile",
+    "editProfile": "Edit Profile",
+    "updateProfilePicture": "Update Profile Picture",
+    "enterProfilePictureUrl": "Enter profile picture URL",
+    "shortBio": "Short Bio",
+    "loading": "Loading profile...",
+    "error": "Error loading profile",
+    "userNotFound": "User not found",
+    "authenticationFailed": "Authentication failed. Please log in again.",
+    "edit": "Edit",
+    "remove": "Remove"
+  },
+  "tour": {
+    "upload": {
+      "title": "Upload Files",
+      "description": "Click here to upload media files and start contributing."
+    },
+    "media": {
+      "title": "Select Media Type",
+      "description": "Choose the type of content you want to contribute."
+    },
+    "stats": {
+      "title": "Your Contributions",
+      "description": "Here you can see your points and overall contributions to the platform."
+    },
+    "home": {
+      "title": "Home",
+      "description": "Return to this dashboard at any time."
+    },
+    "tools": {
+      "title": "Tools",
+      "description": "Access annotation and proofreading tools."
+    },
+    "peerReviewTool": {
+      "title": "Peer Review",
+      "description": "Global tool to review all types of community contributions."
+    },
+    "imageReview": {
+      "title": "Image Annotation",
+      "description": "Focused tool for annotating and reviewing image contributions."
+    },
+    "audioReview": {
+      "title": "Audio Tool",
+      "description": "Specialized tool for reviewing audio recordings."
+    },
+    "videoReview": {
+      "title": "Video Tool",
+      "description": "Dedicated interface for video content review."
+    },
+    "proofreading": {
+      "title": "Proofreading",
+      "description": "Help improve data quality by proofreading text contributions."
+    },
+    "futureTools": {
+      "title": "Upcoming Features",
+      "description": "Stay tuned for RAG, Story Generator, Agent Workflows, and more!"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "View your stats and manage settings here."
+    },
+    "language": {
+      "title": "Language",
+      "description": "Change the application language here."
+    },
+    "heatmap": {
+      "title": "Activity Heatmap",
+      "description": "Track your daily contributions and streaks over time."
+    },
+    "dashboard": {
+      "title": "Contributions Dashboard",
+      "description": "View your contributions organized by media type."
+    }
+  },
   "tools": {
-    "heading": "Tools",
     "proofreading": "Proofreading",
     "proofreadingDescription": "Review and correct OCR text from documents",
     "transcription": "Transcription",
@@ -582,6 +664,7 @@
     "textExtractionDescription": "Extract text from images and documents",
     "audioProofreading": "Audio Proofreading",
     "audioProofreadingDescription": "Listen and correct transcribed audio content",
+    "heading": "Tools",
     "planned": "Planned",
     "comingSoonDescription": "Dataset ingestion module under calibration."
   },
@@ -606,28 +689,5 @@
     "telugu": "Telugu",
     "english": "English",
     "hindi": "Hindi"
-  },
-  "profile": {
-    "following": "Following",
-    "follow": "Follow",
-    "unfollow": "Unfollow",
-    "followers": "Followers",
-    "noFollowers": "No followers yet",
-    "noFollowing": "Not following anyone yet",
-    "viewProfile": "View Profile",
-    "editProfile": "Edit Profile",
-    "updateProfilePicture": "Update Profile Picture",
-    "enterProfilePictureUrl": "Enter profile picture URL",
-    "shortBio": "Short Bio",
-    "loading": "Loading profile...",
-    "error": "Error loading profile",
-    "userNotFound": "User not found",
-    "authenticationFailed": "Authentication failed. Please log in again.",
-    "setLocation": "Set Location",
-    "edit": "Edit",
-    "remove": "Remove",
-    "info": "Info",
-    "viewYourProfileInfo": "View your profile info",
-    "viewProfileInfo": "View profile info"
   }
 }

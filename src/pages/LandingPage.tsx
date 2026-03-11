@@ -2,10 +2,23 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CloudUpload } from 'lucide-react';
 import UserStatsSummary from '@/components/UserStatsSummary';
+import { useWelcomeTour } from '@/hooks/useWelcomeTour';
+import { useEffect } from 'react';
 
 const LandingPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { startTour } = useWelcomeTour();
+
+  useEffect(() => {
+    const isCompleted = localStorage.getItem('welcomeTourCompleted');
+    if (isCompleted !== 'true') {
+      const timer = setTimeout(() => {
+        startTour();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [startTour]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 px-4 relative overflow-hidden">
@@ -15,11 +28,13 @@ const LandingPage = () => {
 
       <div className="max-w-4xl w-full mx-auto py-8">
         {/* Stats Summary at the top */}
-        <UserStatsSummary />
+        <div id="tour-stats-summary">
+          <UserStatsSummary />
+        </div>
 
         <div className="text-center space-y-20">
           {/* Swecha Logo */}
-          <div className="animate-fade-in-smooth">
+          <div className="animate-fade-in-smooth" id="tour-swecha-logo">
             <img
               src="/Swecha_Logo_English.png"
               alt={t('common.swechaTechnologyForSociety')}
@@ -30,6 +45,7 @@ const LandingPage = () => {
           {/* Circular Upload Button */}
           <div className="animate-fade-in-delay-smooth flex justify-center">
             <button
+              id="tour-upload-btn"
               onClick={() => navigate('/media')}
               className="group relative w-80 h-80 rounded-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-emerald-500/50 overflow-hidden"
             >

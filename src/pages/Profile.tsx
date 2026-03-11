@@ -1,7 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { X, LogOut, MessageSquare, Loader2, Globe } from 'lucide-react';
+import {
+  X,
+  LogOut,
+  MessageSquare,
+  Loader2,
+  Globe,
+  HelpCircle,
+} from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import { getPointsStats, DailyPoint } from '@/lib/points';
@@ -21,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 
 const languages = [
   'assamese',
@@ -162,6 +170,7 @@ function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { startTour } = useWelcomeTour();
 
   const handleLogout = () => {
     logout();
@@ -891,6 +900,13 @@ function Profile() {
             <div className="flex gap-2 absolute right-0 sm:right-5">
               <LanguageSwitcher />
               <button
+                onClick={startTour}
+                className="flex flex-col items-center gap-1 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                title={t('common.start.welcome.tour')}
+              >
+                <HelpCircle className="w-4 h-4 text-blue-500" />
+              </button>
+              <button
                 onClick={handleLogout}
                 className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
               >
@@ -1028,7 +1044,10 @@ function Profile() {
         )}
 
         {/* Points Heatmap Section - Visible for all user profiles */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
+        <div
+          id="tour-points-heatmap"
+          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3"
+        >
           {pointsError ? (
             <div className="text-center py-4">
               <p className="text-red-500">{pointsError}</p>
@@ -1043,7 +1062,10 @@ function Profile() {
         </div>
 
         {/* Contributions Section - Mobile Responsive Design */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
+        <div
+          id="tour-contributions-dashboard"
+          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3"
+        >
           <div className="mt-1 sm:mt-2">
             <ContributionDashboard
               dailyStats={{

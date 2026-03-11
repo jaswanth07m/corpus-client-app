@@ -10,12 +10,59 @@ import {
   FileType,
   ArrowLeft,
   MessageSquare,
+  Image,
+  Video,
+  Brain,
+  Database,
+  BookOpen,
+  Workflow,
+  Tags,
 } from 'lucide-react';
 
 const AnnotationsDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const annotationTools = [
+    {
+      id: 'peer-review',
+      title: t('tools.peerReview', 'Peer Review'),
+      description: t(
+        'tools.peerReviewDescription',
+        "Review other users' contributions and provide feedback.",
+      ),
+      icon: <FileCheck className="h-8 w-8 text-emerald-600" />,
+      path: '/peer-review',
+    },
+    {
+      id: 'image-review',
+      title: t('tools.imageAnnotation', 'Image Annotation'),
+      description: t(
+        'tools.imageAnnotationDescription',
+        'Annotate objects, regions, and patterns in images.',
+      ),
+      icon: <Image className="h-8 w-8 text-emerald-600" />,
+      path: '/tools/image-review',
+    },
+    {
+      id: 'audio-review',
+      title: t('tools.audioTool', 'Audio Tool'),
+      description: t(
+        'tools.audioToolDescription',
+        'Review and annotate audio recordings.',
+      ),
+      icon: <AudioLines className="h-8 w-8 text-amber-600" />,
+      path: '/tools/audio-review',
+    },
+    {
+      id: 'video-review',
+      title: t('tools.videoTool', 'Video Tool'),
+      description: t(
+        'tools.videoToolDescription',
+        'Review and annotate video content.',
+      ),
+      icon: <Video className="h-8 w-8 text-red-600" />,
+      path: '/tools/video-review',
+    },
     {
       id: 'proofreading',
       title: t('tools.proofreading'),
@@ -40,11 +87,47 @@ const AnnotationsDashboard = () => {
       comingSoon: true,
     },
     {
-      id: 'audio-proofreading',
-      title: t('tools.audioProofreading'),
-      description: t('tools.audioProofreadingDescription'),
-      icon: <AudioLines className="h-8 w-8 text-green-600" />,
-      path: '/tools/audio-proofreading',
+      id: 'rag-tool',
+      title: t('tools.ragTool', 'RAG Tool'),
+      description: t(
+        'tools.ragToolDescription',
+        'Retrieval-Augmented Generation for intelligent document querying.',
+      ),
+      icon: <Brain className="h-8 w-8 text-indigo-600" />,
+      path: '/tools/rag',
+      comingSoon: true,
+    },
+    {
+      id: 'story-generator',
+      title: t('tools.storyGenerator', 'Story Generator'),
+      description: t(
+        'tools.storyGeneratorDescription',
+        'Automatically generate engaging stories from collected data.',
+      ),
+      icon: <BookOpen className="h-8 w-8 text-pink-600" />,
+      path: '/tools/story-generator',
+      comingSoon: true,
+    },
+    {
+      id: 'agent-workflows',
+      title: t('tools.agentWorkflows', 'Agent Workflows'),
+      description: t(
+        'tools.agentWorkflowsDescription',
+        'Design and manage automated AI agent processes.',
+      ),
+      icon: <Workflow className="h-8 w-8 text-cyan-600" />,
+      path: '/tools/workflows',
+      comingSoon: true,
+    },
+    {
+      id: 'metadata-index',
+      title: t('tools.metadataIndex', 'Metadata Index'),
+      description: t(
+        'tools.metadataIndexDescription',
+        'Advanced indexing and search for community metadata.',
+      ),
+      icon: <Tags className="h-8 w-8 text-orange-600" />,
+      path: '/tools/metadata-index',
       comingSoon: true,
     },
   ];
@@ -71,14 +154,26 @@ const AnnotationsDashboard = () => {
         </div>
       </div>
 
-      <div className="flex-grow max-w-7xl mx-auto p-3 w-full">
-        <div className="flex flex-wrap gap-5">
+      <div className="flex-grow max-w-7xl mx-auto p-4 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {annotationTools.map((tool) => (
             <div
               key={tool.id}
-              style={{
-                width: 'calc(47% - 4px)',
-              }}
+              id={
+                tool.id === 'proofreading'
+                  ? 'tour-proofreading-tool'
+                  : tool.id === 'peer-review'
+                    ? 'tour-peer-review-tool'
+                    : tool.id === 'image-review'
+                      ? 'tour-image-review-tool'
+                      : tool.id === 'audio-review'
+                        ? 'tour-audio-review-tool'
+                        : tool.id === 'video-review'
+                          ? 'tour-video-review-tool'
+                          : tool.comingSoon && tool.id === 'rag-tool'
+                            ? 'tour-future-tools'
+                            : undefined
+              }
               onClick={() => !tool.comingSoon && navigate(tool.path)}
               className={`relative overflow-hidden group bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 border-2 ${
                 tool.comingSoon

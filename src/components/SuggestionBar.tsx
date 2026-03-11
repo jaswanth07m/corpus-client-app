@@ -33,8 +33,8 @@ export function SuggestionBar({ suggestions }) {
           }}
           key={sugg.eng}
         >
-          <strong>{sugg.eng}</strong> →{' '}
-          <span style={{ fontSize: '1.2em' }}>{sugg.indic}</span>
+          <strong>{sugg.eng}</strong>
+          {t('common.')} <span style={{ fontSize: '1.2em' }}>{sugg.indic}</span>
         </div>
       ))}
     </div>
