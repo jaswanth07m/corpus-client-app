@@ -64,11 +64,11 @@ const AnnotationsDashboard = () => {
       path: '/tools/video-review',
     },
     {
-      id: 'proofreading',
-      title: t('tools.proofreading'),
-      description: t('tools.proofreadingDescription'),
+      id: 'doc-digitization',
+      title: t('tools.docDigitization'),
+      description: t('tools.docDigitizationDescription'),
       icon: <FileCheck className="h-8 w-8 text-blue-600" />,
-      path: '/tools/proofreading',
+      path: '/tools/doc-digitization',
     },
     {
       id: 'transcription',
@@ -87,14 +87,14 @@ const AnnotationsDashboard = () => {
       comingSoon: true,
     },
     {
-      id: 'rag-tool',
-      title: t('tools.ragTool', 'RAG Tool'),
+      id: 'ask-your-corpus',
+      title: t('tools.askYourCorpus', 'Ask Your Corpus'),
       description: t(
-        'tools.ragToolDescription',
+        'tools.askYourCorpusDescription',
         'Retrieval-Augmented Generation for intelligent document querying.',
       ),
       icon: <Brain className="h-8 w-8 text-indigo-600" />,
-      path: '/tools/rag',
+      path: '/tools/ask-your-corpus',
       comingSoon: true,
     },
     {
@@ -160,8 +160,8 @@ const AnnotationsDashboard = () => {
             <div
               key={tool.id}
               id={
-                tool.id === 'proofreading'
-                  ? 'tour-proofreading-tool'
+                tool.id === 'doc-digitization'
+                  ? 'tour-doc-digitization-tool'
                   : tool.id === 'peer-review'
                     ? 'tour-peer-review-tool'
                     : tool.id === 'image-review'
@@ -170,7 +170,7 @@ const AnnotationsDashboard = () => {
                         ? 'tour-audio-review-tool'
                         : tool.id === 'video-review'
                           ? 'tour-video-review-tool'
-                          : tool.comingSoon && tool.id === 'rag-tool'
+                          : tool.comingSoon && tool.id === 'ask-your-corpus'
                             ? 'tour-future-tools'
                             : undefined
               }

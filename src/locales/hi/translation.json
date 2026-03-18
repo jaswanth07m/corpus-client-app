@@ -216,8 +216,8 @@
       }
     },
     "contributeToOpenDataAndHelpBuildTheFuture": "ओपन डेटा में योगदान करें और भविष्य का निर्माण करने में मदद करें",
-    "proofreading": {
-      "tool": "प्रूफरीडिंग टूल"
+    "docDigitization": {
+      "tool": "दस्तावेज़ डिजिटाइज़ेशन टूल"
     },
     "reviewAndCorrectOcrTextFromDocuments": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
     "showHints": "संकेत दिखाएं",
@@ -630,13 +630,13 @@
       "title": "वीडियो उपकरण",
       "description": "वीडियो सामग्री समीक्षा के लिए समर्पित इंटरफ़ेस।"
     },
-    "proofreading": {
-      "title": "प्रूफरीडिंग",
-      "description": "पाठ योगदानों की प्रूफरीडिंग करके डेटा गुणवत्ता में सुधार करने में सहायता करें।"
+    "docDigitization": {
+      "title": "दस्तावेज़ डिजिटाइज़ेशन",
+      "description": "पाठ योगदानों को डिजिटाइज़ करके डेटा गुणवत्ता में सुधार करने में सहायता करें।"
     },
     "futureTools": {
       "title": "आगामी सुविधाएँ",
-      "description": "RAG, कहानी जनरेटर, एजेंट वर्कफ़्लो और बहुत कुछ के लिए बने रहें!"
+      "description": "अस्क योर कॉर्पस, कहानी जनरेटर, एजेंट वर्कफ़्लो और बहुत कुछ के लिए बने रहें!"
     },
     "profile": {
       "title": "प्रोफ़ाइल",
@@ -656,14 +656,30 @@
     }
   },
   "tools": {
-    "proofreading": "प्रूफरीडिंग",
-    "proofreadingDescription": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
+    "docDigitization": "दस्तावेज़ डिजिटाइज़ेशन",
+    "docDigitizationDescription": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
+    "askYourCorpus": "अस्क योर कॉर्पस",
+    "askYourCorpusDescription": "बुद्धिमान दस्तावेज़ क्वेरी के लिए रिट्रीवल-ऑगमेंटेड जनरेशन",
+    "peerReview": "पीर रिव्यू",
+    "peerReviewDescription": "अन्य उपयोगकर्ताओं के योगदानों की समीक्षा करें और प्रतिक्रिया प्रदान करें",
+    "imageAnnotation": "छवि एनोटेशन",
+    "imageAnnotationDescription": "छवियों में वस्तुओं, क्षेत्रों और पैटर्न को एनोटेट करें",
+    "audioTool": "ऑडियो उपकरण",
+    "audioToolDescription": "ऑडियो रिकॉर्डिंग की समीक्षा और एनोटेट करें",
+    "videoTool": "वीडियो उपकरण",
+    "videoToolDescription": "वीडियो सामग्री की समीक्षा और एनोटेट करें",
     "transcription": "ट्रांस्क्रिप्शन",
     "transcriptionDescription": "ऑडियो और वीडियो सामग्री को टेक्स्ट में बदलें",
     "textExtraction": "टेक्स्ट एक्सट्रैक्शन",
     "textExtractionDescription": "छवियों और दस्तावेज़ों से टेक्स्ट निकालें",
     "audioProofreading": "ऑडियो प्रूफरीडिंग",
     "audioProofreadingDescription": "ट्रांस्क्राइब किए गए ऑडियो सामग्री को सुनें और सही करें",
+    "storyGenerator": "कहानी जनरेटर",
+    "storyGeneratorDescription": "एकत्रित डेटा से आकर्षक कहानियां स्वचालित रूप से उत्पन्न करें",
+    "agentWorkflows": "एजेंट वर्कफ़्लो",
+    "agentWorkflowsDescription": "स्वचालित एआई एजेंट प्रक्रियाओं को डिज़ाइन और प्रबंधित करें",
+    "metadataIndex": "मेटाडेटा इंडेक्स",
+    "metadataIndexDescription": "समुदाय मेटाडेटा के लिए उन्नत इंडेक्सिंग और खोज",
     "heading": "उपकरण",
     "planned": "योजनाबद्ध",
     "comingSoonDescription": "डेटासेट इंजेक्शन मॉड्यूल कैलिब्रेशन के अंतर्गत है।"
