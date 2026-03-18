@@ -7,7 +7,7 @@ import Index from './pages/Index';
 import LandingPage from './pages/LandingPage';
 import NotFound from './pages/NotFound';
 import ForgotPassword from './pages/ForgotPassword'; // Import the new component
-import Proofreading from './pages/Proofreading';
+import DocDigitization from './pages/DocDigitization';
 import AnnotationsDashboard from './pages/AnnotationsDashboard';
 import Profile from './pages/Profile';
 import MyProfileRedirect from './pages/MyProfileRedirect';
@@ -49,7 +49,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/media"
+                path="/upload"
                 element={
                   <RequireAuth>
                     <Index />
@@ -57,7 +57,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/media/:mediaType"
+                path="/upload/:mediaType"
                 element={
                   <RequireAuth>
                     <UploadPage />
@@ -65,7 +65,10 @@ const App = () => (
                 }
               />
               <Route path="/tools" element={<AnnotationsDashboard />} />
-              <Route path="/proofreading" element={<AnnotationsDashboard />} />
+              <Route
+                path="/doc-digitization"
+                element={<AnnotationsDashboard />}
+              />
               <Route
                 path="/myprofile/"
                 element={
@@ -105,10 +108,10 @@ const App = () => (
             </Route>
 
             <Route
-              path="/tools/proofreading"
+              path="/tools/doc-digitization"
               element={
                 <RequireAuth>
-                  <Proofreading />
+                  <DocDigitization />
                 </RequireAuth>
               }
             />

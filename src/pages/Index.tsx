@@ -7,7 +7,7 @@ const Index = () => {
   const handleMediaTypeSelect = (
     type: 'text' | 'audio' | 'video' | 'image' | 'document',
   ) => {
-    navigate(`/media/${type}`);
+    navigate(`/upload/${type}`);
   };
 
   return (

@@ -216,8 +216,8 @@
       }
     },
     "contributeToOpenDataAndHelpBuildTheFuture": "Contribute to open data and help build the future",
-    "proofreading": {
-      "tool": "Proofreading Tool"
+    "docDigitization": {
+      "tool": "Document Digitization Tool"
     },
     "reviewAndCorrectOcrTextFromDocuments": "Review and correct OCR text from documents",
     "showHints": "Show Hints",
@@ -630,13 +630,13 @@
       "title": "Video Tool",
       "description": "Dedicated interface for video content review."
     },
-    "proofreading": {
-      "title": "Proofreading",
-      "description": "Help improve data quality by proofreading text contributions."
+    "docDigitization": {
+      "title": "Document Digitization",
+      "description": "Help improve data quality by digitizing text contributions."
     },
     "futureTools": {
       "title": "Upcoming Features",
-      "description": "Stay tuned for RAG, Story Generator, Agent Workflows, and more!"
+      "description": "Stay tuned for Ask Your Corpus, Story Generator, Agent Workflows, and more!"
     },
     "profile": {
       "title": "Profile",
@@ -656,14 +656,30 @@
     }
   },
   "tools": {
-    "proofreading": "Proofreading",
-    "proofreadingDescription": "Review and correct OCR text from documents",
+    "docDigitization": "Document Digitization",
+    "docDigitizationDescription": "Review and correct OCR text from documents",
+    "askYourCorpus": "Ask Your Corpus",
+    "askYourCorpusDescription": "Retrieval-Augmented Generation for intelligent document querying",
+    "peerReview": "Peer Review",
+    "peerReviewDescription": "Review other users' contributions and provide feedback",
+    "imageAnnotation": "Image Annotation",
+    "imageAnnotationDescription": "Annotate objects, regions, and patterns in images",
+    "audioTool": "Audio Tool",
+    "audioToolDescription": "Review and annotate audio recordings",
+    "videoTool": "Video Tool",
+    "videoToolDescription": "Review and annotate video content",
     "transcription": "Transcription",
     "transcriptionDescription": "Convert audio and video content to text",
     "textExtraction": "Text Extraction",
     "textExtractionDescription": "Extract text from images and documents",
     "audioProofreading": "Audio Proofreading",
     "audioProofreadingDescription": "Listen and correct transcribed audio content",
+    "storyGenerator": "Story Generator",
+    "storyGeneratorDescription": "Automatically generate engaging stories from collected data",
+    "agentWorkflows": "Agent Workflows",
+    "agentWorkflowsDescription": "Design and manage automated AI agent processes",
+    "metadataIndex": "Metadata Index",
+    "metadataIndexDescription": "Advanced indexing and search for community metadata",
     "heading": "Tools",
     "planned": "Planned",
     "comingSoonDescription": "Dataset ingestion module under calibration."

@@ -13,7 +13,7 @@ import { BACKEND_URL } from '@/lib/constants';
 // Set up the worker for react-pdf
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-function Proofreading() {
+function DocDigitization() {
   const { t } = useTranslation();
   const [bookData, setBookData] = useState(null);
   const [recordId, setRecordId] = useState(null);
@@ -345,7 +345,7 @@ function Proofreading() {
             </button>
             <div>
               <h1 className="text-xl font-bold">
-                {t('common.proofreading.tool')}
+                {t('common.docDigitization.tool')}
               </h1>
               <p className="text-purple-100 text-sm">
                 {t('common.reviewAndCorrectOcrTextFromDocuments')}
@@ -796,4 +796,4 @@ function Proofreading() {
   );
 }
 
-export default Proofreading;
+export default DocDigitization;

@@ -46,7 +46,7 @@ const LandingPage = () => {
           <div className="animate-fade-in-delay-smooth flex justify-center">
             <button
               id="tour-upload-btn"
-              onClick={() => navigate('/media')}
+              onClick={() => navigate('/upload')}
               className="group relative w-80 h-80 rounded-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-emerald-500/50 overflow-hidden"
             >
               <div className="absolute -inset-2 bg-gradient-to-br from-emerald-300 to-emerald-500 rounded-full opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500"></div>
