@@ -49,7 +49,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/media"
+                path="/upload"
                 element={
                   <RequireAuth>
                     <Index />
@@ -57,7 +57,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/media/:mediaType"
+                path="/upload/:mediaType"
                 element={
                   <RequireAuth>
                     <UploadPage />

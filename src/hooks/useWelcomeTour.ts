@@ -26,7 +26,7 @@ export const useWelcomeTour = () => {
             side: 'top',
             align: 'center',
             onNextClick: () => {
-              navigate('/media');
+              navigate('/upload');
               setTimeout(() => {
                 driverObj.current?.moveNext();
               }, 500);
