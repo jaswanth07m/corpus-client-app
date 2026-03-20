@@ -67,6 +67,8 @@ interface ContributionDashboardProps {
   ) => void;
 }
 
+export type { ContributionDashboardProps };
+
 const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   dailyStats,
   contributions,
@@ -298,7 +300,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
           <div
             key={idx}
             style={{
-              width: item.full ? '100%' : 'calc(32% - 4px)',
+              width: 'calc(32% - 4px)',
               background: item.color,
               borderRadius: 8,
               padding: 8,
@@ -372,7 +374,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
                   mediaType ? () => onMediaTypeClick?.(mediaType) : undefined
                 }
                 style={{
-                  width: item.full ? '100%' : 'calc(32% - 4px)',
+                  width: 'calc(32% - 4px)',
                   background: item.color,
                   borderRadius: 8,
                   padding: 8,
@@ -411,7 +413,7 @@ interface DashboardCardProps {
   color: string;
 }
 
-const DashboardCard: React.FC<DashboardCardProps> = ({
+export const DashboardCard: React.FC<DashboardCardProps> = ({
   icon,
   title,
   value,
@@ -440,7 +442,7 @@ interface MediaTypeCardProps {
   color: string;
 }
 
-const MediaTypeCard: React.FC<MediaTypeCardProps> = ({
+export const MediaTypeCard: React.FC<MediaTypeCardProps> = ({
   type,
   count,
   duration,
