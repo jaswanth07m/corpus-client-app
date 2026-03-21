@@ -43,12 +43,16 @@ interface UserContributions {
   videoDuration: number;
 }
 
+export type { UserContributions, ContributionItem };
+
 interface ContributionsListProps {
   contributions: UserContributions | null;
   selectedMediaType: 'text' | 'audio' | 'video' | 'image' | 'document' | null;
   token: string;
   isOwnProfile: boolean;
 }
+
+export type { ContributionsListProps };
 
 export const ContributionsList: React.FC<ContributionsListProps> = ({
   contributions,
@@ -181,7 +185,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       </button>
 
       {pageNumbers.map((page, index) => (
-        <React.Fragment key={index}>
+        <React.Fragment key={`${index}-${page}`}>
           {page === 'ellipsis' ? (
             <span className="px-2 py-1.5 sm:px-3 sm:py-2 text-gray-500 text-sm">
               ...

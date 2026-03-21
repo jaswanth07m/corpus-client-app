@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ContributionsList, PaginationControls } from '../../../src/components/ContributionsList';
-import type { UserContributions, ContributionsListProps } from '../../../src/components/ContributionsList';
+import type { UserContributions, ContributionsListProps, ContributionItem } from '../../../src/components/ContributionsList';
 
 // Mock i18next
 vi.mock('react-i18next', () => ({
