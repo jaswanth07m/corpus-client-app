@@ -105,11 +105,11 @@ interface ContentInputProps {
   isChunkedUploading?: boolean;
 }
 
-export const countMeaningfulWords = (s: string) => {
+const countMeaningfulWords = (s: string) => {
   return s.split(' ').filter((w) => w.length > 2).length;
 };
 
-export const getCategoryIcon = (name: string) => {
+const getCategoryIcon = (name: string) => {
   const iconMap: { [key: string]: string } = {
     fables: '📚',
     events: '🎉',
@@ -684,9 +684,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const handleSingleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
-    const [firstFile] = files;
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     //uncomment for audio validations
     //   if (uploadMode === 'audio') {
@@ -702,16 +701,12 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     //   }
     // }
 
-    setSelectedFile(firstFile);
-    setSelectedFiles(files); // support single and multiple uploads
+    setSelectedFile(file);
+    setSelectedFiles([file]); // keep compatibility with existing logic
     setRecordedBlob(null);
     setAudioUrl(null);
     setVideoUrl(null);
-    toast.success(
-      files.length === 1
-        ? `File selected: ${firstFile.name}`
-        : `${files.length} files selected`,
-    );
+    toast.success(`File selected: ${file.name}`);
     handleFileSelect(event);
   };
 
@@ -736,6 +731,10 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setUploadingFiles(true);
 
     if (uploadMode === 'text') {
+      if (!textContent || !description) {
+        setUploadingFiles(false);
+        return;
+      }
       // Create a file from textContent
       const textBlob = new Blob([textContent], { type: 'text/plain' });
       const textFile = new File([textBlob], 'text-content.txt', {
