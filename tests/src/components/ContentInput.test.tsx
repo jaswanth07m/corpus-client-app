@@ -6,11 +6,21 @@ import {
   waitFor,
   act,
 } from '@testing-library/react';
+import type { RefObject } from 'react';
 import '@testing-library/jest-dom';
-import ContentInput from '../../../src/components/ContentInput';
+import ContentInput, {
+  countMeaningfulWords,
+  getCategoryIcon,
+} from '../../../src/components/ContentInput';
 import { toast } from 'sonner';
 import { audioRecordingService } from '../../../src/lib/audioRecordingService';
 import { videoRecordingService } from '../../../src/lib/videoRecordingService';
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
 
 // Mock MediaStream for video tests
 class MockMediaStream {
@@ -80,6 +90,11 @@ vi.mock('../../../src/components/MediaUploadComponent', () => ({
     selectedFiles = [],
     textContent = '',
     setTextContent,
+    videoRef,
+    videoRecordingRef,
+    canvasRef,
+    formatTime,
+    formatFileSize,
   }: {
     uploadMode?: string;
     startRecording?: (type?: string) => void;
@@ -95,6 +110,11 @@ vi.mock('../../../src/components/MediaUploadComponent', () => ({
     selectedFiles?: File[];
     textContent?: string;
     setTextContent?: (content: string) => void;
+    videoRef?: RefObject<HTMLVideoElement>;
+    videoRecordingRef?: RefObject<HTMLVideoElement>;
+    canvasRef?: RefObject<HTMLCanvasElement>;
+    formatTime?: (seconds: number) => string;
+    formatFileSize?: (bytes: number) => string;
   }) => (
     <div data-testid="media-upload-component">
       <button
@@ -134,8 +154,15 @@ vi.mock('../../../src/components/MediaUploadComponent', () => ({
       <input
         data-testid="file-input"
         type="file"
+        multiple
         onChange={handleFileSelectInternal}
       />
+      <video data-testid="camera-preview" ref={videoRef} />
+      <video data-testid="video-recording-preview" ref={videoRecordingRef} />
+      <canvas data-testid="capture-canvas" ref={canvasRef} />
+      <div data-testid="format-time">{formatTime?.(125)}</div>
+      <div data-testid="format-size">{formatFileSize?.(2048)}</div>
+      <div data-testid="format-size-zero">{formatFileSize?.(0)}</div>
       {textContent !== undefined && (
         <textarea
           data-testid="text-content-display"
@@ -1766,6 +1793,649 @@ describe('ContentInput', () => {
         value: undefined,
         writable: true,
         configurable: true,
+      });
+    });
+
+    it('covers pure helper functions for meaningful words and category icons', () => {
+      expect(countMeaningfulWords('one two three four')).toBe(4);
+      expect(getCategoryIcon('music')).toBe('🎵');
+      expect(getCategoryIcon('unknown-category')).toBe('📂');
+    });
+
+    it('renders formatted helper outputs from MediaUploadComponent props', () => {
+      render(<ContentInput {...createMockProps()} />);
+      expect(screen.getByTestId('format-time')).toHaveTextContent('2:05');
+      expect(screen.getByTestId('format-size')).toHaveTextContent('2 KB');
+      expect(screen.getByTestId('format-size-zero')).toHaveTextContent(
+        '0 Bytes',
+      );
+    });
+  });
+
+  describe('Additional Branch Coverage', () => {
+    it('runs audio recording timer interval and updates duration polling', async () => {
+      vi.mocked(audioRecordingService.startRecording).mockResolvedValue({
+        success: true,
+      });
+      vi.mocked(audioRecordingService.getRecordingDuration).mockReturnValue(42);
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'audio' })} />);
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+
+      await waitFor(() => {
+        expect(audioRecordingService.startRecording).toHaveBeenCalled();
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1100));
+      });
+
+      expect(audioRecordingService.getRecordingDuration).toHaveBeenCalled();
+    });
+
+    it('runs video recording timer interval and updates duration polling', async () => {
+      vi.mocked(videoRecordingService.initialize).mockResolvedValue({
+        success: true,
+      });
+      vi.mocked(videoRecordingService.startRecording).mockResolvedValue({
+        success: true,
+        stream: new MediaStream(),
+      });
+      vi.mocked(videoRecordingService.getRecordingDuration).mockReturnValue(9);
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'video' })} />);
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+
+      await waitFor(() => {
+        expect(videoRecordingService.startRecording).toHaveBeenCalled();
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1100));
+      });
+
+      expect(videoRecordingService.getRecordingDuration).toHaveBeenCalled();
+    });
+
+    it('covers video start path when already initialized and flips camera', async () => {
+      vi.mocked(videoRecordingService.initialize).mockResolvedValue({
+        success: true,
+      });
+      vi.mocked(videoRecordingService.startRecording).mockResolvedValue({
+        success: true,
+        stream: new MediaStream(),
+      });
+      vi.mocked(videoRecordingService.flipCamera).mockResolvedValue({
+        success: true,
+        stream: new MediaStream(),
+      });
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'video' })} />);
+
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+      await waitFor(() => {
+        expect(videoRecordingService.initialize).toHaveBeenCalledTimes(1);
+      });
+
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+      await waitFor(() => {
+        expect(videoRecordingService.flipCamera).toHaveBeenCalled();
+      });
+    });
+
+    it('covers video metadata play failure logging path', async () => {
+      const playSpy = vi
+        .spyOn(HTMLMediaElement.prototype, 'play')
+        .mockRejectedValue(new Error('play failed'));
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      vi.mocked(videoRecordingService.initialize).mockResolvedValue({
+        success: true,
+      });
+      vi.mocked(videoRecordingService.startRecording).mockResolvedValue({
+        success: true,
+        stream: new MediaStream(),
+      });
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'video' })} />);
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+
+      await waitFor(() => {
+        expect(videoRecordingService.startRecording).toHaveBeenCalled();
+      });
+
+      const preview = screen.getByTestId(
+        'video-recording-preview',
+      ) as HTMLVideoElement;
+
+      await act(async () => {
+        preview.onloadedmetadata?.(new Event('loadedmetadata'));
+      });
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Video play error:',
+          expect.any(Error),
+        );
+      });
+
+      playSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('handles thrown start recording errors', async () => {
+      vi.mocked(audioRecordingService.startRecording).mockRejectedValue(
+        new Error('boom'),
+      );
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'audio' })} />);
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'Failed to start audio recording. Please check permissions.',
+        );
+      });
+    });
+
+    it('handles video pause/resume UI-only branches', async () => {
+      vi.mocked(videoRecordingService.initialize).mockResolvedValue({
+        success: true,
+      });
+      vi.mocked(videoRecordingService.startRecording).mockResolvedValue({
+        success: true,
+        stream: new MediaStream(),
+      });
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'video' })} />);
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+
+      await waitFor(() => {
+        expect(videoRecordingService.startRecording).toHaveBeenCalled();
+      });
+
+      fireEvent.click(screen.getByTestId('pause-recording-btn'));
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Recording paused');
+      });
+
+      fireEvent.click(screen.getByTestId('resume-recording-btn'));
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Recording resumed');
+      });
+    });
+
+    it('handles thrown pause and resume errors', async () => {
+      vi.mocked(audioRecordingService.pauseRecording).mockRejectedValue(
+        new Error('pause exploded'),
+      );
+      vi.mocked(audioRecordingService.resumeRecording).mockRejectedValue(
+        new Error('resume exploded'),
+      );
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'audio' })} />);
+      fireEvent.click(screen.getByTestId('pause-recording-btn'));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Failed to pause recording');
+      });
+
+      fireEvent.click(screen.getByTestId('resume-recording-btn'));
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Failed to resume recording');
+      });
+    });
+
+    it('handles thrown stop recording errors', async () => {
+      vi.mocked(audioRecordingService.stopRecording).mockRejectedValue(
+        new Error('stop exploded'),
+      );
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'audio' })} />);
+      fireEvent.click(screen.getByTestId('stop-recording-btn'));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Failed to stop recording');
+      });
+    });
+
+    it('captures photo end-to-end and clears preview on stop camera', async () => {
+      const trackStop = vi.fn();
+      const mockStream = {
+        getTracks: () => [{ stop: trackStop }],
+      };
+
+      const mockGetUserMedia = vi.fn().mockResolvedValue(mockStream);
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia: mockGetUserMedia },
+        writable: true,
+        configurable: true,
+      });
+
+      const drawImage = vi.fn();
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+        drawImage,
+      } as unknown as CanvasRenderingContext2D);
+      vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(
+        (callback) => {
+          callback(new Blob(['img'], { type: 'image/jpeg' }));
+        },
+      );
+      vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'image' })} />);
+      fireEvent.click(screen.getByTestId('capture-photo-btn'));
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalled();
+      });
+
+      const preview = screen.getByTestId('camera-preview') as HTMLVideoElement;
+      Object.defineProperty(preview, 'videoWidth', { value: 640 });
+      Object.defineProperty(preview, 'videoHeight', { value: 480 });
+
+      await act(async () => {
+        preview.onloadedmetadata?.(new Event('loadedmetadata'));
+      });
+
+      await waitFor(() => {
+        expect(drawImage).toHaveBeenCalled();
+        expect(toast.success).toHaveBeenCalledWith(
+          'common.photoCapturedClickStopCameraWhenDone',
+        );
+      });
+
+      fireEvent.click(screen.getByTestId('stop-camera-btn'));
+      expect(trackStop).toHaveBeenCalled();
+      expect(
+        (screen.getByTestId('camera-preview') as HTMLVideoElement).srcObject,
+      ).toBe(null);
+    });
+
+    it('switches image camera after successful capture and shows success toast', async () => {
+      const mockGetUserMedia = vi.fn().mockResolvedValue({
+        getTracks: () => [{ stop: vi.fn() }],
+      });
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia: mockGetUserMedia },
+        writable: true,
+        configurable: true,
+      });
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+        drawImage: vi.fn(),
+      } as unknown as CanvasRenderingContext2D);
+      vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(
+        (callback) => callback(new Blob(['img'], { type: 'image/jpeg' })),
+      );
+      vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'image' })} />);
+      fireEvent.click(screen.getByTestId('capture-photo-btn'));
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalledTimes(1);
+      });
+
+      const preview = screen.getByTestId('camera-preview') as HTMLVideoElement;
+      Object.defineProperty(preview, 'videoWidth', { value: 640 });
+      Object.defineProperty(preview, 'videoHeight', { value: 480 });
+
+      await act(async () => {
+        preview.onloadedmetadata?.(new Event('loadedmetadata'));
+        await new Promise((resolve) => setTimeout(resolve, 1100));
+      });
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith(
+          'common.photoCapturedClickStopCameraWhenDone',
+        );
+      });
+
+      fireEvent.click(screen.getByTestId('switch-camera-btn'));
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalledTimes(2);
+      });
+
+      await act(async () => {
+        preview.onloadedmetadata?.(new Event('loadedmetadata'));
+        await new Promise((resolve) => setTimeout(resolve, 1100));
+      });
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Switched to rear camera');
+      });
+    });
+
+    it('handles photo capture when blob creation fails', async () => {
+      const mockGetUserMedia = vi.fn().mockResolvedValue({
+        getTracks: () => [{ stop: vi.fn() }],
+      });
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia: mockGetUserMedia },
+        writable: true,
+        configurable: true,
+      });
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+        drawImage: vi.fn(),
+      } as unknown as CanvasRenderingContext2D);
+      vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(
+        (callback) => callback(null),
+      );
+      vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'image' })} />);
+      fireEvent.click(screen.getByTestId('capture-photo-btn'));
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalled();
+      });
+
+      const preview = screen.getByTestId('camera-preview') as HTMLVideoElement;
+      Object.defineProperty(preview, 'videoWidth', { value: 640 });
+      Object.defineProperty(preview, 'videoHeight', { value: 480 });
+
+      await act(async () => {
+        preview.onloadedmetadata?.(new Event('loadedmetadata'));
+        await new Promise((resolve) => setTimeout(resolve, 1100));
+      });
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'media.failedToCapturePhotoPleaseCheckCameraPermissions',
+        );
+      });
+    });
+
+    it('handles photo capture when video is not ready', async () => {
+      const mockGetUserMedia = vi.fn().mockResolvedValue({
+        getTracks: () => [{ stop: vi.fn() }],
+      });
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia: mockGetUserMedia },
+        writable: true,
+        configurable: true,
+      });
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+        drawImage: vi.fn(),
+      } as unknown as CanvasRenderingContext2D);
+      vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'image' })} />);
+      fireEvent.click(screen.getByTestId('capture-photo-btn'));
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalled();
+      });
+
+      const preview = screen.getByTestId('camera-preview') as HTMLVideoElement;
+      Object.defineProperty(preview, 'videoWidth', { value: 0 });
+      Object.defineProperty(preview, 'videoHeight', { value: 0 });
+
+      await act(async () => {
+        preview.onloadedmetadata?.(new Event('loadedmetadata'));
+        await new Promise((resolve) => setTimeout(resolve, 1100));
+      });
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'media.failedToCapturePhotoPleaseCheckCameraPermissions',
+        );
+      });
+    });
+
+    it('handles photo capture when canvas processing throws', async () => {
+      const mockGetUserMedia = vi.fn().mockResolvedValue({
+        getTracks: () => [{ stop: vi.fn() }],
+      });
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: { getUserMedia: mockGetUserMedia },
+        writable: true,
+        configurable: true,
+      });
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        () => {
+          throw new Error('canvas error');
+        },
+      );
+      vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'image' })} />);
+      fireEvent.click(screen.getByTestId('capture-photo-btn'));
+
+      await waitFor(() => {
+        expect(mockGetUserMedia).toHaveBeenCalled();
+      });
+
+      const preview = screen.getByTestId('camera-preview') as HTMLVideoElement;
+      Object.defineProperty(preview, 'videoWidth', { value: 640 });
+      Object.defineProperty(preview, 'videoHeight', { value: 480 });
+
+      await act(async () => {
+        preview.onloadedmetadata?.(new Event('loadedmetadata'));
+        await new Promise((resolve) => setTimeout(resolve, 1100));
+      });
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'media.failedToCapturePhotoPleaseCheckCameraPermissions',
+        );
+      });
+    });
+
+    it('handles video switch camera error path', async () => {
+      vi.mocked(videoRecordingService.initialize).mockResolvedValue({
+        success: true,
+      });
+      vi.mocked(videoRecordingService.startRecording).mockResolvedValue({
+        success: true,
+        stream: new MediaStream(),
+      });
+      vi.mocked(videoRecordingService.flipCamera).mockRejectedValue(
+        new Error('switch failed'),
+      );
+
+      render(<ContentInput {...createMockProps({ uploadMode: 'video' })} />);
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+
+      await waitFor(() => {
+        expect(videoRecordingService.startRecording).toHaveBeenCalled();
+      });
+
+      fireEvent.click(screen.getByTestId('switch-camera-btn'));
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('media.failedToSwitchCamera');
+      });
+    });
+
+    it('covers selected category removal callback branch', () => {
+      const setSelectedCategories = vi.fn();
+      const { container } = render(
+        <ContentInput
+          {...createMockProps({
+            selectedCategories: [mockCategory],
+            setSelectedCategories,
+          })}
+        />,
+      );
+
+      const removeButtons = container.querySelectorAll('button[type="button"]');
+      expect(removeButtons.length).toBeGreaterThan(0);
+      fireEvent.click(removeButtons[0]);
+      expect(setSelectedCategories).toHaveBeenCalledWith([]);
+    });
+
+    it('returns early for non-text upload when only external selectedFile exists', async () => {
+      const onUpload = vi.fn();
+      const selectedFile = new File(['x'], 'external.txt', {
+        type: 'text/plain',
+      });
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'document',
+            title: 'A Valid Title With Enough Words',
+            description:
+              'A valid description with more than 32 characters and enough meaningful words here',
+            releaseRights: 'creator',
+            selectedLanguage: 'hindi',
+            location: { lat: 12.9716, lng: 77.5946 },
+            selectedFile,
+            onUpload,
+          })}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Bangalore, Karnataka, India'),
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Upload Content'));
+      await waitFor(() => {
+        expect(onUpload).not.toHaveBeenCalled();
+      });
+    });
+
+    it('keeps one file selected after removing one from multiple', async () => {
+      const setSelectedFile = vi.fn();
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'document',
+            title: 'A Valid Title With Enough Words',
+            description:
+              'A valid description with more than 32 characters and enough meaningful words here',
+            releaseRights: 'creator',
+            selectedLanguage: 'hindi',
+            location: { lat: 12.9716, lng: 77.5946 },
+            setSelectedFile,
+          })}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Bangalore, Karnataka, India'),
+        ).toBeInTheDocument();
+      });
+
+      const first = new File(['a'], 'first.txt', { type: 'text/plain' });
+      const second = new File(['b'], 'second.txt', { type: 'text/plain' });
+      fireEvent.change(screen.getByTestId('file-input'), {
+        target: { files: [first, second] },
+      });
+
+      fireEvent.click(screen.getByTestId('remove-file-btn'));
+
+      await waitFor(() => {
+        expect(setSelectedFile).toHaveBeenCalledWith(second);
+      });
+    });
+
+    it('clears selected file when removing the last file', async () => {
+      const setSelectedFile = vi.fn();
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            setSelectedFile,
+          })}
+        />,
+      );
+
+      const onlyFile = new File(['single'], 'single.txt', {
+        type: 'text/plain',
+      });
+
+      fireEvent.change(screen.getByTestId('file-input'), {
+        target: { files: [onlyFile] },
+      });
+      fireEvent.click(screen.getByTestId('remove-file-btn'));
+
+      await waitFor(() => {
+        expect(setSelectedFile).toHaveBeenLastCalledWith(null);
+      });
+    });
+
+    it('uploads multiple selected files and handles per-file failures', async () => {
+      const onUpload = vi
+        .fn()
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('second failed'));
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'document',
+            title: 'A Valid Title With Enough Words',
+            description:
+              'A valid description with more than 32 characters and enough meaningful words here',
+            releaseRights: 'creator',
+            selectedLanguage: 'hindi',
+            location: { lat: 12.9716, lng: 77.5946 },
+            onUpload,
+          })}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Bangalore, Karnataka, India'),
+        ).toBeInTheDocument();
+      });
+
+      const first = new File(['a'], 'first.txt', { type: 'text/plain' });
+      const second = new File(['b'], 'second.txt', { type: 'text/plain' });
+      fireEvent.change(screen.getByTestId('file-input'), {
+        target: { files: [first, second] },
+      });
+
+      fireEvent.click(screen.getByText('Upload Content'));
+
+      await waitFor(() => {
+        expect(onUpload).toHaveBeenCalledTimes(2);
+        expect(toast.error).toHaveBeenCalledWith('Upload failed: second.txt');
+      });
+    });
+
+    it('handles text upload rejection path', async () => {
+      const onUpload = vi.fn().mockRejectedValue(new Error('text upload fail'));
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'text',
+            title: 'A Valid Title With Enough Words',
+            description:
+              'A valid description with more than 32 characters and enough meaningful words here',
+            releaseRights: 'creator',
+            selectedLanguage: 'hindi',
+            location: { lat: 12.9716, lng: 77.5946 },
+            textContent: 'valid content',
+            onUpload,
+          })}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Bangalore, Karnataka, India'),
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Upload Content'));
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Text upload failed');
       });
     });
   });

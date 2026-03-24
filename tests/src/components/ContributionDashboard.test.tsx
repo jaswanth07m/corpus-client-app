@@ -36,7 +36,40 @@ const mockDailyStats = {
   streak_days: 7,
 };
 
-const mockContributions = {
+interface TestContributionItem {
+  id: string;
+  size: number;
+  category_id: string;
+  reviewed: boolean;
+  title: string;
+  description: string;
+  duration?: number;
+  timestamp?: string;
+  release_rights: string;
+  language: string;
+  file_hash: string;
+  snr_frequency: number;
+}
+
+interface TestUserContributions {
+  totalContributions: number;
+  contributionsByType: {
+    text: number;
+    audio: number;
+    image: number;
+    video: number;
+    document: number;
+  };
+  audioContributions: TestContributionItem[];
+  videoContributions: TestContributionItem[];
+  textContributions: TestContributionItem[];
+  imageContributions: TestContributionItem[];
+  documentContributions: TestContributionItem[];
+  audioDuration: number;
+  videoDuration: number;
+}
+
+const mockContributions: TestUserContributions = {
   totalContributions: 150,
   contributionsByType: {
     text: 30,
@@ -128,7 +161,7 @@ const mockContributions = {
 
 interface ContributionDashboardProps {
   dailyStats: typeof mockDailyStats | null;
-  contributions: typeof mockContributions | null;
+  contributions: TestUserContributions | null;
   loading: boolean;
   edits: number;
   onMediaTypeClick?: (
@@ -922,6 +955,34 @@ describe('ContributionDashboard', () => {
 
       const videoCard = screen.getByText('Video').closest('div');
       expect(videoCard).toBeInTheDocument();
+    });
+  });
+
+  describe('Tile Width Fallback', () => {
+    it('uses default width for stats tiles when full is not provided', () => {
+      const { container } = render(
+        <ContributionDashboard {...createMockProps()} />,
+      );
+
+      const uploadsTile = Array.from(container.querySelectorAll('div')).find(
+        (div) =>
+          div.textContent?.includes('Uploads') &&
+          (div as HTMLElement).style.width === 'calc(32% - 4px)',
+      );
+      expect(uploadsTile).toBeTruthy();
+    });
+
+    it('uses default width for media tiles when full is not provided', () => {
+      const { container } = render(
+        <ContributionDashboard {...createMockProps()} />,
+      );
+
+      const textTile = Array.from(container.querySelectorAll('div')).find(
+        (div) =>
+          div.textContent?.includes('Text') &&
+          (div as HTMLElement).style.width === 'calc(32% - 4px)',
+      );
+      expect(textTile).toBeTruthy();
     });
   });
 });
