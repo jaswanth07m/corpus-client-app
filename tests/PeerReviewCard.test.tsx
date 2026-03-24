@@ -11,6 +11,28 @@ import {
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import PeerReviewCard from '../src/components/PeerReviewCard';
 
+// Mock localStorage for test environment
+const localStorageMock = {
+  store: {} as Record<string, string>,
+  clear: function () {
+    this.store = {};
+  },
+  getItem: function (key: string) {
+    return this.store[key] || null;
+  },
+  setItem: function (key: string, value: string) {
+    this.store[key] = String(value);
+  },
+  removeItem: function (key: string) {
+    delete this.store[key];
+  },
+};
+
+Object.defineProperty(global, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
+
 // Mock @/lib/constants
 vi.mock('@/lib/constants', () => ({
   BACKEND_URL: 'https://test-backend.example.com',
@@ -176,10 +198,7 @@ describe('PeerReviewCard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Clear localStorage safely
-    if (typeof localStorage.clear === 'function') {
-      localStorage.clear();
-    }
+    localStorage.clear();
     localStorage.setItem('token', 'test-token');
   });
 
@@ -1490,7 +1509,7 @@ describe('PeerReviewCard', () => {
         if (value === 'invalid-date-format-that-might-throw') {
           throw new Error('Invalid date');
         }
-        return new originalDate(value);
+        return new originalDate(value ?? '');
       } as unknown as typeof Date);
 
       render(<PeerReviewCard {...defaultProps} />);
