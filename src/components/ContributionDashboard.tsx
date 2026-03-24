@@ -298,7 +298,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
           <div
             key={idx}
             style={{
-              width: 'calc(32% - 4px)',
+              width: item.full ? '100%' : 'calc(32% - 4px)',
               background: item.color,
               borderRadius: 8,
               padding: 8,
@@ -372,7 +372,7 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
                   mediaType ? () => onMediaTypeClick?.(mediaType) : undefined
                 }
                 style={{
-                  width: 'calc(32% - 4px)',
+                  width: item.full ? '100%' : 'calc(32% - 4px)',
                   background: item.color,
                   borderRadius: 8,
                   padding: 8,
