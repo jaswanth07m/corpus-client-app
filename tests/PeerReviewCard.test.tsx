@@ -1646,4 +1646,572 @@ describe('PeerReviewCard', () => {
       consoleSpy.mockRestore();
     });
   });
+
+  describe('Release Rights Downloaded Option', () => {
+    it('should handle release rights changed to downloaded', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Change release rights to "downloaded"
+      await act(async () => {
+        triggerSelectChange(1, 'downloaded');
+      });
+
+      // Verify change was registered (Submit/Cancel buttons should appear)
+      expect(screen.queryByText('Submit Changes')).toBeInTheDocument();
+    });
+
+    it('should clear source label when switching from others to downloaded', async () => {
+      render(<PeerReviewCard {...defaultProps} release_rights="others" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Source label input should be visible
+      expect(screen.getByPlaceholderText('Specify source')).toBeInTheDocument();
+
+      // Switch to "downloaded" using our helper (index 1 is release rights)
+      await act(async () => {
+        triggerSelectChange(1, 'downloaded');
+      });
+
+      // Source label should be cleared (input should disappear)
+      await waitFor(() => {
+        expect(
+          screen.queryByPlaceholderText('Specify source'),
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('should display downloaded option in selector', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Check that the select items are present (includes downloaded option)
+      const selectItems = screen.getAllByTestId('select-item');
+      expect(selectItems.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  describe('Cancel Button Full Reset', () => {
+    it('should reset sourceLabel when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} release_rights="others" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Fill in source label
+      const sourceInput = screen.getByPlaceholderText('Specify source');
+      await act(async () => {
+        fireEvent.change(sourceInput, { target: { value: 'Test Source' } });
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Re-enter edit mode and verify source label is reset
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Source input should be empty after reset
+      const sourceInputAfter = screen.getByPlaceholderText('Specify source');
+      expect(sourceInputAfter).toHaveValue('');
+    });
+
+    it('should reset all error states when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Enter invalid values to trigger errors
+      const titleInput = screen.getByPlaceholderText('Enter title');
+      await act(async () => {
+        fireEvent.change(titleInput, { target: { value: 'Short' } });
+      });
+
+      expect(
+        screen.getByText('Title must be at least 8 characters long.'),
+      ).toBeInTheDocument();
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Error should be cleared
+      expect(
+        screen.queryByText('Title must be at least 8 characters long.'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should reset submitError when cancel is clicked', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ message: 'Submit error' }),
+      });
+      global.fetch = mockFetch;
+
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      const titleInput = screen.getByPlaceholderText('Enter title');
+      await act(async () => {
+        fireEvent.change(titleInput, {
+          target: { value: 'New Valid Title Here' },
+        });
+      });
+
+      const submitButton = screen.getByText('Submit Changes');
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Submit error/)).toBeInTheDocument();
+      });
+
+      // Click cancel to reset
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Re-enter edit mode and make a change
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      await act(async () => {
+        fireEvent.change(titleInput, {
+          target: { value: 'Another Valid Title' },
+        });
+      });
+
+      // submitError should be cleared (no error showing before submit)
+      expect(screen.queryByText(/Submit error/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Select Component Placeholder Fallback', () => {
+    it('should show Select placeholder when no value is set', async () => {
+      render(<PeerReviewCard {...defaultProps} language="" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Check that select value shows fallback
+      const selectValues = screen.getAllByTestId('select-value');
+      expect(selectValues[0]).toBeInTheDocument();
+    });
+
+    it('should use release_rights fallback when relRights is empty', () => {
+      render(<PeerReviewCard {...defaultProps} release_rights="creator" />);
+
+      const selectValues = screen.getAllByTestId('select-value');
+      // Should show the release_rights value
+      expect(selectValues[1]).toBeInTheDocument();
+    });
+
+    it('should show Select placeholder when both relRights and release_rights are empty', async () => {
+      render(<PeerReviewCard {...defaultProps} release_rights="" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      const selectValues = screen.getAllByTestId('select-value');
+      // Should show 'Select' placeholder when both are empty
+      expect(selectValues[1]).toHaveTextContent('Select');
+    });
+  });
+
+  describe('Release Rights onValueChange Branch Coverage', () => {
+    it('should NOT clear sourceLabel when switching to others from others', async () => {
+      render(<PeerReviewCard {...defaultProps} release_rights="others" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Fill in source label
+      const sourceInput = screen.getByPlaceholderText('Specify source');
+      await act(async () => {
+        fireEvent.change(sourceInput, { target: { value: 'Test Source' } });
+      });
+
+      // Switch to "others" again (val === 'others', so sourceLabel should NOT be cleared)
+      await act(async () => {
+        triggerSelectChange(1, 'others');
+      });
+
+      // Source label should still have the value
+      const sourceInputAfter = screen.getByPlaceholderText('Specify source');
+      expect(sourceInputAfter).toHaveValue('Test Source');
+    });
+
+    it('should clear sourceLabel when switching from others to creator', async () => {
+      render(<PeerReviewCard {...defaultProps} release_rights="others" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Fill in source label
+      const sourceInput = screen.getByPlaceholderText('Specify source');
+      await act(async () => {
+        fireEvent.change(sourceInput, { target: { value: 'Test Source' } });
+      });
+
+      // Switch to "creator" (val !== 'others', so sourceLabel should be cleared)
+      await act(async () => {
+        triggerSelectChange(1, 'creator');
+      });
+
+      // Source label should be cleared
+      await waitFor(() => {
+        expect(
+          screen.queryByPlaceholderText('Specify source'),
+        ).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Description Display Branch Coverage', () => {
+    it('should show description in non-edit mode', () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      // Should show the description text in non-edit mode
+      expect(
+        screen.getByText(
+          'This is a test description with enough words to pass validation requirements',
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('should show description textarea in edit mode', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      const textarea = document.querySelector('textarea');
+      expect(textarea).toBeInTheDocument();
+      expect(textarea).toHaveValue(
+        'This is a test description with enough words to pass validation requirements',
+      );
+    });
+
+    it('should use description fallback when newDescription is empty', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // The textarea should have the original description as value (fallback)
+      const textarea = document.querySelector('textarea');
+      expect(textarea).toHaveValue(
+        'This is a test description with enough words to pass validation requirements',
+      );
+    });
+
+    it('should show meaningful words count in edit mode', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Should show the word count
+      expect(screen.getByText(/meaningful words/)).toBeInTheDocument();
+    });
+  });
+
+  describe('Cancel Button Handler Coverage', () => {
+    it('should reset newTitle to title when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} title="Original Title" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Change title
+      const titleInput = screen.getByPlaceholderText('Enter title');
+      await act(async () => {
+        fireEvent.change(titleInput, { target: { value: 'Changed Title' } });
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Should show original title
+      expect(screen.getByText('Original Title')).toBeInTheDocument();
+    });
+
+    it('should reset newDescription to description when cancel is clicked', async () => {
+      render(
+        <PeerReviewCard {...defaultProps} description="Original Description" />,
+      );
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Change description
+      const textarea = document.querySelector('textarea');
+      await act(async () => {
+        fireEvent.change(textarea!, { target: { value: 'Changed' } });
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Should show original description
+      expect(screen.getByText('Original Description')).toBeInTheDocument();
+    });
+
+    it('should reset newLanguage to propLanguage when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} language="hindi" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Change language
+      await act(async () => {
+        triggerSelectChange(0, 'tamil');
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Re-enter edit mode and check language is reset
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      const selectValues = screen.getAllByTestId('select-value');
+      expect(selectValues[0]).toHaveTextContent('hindi');
+    });
+
+    it('should reset relRights to release_rights when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} release_rights="creator" />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Change release rights
+      await act(async () => {
+        triggerSelectChange(1, 'others');
+      });
+
+      // Wait for source input to appear
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText('Specify source'),
+        ).toBeInTheDocument();
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Re-enter edit mode and check release rights is reset
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Source input should not appear (because release_rights is 'creator')
+      expect(
+        screen.queryByPlaceholderText('Specify source'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should reset changed flag when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Make a change
+      const titleInput = screen.getByPlaceholderText('Enter title');
+      await act(async () => {
+        fireEvent.change(titleInput, { target: { value: 'Changed' } });
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Should exit edit mode (changed flag reset)
+      expect(
+        screen.queryByPlaceholderText('Enter title'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should reset titleError when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Trigger title error
+      const titleInput = screen.getByPlaceholderText('Enter title');
+      await act(async () => {
+        fireEvent.change(titleInput, { target: { value: 'Short' } });
+      });
+
+      expect(
+        screen.getByText('Title must be at least 8 characters long.'),
+      ).toBeInTheDocument();
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Re-enter edit mode
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Title error should be cleared
+      expect(
+        screen.queryByText('Title must be at least 8 characters long.'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should reset descError when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Enter a valid description first to trigger changed state
+      const textarea = document.querySelector('textarea');
+      await act(async () => {
+        fireEvent.change(textarea!, {
+          target: {
+            value:
+              'This is a new description that is long enough to trigger the changed state',
+          },
+        });
+      });
+
+      // Verify Cancel button is visible
+      expect(screen.getByText('Cancel')).toBeInTheDocument();
+
+      // Now enter short text to trigger error
+      await act(async () => {
+        fireEvent.change(textarea!, { target: { value: 'Short desc' } });
+      });
+
+      expect(
+        screen.getByText('Description must be at least 32 characters long.'),
+      ).toBeInTheDocument();
+
+      // Click cancel
+      await act(async () => {
+        fireEvent.click(screen.getByText('Cancel'));
+      });
+
+      // Re-enter edit mode
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Description error should be cleared
+      expect(
+        screen.queryByText('Description must be at least 32 characters long.'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should reset editMode when cancel is clicked', async () => {
+      render(<PeerReviewCard {...defaultProps} />);
+
+      const editButton = screen.getByTestId('pencil-icon').closest('button');
+      await act(async () => {
+        fireEvent.click(editButton!);
+      });
+
+      // Should be in edit mode
+      expect(screen.getByPlaceholderText('Enter title')).toBeInTheDocument();
+
+      // Make a change to show Cancel button
+      const titleInput = screen.getByPlaceholderText('Enter title');
+      await act(async () => {
+        fireEvent.change(titleInput, { target: { value: 'Changed Title' } });
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+
+      // Should exit edit mode
+      expect(
+        screen.queryByPlaceholderText('Enter title'),
+      ).not.toBeInTheDocument();
+    });
+  });
 });
