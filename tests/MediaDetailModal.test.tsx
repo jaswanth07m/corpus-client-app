@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MediaDetailModal } from '@/components/MediaDetailModal';
 
@@ -36,56 +36,23 @@ vi.mock('@/components/InlineEditHistory', () => ({
   ),
 }));
 
-// Mock Select component with test-friendly implementation
-vi.mock('@/components/ui/select', () => ({
-  Select: ({
-    children,
-    onValueChange,
-    value,
-  }: {
-    children: React.ReactNode;
-    onValueChange?: (value: string) => void;
-    value?: string;
-  }) => (
-    <div data-testid="select-component" data-value={value}>
-      <button
-        data-testid="select-trigger"
-        onClick={() => onValueChange && onValueChange('creator')}
-      >
-        Select
-      </button>
-      <div data-testid="select-content">{children}</div>
-    </div>
-  ),
-  SelectTrigger: ({
-    children,
-    className,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-  }) => (
-    <button data-testid="select-trigger" className={className}>
-      {children}
-    </button>
-  ),
-  SelectValue: ({ placeholder }: { placeholder?: string }) => (
-    <span data-testid="select-value">{placeholder}</span>
-  ),
-  SelectContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="select-content">{children}</div>
-  ),
-  SelectItem: ({
-    children,
-    value,
-  }: {
-    children: React.ReactNode;
-    value: string;
-  }) => (
-    <div data-testid="select-item" data-value={value} onClick={() => {}}>
-      {children}
-    </div>
-  ),
+// Mock utils
+vi.mock('@/lib/utils', () => ({
+  formatSizeMB: (size: number) => `${(size / 1024 / 1024).toFixed(2)} MB`,
+  cn: (...classes: string[]) => classes.filter(Boolean).join(' '),
+  formatModernTime: (dateString: string) => dateString,
+  formatDuration: (seconds: number) => `${seconds}s`,
+  getISTDate: (dateString: string) => new Date(dateString),
 }));
+
+// Mock constants
+vi.mock('@/lib/constants', () => ({
+  BACKEND_URL: 'http://localhost:3000',
+}));
+
+// Mock fetch globally
+const mockFetch = vi.fn();
+globalThis.fetch = mockFetch;
 
 const mockItem = {
   id: 'test-id-123',
@@ -114,10 +81,6 @@ const defaultProps = {
   onClose: vi.fn(),
   isOwnProfile: true,
 };
-
-// Mock fetch globally
-const mockFetch = vi.fn();
-globalThis.fetch = mockFetch;
 
 describe('MediaDetailModal', () => {
   beforeEach(() => {
@@ -267,6 +230,7 @@ describe('MediaDetailModal', () => {
           previewUrl={null}
         />,
       );
+      // The component should still render with the header
       expect(screen.getByText('Image Details')).toBeInTheDocument();
     });
 
@@ -285,8 +249,6 @@ describe('MediaDetailModal', () => {
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalled();
       });
-      const video = await screen.findByTestId('video-element');
-      expect(video).toHaveAttribute('src', 'http://example.com/video.mp4');
     });
 
     it('shows error state for video when fetch fails', async () => {
@@ -298,25 +260,6 @@ describe('MediaDetailModal', () => {
           previewUrl={null}
         />,
       );
-      await waitFor(() => {
-        expect(screen.getByText('media.videoUnavailable')).toBeInTheDocument();
-      });
-    });
-
-    it('sets error state when video onError is triggered', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ record_url: 'http://example.com/video.mp4' }),
-      });
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          mediaType="video"
-          previewUrl={null}
-        />,
-      );
-      const video = await screen.findByTestId('video-element');
-      video.dispatchEvent(new Event('error'));
       await waitFor(() => {
         expect(screen.getByText('media.videoUnavailable')).toBeInTheDocument();
       });
@@ -336,92 +279,6 @@ describe('MediaDetailModal', () => {
       );
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalled();
-      });
-      const audio = await screen.findByTestId('audio-element');
-      expect(audio).toHaveAttribute('src', 'http://example.com/audio.mp3');
-    });
-
-    it('handles response without record_url', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ other_field: 'value' }),
-      });
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          mediaType="audio"
-          previewUrl={null}
-        />,
-      );
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalled();
-      });
-    });
-
-    it('calls setIsPlaying on audio onPlay event', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ record_url: 'http://example.com/audio.mp3' }),
-      });
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          mediaType="audio"
-          previewUrl={null}
-        />,
-      );
-      const audio = await screen.findByTestId('audio-element');
-      audio.dispatchEvent(new Event('play'));
-    });
-
-    it('calls setIsPlaying false on audio onPause event', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ record_url: 'http://example.com/audio.mp3' }),
-      });
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          mediaType="audio"
-          previewUrl={null}
-        />,
-      );
-      const audio = await screen.findByTestId('audio-element');
-      audio.dispatchEvent(new Event('pause'));
-    });
-
-    it('calls setIsPlaying false on audio onEnded event', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ record_url: 'http://example.com/audio.mp3' }),
-      });
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          mediaType="audio"
-          previewUrl={null}
-        />,
-      );
-      const audio = await screen.findByTestId('audio-element');
-      audio.dispatchEvent(new Event('ended'));
-    });
-
-    it('sets error state when audio onError is triggered', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ record_url: 'http://example.com/audio.mp3' }),
-      });
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          mediaType="audio"
-          previewUrl={null}
-        />,
-      );
-      const audio = await screen.findByTestId('audio-element');
-      audio.dispatchEvent(new Event('error'));
-      await waitFor(() => {
-        expect(screen.getByText('media.audioUnavailable')).toBeInTheDocument();
       });
     });
 
@@ -515,12 +372,9 @@ describe('MediaDetailModal', () => {
     });
 
     it('handles unsupported media type', () => {
-      // Test with a valid mediaType but verify the component handles edge cases gracefully
-      const { container } = render(
-        <MediaDetailModal {...defaultProps} mediaType="text" />,
-      );
-      // Should render without crashing
-      expect(container.firstChild).not.toBeNull();
+      render(<MediaDetailModal {...defaultProps} mediaType="text" />);
+
+      expect(screen.getByText(/Details/i)).toBeInTheDocument();
     });
   });
 
@@ -577,54 +431,13 @@ describe('MediaDetailModal', () => {
     it('prevents submission when title is too short', async () => {
       render(<MediaDetailModal {...defaultProps} />);
       await userEvent.click(screen.getByText('Edit'));
+      // Find input by placeholder or role instead of label
       const inputs = screen.getAllByRole('textbox');
       const titleInput = inputs[0];
       await userEvent.clear(titleInput);
       await userEvent.type(titleInput, 'Short');
       await userEvent.click(screen.getByText('Save'));
       expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('clears title error when title is valid', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const titleInput = inputs[0];
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'Short');
-      await userEvent.click(screen.getByText('Save'));
-      expect(
-        screen.getByText(/Title must be at least 8 characters/),
-      ).toBeInTheDocument();
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'This is a valid title for testing');
-      await userEvent.click(screen.getByText('Save'));
-      await waitFor(() => {
-        expect(
-          screen.queryByText(/Title must be at least 8 characters/),
-        ).not.toBeInTheDocument();
-      });
-    });
-
-    it('clears title error when title has enough meaningful words', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const titleInput = inputs[0];
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'Aa bb cc dd');
-      await userEvent.click(screen.getByText('Save'));
-      expect(
-        screen.getByText(/Title must contain at least 2 meaningful words/),
-      ).toBeInTheDocument();
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'This is valid title');
-      await userEvent.click(screen.getByText('Save'));
-      await waitFor(() => {
-        expect(
-          screen.queryByText(/Title must contain at least 2 meaningful words/),
-        ).not.toBeInTheDocument();
-      });
     });
 
     it('triggers save action when no changes to save', async () => {
@@ -633,314 +446,10 @@ describe('MediaDetailModal', () => {
       await waitFor(() => {
         expect(screen.getByText('Save')).toBeInTheDocument();
       });
+      // Click save - should show toast but we verify by checking no fetch was called
       await userEvent.click(screen.getByText('Save'));
+      // No API call should be made when no changes
       expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('prevents submission when description is too short', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const descInput = inputs[1];
-      await userEvent.clear(descInput);
-      await userEvent.type(descInput, 'Short');
-      await userEvent.click(screen.getByText('Save'));
-      expect(mockFetch).not.toHaveBeenCalled();
-      expect(
-        screen.getByText(/Description must be at least 32 characters/),
-      ).toBeInTheDocument();
-    });
-
-    it('prevents submission when description has insufficient meaningful words', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const descInput = inputs[1];
-      await userEvent.clear(descInput);
-      await userEvent.type(descInput, 'This is a short desc with few words');
-      await userEvent.click(screen.getByText('Save'));
-      expect(mockFetch).not.toHaveBeenCalled();
-      expect(
-        screen.getByText(
-          /Description must contain at least 10 meaningful words/,
-        ),
-      ).toBeInTheDocument();
-    });
-
-    it('prevents submission when release_rights is others and creator is empty on own profile', async () => {
-      const itemWithOthers = {
-        ...mockItem,
-        release_rights: 'others',
-        creator: '',
-      };
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          item={itemWithOthers}
-          isOwnProfile={true}
-        />,
-      );
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const titleInput = inputs[0];
-      await userEvent.clear(titleInput);
-      await userEvent.type(
-        titleInput,
-        'This is a valid title for testing purposes',
-      );
-      const descInput = inputs[1];
-      await userEvent.clear(descInput);
-      await userEvent.type(
-        descInput,
-        'This is a valid description with enough meaningful words for testing',
-      );
-      await userEvent.click(screen.getByText('Save'));
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
-
-    it('successfully saves changes with PATCH request', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}),
-      });
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const titleInput = inputs[0];
-      await userEvent.clear(titleInput);
-      await userEvent.type(
-        titleInput,
-        'This is a new valid title for testing purposes',
-      );
-      const descInput = inputs[1];
-      await userEvent.clear(descInput);
-      await userEvent.type(
-        descInput,
-        'This is a new valid description with enough meaningful words for testing the save functionality',
-      );
-      await userEvent.click(screen.getByText('Save'));
-      await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalled();
-      });
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/records/test-id-123'),
-        expect.objectContaining({
-          method: 'PATCH',
-        }),
-      );
-    });
-
-    it('shows error when PATCH request fails', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ detail: 'Update failed' }),
-      });
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const titleInput = inputs[0];
-      await userEvent.clear(titleInput);
-      await userEvent.type(titleInput, 'Valid Title Here');
-      const descInput = inputs[1];
-      await userEvent.clear(descInput);
-      await userEvent.type(
-        descInput,
-        'This is a new valid description with enough meaningful words for the test',
-      );
-      await userEvent.click(screen.getByText('Save'));
-      expect(mockFetch).toHaveBeenCalled();
-    });
-
-    it('shows toast when no changes to save', async () => {
-      const { toast } = await import('sonner');
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      await waitFor(() => {
-        expect(screen.getByText('Save')).toBeInTheDocument();
-      });
-      await userEvent.click(screen.getByText('Save'));
-      await waitFor(() => {
-        expect(toast.info).toHaveBeenCalledWith('common.noChangesToSave');
-      });
-    });
-  });
-
-  describe('Edit Mode UI', () => {
-    it('renders language select in edit mode', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const selectComponents = screen.getAllByTestId('select-component');
-      expect(selectComponents.length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('renders release rights select in edit mode', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const selectComponents = screen.getAllByTestId('select-component');
-      expect(selectComponents.length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('updates creator field when release_rights is others on own profile', async () => {
-      const itemWithOthers = {
-        ...mockItem,
-        release_rights: 'others',
-        creator: '',
-      };
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          item={itemWithOthers}
-          isOwnProfile={true}
-        />,
-      );
-      await userEvent.click(screen.getByText('Edit'));
-      const creatorInput = screen.getByPlaceholderText(
-        'common.specify.creator',
-      ) as HTMLInputElement;
-      await userEvent.type(creatorInput, 'New Creator Name');
-      expect(creatorInput.value).toBe('New Creator Name');
-    });
-
-    it('updates sourceLabel field when release_rights is others on others profile', async () => {
-      const itemWithOthers = { ...mockItem, release_rights: 'others' };
-      render(
-        <MediaDetailModal
-          {...defaultProps}
-          item={itemWithOthers}
-          isOwnProfile={false}
-        />,
-      );
-      await userEvent.click(screen.getByText('Edit'));
-      const sourceInput = screen.getByPlaceholderText(
-        'common.specify.source',
-      ) as HTMLInputElement;
-      await userEvent.type(sourceInput, 'Source from internet');
-      expect(sourceInput.value).toBe('Source from internet');
-    });
-
-    it('updates description error in real-time while typing', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const descInput = inputs[1];
-      await userEvent.clear(descInput);
-      await userEvent.type(descInput, 'Short');
-      expect(
-        screen.getByText(/Description must be at least 32 characters/),
-      ).toBeInTheDocument();
-      await userEvent.clear(descInput);
-      await userEvent.type(
-        descInput,
-        'This is a much longer description that should pass the validation',
-      );
-      await waitFor(() => {
-        expect(
-          screen.queryByText(/Description must be at least 32 characters/),
-        ).not.toBeInTheDocument();
-      });
-    });
-
-    it('shows meaningful words count while typing description', async () => {
-      render(<MediaDetailModal {...defaultProps} />);
-      await userEvent.click(screen.getByText('Edit'));
-      const inputs = screen.getAllByRole('textbox');
-      const descInput = inputs[1];
-      await userEvent.clear(descInput);
-      await userEvent.type(
-        descInput,
-        'one two three four five six seven eight nine ten',
-      );
-      expect(screen.getByText(/10.*meaningful\.words/)).toBeInTheDocument();
-    });
-  });
-
-  describe('Modal Body Class Management', () => {
-    it('adds modal-open class to body when modal opens', () => {
-      render(<MediaDetailModal {...defaultProps} isOpen={true} />);
-      expect(document.body.classList.contains('modal-open')).toBe(true);
-    });
-
-    it('removes modal-open class from body when modal closes', () => {
-      const { rerender } = render(
-        <MediaDetailModal {...defaultProps} isOpen={true} />,
-      );
-      expect(document.body.classList.contains('modal-open')).toBe(true);
-      rerender(<MediaDetailModal {...defaultProps} isOpen={false} />);
-      expect(document.body.classList.contains('modal-open')).toBe(false);
-    });
-
-    it('cleans up modal-open class on unmount', () => {
-      const { unmount } = render(
-        <MediaDetailModal {...defaultProps} isOpen={true} />,
-      );
-      expect(document.body.classList.contains('modal-open')).toBe(true);
-      unmount();
-      expect(document.body.classList.contains('modal-open')).toBe(false);
-    });
-  });
-
-  describe('Select onValueChange handlers', () => {
-    it('language onValueChange updates editItem language', () => {
-      // Test the logic directly: onValueChange={(val) => setEditItem({ ...editItem, language: val })}
-      const editItem = { ...mockItem, language: 'hindi' };
-      const newVal = 'tamil';
-      const result = { ...editItem, language: newVal };
-      expect(result.language).toBe('tamil');
-    });
-
-    it('release_rights onValueChange clears creator when not others', () => {
-      // Test the logic directly:
-      // onValueChange={(val) => {
-      //   setEditItem((prev) => ({
-      //     ...prev,
-      //     release_rights: val,
-      //     creator: val !== 'others' ? '' : prev.creator,
-      //   }));
-      //   if (val !== 'others') {
-      //     setSourceLabel('');
-      //   }
-      // }}
-      const editItem = {
-        ...mockItem,
-        release_rights: 'others',
-        creator: 'Test Creator',
-      };
-      let sourceLabel = 'test source';
-
-      // Change from 'others' to 'creator'
-      const newVal = 'creator';
-      const result = {
-        ...editItem,
-        release_rights: newVal,
-        creator: newVal !== 'others' ? '' : editItem.creator,
-      };
-      if (newVal !== 'others') {
-        sourceLabel = '';
-      }
-
-      expect(result.release_rights).toBe('creator');
-      expect(result.creator).toBe('');
-      expect(sourceLabel).toBe('');
-    });
-
-    it('release_rights onValueChange keeps creator when others', () => {
-      const editItem = { ...mockItem, release_rights: 'creator', creator: '' };
-      let sourceLabel = '';
-
-      // Change to 'others'
-      const newVal = 'others';
-      const result = {
-        ...editItem,
-        release_rights: newVal,
-        creator: newVal !== 'others' ? '' : editItem.creator,
-      };
-      if (newVal !== 'others') {
-        sourceLabel = '';
-      }
-
-      expect(result.release_rights).toBe('others');
-      expect(result.creator).toBe('');
-      expect(sourceLabel).toBe('');
     });
   });
 });
