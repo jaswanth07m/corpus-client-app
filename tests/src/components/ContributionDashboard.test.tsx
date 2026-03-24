@@ -1,11 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ContributionDashboard, {
-  DashboardCard,
-  MediaTypeCard,
-} from '../../../src/components/ContributionDashboard';
-import type { ContributionDashboardProps } from '../../../src/components/ContributionDashboard';
+import ContributionDashboard from '../../../src/components/ContributionDashboard';
 
 // Mock i18next
 vi.mock('react-i18next', () => ({
@@ -129,6 +125,16 @@ const mockContributions = {
   audioDuration: 3600,
   videoDuration: 7200,
 };
+
+interface ContributionDashboardProps {
+  dailyStats: typeof mockDailyStats | null;
+  contributions: typeof mockContributions | null;
+  loading: boolean;
+  edits: number;
+  onMediaTypeClick?: (
+    mediaType: 'text' | 'audio' | 'video' | 'image' | 'document',
+  ) => void;
+}
 
 const createMockProps = (
   overrides: Partial<ContributionDashboardProps> = {},
@@ -755,102 +761,6 @@ describe('ContributionDashboard', () => {
 
       const audioCard = screen.getByText('Audio').closest('div');
       expect(audioCard).toBeInTheDocument();
-    });
-  });
-
-  describe('DashboardCard Standalone Component', () => {
-    it('renders DashboardCard with all props', () => {
-      const mockIcon = <svg data-testid="mock-icon" />;
-
-      render(
-        <DashboardCard
-          icon={mockIcon}
-          title="Test Card"
-          value={100}
-          unit="items"
-          color="bg-blue-500"
-        />,
-      );
-
-      expect(screen.getByText('Test Card')).toBeInTheDocument();
-      expect(screen.getByText('100')).toBeInTheDocument();
-      expect(screen.getByText('items')).toBeInTheDocument();
-      expect(screen.getByTestId('mock-icon')).toBeInTheDocument();
-    });
-
-    it('renders DashboardCard without unit', () => {
-      const mockIcon = <svg data-testid="mock-icon" />;
-
-      render(
-        <DashboardCard
-          icon={mockIcon}
-          title="Test Card"
-          value={50}
-          color="bg-green-500"
-        />,
-      );
-
-      expect(screen.getByText('Test Card')).toBeInTheDocument();
-      expect(screen.getByText('50')).toBeInTheDocument();
-      // Unit should not be rendered
-      expect(screen.queryByText('items')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('MediaTypeCard Standalone Component', () => {
-    it('renders MediaTypeCard with duration', () => {
-      const mockIcon = <svg data-testid="mock-icon" />;
-
-      const { container } = render(
-        <MediaTypeCard
-          type="Audio"
-          count={25}
-          duration={3600}
-          icon={mockIcon}
-          color="bg-green-500"
-        />,
-      );
-
-      expect(container.textContent).toContain('Audio');
-      expect(container.textContent).toContain('25');
-      expect(container.textContent).toContain('Contributions');
-      expect(screen.getByTestId('mock-icon')).toBeInTheDocument();
-    });
-
-    it('renders MediaTypeCard without duration', () => {
-      const mockIcon = <svg data-testid="mock-icon" />;
-
-      const { container } = render(
-        <MediaTypeCard
-          type="Text"
-          count={10}
-          icon={mockIcon}
-          color="bg-blue-500"
-        />,
-      );
-
-      expect(container.textContent).toContain('Text');
-      expect(container.textContent).toContain('10');
-      expect(container.textContent).toContain('Contributions');
-      expect(screen.getByTestId('mock-icon')).toBeInTheDocument();
-    });
-
-    it('renders MediaTypeCard with zero duration', () => {
-      const mockIcon = <svg data-testid="mock-icon" />;
-
-      const { container } = render(
-        <MediaTypeCard
-          type="Video"
-          count={5}
-          duration={0}
-          icon={mockIcon}
-          color="bg-purple-500"
-        />,
-      );
-
-      expect(container.textContent).toContain('Video');
-      expect(container.textContent).toContain('5');
-      expect(screen.getByTestId('mock-icon')).toBeInTheDocument();
     });
   });
 

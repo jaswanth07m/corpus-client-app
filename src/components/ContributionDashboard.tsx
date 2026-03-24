@@ -67,8 +67,6 @@ interface ContributionDashboardProps {
   ) => void;
 }
 
-export type { ContributionDashboardProps };
-
 const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   dailyStats,
   contributions,
@@ -413,7 +411,7 @@ interface DashboardCardProps {
   color: string;
 }
 
-export const DashboardCard: React.FC<DashboardCardProps> = ({
+const DashboardCard: React.FC<DashboardCardProps> = ({
   icon,
   title,
   value,
@@ -442,7 +440,7 @@ interface MediaTypeCardProps {
   color: string;
 }
 
-export const MediaTypeCard: React.FC<MediaTypeCardProps> = ({
+const MediaTypeCard: React.FC<MediaTypeCardProps> = ({
   type,
   count,
   duration,
