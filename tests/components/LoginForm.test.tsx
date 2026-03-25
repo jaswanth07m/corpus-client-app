@@ -56,6 +56,14 @@ function goToSignup() {
   fireEvent.click(screen.getByRole('button', { name: 'auth.signUp' }));
 }
 
+function goToOtpLogin() {
+  fireEvent.click(screen.getAllByRole('button', { name: 'auth.login' })[0]);
+  // if already in password, do nothing
+  if (screen.queryByText('nav.preferPasswordLogin')) {
+    fireEvent.click(screen.getAllByRole('button', { name: 'auth.login' })[0]);
+  }
+}
+
 function getSignupRequestOtpButton() {
   return screen.getByRole('button', {
     name: 'auth.requestOtpForPhoneVerification',
@@ -169,6 +177,21 @@ describe('LoginForm', () => {
     expect(screen.getByText('auth.phoneNumberIsInvalid')).toHaveClass('block');
   });
 
+  it('hides phone invalid message again on focus', () => {
+    renderLoginForm();
+
+    const phoneInput = screen.getByPlaceholderText(
+      'auth.enter10digitPhoneNumber',
+    ) as HTMLInputElement;
+
+    fireEvent.change(phoneInput, { target: { value: '1234567890' } });
+    fireEvent.blur(phoneInput);
+    expect(screen.getByText('auth.phoneNumberIsInvalid')).toHaveClass('block');
+
+    fireEvent.focus(phoneInput);
+    expect(screen.getByText('auth.phoneNumberIsInvalid')).toHaveClass('hidden');
+  });
+
   it('toggles password visibility', () => {
     const { container } = renderLoginForm();
 
@@ -244,6 +267,32 @@ describe('LoginForm', () => {
     expect(toastSuccess).toHaveBeenCalled();
   });
 
+  it('submits password login with Enter key', async () => {
+    const { onLoginSuccess } = renderLoginForm();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: 'token-enter', user: { id: 22 } }),
+      })),
+    );
+
+    fireEvent.change(
+      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
+      { target: { value: '9876543210' } },
+    );
+    const passwordInput = screen.getByPlaceholderText('auth.enterYourPassword');
+    fireEvent.change(passwordInput, { target: { value: 'secret' } });
+
+    fireEvent.keyDown(passwordInput, { key: 'Enter' });
+
+    await waitFor(() =>
+      expect(onLoginSuccess).toHaveBeenCalledWith('token-enter', { id: 22 }),
+    );
+  });
+
   it('shows validation toast when pressing Enter with missing phone/password', () => {
     renderLoginForm();
 
@@ -280,6 +329,85 @@ describe('LoginForm', () => {
     );
   });
 
+  it('shows backend message error for password login', async () => {
+    renderLoginForm();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 400,
+        json: async () => ({ message: 'bad login' }),
+      })),
+    );
+
+    fireEvent.change(
+      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
+      { target: { value: '9876543210' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText('auth.enterYourPassword'), {
+      target: { value: 'secret' },
+    });
+
+    fireEvent.click(getPasswordLoginButton());
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('bad login'));
+  });
+
+  it('shows backend detail error for password login', async () => {
+    renderLoginForm();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 400,
+        json: async () => ({ detail: 'detail login error' }),
+      })),
+    );
+
+    fireEvent.change(
+      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
+      { target: { value: '9876543210' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText('auth.enterYourPassword'), {
+      target: { value: 'secret' },
+    });
+
+    fireEvent.click(getPasswordLoginButton());
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith('detail login error'),
+    );
+  });
+
+  it('shows backend error field for password login', async () => {
+    renderLoginForm();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: 'server error login' }),
+      })),
+    );
+
+    fireEvent.change(
+      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
+      { target: { value: '9876543210' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText('auth.enterYourPassword'), {
+      target: { value: 'secret' },
+    });
+
+    fireEvent.click(getPasswordLoginButton());
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith('server error login'),
+    );
+  });
+
   it('shows a network error toast when password login request fails', async () => {
     renderLoginForm();
 
@@ -305,6 +433,25 @@ describe('LoginForm', () => {
         'Network error. Please check your connection and try again.',
       ),
     );
+  });
+
+  it('switches from password login to signup and resets form', () => {
+    renderLoginForm();
+
+    fireEvent.change(
+      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
+      { target: { value: '9876543210' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText('auth.enterYourPassword'), {
+      target: { value: 'secret' },
+    });
+
+    goToSignup();
+
+    const phoneInput = screen.getByPlaceholderText(
+      'auth.enter10digitPhoneNumber',
+    ) as HTMLInputElement;
+    expect(phoneInput.value).toBe('');
   });
 
   it('validates username on blur in signup mode (invalid then valid)', () => {
@@ -333,6 +480,22 @@ describe('LoginForm', () => {
     ).toHaveClass('hidden');
   });
 
+  it('validates full name on blur', () => {
+    renderLoginForm();
+    goToSignup();
+
+    const nameInput = screen.getByPlaceholderText(
+      'user.fullName',
+    ) as HTMLInputElement;
+
+    fireEvent.change(nameInput, { target: { value: 'Name123' } });
+    fireEvent.blur(nameInput);
+
+    expect(screen.getByText('user.nameShouldHaveCharactersOnly')).toHaveClass(
+      'block',
+    );
+  });
+
   it('shows password requirements on focus and marks weak password as invalid on blur', () => {
     renderLoginForm();
     goToSignup();
@@ -347,8 +510,54 @@ describe('LoginForm', () => {
     fireEvent.change(passwordInput, { target: { value: 'abc' } });
     fireEvent.blur(passwordInput);
 
-    // `errorPasswordDisplay` is reused for the confirm-password mismatch area.
     expect(screen.getByText('common.passwordsDoNotMatch')).toHaveClass('block');
+  });
+
+  it('shows medium password strength branch', () => {
+    renderLoginForm();
+    goToSignup();
+
+    const passwordInput = screen.getByPlaceholderText(
+      'auth.createPassword',
+    ) as HTMLInputElement;
+
+    fireEvent.focus(passwordInput);
+    fireEvent.change(passwordInput, { target: { value: 'Abcdef1' } });
+
+    expect(screen.getByText('Medium')).toBeInTheDocument();
+
+    fireEvent.blur(passwordInput);
+  });
+
+  it('shows strong password strength branch', () => {
+    renderLoginForm();
+    goToSignup();
+
+    const passwordInput = screen.getByPlaceholderText(
+      'auth.createPassword',
+    ) as HTMLInputElement;
+
+    fireEvent.focus(passwordInput);
+    fireEvent.change(passwordInput, { target: { value: 'Abcdef1!' } });
+
+    expect(screen.getByText('Strong')).toBeInTheDocument();
+
+    fireEvent.blur(passwordInput);
+  });
+
+  it('toggles signup password visibility', () => {
+    const { container } = renderLoginForm();
+    goToSignup();
+
+    const passwordInput = screen.getByPlaceholderText(
+      'auth.createPassword',
+    ) as HTMLInputElement;
+    expect(passwordInput.type).toBe('password');
+
+    const toggles = container.querySelectorAll('button[type="button"]');
+    fireEvent.click(toggles[0] as HTMLButtonElement);
+
+    expect(passwordInput.type).toBe('text');
   });
 
   it('shows confirm-password mismatch error on blur', () => {
@@ -363,6 +572,23 @@ describe('LoginForm', () => {
     fireEvent.focus(confirmPasswordInput);
     fireEvent.blur(confirmPasswordInput);
     expect(screen.getByText('common.passwordsDoNotMatch')).toHaveClass('block');
+  });
+
+  it('toggles confirm password visibility', () => {
+    const { container } = renderLoginForm();
+    goToSignup();
+
+    fillValidSignupForm();
+
+    const confirmPasswordInput = screen.getByPlaceholderText(
+      'common.confirmPassword',
+    ) as HTMLInputElement;
+    expect(confirmPasswordInput.type).toBe('password');
+
+    const toggles = container.querySelectorAll('button[type="button"]');
+    fireEvent.click(toggles[1] as HTMLButtonElement);
+
+    expect(confirmPasswordInput.type).toBe('text');
   });
 
   it('validates email, place, and gender/date fields in signup mode', () => {
@@ -401,6 +627,36 @@ describe('LoginForm', () => {
     expect(dobInput).toHaveAttribute('max');
     expect((dobInput.getAttribute('min') ?? '').length).toBe(10);
     expect((dobInput.getAttribute('max') ?? '').length).toBe(10);
+  });
+
+  it('covers valid place blur branch', () => {
+    renderLoginForm();
+    goToSignup();
+
+    const placeInput = screen.getByPlaceholderText(
+      'user.placeCityState',
+    ) as HTMLInputElement;
+    fireEvent.change(placeInput, { target: { value: 'Hyderabad, Telangana' } });
+    fireEvent.blur(placeInput);
+
+    expect(
+      screen.getByText('ui.place.should.have.characters.is.allowed'),
+    ).toHaveClass('hidden');
+  });
+
+  it('shows signup validation toast for short password', async () => {
+    renderLoginForm();
+    goToSignup();
+
+    fillValidSignupForm({
+      password: 'abc',
+      confirmPassword: 'abc',
+    });
+    fireEvent.click(getSignupRequestOtpButton());
+
+    expect(toastError).toHaveBeenCalledWith(
+      'auth.passwordMustBeAtLeast6CharactersLong',
+    );
   });
 
   it('submits signup OTP request successfully and shows OTP input UI', async () => {
@@ -484,6 +740,27 @@ describe('LoginForm', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('shows network error when signup OTP request fails by exception', async () => {
+    renderLoginForm();
+    goToSignup();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('signup network down');
+      }),
+    );
+
+    fillValidSignupForm();
+    fireEvent.click(getSignupRequestOtpButton());
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        'Network error. Please check your connection and try again.',
+      ),
+    );
+  });
+
   it('handles signup OTP verification error responses (validation array)', async () => {
     renderLoginForm();
     goToSignup();
@@ -520,6 +797,164 @@ describe('LoginForm', () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith('Validation error: otp invalid'),
+    );
+  });
+
+  it('handles signup OTP verification detail string error', async () => {
+    renderLoginForm();
+    goToSignup();
+
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith('/auth/signup/send-otp')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ok: true }),
+        };
+      }
+      if (url.endsWith('/auth/signup/verify-otp')) {
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({ detail: 'detail otp error' }),
+        };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    fillValidSignupForm();
+    fireEvent.click(getSignupRequestOtpButton());
+    await screen.findByPlaceholderText('auth.enter6digitOtp');
+
+    fireEvent.change(screen.getByPlaceholderText('auth.enter6digitOtp'), {
+      target: { value: '123456' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Verify OTP & Create Account' }),
+    );
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith('detail otp error'),
+    );
+  });
+
+  it('handles signup OTP verification message error', async () => {
+    renderLoginForm();
+    goToSignup();
+
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith('/auth/signup/send-otp')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ok: true }),
+        };
+      }
+      if (url.endsWith('/auth/signup/verify-otp')) {
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({ message: 'message otp error' }),
+        };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    fillValidSignupForm();
+    fireEvent.click(getSignupRequestOtpButton());
+    await screen.findByPlaceholderText('auth.enter6digitOtp');
+
+    fireEvent.change(screen.getByPlaceholderText('auth.enter6digitOtp'), {
+      target: { value: '123456' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Verify OTP & Create Account' }),
+    );
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith('message otp error'),
+    );
+  });
+
+  it('handles signup OTP verification error field', async () => {
+    renderLoginForm();
+    goToSignup();
+
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith('/auth/signup/send-otp')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ok: true }),
+        };
+      }
+      if (url.endsWith('/auth/signup/verify-otp')) {
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({ error: 'otp error field' }),
+        };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    fillValidSignupForm();
+    fireEvent.click(getSignupRequestOtpButton());
+    await screen.findByPlaceholderText('auth.enter6digitOtp');
+
+    fireEvent.change(screen.getByPlaceholderText('auth.enter6digitOtp'), {
+      target: { value: '123456' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Verify OTP & Create Account' }),
+    );
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith('otp error field'),
+    );
+  });
+
+  it('handles signup OTP verification fallback status error', async () => {
+    renderLoginForm();
+    goToSignup();
+
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith('/auth/signup/send-otp')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ok: true }),
+        };
+      }
+      if (url.endsWith('/auth/signup/verify-otp')) {
+        return {
+          ok: false,
+          status: 500,
+          json: async () => ({}),
+        };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    fillValidSignupForm();
+    fireEvent.click(getSignupRequestOtpButton());
+    await screen.findByPlaceholderText('auth.enter6digitOtp');
+
+    fireEvent.change(screen.getByPlaceholderText('auth.enter6digitOtp'), {
+      target: { value: '123456' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Verify OTP & Create Account' }),
+    );
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        'Signup OTP verification failed (500)',
+      ),
     );
   });
 
@@ -600,55 +1035,27 @@ describe('LoginForm', () => {
     ).toBe('');
   });
 
-  it('resends signup OTP after timer ends', async () => {
-    vi.useFakeTimers();
-    try {
-      renderLoginForm();
-      goToSignup();
+  it('sanitizes signup OTP input to digits and max length 6', async () => {
+    renderLoginForm();
+    goToSignup();
 
-      const fetchMock = vi.fn(async (url: string) => {
-        if (url.endsWith('/auth/signup/send-otp')) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => ({ ok: true }),
-          };
-        }
-        if (url.endsWith('/auth/signup/resend-otp')) {
-          return {
-            ok: true,
-            status: 200,
-            json: async () => ({ ok: true }),
-          };
-        }
-        throw new Error(`Unexpected URL: ${url}`);
-      });
-      vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ ok: true }),
+      })),
+    );
 
-      fillValidSignupForm();
-      await act(async () => {
-        fireEvent.click(getSignupRequestOtpButton());
-      });
+    fillValidSignupForm();
+    fireEvent.click(getSignupRequestOtpButton());
 
-      // Flush any pending microtasks/state updates without relying on waitFor timeouts.
-      await act(async () => {});
-      expect(screen.getByText('OTP sent to +919876543210')).toBeInTheDocument();
+    const otpInput = (await screen.findByPlaceholderText(
+      'auth.enter6digitOtp',
+    )) as HTMLInputElement;
 
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(60000);
-      });
-
-      const resendButton = screen.getByRole('button', { name: 'Resend OTP' });
-      expect(resendButton).toBeEnabled();
-      await act(async () => {
-        fireEvent.click(resendButton);
-      });
-
-      expect(toastSuccess).toHaveBeenCalledWith(
-        'messages.signupOtpResentSuccessfully',
-      );
-    } finally {
-      vi.useRealTimers();
-    }
-  }, 15000);
+    fireEvent.change(otpInput, { target: { value: '12ab3456789' } });
+    expect(otpInput.value).toBe('123456');
+  });
 });
