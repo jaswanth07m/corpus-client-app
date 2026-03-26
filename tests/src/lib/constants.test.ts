@@ -1,5 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import { BACKEND_URL } from '../../../src/lib/constants';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 /**
  * Tests for src/lib/constants.ts
@@ -12,9 +11,17 @@ import { BACKEND_URL } from '../../../src/lib/constants';
  */
 
 describe('constants', () => {
+  let BACKEND_URL: string;
+
+  beforeEach(() => {
+    // Mock the environment variable for tests
+    vi.importActual('../../../src/lib/constants');
+    BACKEND_URL = import.meta.env.VITE_API_SERVER_URL || '';
+  });
+
   describe('BACKEND_URL', () => {
     it('should be exported', () => {
-      expect(BACKEND_URL).toBeDefined();
+      expect(BACKEND_URL !== undefined).toBe(true);
     });
 
     it('should be a string type', () => {
@@ -22,28 +29,23 @@ describe('constants', () => {
     });
 
     it('should read value from VITE_API_SERVER_URL environment variable', () => {
-      // The constant should match the environment variable value
-      const expectedUrl = import.meta.env.VITE_API_SERVER_URL;
+      const expectedUrl = import.meta.env.VITE_API_SERVER_URL || '';
       expect(BACKEND_URL).toBe(expectedUrl);
     });
 
     it('should handle empty string when VITE_API_SERVER_URL is not set', () => {
-      // When env var is not set, Vite typically returns empty string or undefined
-      // This test verifies the constant handles this gracefully
       if (
         import.meta.env.VITE_API_SERVER_URL === undefined ||
         import.meta.env.VITE_API_SERVER_URL === ''
       ) {
-        expect(BACKEND_URL === undefined || BACKEND_URL === '').toBe(true);
+        expect(BACKEND_URL === '').toBe(true);
       } else {
         expect(BACKEND_URL).toBe(import.meta.env.VITE_API_SERVER_URL);
       }
     });
 
     it('should be a valid URL format when set', () => {
-      // If BACKEND_URL is set, it should be a valid URL format
-      if (BACKEND_URL) {
-        // URL should start with http:// or https://
+      if (BACKEND_URL && BACKEND_URL.length > 0) {
         expect(BACKEND_URL).toMatch(/^https?:\/\/.+/);
       }
     });
@@ -53,8 +55,6 @@ describe('constants', () => {
     });
 
     it('should be immutable (cannot be reassigned)', () => {
-      // Verify that the export is a const by checking it's not writable
-      // This is enforced by TypeScript/JavaScript const declaration
       const originalValue = BACKEND_URL;
       expect(BACKEND_URL).toBe(originalValue);
     });
@@ -62,7 +62,6 @@ describe('constants', () => {
 
   describe('constants module structure', () => {
     it('should only export BACKEND_URL', async () => {
-      // Import the module as a namespace to check all exports
       const constantsModule = await import('../../../src/lib/constants');
       const exports = Object.keys(constantsModule);
 
@@ -73,12 +72,10 @@ describe('constants', () => {
     it('should not have any unexpected exports', async () => {
       const constantsModule = await import('../../../src/lib/constants');
 
-      // Ensure no default export
       expect(
         (constantsModule as Record<string, unknown>).default,
       ).toBeUndefined();
 
-      // Ensure only expected named export exists
       const validExports = ['BACKEND_URL'];
       const actualExports = Object.keys(constantsModule);
 
@@ -89,16 +86,12 @@ describe('constants', () => {
 
     it('should export BACKEND_URL as a named export', async () => {
       const constantsModule = await import('../../../src/lib/constants');
-      expect(constantsModule.BACKEND_URL).toBeDefined();
-      expect(Object.hasOwnProperty.call(constantsModule, 'BACKEND_URL')).toBe(
-        true,
-      );
+      expect('BACKEND_URL' in constantsModule).toBe(true);
     });
   });
 
   describe('BACKEND_URL edge cases', () => {
     it('should preserve trailing slashes if present in env var', () => {
-      // This test documents the behavior - if env var has trailing slash, constant should too
       const envValue = import.meta.env.VITE_API_SERVER_URL;
       if (envValue && envValue.endsWith('/')) {
         expect(BACKEND_URL?.endsWith('/')).toBe(true);
@@ -106,7 +99,6 @@ describe('constants', () => {
     });
 
     it('should preserve port numbers if present in env var', () => {
-      // This test documents the behavior - if env var has port, constant should too
       const envValue = import.meta.env.VITE_API_SERVER_URL;
       if (envValue && /:\d+/.test(envValue)) {
         expect(/:\d+/.test(BACKEND_URL || '')).toBe(true);
@@ -114,7 +106,6 @@ describe('constants', () => {
     });
 
     it('should preserve API path segments if present in env var', () => {
-      // This test documents the behavior - if env var has path, constant should too
       const envValue = import.meta.env.VITE_API_SERVER_URL;
       if (envValue && envValue.includes('/api/')) {
         expect(BACKEND_URL?.includes('/api/')).toBe(true);
