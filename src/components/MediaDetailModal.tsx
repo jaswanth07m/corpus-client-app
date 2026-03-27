@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Loader2,
@@ -123,7 +123,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     s.split(' ').filter((w) => w.trim().length > 2).length;
 
   // Function to fetch media URL on demand
-  const fetchMediaUrl = useCallback(async () => {
+  const fetchMediaUrl = async () => {
     if (!isOpen || mediaUrl) return; // Don't fetch if modal is closed or already have URL
 
     setLoading(true);
@@ -154,7 +154,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [isOpen, mediaUrl, item.id, token]);
+  };
 
   // Fetch media URL only when needed for audio, document, and video types
   useEffect(() => {
@@ -167,7 +167,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     ) {
       fetchMediaUrl();
     }
-  }, [isOpen, previewUrl, mediaType, fetchMediaUrl]);
+  }, [isOpen, previewUrl, mediaType, item.id, token]);
 
   if (!isOpen) return null;
 
@@ -230,7 +230,6 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                 controls
                 className="w-full h-full object-contain bg-black"
                 onError={() => setError(true)}
-                data-testid="video-element"
               />
             )}
             {!loading && !error && !mediaUrl && (
@@ -314,7 +313,6 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   onPause={() => setIsPlaying(false)}
                   onEnded={() => setIsPlaying(false)}
                   onError={() => setError(true)}
-                  data-testid="audio-element"
                 />
               </div>
             )}
