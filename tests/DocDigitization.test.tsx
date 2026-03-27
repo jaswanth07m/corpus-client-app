@@ -65,6 +65,26 @@ interface MockResponse {
   json: () => Promise<unknown>;
 }
 
+// Mock localStorage for JSDOM environment
+const localStorageMock = {
+  store: {} as Record<string, string>,
+  clear: () => {
+    localStorageMock.store = {};
+  },
+  getItem: (key: string) => localStorageMock.store[key] || null,
+  setItem: (key: string, value: string) => {
+    localStorageMock.store[key] = value;
+  },
+  removeItem: (key: string) => {
+    delete localStorageMock.store[key];
+  },
+};
+
+Object.defineProperty(global, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
+
 describe('DocDigitization', () => {
   beforeEach(() => {
     vi.clearAllMocks();
