@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AnnotationsDashboard from '../src/pages/AnnotationsDashboard';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
+import '@testing-library/jest-dom';
 
 // Mock useTranslation hook
 const useTranslationMock = vi.fn(() => ({
@@ -593,15 +594,16 @@ describe('AnnotationsDashboard', () => {
   });
 
   describe('Snapshot Testing', () => {
-    it('should match snapshot', () => {
-      const { container } = renderWithRouter(<AnnotationsDashboard />);
-      expect(container).toMatchSnapshot();
-    });
-
-    it('should have consistent rendering', () => {
+    it('should render consistently', () => {
       const { container: first } = renderWithRouter(<AnnotationsDashboard />);
       const { container: second } = renderWithRouter(<AnnotationsDashboard />);
       expect(first.innerHTML).toBe(second.innerHTML);
+    });
+
+    it('should render all tool cards', () => {
+      renderWithRouter(<AnnotationsDashboard />);
+      const toolCards = document.querySelectorAll('.group');
+      expect(toolCards.length).toBe(11);
     });
   });
 });

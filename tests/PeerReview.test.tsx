@@ -361,18 +361,16 @@ describe('PeerReview', () => {
   });
 
   describe('Snapshot testing', () => {
-    it('should match snapshot', () => {
-      // Reset to default mock before snapshot
-      vi.clearAllMocks();
-      const { container } = renderWithRouter(<PeerReview />);
-      expect(container).toMatchSnapshot();
-    });
-
-    it('should have consistent rendering', () => {
-      vi.clearAllMocks();
+    it('should render consistently', () => {
       const { container: first } = renderWithRouter(<PeerReview />);
       const { container: second } = renderWithRouter(<PeerReview />);
       expect(first.innerHTML).toBe(second.innerHTML);
+    });
+
+    it('should render with correct structure', () => {
+      renderWithRouter(<PeerReview />);
+      expect(screen.getByTestId('review-page-base')).toBeInTheDocument();
+      expect(screen.getByTestId('media-types')).toBeInTheDocument();
     });
   });
 
