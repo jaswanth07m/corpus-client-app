@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import { Toaster, toast } from '@/components/ui/sonner';
+import { Toaster, toast } from '../../../../src/components/ui/sonner';
 import { useTheme } from 'next-themes';
 
 // Mock next-themes
 vi.mock('next-themes', () => ({
-  useTheme: vi.fn(),
+  useTheme: vi.fn().mockReturnValue({
+    theme: 'system',
+    setTheme: vi.fn(),
+    themes: [],
+  }),
 }));
 
 // Mock sonner
@@ -37,7 +42,11 @@ describe('Sonner Toaster', () => {
 
   describe('Rendering', () => {
     it('renders Sonner Toaster with default theme', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -47,7 +56,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('renders Sonner Toaster with light theme', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'light' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'light',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -57,7 +70,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('renders Sonner Toaster with dark theme', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'dark' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'dark',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -67,7 +84,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('renders with default className "toaster group"', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -76,7 +97,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('renders with custom className', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster className="custom-toaster" />);
 
@@ -85,7 +110,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('merges custom className with default className', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster className="custom-class" />);
 
@@ -96,7 +125,11 @@ describe('Sonner Toaster', () => {
 
   describe('Toast Options', () => {
     it('passes toastOptions with custom classNames', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -113,7 +146,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('toast classNames contains expected Tailwind classes', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -139,7 +176,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('description classNames contains expected Tailwind classes', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -154,7 +195,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('actionButton classNames contains expected Tailwind classes', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -169,7 +214,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('cancelButton classNames contains expected Tailwind classes', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -186,7 +235,11 @@ describe('Sonner Toaster', () => {
 
   describe('Props Forwarding', () => {
     it('forwards additional props to Sonner', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster position="top-center" duration={5000} />);
 
@@ -195,7 +248,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('forwards richColors prop', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster richColors />);
 
@@ -204,7 +261,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('forwards visibleToasts prop', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster visibleToasts={5} />);
 
@@ -213,7 +274,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('forwards closeButton prop', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster closeButton />);
 
@@ -222,7 +287,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('forwards multiple props together', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'system' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(
         <Toaster
@@ -241,7 +310,11 @@ describe('Sonner Toaster', () => {
 
   describe('Theme Handling', () => {
     it('uses system theme when theme is undefined', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: undefined });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: undefined,
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(<Toaster />);
 
@@ -250,14 +323,22 @@ describe('Sonner Toaster', () => {
     });
 
     it('handles theme change', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'light' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'light',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       const { rerender } = render(<Toaster />);
 
       let toaster = screen.getByTestId('sonner-toaster');
       expect(toaster).toHaveAttribute('data-theme', 'light');
 
-      vi.mocked(useTheme).mockReturnValue({ theme: 'dark' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'dark',
+        setTheme: vi.fn(),
+        themes: [],
+      });
       rerender(<Toaster />);
 
       toaster = screen.getByTestId('sonner-toaster');
@@ -309,7 +390,11 @@ describe('Sonner Toaster', () => {
 
   describe('Edge Cases', () => {
     it('handles empty theme object', () => {
-      vi.mocked(useTheme).mockReturnValue({} as ReturnType<typeof useTheme>);
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'system',
+        setTheme: vi.fn(),
+        themes: [],
+      } as ReturnType<typeof useTheme>);
 
       render(<Toaster />);
 
@@ -318,7 +403,11 @@ describe('Sonner Toaster', () => {
     });
 
     it('renders with all props combined', () => {
-      vi.mocked(useTheme).mockReturnValue({ theme: 'dark' });
+      vi.mocked(useTheme).mockReturnValue({
+        theme: 'dark',
+        setTheme: vi.fn(),
+        themes: [],
+      });
 
       render(
         <Toaster
@@ -340,6 +429,8 @@ describe('Sonner Toaster', () => {
     it('handles null theme gracefully', () => {
       vi.mocked(useTheme).mockReturnValue({
         theme: null,
+        setTheme: vi.fn(),
+        themes: [],
       } as ReturnType<typeof useTheme>);
 
       render(<Toaster />);
