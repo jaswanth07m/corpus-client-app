@@ -15,9 +15,9 @@ vi.mock('next-themes', () => ({
 
 // Mock sonner
 vi.mock('sonner', async () => {
-  const actual = await vi.importActual('sonner');
+  const actual = await vi.importActual<typeof import('sonner')>('sonner');
   return {
-    ...(actual as object),
+    ...actual,
     Toaster: vi.fn(({ className, theme, toastOptions }) => (
       <div
         data-testid="sonner-toaster"
@@ -394,7 +394,7 @@ describe('Sonner Toaster', () => {
         theme: 'system',
         setTheme: vi.fn(),
         themes: [],
-      } as ReturnType<typeof useTheme>);
+      } as unknown as ReturnType<typeof useTheme>);
 
       render(<Toaster />);
 
@@ -428,10 +428,10 @@ describe('Sonner Toaster', () => {
 
     it('handles null theme gracefully', () => {
       vi.mocked(useTheme).mockReturnValue({
-        theme: null,
+        theme: undefined,
         setTheme: vi.fn(),
         themes: [],
-      } as ReturnType<typeof useTheme>);
+      } as unknown as ReturnType<typeof useTheme>);
 
       render(<Toaster />);
 
