@@ -486,7 +486,8 @@
     "capturedPhoto": "Captured photo",
     "audioTrack": "Audio Track",
     "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
-    "imageUrl": "Image URL"
+    "imageUrl": "Image URL",
+    "enterRecordId": "Enter Record ID"
   },
   "stats": {
     "contributionsYet": "contributions yet.",

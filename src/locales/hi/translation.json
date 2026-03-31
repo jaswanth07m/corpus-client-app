@@ -486,7 +486,8 @@
     "capturedPhoto": "कैप्चर की गई फ़ोटो",
     "audioTrack": "ऑडियो ट्रैक",
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
-    "imageUrl": "छवि URL"
+    "imageUrl": "छवि URL",
+    "enterRecordId": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",

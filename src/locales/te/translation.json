@@ -486,7 +486,8 @@
     "capturedPhoto": "క్యాప్చర్ చేయబడిన ఫోటో",
     "audioTrack": "ఆడియో ట్రాక్",
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
-    "imageUrl": "ఇమేజ్ URL"
+    "imageUrl": "ఇమేజ్ URL",
+    "enterRecordId": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",

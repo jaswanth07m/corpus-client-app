@@ -104,6 +104,8 @@ function DocDigitization() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchRecordId, setSearchRecordId] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
@@ -211,32 +213,123 @@ function DocDigitization() {
   }, []);
 
   const currentPageSegments = getCurrentPageSegments();
-  const currentSegment = currentPageSegments[currentSegmentIndex];
-
-  const textAreaProps = isTeluguTypingEnabled
-    ? {
-        ...inputProps,
-        value: value,
-        onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          const newValue = e.target.value;
-          handleSegmentChange(currentSegmentIndex, newValue);
-        },
-      }
-    : {
-        value: currentSegment?.text || '',
-        onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-          handleSegmentChange(currentSegmentIndex, e.target.value),
-      };
-
-  const navigateToSegment = (segmentIndex: number) => {
-    saveCurrentPageText();
-    setCurrentSegmentIndex(segmentIndex);
-  };
 
   const navigateToPage = (pageNum: number) => {
     saveCurrentPageText();
     setPageNumber(pageNum);
+  };
+
+  async function fetchRecordById(recordId: string) {
+    saveCurrentPageText();
+
+    setIsLoading(true);
+    setError(null);
+    setBookData(null);
+    setRecordId(null);
+    setFullRecordData(null);
+    setPageNumber(1);
     setCurrentSegmentIndex(0);
+    setSegmentsByPage(new Map());
+    setSubmittedPages({});
+    setNumPages(0);
+
+    const token = localStorage.getItem('token');
+    try {
+      const [recordDetailsResponse, recordUrlResponse, recordTextResponse] =
+        await Promise.all([
+          fetch(`${BACKEND_URL}/records/${recordId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${BACKEND_URL}/records/${recordId}/record-url`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${BACKEND_URL}/records/${recordId}/text`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+      if (!recordDetailsResponse.ok) {
+        if (recordDetailsResponse.status === 404) {
+          throw new Error(`Record with ID "${recordId}" not found.`);
+        }
+        throw new Error(
+          `Failed to fetch record details. Status: ${recordDetailsResponse.status}`,
+        );
+      }
+      if (!recordUrlResponse.ok) {
+        throw new Error(
+          `Failed to fetch record URL. Status: ${recordUrlResponse.status}`,
+        );
+      }
+
+      const recordDetails =
+        (await recordDetailsResponse.json()) as RecordDetails;
+      const urlData = await recordUrlResponse.json();
+      const recordTextData = recordTextResponse.ok
+        ? ((await recordTextResponse.json()) as ExtractedTextResponse)
+        : null;
+
+      setFullRecordData(recordDetails);
+      setRecordId(recordId);
+
+      const pdfUrl =
+        urlData.url || urlData.signedUrl || urlData.record_url || urlData.link;
+
+      if (!pdfUrl || typeof pdfUrl !== 'string' || pdfUrl.trim() === '') {
+        throw new Error('Could not find a valid URL in the API response.');
+      }
+
+      const segments =
+        recordTextData?.segments ||
+        recordDetails.extracted_text?.segments ||
+        [];
+
+      if (segments.length === 0) {
+        throw new Error('No segments found in the record.');
+      }
+
+      const groupedSegments = groupSegmentsByPage(segments);
+      const totalPages = groupedSegments.size;
+
+      const initialSubmittedPages: Record<number, boolean> = {};
+      segments.forEach((segment) => {
+        const pageNum = segment.start + 1;
+        if (segment.proofread) {
+          initialSubmittedPages[pageNum] = true;
+        }
+      });
+
+      setBookData({
+        pdfUrl,
+        metadata: {
+          title: recordDetails.title,
+          language: recordDetails.language,
+          author: recordDetails.author,
+          source: recordDetails.source,
+        },
+      });
+      setSegmentsByPage(groupedSegments);
+      setSubmittedPages(initialSubmittedPages);
+      setNumPages(totalPages);
+    } catch (err) {
+      const error = err as Error;
+      console.error('An error occurred in fetchRecordById:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleSearchRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchRecordId.trim()) {
+      setError('Please enter a record ID.');
+      return;
+    }
+    setIsSearching(true);
+    fetchRecordById(searchRecordId.trim()).finally(() => {
+      setIsSearching(false);
+    });
   };
 
   async function fetchNextRecord() {
@@ -474,13 +567,37 @@ function DocDigitization() {
             </div>
           </div>
 
-          <button
-            className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 w-full sm:w-auto"
-            onClick={fetchNextRecord}
-            disabled={isLoading}
-          >
-            {isLoading ? t('common.loading') : t('proofreading.getNextRecord')}
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <form
+              onSubmit={handleSearchRecord}
+              className="flex gap-2 w-full sm:w-auto"
+            >
+              <input
+                type="text"
+                value={searchRecordId}
+                onChange={(e) => setSearchRecordId(e.target.value)}
+                placeholder={t('media.enterRecordId')}
+                className="px-3 py-2 rounded text-gray-900 text-sm w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                disabled={isSearching || isLoading}
+              />
+              <button
+                type="submit"
+                className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 whitespace-nowrap"
+                disabled={isSearching || isLoading || !searchRecordId.trim()}
+              >
+                {isSearching ? t('common.loading') : 'Search'}
+              </button>
+            </form>
+            <button
+              className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 w-full sm:w-auto"
+              onClick={fetchNextRecord}
+              disabled={isLoading || isSearching}
+            >
+              {isLoading
+                ? t('common.loading')
+                : t('proofreading.getNextRecord')}
+            </button>
+          </div>
         </div>
 
         {/* Mobile: Page Numbers - hidden when header is collapsed */}
