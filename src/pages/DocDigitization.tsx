@@ -1,4 +1,5 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
+import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
@@ -7,41 +8,118 @@ import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-// The backend URL from the API documentation
 import { BACKEND_URL } from '@/lib/constants';
 
-// Set up the worker for react-pdf
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+// Type definitions for segment-based OCR
+type Segment = {
+  start: number;
+  end: number;
+  text: string;
+  confidence?: number;
+  proofread?: boolean;
+  bbox?: number[];
+  type?: string;
+  reading_order?: number;
+  originalIndex?: number;
+};
+
+type ExtractedTextResponse = {
+  transcription?: string;
+  confidence?: number;
+  language?: string;
+  extraction_type?: string;
+  quality_score?: number;
+  notes?: string;
+  segments?: Segment[];
+  summary?: string;
+  named_entities?: Record<string, unknown>[];
+  model_name?: string;
+  processing_date?: string;
+  metadata?: Record<string, unknown>;
+};
+
+type RecordDetails = {
+  title?: string;
+  language?: string;
+  author?: string;
+  source?: string;
+  extracted_text?: ExtractedTextResponse;
+};
+
+type BookData = {
+  pdfUrl: string;
+  metadata: {
+    title?: string;
+    language?: string;
+    author?: string;
+    source?: string;
+  };
+};
+
+// Group segments by page (start/end values)
+function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
+  const pageMap = new Map<number, Segment[]>();
+
+  segments.forEach((segment, index) => {
+    const pageNum = segment.start + 1;
+    const segmentWithIndex = { ...segment, originalIndex: index };
+
+    if (!pageMap.has(pageNum)) {
+      pageMap.set(pageNum, []);
+    }
+    pageMap.get(pageNum)!.push(segmentWithIndex);
+  });
+
+  pageMap.forEach((pageSegments) => {
+    pageSegments.sort((a, b) => {
+      if (a.reading_order !== undefined && b.reading_order !== undefined) {
+        return a.reading_order - b.reading_order;
+      }
+      return (a.originalIndex || 0) - (b.originalIndex || 0);
+    });
+  });
+
+  return pageMap;
+}
 
 function DocDigitization() {
   const { t } = useTranslation();
-  const [bookData, setBookData] = useState(null);
-  const [recordId, setRecordId] = useState(null);
-  const [fullRecordData, setFullRecordData] = useState(null); // State to hold the original record
-  const [numPages, setNumPages] = useState(null);
+  const [bookData, setBookData] = useState<BookData | null>(null);
+  const [recordId, setRecordId] = useState<string | null>(null);
+  const [fullRecordData, setFullRecordData] = useState<RecordDetails | null>(
+    null,
+  );
+  const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);
-  const [ocrTexts, setOcrTexts] = useState([]);
-  const [submittedPages, setSubmittedPages] = useState({});
+  const [segmentsByPage, setSegmentsByPage] = useState<Map<number, Segment[]>>(
+    new Map(),
+  );
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
+  const [submittedPages, setSubmittedPages] = useState<Record<number, boolean>>(
+    {},
+  );
   const [zoom, setZoom] = useState(1.0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
   const [hintsVisible, setHintsVisible] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const scrollContainerRef = useRef(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
 
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollContainerRef.current) return;
     setIsDragging(true);
-    // Get initial click position and current scroll position
     setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
     setStartY(e.pageY - scrollContainerRef.current.offsetTop);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
@@ -52,52 +130,74 @@ function DocDigitization() {
     setIsDragging(false);
   };
 
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !scrollContainerRef.current) return;
     e.preventDefault();
 
     const x = e.pageX - scrollContainerRef.current.offsetLeft;
     const y = e.pageY - scrollContainerRef.current.offsetTop;
 
-    // Calculate distance moved
     const walkX = x - startX;
     const walkY = y - startY;
 
-    // Update scroll position
     scrollContainerRef.current.scrollLeft = scrollLeft - walkX;
     scrollContainerRef.current.scrollTop = scrollTop - walkY;
   };
 
-  // Function to save the current page's text before navigating away
+  const getCurrentPageSegments = (): Segment[] => {
+    return segmentsByPage.get(pageNumber) || [];
+  };
+
   const saveCurrentPageText = () => {
     if (isTeluguTypingEnabled && value !== undefined && value !== null) {
-      // When using telugu typing, save the current value to the current page's position
-      const newOcrTexts = [...ocrTexts];
-      newOcrTexts[pageNumber - 1] = value;
-      setOcrTexts(newOcrTexts);
+      setSegmentsByPage((prevMap) => {
+        const newMap = new Map(prevMap);
+        const pageSegments = newMap.get(pageNumber);
+        if (pageSegments && currentSegmentIndex < pageSegments.length) {
+          const updatedSegments = [...pageSegments];
+          updatedSegments[currentSegmentIndex] = {
+            ...updatedSegments[currentSegmentIndex],
+            text: value,
+          };
+          newMap.set(pageNumber, updatedSegments);
+        }
+        return newMap;
+      });
     }
-    // For non-telugu typing, handleOcrTextChange should keep ocrTexts updated as user types
   };
 
   useEffect(() => {
     if (isTeluguTypingEnabled) {
-      const currentPageText = ocrTexts[pageNumber - 1] || '';
-      if (value !== currentPageText) {
-        setValue(currentPageText);
+      const pageSegments = getCurrentPageSegments();
+      const currentSegmentText = pageSegments[currentSegmentIndex]?.text || '';
+      if (value !== currentSegmentText) {
+        setValue(currentSegmentText);
       }
     }
-  }, [ocrTexts, pageNumber, setValue, isTeluguTypingEnabled, value]);
+  }, [
+    segmentsByPage,
+    pageNumber,
+    currentSegmentIndex,
+    setValue,
+    isTeluguTypingEnabled,
+    value,
+  ]);
 
-  const handleTextChange = (newValue) => {
-    // 1. Update the local input state immediately for responsiveness
+  const handleSegmentChange = (segmentIndex: number, newValue: string) => {
     setValue(newValue);
-
-    // 2. Update the main ocrTexts state array
-    if (isTeluguTypingEnabled) {
-      const newOcrTexts = [...ocrTexts];
-      newOcrTexts[pageNumber - 1] = newValue;
-      setOcrTexts(newOcrTexts);
-    }
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        updatedSegments[segmentIndex] = {
+          ...updatedSegments[segmentIndex],
+          text: newValue,
+        };
+        newMap.set(pageNumber, updatedSegments);
+      }
+      return newMap;
+    });
   };
 
   // Reset header timeout ref on unmount to avoid memory leaks
@@ -110,38 +210,48 @@ function DocDigitization() {
     };
   }, []);
 
-  // Update the textAreaProps to ensure changes are properly saved
+  const currentPageSegments = getCurrentPageSegments();
+  const currentSegment = currentPageSegments[currentSegmentIndex];
+
   const textAreaProps = isTeluguTypingEnabled
     ? {
         ...inputProps,
         value: value,
-        onChange: (e) => {
-          // Update the hook's value
+        onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           const newValue = e.target.value;
-          setValue(newValue);
-          // Also update the ocrTexts state to persist the changes
-          const newOcrTexts = [...ocrTexts];
-          newOcrTexts[pageNumber - 1] = newValue;
-          setOcrTexts(newOcrTexts);
+          handleSegmentChange(currentSegmentIndex, newValue);
         },
       }
     : {
-        value: ocrTexts[pageNumber - 1] || '',
-        onChange: handleOcrTextChange,
+        value: currentSegment?.text || '',
+        onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+          handleSegmentChange(currentSegmentIndex, e.target.value),
       };
 
+  const navigateToSegment = (segmentIndex: number) => {
+    saveCurrentPageText();
+    setCurrentSegmentIndex(segmentIndex);
+  };
+
+  const navigateToPage = (pageNum: number) => {
+    saveCurrentPageText();
+    setPageNumber(pageNum);
+    setCurrentSegmentIndex(0);
+  };
+
   async function fetchNextRecord() {
-    // Save current page's text before loading new record
     saveCurrentPageText();
 
     setIsLoading(true);
     setError(null);
     setBookData(null);
     setRecordId(null);
-    setFullRecordData(null); // Reset full record data
+    setFullRecordData(null);
     setPageNumber(1);
-    setOcrTexts([]);
+    setCurrentSegmentIndex(0);
+    setSegmentsByPage(new Map());
     setSubmittedPages({});
+    setNumPages(0);
 
     const token = localStorage.getItem('token');
     try {
@@ -166,18 +276,21 @@ function DocDigitization() {
           'Invalid response format from /next-for-review - expected an array with at least one record',
         );
       }
-      const { record_id } = responseArray[0]; // Get the first record from the array
-      console.log('Fetched Record ID:', record_id);
+      const { record_id } = responseArray[0];
       setRecordId(record_id);
 
-      const [recordDetailsResponse, recordUrlResponse] = await Promise.all([
-        fetch(`${BACKEND_URL}/records/${record_id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${BACKEND_URL}/records/${record_id}/record-url`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const [recordDetailsResponse, recordUrlResponse, recordTextResponse] =
+        await Promise.all([
+          fetch(`${BACKEND_URL}/records/${record_id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${BACKEND_URL}/records/${record_id}/record-url`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${BACKEND_URL}/records/${record_id}/text`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
       if (!recordDetailsResponse.ok) {
         throw new Error(
@@ -190,11 +303,14 @@ function DocDigitization() {
         );
       }
 
-      const recordDetails = await recordDetailsResponse.json();
+      const recordDetails =
+        (await recordDetailsResponse.json()) as RecordDetails;
       const urlData = await recordUrlResponse.json();
+      const recordTextData = recordTextResponse.ok
+        ? ((await recordTextResponse.json()) as ExtractedTextResponse)
+        : null;
 
-      setFullRecordData(recordDetails); // Store the entire original record
-      console.log('Raw response from /records/{id}:', recordDetails);
+      setFullRecordData(recordDetails);
 
       const pdfUrl =
         urlData.url || urlData.signedUrl || urlData.record_url || urlData.link;
@@ -203,19 +319,28 @@ function DocDigitization() {
         throw new Error('Could not find a valid URL in the API response.');
       }
 
-      console.log('Successfully retrieved PDF URL:', pdfUrl);
+      const segments =
+        recordTextData?.segments ||
+        recordDetails.extracted_text?.segments ||
+        [];
 
-      const segments = recordDetails.extracted_text?.segments || [];
-      const initialOcrTexts = segments.map((segment) => segment.text || '');
-      const initialSubmittedPages = {};
-      segments.forEach((segment, index) => {
+      if (segments.length === 0) {
+        throw new Error('No segments found in the record.');
+      }
+
+      const groupedSegments = groupSegmentsByPage(segments);
+      const totalPages = groupedSegments.size;
+
+      const initialSubmittedPages: Record<number, boolean> = {};
+      segments.forEach((segment) => {
+        const pageNum = segment.start + 1;
         if (segment.proofread) {
-          initialSubmittedPages[index + 1] = true;
+          initialSubmittedPages[pageNum] = true;
         }
       });
 
       setBookData({
-        pdfUrl: pdfUrl,
+        pdfUrl,
         metadata: {
           title: recordDetails.title,
           language: recordDetails.language,
@@ -223,8 +348,9 @@ function DocDigitization() {
           source: recordDetails.source,
         },
       });
-      setOcrTexts(initialOcrTexts);
+      setSegmentsByPage(groupedSegments);
       setSubmittedPages(initialSubmittedPages);
+      setNumPages(totalPages);
     } catch (err) {
       const error = err as Error;
       console.error('An error occurred in fetchNextRecord:', error);
@@ -234,21 +360,8 @@ function DocDigitization() {
     }
   }
 
-  function onDocumentLoadSuccess({ numPages }) {
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
-    if (ocrTexts.length < numPages) {
-      const newOcrTexts = [...ocrTexts];
-      for (let i = ocrTexts.length; i < numPages; i++) {
-        newOcrTexts.push(`OCR Text for Page ${i + 1} not available.`);
-      }
-      setOcrTexts(newOcrTexts);
-    }
-  }
-
-  function handleOcrTextChange(e) {
-    const newOcrTexts = [...ocrTexts];
-    newOcrTexts[pageNumber - 1] = e.target.value;
-    setOcrTexts(newOcrTexts);
   }
 
   async function handleSubmitPage() {
@@ -256,32 +369,45 @@ function DocDigitization() {
       alert('Cannot submit: No record is currently loaded.');
       return;
     }
+    saveCurrentPageText();
     setIsSubmitting(true);
     setError(null);
     const token = localStorage.getItem('token');
 
-    // 1. Fix the empty string issue
-    const updatedSegments = ocrTexts.map((text, index) => {
-      const currentPage = index + 1;
-      const isCurrentPage = currentPage === pageNumber;
-      const wasAlreadySubmitted = !!submittedPages[currentPage];
+    const allSegments: Segment[] = [];
+    segmentsByPage.forEach((pageSegments) => {
+      allSegments.push(...pageSegments);
+    });
+    allSegments.sort((a, b) => {
+      if (a.start !== b.start) return a.start - b.start;
+      if (a.reading_order !== undefined && b.reading_order !== undefined) {
+        return a.reading_order - b.reading_order;
+      }
+      return (a.originalIndex || 0) - (b.originalIndex || 0);
+    });
+
+    const updatedSegments = allSegments.map((segment) => {
+      const pageNum = segment.start + 1;
+      const wasAlreadySubmitted = !!submittedPages[pageNum];
+      const isCurrentPage = pageNum === pageNumber;
 
       return {
-        // If text is empty, send a single space. Otherwise, send the text.
-        text: text.trim() === '' ? ' ' : text,
-        proofread: wasAlreadySubmitted || isCurrentPage,
+        start: segment.start,
+        end: segment.end,
+        text: segment.text.trim() === '' ? ' ' : segment.text,
+        proofread: wasAlreadySubmitted || isCurrentPage || !!segment.proofread,
+        bbox: segment.bbox,
+        type: segment.type,
+        reading_order: segment.reading_order,
+        confidence: segment.confidence,
       };
     });
 
-    // 2. Construct the full, correct request body
     const requestBody = {
-      // Use original values from the fetched record, falling back to defaults
       transcription: fullRecordData.extracted_text?.transcription || '',
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
       segments: updatedSegments,
     };
-
-    console.log('Submitting PATCH request with body:', requestBody);
 
     try {
       const response = await fetch(
@@ -298,8 +424,6 @@ function DocDigitization() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        // Log the detailed error from the API for easier debugging
-        console.error('API Submission Error:', errorData);
         throw new Error(
           errorData.detail?.[0]?.msg ||
             'Failed to submit the proofread update.',
@@ -307,12 +431,10 @@ function DocDigitization() {
       }
 
       alert(`Page ${pageNumber} submitted successfully!`);
-      // Save current page's text before marking as submitted
-      saveCurrentPageText();
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
 
       if (numPages && pageNumber < numPages) {
-        setPageNumber(pageNumber + 1);
+        navigateToPage(pageNumber + 1);
       }
     } catch (err) {
       const error = err as Error;
@@ -322,7 +444,6 @@ function DocDigitization() {
       setIsSubmitting(false);
     }
   }
-  // --- END: FULLY CORRECTED SUBMISSION LOGIC ---
 
   return (
     <div className="flex flex-col h-screen">
@@ -425,10 +546,7 @@ function DocDigitization() {
                   return (
                     <button
                       key={`page_button_${currentPage}`}
-                      onClick={() => {
-                        saveCurrentPageText();
-                        setPageNumber(currentPage);
-                      }}
+                      onClick={() => navigateToPage(currentPage)}
                       className={buttonClasses.join(' ')}
                     >
                       {currentPage}
@@ -510,12 +628,17 @@ function DocDigitization() {
           )}
         </div>
 
-        {/* --- Mobile: OCR Text Editor in Middle --- */}
+        {/* --- Mobile: OCR Text Editor with Segments --- */}
         <div className="w-full p-3 border-b border-gray-300 dark:border-gray-700 md:hidden">
           <div className="flex flex-col items-center justify-between gap-2 mb-3">
             <h2 className="text-xl font-bold flex-shrink-0">
               Proofread OCR Text
             </h2>
+            {currentPageSegments.length > 0 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Page {pageNumber} - {currentPageSegments.length} segments
+              </p>
+            )}
 
             {hintsVisible && (
               <p className="text-sm text-center">
@@ -555,15 +678,27 @@ function DocDigitization() {
             </div>
           </div>
 
-          <textarea
-            className="w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800 min-h-[200px] max-h-60"
-            placeholder={t('ui.ocr.text.will.appear.here')}
-            disabled={!bookData || isLoading || isSubmitting}
-            {...textAreaProps}
-          ></textarea>
-          {hintsVisible && (
-            <SuggestionBar suggestions={suggestions} className="mt-2" />
-          )}
+          {/* Mobile Segments - Direct editing */}
+          <div className="space-y-3">
+            {currentPageSegments.map((segment, idx) => (
+              <div
+                key={`segment_edit_mobile_${idx}`}
+                className="flex flex-col gap-1"
+              >
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-black/70 text-white text-xs font-bold">
+                  {idx + 1}
+                </span>
+                <AutoResizeTextArea
+                  value={segment.text || ''}
+                  onChange={(e) => handleSegmentChange(idx, e.target.value)}
+                  placeholder={t('ui.ocr.text.will.appear.here')}
+                  disabled={!bookData || isLoading || isSubmitting}
+                />
+              </div>
+            ))}
+          </div>
+
+          {hintsVisible && <SuggestionBar suggestions={suggestions} />}
         </div>
 
         {/* --- Desktop: Side-by-side layout remains unchanged --- */}
@@ -627,10 +762,7 @@ function DocDigitization() {
                     return (
                       <button
                         key={`page_button_${currentPage}`}
-                        onClick={() => {
-                          saveCurrentPageText();
-                          setPageNumber(currentPage);
-                        }}
+                        onClick={() => navigateToPage(currentPage)}
                         className={buttonClasses.join(' ')}
                       >
                         {currentPage}
@@ -703,55 +835,137 @@ function DocDigitization() {
                 )}
               </div>
 
-              {/* OCR Text Editor */}
+              {/* OCR Text Editor with Segments */}
               <div className="w-1/2 flex flex-col p-5 relative">
-                <div className="flex flex-row justify-between">
-                  <h2 className="text-xl font-bold mb-3 flex-shrink-0">
-                    {t('common.proofread.ocr.text')}
-                  </h2>
-
-                  {hintsVisible && (
-                    <p className="text-sm">
-                      {t('ui.start.typing.to.get.hints')}
-                    </p>
-                  )}
-
+                <div className="flex flex-row justify-between items-start mb-3">
                   <div>
-                    <div className="flex gap-1">
-                      <input
-                        className="cursor-pointer"
-                        id="telugu-toggle"
-                        type="checkbox"
-                        checked={isTeluguTypingEnabled}
-                        onChange={() =>
-                          setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
-                        }
-                      />
-                      <label className="cursor-pointer" htmlFor="telugu-toggle">
-                        {t('languages.telugu')}
-                      </label>
-                    </div>
-
-                    {isTeluguTypingEnabled && (
-                      <div className="flex gap-1">
-                        <input
-                          id="telugu-hints-toggle"
-                          type="checkbox"
-                          checked={hintsVisible}
-                          onChange={() => setHintsVisible(!hintsVisible)}
-                        />
-                        <label htmlFor="telugu-hints-toggle">Show Hints</label>
-                      </div>
+                    <h2 className="text-xl font-bold flex-shrink-0">
+                      {t('common.proofread.ocr.text')}
+                    </h2>
+                    {currentPageSegments.length > 0 && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Segment {currentSegmentIndex + 1} of{' '}
+                        {currentPageSegments.length}
+                        {t('common.on.page')}
+                        {pageNumber}
+                      </p>
                     )}
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2">
+                    {hintsVisible && (
+                      <p className="text-sm">
+                        {t('ui.start.typing.to.get.hints')}
+                      </p>
+                    )}
+
+                    <div>
+                      <div className="flex gap-1 items-center">
+                        <input
+                          className="cursor-pointer"
+                          id="telugu-toggle"
+                          type="checkbox"
+                          checked={isTeluguTypingEnabled}
+                          onChange={() =>
+                            setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
+                          }
+                        />
+                        <label
+                          className="cursor-pointer"
+                          htmlFor="telugu-toggle"
+                        >
+                          {t('languages.telugu')}
+                        </label>
+                      </div>
+
+                      {isTeluguTypingEnabled && (
+                        <div className="flex gap-1 items-center">
+                          <input
+                            id="telugu-hints-toggle"
+                            type="checkbox"
+                            checked={hintsVisible}
+                            onChange={() => setHintsVisible(!hintsVisible)}
+                          />
+                          <label htmlFor="telugu-hints-toggle">
+                            Show Hints
+                          </label>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <textarea
-                  className="flex-grow w-full resize-none border border-gray-300 dark:border-gray-600 p-2.5 rounded bg-gray-50 dark:bg-gray-800"
-                  placeholder="OCR text will appear here."
-                  disabled={!bookData || isLoading || isSubmitting}
-                  {...textAreaProps}
-                ></textarea>
+                {/* Segment Navigation */}
+                {currentPageSegments.length > 1 && (
+                  <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-300 dark:border-gray-600">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigateToSegment(Math.max(0, currentSegmentIndex - 1))
+                      }
+                      disabled={currentSegmentIndex === 0}
+                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600"
+                    >
+                      {t('common.Previous')}
+                    </button>
+                    <div className="flex gap-1 overflow-x-auto flex-1">
+                      {currentPageSegments.map((_, idx) => (
+                        <button
+                          key={`segment_nav_${idx}`}
+                          type="button"
+                          onClick={() => navigateToSegment(idx)}
+                          className={`min-w-8 h-8 rounded text-sm font-semibold transition-colors ${
+                            idx === currentSegmentIndex
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          {idx + 1}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigateToSegment(
+                          Math.min(
+                            currentPageSegments.length - 1,
+                            currentSegmentIndex + 1,
+                          ),
+                        )
+                      }
+                      disabled={
+                        currentSegmentIndex >= currentPageSegments.length - 1
+                      }
+                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                )}
+
+                {/* Segments - Direct editing */}
+                <div className="space-y-3 flex-1 overflow-y-auto">
+                  {currentPageSegments.map((segment, idx) => (
+                    <div
+                      key={`segment_edit_${idx}`}
+                      className="flex flex-col gap-1"
+                    >
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-black/70 text-white text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      <AutoResizeTextArea
+                        value={segment.text || ''}
+                        onChange={(e) =>
+                          handleSegmentChange(idx, e.target.value)
+                        }
+                        placeholder="OCR text will appear here."
+                        disabled={!bookData || isLoading || isSubmitting}
+                      />
+                    </div>
+                  ))}
+                </div>
+
                 {hintsVisible && <SuggestionBar suggestions={suggestions} />}
               </div>
             </div>
@@ -763,12 +977,10 @@ function DocDigitization() {
           <button
             className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
             onClick={() => {
-              // Save current page's text
               saveCurrentPageText();
-              // Mark current page as submitted locally and move to next page
               setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
               if (numPages && pageNumber < numPages) {
-                setPageNumber(pageNumber + 1);
+                navigateToPage(pageNumber + 1);
               }
             }}
             disabled={isSubmitting}

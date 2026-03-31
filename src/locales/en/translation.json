@@ -227,7 +227,11 @@
     "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "The user might not be in the loaded records yet. Try clearing\n                the search and scrolling to load more records.",
     "processing": "Processing...",
     "noFollowersFound": "No followers found",
-    "noUsersBeingFollowed": "No users being followed"
+    "noUsersBeingFollowed": "No users being followed",
+    "on": {
+      "page": "on Page"
+    },
+    "Previous": "← Previous"
   },
   "ui": {
     "failed": {
