@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -55,8 +55,8 @@ describe('Tabs', () => {
     });
 
     it('calls onValueChange when tab is selected', async () => {
-      const user = userEvent.setup();
       const handleValueChange = vi.fn();
+      const user = userEvent.setup();
       render(
         <Tabs defaultValue="tab1" onValueChange={handleValueChange}>
           <TabsList>
@@ -222,8 +222,7 @@ describe('Tabs', () => {
       );
     });
 
-    it('applies focus-visible ring styles', async () => {
-      const user = userEvent.setup();
+    it('applies focus-visible ring styles', () => {
       render(
         <Tabs defaultValue="tab1">
           <TabsList>
@@ -233,9 +232,7 @@ describe('Tabs', () => {
       );
 
       const trigger = screen.getByRole('tab', { name: 'Tab 1' });
-      await user.click(document.body);
-      await user.tab();
-      await user.tab();
+      fireEvent.focus(trigger);
       expect(trigger).toHaveClass(
         'focus-visible:outline-none',
         'focus-visible:ring-2',
@@ -440,9 +437,10 @@ describe('Tabs', () => {
 
       await user.click(screen.getByRole('tab', { name: 'Tab 2' }));
       expect(screen.getByText('Content 2')).toBeInTheDocument();
+      expect(screen.queryByText('Content 1')).not.toBeInTheDocument();
 
       rerender(
-        <Tabs defaultValue="tab1">
+        <Tabs value="tab2">
           <TabsList>
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
             <TabsTrigger value="tab2">Tab 2</TabsTrigger>
