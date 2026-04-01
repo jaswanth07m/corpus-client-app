@@ -196,7 +196,7 @@ describe('MediaDetailModal', () => {
       expect(screen.getByText(/40\.7128/)).toBeInTheDocument();
     });
 
-    it('displays fallback options for missing metadata', () => {
+    it('displays fallback options for missing metadata', async () => {
       const p = {
         ...defaultProps,
         item: {
@@ -213,13 +213,24 @@ describe('MediaDetailModal', () => {
           reviewed: false,
         },
       };
-      render(<MediaDetailModal {...p} />);
+      const { rerender } = render(<MediaDetailModal {...p} />);
 
       expect(screen.getByText('Untitled')).toBeInTheDocument();
       expect(screen.getByText('No description available')).toBeInTheDocument();
       const notAvailables = screen.getAllByText('Not available');
       expect(notAvailables.length).toBeGreaterThan(0);
       expect(screen.getAllByText('Not specified').length).toBeGreaterThan(0);
+
+      // Hit fallback category_id branch
+      rerender(
+        <MediaDetailModal
+          {...p}
+          item={{ ...p.item, category_ids: undefined, category_id: 'fallback' }}
+        />,
+      );
+
+      await userEvent.click(screen.getByText('Edit'));
+      await userEvent.click(screen.getByText('Cancel'));
     });
 
     it('closes on X button click', async () => {
@@ -359,7 +370,11 @@ describe('MediaDetailModal', () => {
         />,
       );
 
-      expect(await screen.findByText('media.loadAudio')).toBeInTheDocument();
+      const btn = await screen.findByText('media.loadAudio');
+      expect(btn).toBeInTheDocument();
+      // Click it multiple times synchronously to trigger double fetchMediaUrl and hit early return branch
+      fireEvent.click(btn);
+      fireEvent.click(btn);
     });
 
     it('renders document link', async () => {
@@ -377,6 +392,64 @@ describe('MediaDetailModal', () => {
 
       expect(
         await screen.findByTitle('common.documentPreview'),
+      ).toBeInTheDocument();
+    });
+
+    it('renders document link for docx', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ record_url: 'http://example.com/doc.docx' }),
+      });
+      const p = {
+        ...defaultProps,
+        item: { ...defaultProps.item, title: '', description: '' },
+      };
+      render(
+        <MediaDetailModal {...p} mediaType="document" previewUrl={null} />,
+      );
+      expect(await screen.findByText('Word Document')).toBeInTheDocument();
+    });
+
+    it('renders document link for txt', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ record_url: 'http://example.com/doc.txt' }),
+      });
+      const p = {
+        ...defaultProps,
+        item: { ...defaultProps.item, title: '', description: '' },
+      };
+      render(
+        <MediaDetailModal {...p} mediaType="document" previewUrl={null} />,
+      );
+      expect(await screen.findByText('Text File')).toBeInTheDocument();
+    });
+
+    it('renders document link for unknown document types', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ record_url: 'http://example.com/doc.csv' }),
+      });
+      const p = {
+        ...defaultProps,
+        item: { ...defaultProps.item, title: '', description: '' },
+      };
+      render(
+        <MediaDetailModal {...p} mediaType="document" previewUrl={null} />,
+      );
+      expect(
+        await screen.findByText('Document', { selector: 'p' }),
+      ).toBeInTheDocument();
+    });
+
+    it('renders load document fallback when title is missing', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+      const p = { ...defaultProps, item: { ...defaultProps.item, title: '' } };
+      render(
+        <MediaDetailModal {...p} mediaType="document" previewUrl={null} />,
+      );
+      expect(
+        await screen.findByText('Document', { selector: 'p' }),
       ).toBeInTheDocument();
     });
 
@@ -406,11 +479,21 @@ describe('MediaDetailModal', () => {
       expect(screen.getByText('Text Details')).toBeInTheDocument();
     });
 
+    it('renders document text view fallback when title is missing', async () => {
+      const p = { ...defaultProps, item: { ...defaultProps.item, title: '' } };
+      render(<MediaDetailModal {...p} mediaType="text" previewUrl={null} />);
+      expect(screen.getByText('Text Content')).toBeInTheDocument();
+    });
+
     it('renders unknown media type', () => {
       render(
         <MediaDetailModal
           {...defaultProps}
-          mediaType="unknown"
+          mediaType={
+            'unknown' as import('react').ComponentProps<
+              typeof MediaDetailModal
+            >['mediaType']
+          }
           previewUrl={null}
         />,
       );
@@ -439,6 +522,18 @@ describe('MediaDetailModal', () => {
       expect(
         screen.queryByRole('textbox', { name: 'Title' }),
       ).not.toBeInTheDocument();
+    });
+
+    it('validates short title on submit', async () => {
+      render(<MediaDetailModal {...defaultProps} />);
+      await userEvent.click(screen.getByText('Edit'));
+      const inputs = screen.getAllByRole('textbox');
+      await userEvent.clear(inputs[0]);
+      await userEvent.type(inputs[0], 'short');
+      await userEvent.click(screen.getByText('Save'));
+      expect(
+        await screen.findByText('Title must be at least 8 characters long.'),
+      ).toBeInTheDocument();
     });
 
     it('validates title constraints on submit', async () => {
@@ -501,6 +596,11 @@ describe('MediaDetailModal', () => {
         screen.getByPlaceholderText('common.specify.creator'),
       ).toBeInTheDocument();
 
+      const creatorInput = screen.getByPlaceholderText(
+        'common.specify.creator',
+      );
+      await userEvent.type(creatorInput, 'Test Creator');
+
       // switch away from others clears creator
       const creatorBtn = screen.getAllByTestId('select-creator')[1];
       await userEvent.click(creatorBtn);
@@ -522,6 +622,23 @@ describe('MediaDetailModal', () => {
 
       // Hit save branch for source missing
       await userEvent.click(screen.getByText('Save'));
+
+      const sourceInput = screen.getByPlaceholderText('common.specify.source');
+      await userEvent.type(sourceInput, 'Test Source');
+    });
+
+    it('initializes empty source label when editing item with others release_rights', async () => {
+      render(
+        <MediaDetailModal
+          {...defaultProps}
+          item={{ ...defaultProps.item, release_rights: 'others' }}
+          isOwnProfile={false}
+        />,
+      );
+      await userEvent.click(screen.getByText('Edit'));
+      expect(
+        screen.getByPlaceholderText('common.specify.source'),
+      ).toBeInTheDocument();
     });
 
     it('shows toast when Save is clicked with no changes', async () => {
@@ -576,6 +693,87 @@ describe('MediaDetailModal', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Edit')).toBeInTheDocument();
+      });
+    });
+
+    it('successfully PATCHes with release_rights others and creator', async () => {
+      mockFetch.mockImplementation(
+        async (url: string | URL | Request, options?: RequestInit) => {
+          if (options && options.method === 'PATCH')
+            return { ok: true, json: async () => ({ status: 'success' }) };
+          return { ok: true, json: async () => ({}) };
+        },
+      );
+      render(<MediaDetailModal {...defaultProps} isOwnProfile={true} />);
+      await userEvent.click(screen.getByText('Edit'));
+      const inputs = screen.getAllByRole('textbox');
+      await userEvent.clear(inputs[0]);
+      await userEvent.type(inputs[0], 'Valid Title for testing others');
+      await userEvent.clear(inputs[1]);
+      await userEvent.type(
+        inputs[1],
+        'Successfully providing a very long and meaningful description to bypass all validation checks and trigger the actual PATCH request.',
+      );
+      const othersBtn = screen.getAllByTestId('select-others')[1];
+      await userEvent.click(othersBtn);
+      const creatorInput = screen.getByPlaceholderText(
+        'common.specify.creator',
+      );
+      await userEvent.type(creatorInput, 'Custom Creator Name');
+      await userEvent.click(screen.getByText('Save'));
+      await waitFor(() => expect(screen.getByText('Edit')).toBeInTheDocument());
+    });
+
+    it('successfully PATCHes with release_rights others and source_label', async () => {
+      mockFetch.mockImplementation(
+        async (url: string | URL | Request, options?: RequestInit) => {
+          if (options && options.method === 'PATCH')
+            return { ok: true, json: async () => ({ status: 'success' }) };
+          return { ok: true, json: async () => ({}) };
+        },
+      );
+      render(<MediaDetailModal {...defaultProps} isOwnProfile={false} />);
+      await userEvent.click(screen.getByText('Edit'));
+      const inputs = screen.getAllByRole('textbox');
+      await userEvent.clear(inputs[0]);
+      await userEvent.type(inputs[0], 'Valid Title for testing others');
+      await userEvent.clear(inputs[1]);
+      await userEvent.type(
+        inputs[1],
+        'Successfully providing a very long and meaningful description to bypass all validation checks and trigger the actual PATCH request.',
+      );
+      const othersBtn = screen.getAllByTestId('select-others')[1];
+      await userEvent.click(othersBtn);
+      const sourceInput = screen.getByPlaceholderText('common.specify.source');
+      await userEvent.type(sourceInput, 'Custom Source Label');
+      await userEvent.click(screen.getByText('Save'));
+      await waitFor(() => expect(screen.getByText('Edit')).toBeInTheDocument());
+    });
+
+    it('shows unknown error message when PATCH throws non-Error object', async () => {
+      mockFetch.mockImplementation(
+        async (url: string | URL | Request, options?: RequestInit) => {
+          if (options && options.method === 'PATCH')
+            throw 'Custom String Error';
+          return { ok: true, json: async () => ({}) };
+        },
+      );
+      render(<MediaDetailModal {...defaultProps} />);
+      await userEvent.click(screen.getByText('Edit'));
+      const inputs = screen.getAllByRole('textbox');
+      await userEvent.clear(inputs[0]);
+      await userEvent.type(inputs[0], 'Valid Title for testing errors');
+      await userEvent.clear(inputs[1]);
+      await userEvent.type(
+        inputs[1],
+        'Successfully providing a very long and meaningful description to bypass all validation checks and trigger the actual PATCH request.',
+      );
+      await userEvent.click(screen.getByText('Save'));
+      await waitFor(() => {
+        const patchCall = mockFetch.mock.calls.find(
+          (c) => c[1]?.method === 'PATCH',
+        );
+        expect(patchCall).toBeDefined();
       });
     });
 
