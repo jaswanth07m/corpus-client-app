@@ -394,7 +394,8 @@ function DocDigitization() {
       }
 
       const groupedSegments = groupSegmentsByPage(segments);
-      const totalPages = groupedSegments.size;
+      const totalPages =
+        segments.length > 0 ? Math.max(...segments.map((s) => s.start + 1)) : 0;
 
       const initialSubmittedPages: Record<number, boolean> = {};
       segments.forEach((segment) => {
@@ -528,7 +529,8 @@ function DocDigitization() {
       }
 
       const groupedSegments = groupSegmentsByPage(segments);
-      const totalPages = groupedSegments.size;
+      const totalPages =
+        segments.length > 0 ? Math.max(...segments.map((s) => s.start + 1)) : 0;
 
       const initialSubmittedPages: Record<number, boolean> = {};
       segments.forEach((segment) => {
@@ -828,6 +830,7 @@ function DocDigitization() {
                       file={bookData.pdfUrl}
                       loading="Loading PDF..."
                       className="inline-block"
+                      onLoadSuccess={({ numPages }) => setNumPages(numPages)}
                     >
                       <Page
                         pageNumber={pageNumber}
@@ -1094,6 +1097,9 @@ function DocDigitization() {
                             file={bookData.pdfUrl}
                             loading="Loading PDF..."
                             className="inline-block"
+                            onLoadSuccess={({ numPages }) =>
+                              setNumPages(numPages)
+                            }
                           >
                             <Page
                               pageNumber={pageNumber}
