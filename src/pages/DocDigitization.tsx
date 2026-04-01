@@ -234,6 +234,7 @@ function DocDigitization() {
     null,
   );
   const [pdfPageSize, setPdfPageSize] = useState({ width: 0, height: 0 });
+  const [showBboxes, setShowBboxes] = useState(true);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
@@ -832,21 +833,34 @@ function DocDigitization() {
         <div className="w-full p-3 border-b border-gray-300 dark:border-gray-700 md:hidden">
           {bookData ? (
             <>
-              <div className="p-2 flex justify-center items-center bg-gray-200 dark:bg-gray-800 rounded-lg mb-2">
+              <div className="p-2 flex justify-center items-center bg-gray-200 dark:bg-gray-800 rounded-lg mb-2 gap-2">
+                <div className="flex items-center">
+                  <button
+                    className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
+                    onClick={() => setZoom((prev) => Math.max(0.2, prev - 0.2))}
+                  >
+                    -
+                  </button>
+                  <span className="font-semibold mx-2">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                  <button
+                    className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
+                    onClick={() => setZoom((prev) => prev + 0.2)}
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500 mx-1" />
                 <button
-                  className="mx-1 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
-                  onClick={() => setZoom((prev) => Math.max(0.2, prev - 0.2))}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    showBboxes
+                      ? 'bg-purple-600 text-white hover:bg-purple-700'
+                      : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
+                  }`}
+                  onClick={() => setShowBboxes(!showBboxes)}
                 >
-                  -
-                </button>
-                <span className="font-semibold mx-2">
-                  {Math.round(zoom * 100)}%
-                </span>
-                <button
-                  className="mx-1 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
-                  onClick={() => setZoom((prev) => prev + 0.2)}
-                >
-                  +
+                  {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
                 </button>
               </div>
               <div className="flex justify-center min-h-[300px] p-2">
@@ -878,7 +892,7 @@ function DocDigitization() {
                       />
                     </Document>
                     {/* Bounding Box Overlays */}
-                    {pdfPageSize.width > 0 && (
+                    {showBboxes && pdfPageSize.width > 0 && (
                       <div className="absolute inset-0 pointer-events-none">
                         {currentPageSegments.map((segment, idx) => {
                           const normalizedBox = normalizeBbox(segment.bbox);
@@ -1090,23 +1104,36 @@ function DocDigitization() {
               <div className="w-1/2 flex flex-col p-5 overflow-y-auto border-r border-gray-300 dark:border-gray-700">
                 {bookData ? (
                   <>
-                    <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg">
+                    <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg gap-3">
+                      <div className="flex items-center">
+                        <button
+                          className="mx-2 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                          onClick={() =>
+                            setZoom((prev) => Math.max(0.2, prev - 0.2))
+                          }
+                        >
+                          -
+                        </button>
+                        <span className="font-semibold w-12 text-center">
+                          {Math.round(zoom * 100)}%
+                        </span>
+                        <button
+                          className="mx-2 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                          onClick={() => setZoom((prev) => prev + 0.2)}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
                       <button
-                        className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
-                        onClick={() =>
-                          setZoom((prev) => Math.max(0.2, prev - 0.2))
-                        }
+                        className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
+                          showBboxes
+                            ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
+                            : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
+                        }`}
+                        onClick={() => setShowBboxes(!showBboxes)}
                       >
-                        -
-                      </button>
-                      <span className="font-semibold">
-                        {Math.round(zoom * 100)}%
-                      </span>
-                      <button
-                        className="mx-2.5 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded"
-                        onClick={() => setZoom((prev) => prev + 0.2)}
-                      >
-                        {t('common.')}
+                        {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
                       </button>
                     </div>
                     {/* PDF viewer with bounding box overlays */}
@@ -1148,7 +1175,7 @@ function DocDigitization() {
                             />
                           </Document>
                           {/* Bounding Box Overlays */}
-                          {pdfPageSize.width > 0 && (
+                          {showBboxes && pdfPageSize.width > 0 && (
                             <div className="absolute inset-0 pointer-events-none">
                               {currentPageSegments.map((segment, idx) => {
                                 const normalizedBox = normalizeBbox(
@@ -1283,11 +1310,6 @@ function DocDigitization() {
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {segment.type || 'Segment'}
-                            {segment.bbox && segment.bbox.length >= 4 && (
-                              <span className="ml-2">
-                                [{segment.bbox[0]}, {segment.bbox[1]}]
-                              </span>
-                            )}
                           </span>
                         </div>
                         <AutoResizeTextArea
