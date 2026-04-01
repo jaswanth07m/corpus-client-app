@@ -108,6 +108,37 @@ function buildOverlayStyle(
   };
 }
 
+function getBboxColorClasses(type?: string) {
+  const t = type?.toLowerCase() || '';
+
+  // Green: image, table, equation
+  if (t === 'image' || t === 'table' || t === 'equation') {
+    return {
+      box: 'border-green-400 bg-green-300/25 hover:bg-green-300/40',
+      label: 'bg-green-500',
+    };
+  }
+
+  // Blue: image_caption, header, footer, page_footnote
+  if (
+    t === 'image_caption' ||
+    t === 'header' ||
+    t === 'footer' ||
+    t === 'page_footnote'
+  ) {
+    return {
+      box: 'border-blue-400 bg-blue-300/25 hover:bg-blue-300/40',
+      label: 'bg-blue-500',
+    };
+  }
+
+  // Pink: title, text, list (and others)
+  return {
+    box: 'border-pink-400 bg-pink-300/25 hover:bg-pink-300/40',
+    label: 'bg-pink-500',
+  };
+}
+
 // Infer the original image dimensions from the bbox coordinate extents.
 // OCR bbox coordinates are in the pixel space of the source images (e.g. 300 DPI),
 // which is much larger than the PDF page dimensions in points (72 DPI).
@@ -858,10 +889,14 @@ function DocDigitization() {
                           );
                           if (!overlayStyle) return null;
 
+                          const colorClasses = getBboxColorClasses(
+                            segment.type,
+                          );
+
                           return (
                             <div
                               key={`bbox_overlay_mobile_${idx}`}
-                              className="absolute border-2 border-pink-400 bg-pink-300/25 hover:bg-pink-300/40 transition-colors cursor-pointer pointer-events-auto"
+                              className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
                               style={overlayStyle}
                               onClick={() => {
                                 // Scroll to corresponding segment editor
@@ -877,7 +912,9 @@ function DocDigitization() {
                               }}
                               title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
                             >
-                              <span className="absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded bg-pink-500 text-white">
+                              <span
+                                className={`absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded text-white ${colorClasses.label}`}
+                              >
                                 {idx + 1}
                               </span>
                             </div>
@@ -1124,10 +1161,14 @@ function DocDigitization() {
                                 );
                                 if (!overlayStyle) return null;
 
+                                const colorClasses = getBboxColorClasses(
+                                  segment.type,
+                                );
+
                                 return (
                                   <div
                                     key={`bbox_overlay_desktop_${idx}`}
-                                    className="absolute border-2 border-pink-400 bg-pink-300/25 hover:bg-pink-300/40 transition-colors cursor-pointer pointer-events-auto"
+                                    className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
                                     style={overlayStyle}
                                     onClick={() => {
                                       // Scroll to corresponding segment editor
@@ -1144,7 +1185,9 @@ function DocDigitization() {
                                     }}
                                     title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
                                   >
-                                    <span className="absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded bg-pink-500 text-white">
+                                    <span
+                                      className={`absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded text-white ${colorClasses.label}`}
+                                    >
                                       {idx + 1}
                                     </span>
                                   </div>
