@@ -1,7 +1,7 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -105,6 +105,49 @@ function buildOverlayStyle(
     width: `${(box.width / pageWidth) * 100}%`,
     height: `${(box.height / pageHeight) * 100}%`,
   };
+}
+
+// Infer the original image dimensions from the bbox coordinate extents.
+// OCR bbox coordinates are in the pixel space of the source images (e.g. 300 DPI),
+// which is much larger than the PDF page dimensions in points (72 DPI).
+// We find the maximum coordinate values across all segments on a page
+// to approximate the source image dimensions.
+function getOcrReferenceDimensions(
+  segments: Segment[],
+): { width: number; height: number } | null {
+  let maxX = 0;
+  let maxY = 0;
+  let hasPixelCoords = false;
+
+  for (const seg of segments) {
+    if (seg.bbox && seg.bbox.length >= 4) {
+      const [a, b, c, d] = seg.bbox.map(Number);
+      if ([a, b, c, d].some((v) => Number.isNaN(v))) continue;
+
+      const maxVal = Math.max(
+        Math.abs(a),
+        Math.abs(b),
+        Math.abs(c),
+        Math.abs(d),
+      );
+      if (maxVal > 1.01) {
+        hasPixelCoords = true;
+      }
+      maxX = Math.max(maxX, Math.abs(a), Math.abs(c));
+      maxY = Math.max(maxY, Math.abs(b), Math.abs(d));
+    }
+  }
+
+  if (!hasPixelCoords || maxX === 0 || maxY === 0) return null;
+
+  // Many modern OCR systems normalize coordinates to a 1000x1000 grid.
+  // If the bounds don't exceed 1000, we should use exactly 1000 rather than
+  // the maximum observed coordinate, which would stretch the boxes.
+  if (maxX <= 1000 && maxY <= 1000) {
+    return { width: 1000, height: 1000 };
+  }
+
+  return { width: maxX, height: maxY };
 }
 
 // Group segments by page (start/end values)
@@ -266,6 +309,15 @@ function DocDigitization() {
   }, []);
 
   const currentPageSegments = getCurrentPageSegments();
+
+  // Compute the reference dimensions for bbox overlay positioning.
+  // Uses inferred OCR image dimensions when bbox coords are in pixel space,
+  // otherwise falls back to the PDF page dimensions.
+  const ocrRefDimensions = useMemo(() => {
+    const inferred = getOcrReferenceDimensions(currentPageSegments);
+    if (inferred) return inferred;
+    return pdfPageSize;
+  }, [currentPageSegments, pdfPageSize]);
 
   const navigateToPage = (pageNum: number) => {
     saveCurrentPageText();
@@ -782,10 +834,10 @@ function DocDigitization() {
                         scale={1}
                         renderAnnotationLayer={false}
                         renderTextLayer={false}
-                        onRenderSuccess={(page) => {
+                        onLoadSuccess={(page) => {
                           setPdfPageSize({
-                            width: page.width || 0,
-                            height: page.height || 0,
+                            width: page.originalWidth || 0,
+                            height: page.originalHeight || 0,
                           });
                         }}
                       />
@@ -797,8 +849,8 @@ function DocDigitization() {
                           const normalizedBox = normalizeBbox(segment.bbox);
                           const overlayStyle = buildOverlayStyle(
                             normalizedBox,
-                            pdfPageSize.width,
-                            pdfPageSize.height,
+                            ocrRefDimensions.width,
+                            ocrRefDimensions.height,
                           );
                           if (!overlayStyle) return null;
 
@@ -1048,10 +1100,10 @@ function DocDigitization() {
                               scale={1}
                               renderAnnotationLayer={false}
                               renderTextLayer={false}
-                              onRenderSuccess={(page) => {
+                              onLoadSuccess={(page) => {
                                 setPdfPageSize({
-                                  width: page.width || 0,
-                                  height: page.height || 0,
+                                  width: page.originalWidth || 0,
+                                  height: page.originalHeight || 0,
                                 });
                               }}
                             />
@@ -1065,8 +1117,8 @@ function DocDigitization() {
                                 );
                                 const overlayStyle = buildOverlayStyle(
                                   normalizedBox,
-                                  pdfPageSize.width,
-                                  pdfPageSize.height,
+                                  ocrRefDimensions.width,
+                                  ocrRefDimensions.height,
                                 );
                                 if (!overlayStyle) return null;
 
