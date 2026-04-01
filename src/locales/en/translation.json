@@ -231,7 +231,9 @@
     "on": {
       "page": "on Page"
     },
-    "Previous": "← Previous"
+    "Previous": "← Previous",
+    "editSegmentText": "Edit segment text...",
+    "noSegmentsFoundForThisPage": "No segments found for this page."
   },
   "ui": {
     "failed": {

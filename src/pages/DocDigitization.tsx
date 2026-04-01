@@ -1,5 +1,4 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
-import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
@@ -58,6 +57,56 @@ type BookData = {
   };
 };
 
+type NormalizedBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  normalized: boolean;
+};
+
+function normalizeBbox(input: number[] | undefined): NormalizedBox | null {
+  if (!input || input.length < 4) return null;
+
+  const [a, b, c, d] = input.map(Number);
+  if ([a, b, c, d].some((value) => Number.isNaN(value))) return null;
+
+  const x = Math.min(a, c);
+  const y = Math.min(b, d);
+  const width = Math.abs(c - a);
+  const height = Math.abs(d - b);
+
+  const maxValue = Math.max(Math.abs(a), Math.abs(b), Math.abs(c), Math.abs(d));
+
+  return { x, y, width, height, normalized: maxValue <= 1.01 };
+}
+
+function buildOverlayStyle(
+  box: NormalizedBox | null,
+  pageWidth: number,
+  pageHeight: number,
+): React.CSSProperties | null {
+  if (!box || pageWidth === 0 || pageHeight === 0) return null;
+
+  // If coordinates are normalized (0-1 range)
+  if (box.normalized) {
+    return {
+      left: `${box.x * 100}%`,
+      top: `${box.y * 100}%`,
+      width: `${box.width * 100}%`,
+      height: `${box.height * 100}%`,
+    };
+  }
+
+  // Otherwise assume pixel coordinates relative to page size
+  return {
+    left: `${(box.x / pageWidth) * 100}%`,
+    top: `${(box.y / pageHeight) * 100}%`,
+    width: `${(box.width / pageWidth) * 100}%`,
+    height: `${(box.height / pageHeight) * 100}%`,
+  };
+}
+
 // Group segments by page (start/end values)
 function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
   const pageMap = new Map<number, Segment[]>();
@@ -106,6 +155,10 @@ function DocDigitization() {
   const [error, setError] = useState<string | null>(null);
   const [searchRecordId, setSearchRecordId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [pdfContainerRef, setPdfContainerRef] = useState<HTMLDivElement | null>(
+    null,
+  );
+  const [pdfPageSize, setPdfPageSize] = useState({ width: 0, height: 0 });
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
@@ -170,7 +223,7 @@ function DocDigitization() {
 
   useEffect(() => {
     if (isTeluguTypingEnabled) {
-      const pageSegments = getCurrentPageSegments();
+      const pageSegments = segmentsByPage.get(pageNumber) || [];
       const currentSegmentText = pageSegments[currentSegmentIndex]?.text || '';
       if (value !== currentSegmentText) {
         setValue(currentSegmentText);
@@ -311,6 +364,7 @@ function DocDigitization() {
       setSegmentsByPage(groupedSegments);
       setSubmittedPages(initialSubmittedPages);
       setNumPages(totalPages);
+      setPdfPageSize({ width: 0, height: 0 });
     } catch (err) {
       const error = err as Error;
       console.error('An error occurred in fetchRecordById:', error);
@@ -444,6 +498,7 @@ function DocDigitization() {
       setSegmentsByPage(groupedSegments);
       setSubmittedPages(initialSubmittedPages);
       setNumPages(totalPages);
+      setPdfPageSize({ width: 0, height: 0 });
     } catch (err) {
       const error = err as Error;
       console.error('An error occurred in fetchNextRecord:', error);
@@ -451,10 +506,6 @@ function DocDigitization() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
   }
 
   async function handleSubmitPage() {
@@ -713,25 +764,73 @@ function DocDigitization() {
                 </button>
               </div>
               <div className="flex justify-center min-h-[300px] p-2">
-                <Document
-                  file={bookData.pdfUrl}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  loading="Loading PDF..."
+                <div
+                  className="relative inline-block"
+                  style={{
+                    transform: `scale(${zoom})`,
+                    transformOrigin: 'top center',
+                  }}
                 >
-                  <Page
-                    pageNumber={pageNumber}
-                    scale={
-                      typeof window !== 'undefined' && window.innerWidth < 768
-                        ? zoom * 1.3
-                        : zoom
-                    }
-                    width={
-                      typeof window !== 'undefined' && window.innerWidth < 768
-                        ? Math.min(window.innerWidth * 0.9, 600)
-                        : undefined
-                    }
-                  />
-                </Document>
+                  <div className="relative">
+                    <Document
+                      file={bookData.pdfUrl}
+                      loading="Loading PDF..."
+                      className="inline-block"
+                    >
+                      <Page
+                        pageNumber={pageNumber}
+                        scale={1}
+                        renderAnnotationLayer={false}
+                        renderTextLayer={false}
+                        onRenderSuccess={(page) => {
+                          setPdfPageSize({
+                            width: page.width || 0,
+                            height: page.height || 0,
+                          });
+                        }}
+                      />
+                    </Document>
+                    {/* Bounding Box Overlays */}
+                    {pdfPageSize.width > 0 && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        {currentPageSegments.map((segment, idx) => {
+                          const normalizedBox = normalizeBbox(segment.bbox);
+                          const overlayStyle = buildOverlayStyle(
+                            normalizedBox,
+                            pdfPageSize.width,
+                            pdfPageSize.height,
+                          );
+                          if (!overlayStyle) return null;
+
+                          return (
+                            <div
+                              key={`bbox_overlay_mobile_${idx}`}
+                              className="absolute border-2 border-pink-400 bg-pink-300/25 hover:bg-pink-300/40 transition-colors cursor-pointer pointer-events-auto"
+                              style={overlayStyle}
+                              onClick={() => {
+                                // Scroll to corresponding segment editor
+                                const segmentElement = document.getElementById(
+                                  `segment_edit_mobile_${idx}`,
+                                );
+                                if (segmentElement) {
+                                  segmentElement.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center',
+                                  });
+                                }
+                              }}
+                              title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
+                            >
+                              <span className="absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded bg-pink-500 text-white">
+                                {idx + 1}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </>
           ) : (
@@ -805,9 +904,14 @@ function DocDigitization() {
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-black/70 text-white text-xs font-bold">
                   {idx + 1}
                 </span>
-                <AutoResizeTextArea
+                <textarea
+                  className="w-full resize-none border border-gray-300 dark:border-gray-600 p-3 rounded bg-gray-50 dark:bg-gray-800 overflow-hidden"
                   value={segment.text || ''}
-                  onChange={(e) => handleSegmentChange(idx, e.target.value)}
+                  onChange={(e) => {
+                    handleSegmentChange(idx, e.target.value);
+                    e.currentTarget.style.height = 'auto';
+                    e.currentTarget.style.height = `${Math.max(e.currentTarget.scrollHeight, 80)}px`;
+                  }}
                   placeholder={t('ui.ocr.text.will.appear.here')}
                   disabled={!bookData || isLoading || isSubmitting}
                 />
@@ -917,7 +1021,7 @@ function DocDigitization() {
                         {t('common.')}
                       </button>
                     </div>
-                    {/* Added overflow-x-auto to ensure horizontal scrolling is possible */}
+                    {/* PDF viewer with bounding box overlays */}
                     <div
                       ref={scrollContainerRef}
                       onMouseDown={handleMouseDown}
@@ -926,19 +1030,76 @@ function DocDigitization() {
                       onMouseMove={handleMouseMove}
                       className="flex-grow flex flex-col items-center min-h-[300px] p-2 overflow-auto bg-gray-100 dark:bg-gray-900"
                     >
-                      <Document
-                        file={bookData.pdfUrl}
-                        onLoadSuccess={onDocumentLoadSuccess}
-                        loading={t('proofreading.loadingPdf')}
-                        className="mx-auto"
+                      <div
+                        className="relative inline-block"
+                        style={{
+                          transform: `scale(${zoom})`,
+                          transformOrigin: 'top center',
+                        }}
                       >
-                        <Page
-                          pageNumber={pageNumber}
-                          scale={zoom}
-                          renderAnnotationLayer={false}
-                          renderTextLayer={true}
-                        />
-                      </Document>
+                        <div className="relative">
+                          <Document
+                            file={bookData.pdfUrl}
+                            loading="Loading PDF..."
+                            className="inline-block"
+                          >
+                            <Page
+                              pageNumber={pageNumber}
+                              scale={1}
+                              renderAnnotationLayer={false}
+                              renderTextLayer={false}
+                              onRenderSuccess={(page) => {
+                                setPdfPageSize({
+                                  width: page.width || 0,
+                                  height: page.height || 0,
+                                });
+                              }}
+                            />
+                          </Document>
+                          {/* Bounding Box Overlays */}
+                          {pdfPageSize.width > 0 && (
+                            <div className="absolute inset-0 pointer-events-none">
+                              {currentPageSegments.map((segment, idx) => {
+                                const normalizedBox = normalizeBbox(
+                                  segment.bbox,
+                                );
+                                const overlayStyle = buildOverlayStyle(
+                                  normalizedBox,
+                                  pdfPageSize.width,
+                                  pdfPageSize.height,
+                                );
+                                if (!overlayStyle) return null;
+
+                                return (
+                                  <div
+                                    key={`bbox_overlay_desktop_${idx}`}
+                                    className="absolute border-2 border-pink-400 bg-pink-300/25 hover:bg-pink-300/40 transition-colors cursor-pointer pointer-events-auto"
+                                    style={overlayStyle}
+                                    onClick={() => {
+                                      // Scroll to corresponding segment editor
+                                      const segmentElement =
+                                        document.getElementById(
+                                          `segment_editor_${idx}`,
+                                        );
+                                      if (segmentElement) {
+                                        segmentElement.scrollIntoView({
+                                          behavior: 'smooth',
+                                          block: 'center',
+                                        });
+                                      }
+                                    }}
+                                    title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
+                                  >
+                                    <span className="absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded bg-pink-500 text-white">
+                                      {idx + 1}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -961,10 +1122,8 @@ function DocDigitization() {
                     </h2>
                     {currentPageSegments.length > 0 && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Segment {currentSegmentIndex + 1} of{' '}
-                        {currentPageSegments.length}
-                        {t('common.on.page')}
-                        {pageNumber}
+                        Page {pageNumber} - {currentPageSegments.length} segment
+                        {currentPageSegments.length > 1 ? 's' : ''}
                       </p>
                     )}
                   </div>
@@ -1012,78 +1171,51 @@ function DocDigitization() {
                   </div>
                 </div>
 
-                {/* Segment Navigation */}
-                {currentPageSegments.length > 1 && (
-                  <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-300 dark:border-gray-600">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigateToSegment(Math.max(0, currentSegmentIndex - 1))
-                      }
-                      disabled={currentSegmentIndex === 0}
-                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                      {t('common.Previous')}
-                    </button>
-                    <div className="flex gap-1 overflow-x-auto flex-1">
-                      {currentPageSegments.map((_, idx) => (
-                        <button
-                          key={`segment_nav_${idx}`}
-                          type="button"
-                          onClick={() => navigateToSegment(idx)}
-                          className={`min-w-8 h-8 rounded text-sm font-semibold transition-colors ${
-                            idx === currentSegmentIndex
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-                          }`}
-                        >
-                          {idx + 1}
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigateToSegment(
-                          Math.min(
-                            currentPageSegments.length - 1,
-                            currentSegmentIndex + 1,
-                          ),
-                        )
-                      }
-                      disabled={
-                        currentSegmentIndex >= currentPageSegments.length - 1
-                      }
-                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                      Next →
-                    </button>
-                  </div>
-                )}
-
-                {/* Segments - Direct editing */}
-                <div className="space-y-3 flex-1 overflow-y-auto">
-                  {currentPageSegments.map((segment, idx) => (
-                    <div
-                      key={`segment_edit_${idx}`}
-                      className="flex flex-col gap-1"
-                    >
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-black/70 text-white text-xs font-bold">
-                        {idx + 1}
-                      </span>
-                      <AutoResizeTextArea
-                        value={segment.text || ''}
-                        onChange={(e) =>
-                          handleSegmentChange(idx, e.target.value)
-                        }
-                        placeholder="OCR text will appear here."
-                        disabled={!bookData || isLoading || isSubmitting}
-                      />
-                    </div>
-                  ))}
+                {/* Segments List - All segments for current page */}
+                <div className="flex-grow overflow-y-auto space-y-4">
+                  {currentPageSegments.length > 0 ? (
+                    currentPageSegments.map((segment, idx) => (
+                      <div
+                        key={`segment_editor_${idx}`}
+                        id={`segment_editor_${idx}`}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded bg-black/70 text-white text-xs font-bold">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {segment.type || 'Segment'}
+                            {segment.bbox && segment.bbox.length >= 4 && (
+                              <span className="ml-2">
+                                [{segment.bbox[0]}, {segment.bbox[1]}]
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <textarea
+                          className="w-full resize-none border border-gray-300 dark:border-gray-600 p-3 rounded bg-gray-50 dark:bg-gray-800 overflow-hidden"
+                          placeholder={t('common.editSegmentText')}
+                          value={segment.text || ''}
+                          onChange={(e) => {
+                            handleSegmentChange(idx, e.target.value);
+                            e.currentTarget.style.height = 'auto';
+                            e.currentTarget.style.height = `${Math.max(e.currentTarget.scrollHeight, 80)}px`;
+                          }}
+                          disabled={!bookData || isLoading || isSubmitting}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                      {t('common.noSegmentsFoundForThisPage')}
+                    </p>
+                  )}
                 </div>
 
-                {hintsVisible && <SuggestionBar suggestions={suggestions} />}
+                {hintsVisible && isTeluguTypingEnabled && (
+                  <SuggestionBar suggestions={suggestions} />
+                )}
               </div>
             </div>
           </div>
