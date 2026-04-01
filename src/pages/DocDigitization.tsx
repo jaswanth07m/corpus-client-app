@@ -1,4 +1,5 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
+import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -959,14 +960,9 @@ function DocDigitization() {
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-black/70 text-white text-xs font-bold">
                   {idx + 1}
                 </span>
-                <textarea
-                  className="w-full resize-none border border-gray-300 dark:border-gray-600 p-3 rounded bg-gray-50 dark:bg-gray-800 overflow-hidden"
+                <AutoResizeTextArea
                   value={segment.text || ''}
-                  onChange={(e) => {
-                    handleSegmentChange(idx, e.target.value);
-                    e.currentTarget.style.height = 'auto';
-                    e.currentTarget.style.height = `${Math.max(e.currentTarget.scrollHeight, 80)}px`;
-                  }}
+                  onChange={(e) => handleSegmentChange(idx, e.target.value)}
                   placeholder={t('ui.ocr.text.will.appear.here')}
                   disabled={!bookData || isLoading || isSubmitting}
                 />
@@ -1251,15 +1247,12 @@ function DocDigitization() {
                             )}
                           </span>
                         </div>
-                        <textarea
-                          className="w-full resize-none border border-gray-300 dark:border-gray-600 p-3 rounded bg-gray-50 dark:bg-gray-800 overflow-hidden"
+                        <AutoResizeTextArea
                           placeholder={t('common.editSegmentText')}
                           value={segment.text || ''}
-                          onChange={(e) => {
-                            handleSegmentChange(idx, e.target.value);
-                            e.currentTarget.style.height = 'auto';
-                            e.currentTarget.style.height = `${Math.max(e.currentTarget.scrollHeight, 80)}px`;
-                          }}
+                          onChange={(e) =>
+                            handleSegmentChange(idx, e.target.value)
+                          }
                           disabled={!bookData || isLoading || isSubmitting}
                         />
                       </div>
