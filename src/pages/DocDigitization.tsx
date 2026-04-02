@@ -235,6 +235,9 @@ function DocDigitization() {
   );
   const [pdfPageSize, setPdfPageSize] = useState({ width: 0, height: 0 });
   const [showBboxes, setShowBboxes] = useState(true);
+  const [highlightedSegmentIndex, setHighlightedSegmentIndex] = useState<
+    number | null
+  >(null);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
@@ -907,6 +910,7 @@ function DocDigitization() {
                               className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
                               style={overlayStyle}
                               onClick={() => {
+                                setHighlightedSegmentIndex(idx);
                                 // Scroll to corresponding segment editor
                                 const segmentElement = document.getElementById(
                                   `segment_edit_mobile_${idx}`,
@@ -917,6 +921,10 @@ function DocDigitization() {
                                     block: 'center',
                                   });
                                 }
+                                setTimeout(
+                                  () => setHighlightedSegmentIndex(null),
+                                  3000,
+                                );
                               }}
                               title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
                             >
@@ -1000,7 +1008,12 @@ function DocDigitization() {
             {currentPageSegments.map((segment, idx) => (
               <div
                 key={`segment_edit_mobile_${idx}`}
-                className="flex flex-col gap-1"
+                id={`segment_edit_mobile_${idx}`}
+                className={`flex flex-col gap-1 p-2 rounded-lg transition-all duration-300 ${
+                  highlightedSegmentIndex === idx
+                    ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-md'
+                    : ''
+                }`}
               >
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-black/70 text-white text-xs font-bold">
                   {idx + 1}
@@ -1189,6 +1202,7 @@ function DocDigitization() {
                                     className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
                                     style={overlayStyle}
                                     onClick={() => {
+                                      setHighlightedSegmentIndex(idx);
                                       // Scroll to corresponding segment editor
                                       const segmentElement =
                                         document.getElementById(
@@ -1200,6 +1214,10 @@ function DocDigitization() {
                                           block: 'center',
                                         });
                                       }
+                                      setTimeout(
+                                        () => setHighlightedSegmentIndex(null),
+                                        3000,
+                                      );
                                     }}
                                     title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
                                   >
@@ -1293,7 +1311,11 @@ function DocDigitization() {
                       <div
                         key={`segment_editor_${idx}`}
                         id={`segment_editor_${idx}`}
-                        className="space-y-2"
+                        className={`space-y-2 p-2 rounded-lg transition-all duration-300 ${
+                          highlightedSegmentIndex === idx
+                            ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-md'
+                            : ''
+                        }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded bg-black/70 text-white text-xs font-bold">
