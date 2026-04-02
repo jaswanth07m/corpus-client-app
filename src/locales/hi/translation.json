@@ -13,6 +13,7 @@
       }
     },
     "submitPage": "पृष्ठ सबमिट करें",
+    "savePage": "पृष्ठ सहेजें",
     "loading": "लोड हो रहा है...",
     "error": "त्रुटि",
     "success": "सफल",
@@ -239,7 +240,12 @@
         "order": ""
       },
       "order": ""
-    }
+    },
+    "overall": {
+      "progress": ""
+    },
+    "previousPage": "",
+    "nextPage": ""
   },
   "ui": {
     "failed": {

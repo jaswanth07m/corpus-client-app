@@ -13,6 +13,7 @@
       }
     },
     "submitPage": "పేజీని సమర్పించండి",
+    "savePage": "పేజీని సేవ్ చేయండి",
     "loading": "లోడ్ అవుతోంది...",
     "error": "లోపం",
     "success": "విజయవంతమైంది",
@@ -239,7 +240,12 @@
         "order": ""
       },
       "order": ""
-    }
+    },
+    "overall": {
+      "progress": ""
+    },
+    "previousPage": "",
+    "nextPage": ""
   },
   "ui": {
     "failed": {

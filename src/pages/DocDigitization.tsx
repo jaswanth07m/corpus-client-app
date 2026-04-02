@@ -417,10 +417,6 @@ function DocDigitization() {
     return pdfPageSize;
   }, [currentPageSegments, pdfPageSize]);
 
-  const navigateToPage = (pageNum: number) => {
-    setPageNumber(pageNum);
-  };
-
   async function fetchRecordById(recordId: string) {
     setIsLoading(true);
     setError(null);
@@ -722,7 +718,7 @@ function DocDigitization() {
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
 
       if (numPages && pageNumber < numPages) {
-        navigateToPage(pageNumber + 1);
+        setPageNumber(pageNumber + 1);
       }
     } catch (err) {
       const error = err as Error;
@@ -795,7 +791,7 @@ function DocDigitization() {
           </div>
         </div>
 
-        {/* Mobile: Page Numbers - hidden when header is collapsed */}
+        {/* Mobile: Navigation & Progress - hidden when header is collapsed */}
         <div
           className={`${typeof window !== 'undefined' && isHeaderCollapsed && window.innerWidth < 768 ? 'hidden' : ''} w-full mt-2 p-2 border-t border-white/30 md:hidden`}
         >
@@ -806,70 +802,69 @@ function DocDigitization() {
           )}
 
           {bookData && (
-            <>
-              <h3 className="text-sm font-bold mb-2 text-center">
-                {t('proofreading.page')} {pageNumber}
-              </h3>
-              <div className="w-full overflow-x-auto overflow-y-visible flex flex-row items-center justify-start gap-1 pb-2 scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
-                {Array.from(
-                  { length: Math.max(0, Math.floor(numPages || 0)) },
-                  (_, index) => {
-                    const currentPage = index + 1;
-                    const isSubmitted = submittedPages[currentPage];
-                    const isActive = pageNumber === currentPage;
-
-                    const buttonClasses = [
-                      'w-9',
-                      'h-9',
-                      'text-center',
-                      'text-xs',
-                      'p-1',
-                      'mx-0.5',
-                      'rounded-md',
-                      'transition-colors',
-                      'duration-150',
-                      'font-semibold',
-                    ];
-
-                    if (isSubmitted) {
-                      buttonClasses.push(
-                        'bg-yellow-500',
-                        'dark:bg-yellow-600',
-                        'text-white',
-                      );
-                    } else {
-                      buttonClasses.push(
-                        'bg-white',
-                        'dark:bg-gray-700',
-                        'text-gray-900',
-                        'dark:text-gray-100',
-                        'hover:bg-gray-200',
-                        'dark:hover:bg-gray-600',
-                      );
-                    }
-
-                    if (isActive) {
-                      buttonClasses.push(
-                        'ring-2',
-                        'ring-offset-2',
-                        'ring-blue-500',
-                        'dark:ring-offset-gray-900',
-                      );
-                    }
-
-                    return (
-                      <button
-                        key={`page_button_${currentPage}`}
-                        onClick={() => navigateToPage(currentPage)}
-                        className={buttonClasses.join(' ')}
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex items-center justify-between w-full px-4">
+                <button
+                  onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+                  disabled={pageNumber <= 1}
+                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-30 transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <div className="relative group">
+                  <select
+                    value={pageNumber}
+                    onChange={(e) => setPageNumber(Number(e.target.value))}
+                    className="appearance-none bg-white/10 border border-white/20 text-white text-[10px] font-black py-1 pl-2.5 pr-7 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer transition-colors"
+                  >
+                    {Array.from(
+                      { length: Math.max(0, Math.floor(numPages || 0)) },
+                      (_, i) => i + 1,
+                    ).map((p) => (
+                      <option
+                        key={`mobile_page_opt_${p}`}
+                        value={p}
+                        className={
+                          submittedPages[p] ? 'text-green-600' : 'text-gray-900'
+                        }
                       >
-                        {currentPage}
-                      </button>
-                    );
-                  },
-                )}
+                        {t('proofreading.page')} {p}{' '}
+                        {submittedPages[p] ? '✓' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <ChevronDown className="h-4 w-4 text-white opacity-100" />
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    setPageNumber(Math.min(numPages, pageNumber + 1))
+                  }
+                  disabled={pageNumber >= numPages}
+                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-30 transition-colors rotate-180"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
               </div>
-            </>
+
+              <div className="w-full px-4 space-y-1">
+                <div className="flex justify-between text-[10px] font-medium text-purple-100">
+                  <span>Progress</span>
+                  <span>
+                    {Object.keys(submittedPages).length} / {numPages} Pages
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-green-400 transition-all duration-500 ease-out"
+                    style={{
+                      width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
@@ -1165,76 +1160,11 @@ function DocDigitization() {
         {/* --- Desktop: Side-by-side layout remains unchanged --- */}
         <div className="hidden md:flex md:flex-row w-full h-full overflow-hidden">
           {/* --- Left Sidebar --- */}
-          <div className="w-20 flex-shrink-0 flex flex-col p-0 border-r border-gray-300 dark:border-gray-700">
+          <div className="w-12 flex-shrink-0 flex flex-col items-center py-4 border-r border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
             {error && (
-              <p className="text-red-500 text-sm mt-2 p-2 bg-red-100 dark:bg-red-900 rounded">
-                {error}
+              <p className="text-red-500 text-[10px] mt-2 p-1 bg-red-100 dark:bg-red-900 rounded text-center">
+                Err
               </p>
-            )}
-
-            {bookData && (
-              <>
-                <h3 className="text-md font-bold mt-4 mb-2 text-center">
-                  {t('proofreading.pages')}
-                </h3>
-                <div className="w-full flex-grow overflow-y-auto pr-2 flex flex-col items-center">
-                  {Array.from(
-                    { length: Math.max(0, Math.floor(numPages || 0)) },
-                    (_, index) => {
-                      const currentPage = index + 1;
-                      const isSubmitted = submittedPages[currentPage];
-                      const isActive = pageNumber === currentPage;
-
-                      const buttonClasses = [
-                        'w-1/2',
-                        'text-center',
-                        'p-1',
-                        'my-1',
-                        'rounded-md',
-                        'transition-colors',
-                        'duration-150',
-                        'font-semibold',
-                      ];
-
-                      if (isSubmitted) {
-                        buttonClasses.push(
-                          'bg-yellow-500',
-                          'dark:bg-yellow-600',
-                          'text-white',
-                        );
-                      } else {
-                        buttonClasses.push(
-                          'bg-white',
-                          'dark:bg-gray-700',
-                          'text-gray-900',
-                          'dark:text-gray-100',
-                          'hover:bg-gray-200',
-                          'dark:hover:bg-gray-600',
-                        );
-                      }
-
-                      if (isActive) {
-                        buttonClasses.push(
-                          'ring-2',
-                          'ring-offset-2',
-                          'ring-blue-500',
-                          'dark:ring-offset-gray-900',
-                        );
-                      }
-
-                      return (
-                        <button
-                          key={`page_button_${currentPage}`}
-                          onClick={() => navigateToPage(currentPage)}
-                          className={buttonClasses.join(' ')}
-                        >
-                          {currentPage}
-                        </button>
-                      );
-                    },
-                  )}
-                </div>
-              </>
             )}
           </div>
 
@@ -1245,29 +1175,108 @@ function DocDigitization() {
               <div className="w-1/2 flex flex-col p-5 overflow-y-auto border-r border-gray-300 dark:border-gray-700">
                 {bookData ? (
                   <>
-                    <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg gap-3">
+                    {/* Progress Bar above toolbar */}
+                    <div className="w-full px-1 mb-2 space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                        <span>{t('common.overall.progress')}</span>
+                        <span>
+                          {Object.keys(submittedPages).length} / {numPages}
+                        </span>
+                      </div>
+                      <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500 transition-all duration-500 ease-out"
+                          style={{
+                            width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg gap-4">
+                      {/* Navigation Arrows */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() =>
+                            setPageNumber(Math.max(1, pageNumber - 1))
+                          }
+                          disabled={pageNumber <= 1}
+                          className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+                          title={t('common.previousPage')}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </button>
+                        <div className="relative">
+                          <select
+                            value={pageNumber}
+                            onChange={(e) =>
+                              setPageNumber(Number(e.target.value))
+                            }
+                            className="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-[9px] font-black py-1 pl-2 pr-7 rounded uppercase tracking-tighter focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer transition-colors"
+                          >
+                            {Array.from(
+                              {
+                                length: Math.max(0, Math.floor(numPages || 0)),
+                              },
+                              (_, i) => i + 1,
+                            ).map((p) => (
+                              <option
+                                key={`desktop_page_opt_${p}`}
+                                value={p}
+                                className={
+                                  submittedPages[p]
+                                    ? 'text-green-600 font-bold'
+                                    : 'text-gray-900 dark:text-gray-100'
+                                }
+                              >
+                                Page {p} {submittedPages[p] ? '✓' : ''}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <ChevronDown className="h-3.5 w-3.5 text-gray-500 opacity-100" />
+                          </div>
+                        </div>
+                        <button
+                          onClick={() =>
+                            setPageNumber(Math.min(numPages, pageNumber + 1))
+                          }
+                          disabled={pageNumber >= numPages}
+                          className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
+                          title={t('common.nextPage')}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                      {/* Zoom Controls */}
                       <div className="flex items-center">
                         <button
-                          className="mx-2 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                          className="mx-1 px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors text-xs font-bold"
                           onClick={() =>
                             setZoom((prev) => Math.max(0.2, prev - 0.2))
                           }
                         >
                           -
                         </button>
-                        <span className="font-semibold w-12 text-center">
+                        <span className="font-bold w-10 text-center text-xs">
                           {Math.round(zoom * 100)}%
                         </span>
                         <button
-                          className="mx-2 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                          className="mx-1 px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors text-xs font-bold"
                           onClick={() => setZoom((prev) => prev + 0.2)}
                         >
                           +
                         </button>
                       </div>
+
                       <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                      {/* Toggle Buttons */}
                       <button
-                        className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
+                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
                           showBboxes
                             ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
                             : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
@@ -1565,16 +1574,14 @@ function DocDigitization() {
         {/* Submit Button Section */}
         <div className="border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col sm:flex-row justify-center gap-4">
           <button
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => {
               setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
-              if (numPages && pageNumber < numPages) {
-                navigateToPage(pageNumber + 1);
-              }
+              setPageNumber(Math.min(numPages, pageNumber + 1));
             }}
             disabled={isSubmitting}
           >
-            {t('common.submitPage')}
+            {t('common.savePage')}
           </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
