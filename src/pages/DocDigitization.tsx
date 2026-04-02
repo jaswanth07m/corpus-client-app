@@ -818,60 +818,63 @@ function DocDigitization() {
                 {t('proofreading.page')} {pageNumber}
               </h3>
               <div className="w-full overflow-x-auto overflow-y-visible flex flex-row items-center justify-start gap-1 pb-2 scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
-                {Array.from(new Array(numPages || 0), (el, index) => {
-                  const currentPage = index + 1;
-                  const isSubmitted = submittedPages[currentPage];
-                  const isActive = pageNumber === currentPage;
+                {Array.from(
+                  { length: Math.max(0, Math.floor(numPages || 0)) },
+                  (_, index) => {
+                    const currentPage = index + 1;
+                    const isSubmitted = submittedPages[currentPage];
+                    const isActive = pageNumber === currentPage;
 
-                  const buttonClasses = [
-                    'w-9',
-                    'h-9',
-                    'text-center',
-                    'text-xs',
-                    'p-1',
-                    'mx-0.5',
-                    'rounded-md',
-                    'transition-colors',
-                    'duration-150',
-                    'font-semibold',
-                  ];
+                    const buttonClasses = [
+                      'w-9',
+                      'h-9',
+                      'text-center',
+                      'text-xs',
+                      'p-1',
+                      'mx-0.5',
+                      'rounded-md',
+                      'transition-colors',
+                      'duration-150',
+                      'font-semibold',
+                    ];
 
-                  if (isSubmitted) {
-                    buttonClasses.push(
-                      'bg-yellow-500',
-                      'dark:bg-yellow-600',
-                      'text-white',
+                    if (isSubmitted) {
+                      buttonClasses.push(
+                        'bg-yellow-500',
+                        'dark:bg-yellow-600',
+                        'text-white',
+                      );
+                    } else {
+                      buttonClasses.push(
+                        'bg-white',
+                        'dark:bg-gray-700',
+                        'text-gray-900',
+                        'dark:text-gray-100',
+                        'hover:bg-gray-200',
+                        'dark:hover:bg-gray-600',
+                      );
+                    }
+
+                    if (isActive) {
+                      buttonClasses.push(
+                        'ring-2',
+                        'ring-offset-2',
+                        'ring-blue-500',
+                        'dark:ring-offset-gray-900',
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={`page_button_${currentPage}`}
+                        onClick={() => navigateToPage(currentPage)}
+                        className={buttonClasses.join(' ')}
+                      >
+                        {currentPage}
+                      </button>
                     );
-                  } else {
-                    buttonClasses.push(
-                      'bg-white',
-                      'dark:bg-gray-700',
-                      'text-gray-900',
-                      'dark:text-gray-100',
-                      'hover:bg-gray-200',
-                      'dark:hover:bg-gray-600',
-                    );
-                  }
-
-                  if (isActive) {
-                    buttonClasses.push(
-                      'ring-2',
-                      'ring-offset-2',
-                      'ring-blue-500',
-                      'dark:ring-offset-gray-900',
-                    );
-                  }
-
-                  return (
-                    <button
-                      key={`page_button_${currentPage}`}
-                      onClick={() => navigateToPage(currentPage)}
-                      className={buttonClasses.join(' ')}
-                    >
-                      {currentPage}
-                    </button>
-                  );
-                })}
+                  },
+                )}
               </div>
             </>
           )}
@@ -1177,58 +1180,61 @@ function DocDigitization() {
                   {t('proofreading.pages')}
                 </h3>
                 <div className="w-full flex-grow overflow-y-auto pr-2 flex flex-col items-center">
-                  {Array.from(new Array(numPages || 0), (el, index) => {
-                    const currentPage = index + 1;
-                    const isSubmitted = submittedPages[currentPage];
-                    const isActive = pageNumber === currentPage;
+                  {Array.from(
+                    { length: Math.max(0, Math.floor(numPages || 0)) },
+                    (_, index) => {
+                      const currentPage = index + 1;
+                      const isSubmitted = submittedPages[currentPage];
+                      const isActive = pageNumber === currentPage;
 
-                    const buttonClasses = [
-                      'w-1/2',
-                      'text-center',
-                      'p-1',
-                      'my-1',
-                      'rounded-md',
-                      'transition-colors',
-                      'duration-150',
-                      'font-semibold',
-                    ];
+                      const buttonClasses = [
+                        'w-1/2',
+                        'text-center',
+                        'p-1',
+                        'my-1',
+                        'rounded-md',
+                        'transition-colors',
+                        'duration-150',
+                        'font-semibold',
+                      ];
 
-                    if (isSubmitted) {
-                      buttonClasses.push(
-                        'bg-yellow-500',
-                        'dark:bg-yellow-600',
-                        'text-white',
+                      if (isSubmitted) {
+                        buttonClasses.push(
+                          'bg-yellow-500',
+                          'dark:bg-yellow-600',
+                          'text-white',
+                        );
+                      } else {
+                        buttonClasses.push(
+                          'bg-white',
+                          'dark:bg-gray-700',
+                          'text-gray-900',
+                          'dark:text-gray-100',
+                          'hover:bg-gray-200',
+                          'dark:hover:bg-gray-600',
+                        );
+                      }
+
+                      if (isActive) {
+                        buttonClasses.push(
+                          'ring-2',
+                          'ring-offset-2',
+                          'ring-blue-500',
+                          'dark:ring-offset-gray-900',
+                        );
+                      }
+
+                      return (
+                        <button
+                          key={`page_button_${currentPage}`}
+                          onClick={() => navigateToPage(currentPage)}
+                          className={buttonClasses.join(' ')}
+                        >
+                          {currentPage}
+                        </button>
                       );
-                    } else {
-                      buttonClasses.push(
-                        'bg-white',
-                        'dark:bg-gray-700',
-                        'text-gray-900',
-                        'dark:text-gray-100',
-                        'hover:bg-gray-200',
-                        'dark:hover:bg-gray-600',
-                      );
-                    }
-
-                    if (isActive) {
-                      buttonClasses.push(
-                        'ring-2',
-                        'ring-offset-2',
-                        'ring-blue-500',
-                        'dark:ring-offset-gray-900',
-                      );
-                    }
-
-                    return (
-                      <button
-                        key={`page_button_${currentPage}`}
-                        onClick={() => navigateToPage(currentPage)}
-                        className={buttonClasses.join(' ')}
-                      >
-                        {currentPage}
-                      </button>
-                    );
-                  })}
+                    },
+                  )}
                 </div>
               </>
             )}
