@@ -238,7 +238,6 @@ function DocDigitization() {
   const [segmentsByPage, setSegmentsByPage] = useState<Map<number, Segment[]>>(
     new Map(),
   );
-  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [submittedPages, setSubmittedPages] = useState<Record<number, boolean>>(
     {},
   );
@@ -304,40 +303,42 @@ function DocDigitization() {
     return segmentsByPage.get(pageNumber) || [];
   };
 
-  const saveCurrentPageText = () => {
-    if (isTeluguTypingEnabled && value !== undefined && value !== null) {
-      setSegmentsByPage((prevMap) => {
-        const newMap = new Map(prevMap);
-        const pageSegments = newMap.get(pageNumber);
-        if (pageSegments && currentSegmentIndex < pageSegments.length) {
-          const updatedSegments = [...pageSegments];
-          updatedSegments[currentSegmentIndex] = {
-            ...updatedSegments[currentSegmentIndex],
-            text: value,
-          };
-          newMap.set(pageNumber, updatedSegments);
-        }
-        return newMap;
-      });
-    }
-  };
-
+  // Sync Telugu Typing value with the currently editing segment
   useEffect(() => {
-    if (isTeluguTypingEnabled) {
+    if (editingSegmentIndex !== null) {
       const pageSegments = segmentsByPage.get(pageNumber) || [];
-      const currentSegmentText = pageSegments[currentSegmentIndex]?.text || '';
+      const segmentText = pageSegments[editingSegmentIndex]?.text || '';
+      if (value !== segmentText) {
+        setValue(segmentText);
+      }
+    } else {
+      setValue('');
+    }
+  }, [editingSegmentIndex, pageNumber, setValue]);
+
+  // Propagate Telugu Typing value back to the segment state
+  useEffect(() => {
+    if (isTeluguTypingEnabled && editingSegmentIndex !== null) {
+      const pageSegments = segmentsByPage.get(pageNumber) || [];
+      const currentSegmentText = pageSegments[editingSegmentIndex]?.text || '';
+
       if (value !== currentSegmentText) {
-        setValue(currentSegmentText);
+        setSegmentsByPage((prevMap) => {
+          const newMap = new Map(prevMap);
+          const segments = newMap.get(pageNumber);
+          if (segments && editingSegmentIndex < segments.length) {
+            const updatedSegments = [...segments];
+            updatedSegments[editingSegmentIndex] = {
+              ...updatedSegments[editingSegmentIndex],
+              text: value,
+            };
+            newMap.set(pageNumber, updatedSegments);
+          }
+          return newMap;
+        });
       }
     }
-  }, [
-    segmentsByPage,
-    pageNumber,
-    currentSegmentIndex,
-    setValue,
-    isTeluguTypingEnabled,
-    value,
-  ]);
+  }, [value, isTeluguTypingEnabled, editingSegmentIndex, pageNumber]);
 
   const handleSegmentChange = (segmentIndex: number, newValue: string) => {
     setValue(newValue);
@@ -417,20 +418,16 @@ function DocDigitization() {
   }, [currentPageSegments, pdfPageSize]);
 
   const navigateToPage = (pageNum: number) => {
-    saveCurrentPageText();
     setPageNumber(pageNum);
   };
 
   async function fetchRecordById(recordId: string) {
-    saveCurrentPageText();
-
     setIsLoading(true);
     setError(null);
     setBookData(null);
     setRecordId(null);
     setFullRecordData(null);
     setPageNumber(1);
-    setCurrentSegmentIndex(0);
     setSegmentsByPage(new Map());
     setSubmittedPages({});
     setNumPages(0);
@@ -537,15 +534,12 @@ function DocDigitization() {
   };
 
   async function fetchNextRecord() {
-    saveCurrentPageText();
-
     setIsLoading(true);
     setError(null);
     setBookData(null);
     setRecordId(null);
     setFullRecordData(null);
     setPageNumber(1);
-    setCurrentSegmentIndex(0);
     setSegmentsByPage(new Map());
     setSubmittedPages({});
     setNumPages(0);
@@ -664,7 +658,6 @@ function DocDigitization() {
       alert('Cannot submit: No record is currently loaded.');
       return;
     }
-    saveCurrentPageText();
     setIsSubmitting(true);
     setError(null);
     const token = localStorage.getItem('token');
@@ -1138,6 +1131,11 @@ function DocDigitization() {
                                 onChange={(e) =>
                                   handleSegmentChange(idx, e.target.value)
                                 }
+                                onKeyDown={
+                                  isTeluguTypingEnabled
+                                    ? inputProps.onKeyDown
+                                    : undefined
+                                }
                                 placeholder={t('ui.ocr.text.will.appear.here')}
                                 disabled={
                                   !bookData || isLoading || isSubmitting
@@ -1522,6 +1520,11 @@ function DocDigitization() {
                                             e.target.value,
                                           )
                                         }
+                                        onKeyDown={
+                                          isTeluguTypingEnabled
+                                            ? inputProps.onKeyDown
+                                            : undefined
+                                        }
                                         disabled={
                                           !bookData || isLoading || isSubmitting
                                         }
@@ -1564,7 +1567,6 @@ function DocDigitization() {
           <button
             className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
             onClick={() => {
-              saveCurrentPageText();
               setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
               if (numPages && pageNumber < numPages) {
                 navigateToPage(pageNumber + 1);
