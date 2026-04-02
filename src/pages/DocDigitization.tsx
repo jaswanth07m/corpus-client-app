@@ -4,6 +4,8 @@ import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -238,6 +240,9 @@ function DocDigitization() {
   const [highlightedSegmentIndex, setHighlightedSegmentIndex] = useState<
     number | null
   >(null);
+  const [editingSegmentIndex, setEditingSegmentIndex] = useState<number | null>(
+    null,
+  );
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
@@ -1004,26 +1009,62 @@ function DocDigitization() {
           </div>
 
           {/* Mobile Segments - Direct editing */}
-          <div className="space-y-3">
+          <div className="space-y-1">
             {currentPageSegments.map((segment, idx) => (
               <div
                 key={`segment_edit_mobile_${idx}`}
                 id={`segment_edit_mobile_${idx}`}
-                className={`flex flex-col gap-1 p-2 rounded-lg transition-all duration-300 ${
+                className={`group relative flex gap-2 p-1 rounded transition-all duration-300 ${
                   highlightedSegmentIndex === idx
-                    ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-md'
-                    : ''
+                    ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
+                    : 'hover:bg-gray-200 dark:hover:bg-gray-800'
                 }`}
               >
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-black/70 text-white text-xs font-bold">
-                  {idx + 1}
-                </span>
-                <AutoResizeTextArea
-                  value={segment.text || ''}
-                  onChange={(e) => handleSegmentChange(idx, e.target.value)}
-                  placeholder={t('ui.ocr.text.will.appear.here')}
-                  disabled={!bookData || isLoading || isSubmitting}
-                />
+                {/* Sidebar metadata */}
+                <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                  <span className="text-[8px] font-bold text-gray-400">
+                    {idx + 1}
+                  </span>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-start items-center gap-2 h-4">
+                    {editingSegmentIndex !== idx ? (
+                      <>
+                        <button
+                          onClick={() => setEditingSegmentIndex(idx)}
+                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                        >
+                          Edit
+                        </button>
+                        <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
+                          {segment.type || 'Text'}
+                        </span>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setEditingSegmentIndex(null)}
+                        className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                      >
+                        Done
+                      </button>
+                    )}
+                  </div>
+                  {editingSegmentIndex === idx ? (
+                    <AutoResizeTextArea
+                      value={segment.text || ''}
+                      onChange={(e) => handleSegmentChange(idx, e.target.value)}
+                      placeholder={t('ui.ocr.text.will.appear.here')}
+                      disabled={!bookData || isLoading || isSubmitting}
+                    />
+                  ) : (
+                    <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {segment.text || ''}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -1305,34 +1346,65 @@ function DocDigitization() {
                 </div>
 
                 {/* Segments List - All segments for current page */}
-                <div className="flex-grow overflow-y-auto space-y-4">
+                <div className="flex-grow overflow-y-auto space-y-1">
                   {currentPageSegments.length > 0 ? (
                     currentPageSegments.map((segment, idx) => (
                       <div
                         key={`segment_editor_${idx}`}
                         id={`segment_editor_${idx}`}
-                        className={`space-y-2 p-2 rounded-lg transition-all duration-300 ${
+                        className={`group relative flex gap-3 p-1 rounded transition-all duration-300 ${
                           highlightedSegmentIndex === idx
-                            ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-md'
-                            : ''
+                            ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-800/50'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded bg-black/70 text-white text-xs font-bold">
+                        {/* Sidebar metadata */}
+                        <div className="w-8 flex-shrink-0 flex flex-col items-center pt-2 border-r border-gray-200 dark:border-gray-700 pr-2">
+                          <span className="text-[10px] font-bold text-gray-400">
                             {idx + 1}
                           </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {segment.type || 'Segment'}
-                          </span>
                         </div>
-                        <AutoResizeTextArea
-                          placeholder={t('common.editSegmentText')}
-                          value={segment.text || ''}
-                          onChange={(e) =>
-                            handleSegmentChange(idx, e.target.value)
-                          }
-                          disabled={!bookData || isLoading || isSubmitting}
-                        />
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-start items-center gap-2 h-4">
+                            {editingSegmentIndex !== idx ? (
+                              <>
+                                <button
+                                  onClick={() => setEditingSegmentIndex(idx)}
+                                  className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                >
+                                  Edit
+                                </button>
+                                <span className="opacity-0 group-hover:opacity-100 text-[9px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
+                                  {segment.type || 'Text'}
+                                </span>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setEditingSegmentIndex(null)}
+                                className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
+                              >
+                                Done
+                              </button>
+                            )}
+                          </div>
+                          {editingSegmentIndex === idx ? (
+                            <AutoResizeTextArea
+                              placeholder={t('common.editSegmentText')}
+                              value={segment.text || ''}
+                              onChange={(e) =>
+                                handleSegmentChange(idx, e.target.value)
+                              }
+                              disabled={!bookData || isLoading || isSubmitting}
+                            />
+                          ) : (
+                            <div className="w-full prose prose-xl dark:prose-invert max-w-none p-0 rounded">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {segment.text || ''}
+                              </ReactMarkdown>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (
