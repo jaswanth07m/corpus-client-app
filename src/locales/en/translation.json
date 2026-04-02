@@ -233,7 +233,13 @@
     },
     "Previous": "← Previous",
     "editSegmentText": "Edit segment text...",
-    "noSegmentsFoundForThisPage": "No segments found for this page."
+    "noSegmentsFoundForThisPage": "No segments found for this page.",
+    "update": {
+      "reading": {
+        "order": "Update Reading Order?"
+      },
+      "order": "Update Order"
+    }
   },
   "ui": {
     "failed": {
@@ -420,7 +426,8 @@
     "profileUpdatedSuccessfully": "Profile updated successfully!",
     "loadingProfile": "Loading profile...",
     "profilePictureUpdatedSuccessfully": "Profile picture updated successfully!",
-    "loadingPointsData": "Loading points data..."
+    "loadingPointsData": "Loading points data...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",

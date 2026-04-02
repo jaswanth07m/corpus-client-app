@@ -6,6 +6,22 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from '@hello-pangea/dnd';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -243,6 +259,7 @@ function DocDigitization() {
   const [editingSegmentIndex, setEditingSegmentIndex] = useState<number | null>(
     null,
   );
+  const [pendingReorder, setPendingReorder] = useState<DropResult | null>(null);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
@@ -337,6 +354,45 @@ function DocDigitization() {
       }
       return newMap;
     });
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) return;
+
+    setPendingReorder(result);
+  };
+
+  const confirmReorder = () => {
+    if (!pendingReorder || !pendingReorder.destination) return;
+
+    const sourceIndex = pendingReorder.source.index;
+    const destinationIndex = pendingReorder.destination.index;
+
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments) {
+        const updatedSegments = [...pageSegments];
+        const [reorderedItem] = updatedSegments.splice(sourceIndex, 1);
+        updatedSegments.splice(destinationIndex, 0, reorderedItem);
+
+        // Update reading_order for all segments in this page
+        const reindexedSegments = updatedSegments.map((seg, idx) => ({
+          ...seg,
+          reading_order: idx + 1,
+        }));
+
+        newMap.set(pageNumber, reindexedSegments);
+      }
+      return newMap;
+    });
+
+    setPendingReorder(null);
   };
 
   // Reset header timeout ref on unmount to avoid memory leaks
@@ -1009,65 +1065,98 @@ function DocDigitization() {
           </div>
 
           {/* Mobile Segments - Direct editing */}
-          <div className="space-y-1">
-            {currentPageSegments.map((segment, idx) => (
-              <div
-                key={`segment_edit_mobile_${idx}`}
-                id={`segment_edit_mobile_${idx}`}
-                className={`group relative flex gap-2 p-1 rounded transition-all duration-300 ${
-                  highlightedSegmentIndex === idx
-                    ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
-                    : 'hover:bg-gray-200 dark:hover:bg-gray-800'
-                }`}
-              >
-                {/* Sidebar metadata */}
-                <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
-                  <span className="text-[8px] font-bold text-gray-400">
-                    {idx + 1}
-                  </span>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-start items-center gap-2 h-4">
-                    {editingSegmentIndex !== idx ? (
-                      <>
-                        <button
-                          onClick={() => setEditingSegmentIndex(idx)}
-                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="mobile-segments">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="space-y-1"
+                >
+                  {currentPageSegments.map((segment, idx) => (
+                    <Draggable
+                      key={`draggable-mobile-${idx}`}
+                      draggableId={`draggable-mobile-${idx}`}
+                      index={idx}
+                    >
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          id={`segment_edit_mobile_${idx}`}
+                          className={`group relative flex gap-2 p-1 rounded transition-all duration-300 ${
+                            snapshot.isDragging
+                              ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg z-50'
+                              : highlightedSegmentIndex === idx
+                                ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
+                                : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                          }`}
                         >
-                          Edit
-                        </button>
-                        <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
-                          {segment.type || 'Text'}
-                        </span>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => setEditingSegmentIndex(null)}
-                        className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
-                      >
-                        Done
-                      </button>
-                    )}
-                  </div>
-                  {editingSegmentIndex === idx ? (
-                    <AutoResizeTextArea
-                      value={segment.text || ''}
-                      onChange={(e) => handleSegmentChange(idx, e.target.value)}
-                      placeholder={t('ui.ocr.text.will.appear.here')}
-                      disabled={!bookData || isLoading || isSubmitting}
-                    />
-                  ) : (
-                    <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {segment.text || ''}
-                      </ReactMarkdown>
-                    </div>
-                  )}
+                          {/* Sidebar metadata & Drag Handle */}
+                          <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                            <div
+                              {...provided.dragHandleProps}
+                              className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+                            >
+                              <ChevronDown className="h-3 w-3 -mb-1" />
+                              <ChevronUp className="h-3 w-3 -mt-1" />
+                            </div>
+                            <span className="text-[8px] font-bold text-gray-400">
+                              {idx + 1}
+                            </span>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-start items-center gap-2 h-4">
+                              {editingSegmentIndex !== idx ? (
+                                <>
+                                  <button
+                                    onClick={() => setEditingSegmentIndex(idx)}
+                                    className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                  >
+                                    Edit
+                                  </button>
+                                  <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
+                                    {segment.type || 'Text'}
+                                  </span>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingSegmentIndex(null)}
+                                  className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                                >
+                                  Done
+                                </button>
+                              )}
+                            </div>
+                            {editingSegmentIndex === idx ? (
+                              <AutoResizeTextArea
+                                value={segment.text || ''}
+                                onChange={(e) =>
+                                  handleSegmentChange(idx, e.target.value)
+                                }
+                                placeholder={t('ui.ocr.text.will.appear.here')}
+                                disabled={
+                                  !bookData || isLoading || isSubmitting
+                                }
+                              />
+                            ) : (
+                              <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {segment.text || ''}
+                                </ReactMarkdown>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
                 </div>
-              </div>
-            ))}
-          </div>
+              )}
+            </Droppable>
+          </DragDropContext>
 
           {hintsVisible && <SuggestionBar suggestions={suggestions} />}
         </div>
@@ -1346,73 +1435,115 @@ function DocDigitization() {
                 </div>
 
                 {/* Segments List - All segments for current page */}
-                <div className="flex-grow overflow-y-auto space-y-1">
-                  {currentPageSegments.length > 0 ? (
-                    currentPageSegments.map((segment, idx) => (
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <Droppable droppableId="desktop-segments">
+                    {(provided) => (
                       <div
-                        key={`segment_editor_${idx}`}
-                        id={`segment_editor_${idx}`}
-                        className={`group relative flex gap-3 p-1 rounded transition-all duration-300 ${
-                          highlightedSegmentIndex === idx
-                            ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
-                            : 'hover:bg-gray-100 dark:hover:bg-gray-800/50'
-                        }`}
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="flex-grow overflow-y-auto space-y-1"
                       >
-                        {/* Sidebar metadata */}
-                        <div className="w-8 flex-shrink-0 flex flex-col items-center pt-2 border-r border-gray-200 dark:border-gray-700 pr-2">
-                          <span className="text-[10px] font-bold text-gray-400">
-                            {idx + 1}
-                          </span>
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-start items-center gap-2 h-4">
-                            {editingSegmentIndex !== idx ? (
-                              <>
-                                <button
-                                  onClick={() => setEditingSegmentIndex(idx)}
-                                  className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                        {currentPageSegments.length > 0 ? (
+                          currentPageSegments.map((segment, idx) => (
+                            <Draggable
+                              key={`draggable-desktop-${idx}`}
+                              draggableId={`draggable-desktop-${idx}`}
+                              index={idx}
+                            >
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  id={`segment_editor_${idx}`}
+                                  className={`group relative flex gap-3 p-1 rounded transition-all duration-300 ${
+                                    snapshot.isDragging
+                                      ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg z-50'
+                                      : highlightedSegmentIndex === idx
+                                        ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
+                                        : 'hover:bg-gray-100 dark:hover:bg-gray-800/50'
+                                  }`}
                                 >
-                                  Edit
-                                </button>
-                                <span className="opacity-0 group-hover:opacity-100 text-[9px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
-                                  {segment.type || 'Text'}
-                                </span>
-                              </>
-                            ) : (
-                              <button
-                                onClick={() => setEditingSegmentIndex(null)}
-                                className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
-                              >
-                                Done
-                              </button>
-                            )}
-                          </div>
-                          {editingSegmentIndex === idx ? (
-                            <AutoResizeTextArea
-                              placeholder={t('common.editSegmentText')}
-                              value={segment.text || ''}
-                              onChange={(e) =>
-                                handleSegmentChange(idx, e.target.value)
-                              }
-                              disabled={!bookData || isLoading || isSubmitting}
-                            />
-                          ) : (
-                            <div className="w-full prose prose-xl dark:prose-invert max-w-none p-0 rounded">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {segment.text || ''}
-                              </ReactMarkdown>
-                            </div>
-                          )}
-                        </div>
+                                  {/* Sidebar metadata & Drag Handle */}
+                                  <div className="w-8 flex-shrink-0 flex flex-col items-center pt-2 border-r border-gray-200 dark:border-gray-700 pr-2">
+                                    <div
+                                      {...provided.dragHandleProps}
+                                      className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+                                    >
+                                      <ChevronDown className="h-3 w-3 -mb-1" />
+                                      <ChevronUp className="h-3 w-3 -mt-1" />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-gray-400">
+                                      {idx + 1}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex justify-start items-center gap-2 h-4">
+                                      {editingSegmentIndex !== idx ? (
+                                        <>
+                                          <button
+                                            onClick={() =>
+                                              setEditingSegmentIndex(idx)
+                                            }
+                                            className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                          >
+                                            Edit
+                                          </button>
+                                          <span className="opacity-0 group-hover:opacity-100 text-[9px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
+                                            {segment.type || 'Text'}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            setEditingSegmentIndex(null)
+                                          }
+                                          className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
+                                        >
+                                          Done
+                                        </button>
+                                      )}
+                                    </div>
+                                    {editingSegmentIndex === idx ? (
+                                      <AutoResizeTextArea
+                                        placeholder={t(
+                                          'common.editSegmentText',
+                                        )}
+                                        value={segment.text || ''}
+                                        onChange={(e) =>
+                                          handleSegmentChange(
+                                            idx,
+                                            e.target.value,
+                                          )
+                                        }
+                                        disabled={
+                                          !bookData || isLoading || isSubmitting
+                                        }
+                                      />
+                                    ) : (
+                                      <div className="w-full prose prose-xl dark:prose-invert max-w-none p-0 rounded">
+                                        <ReactMarkdown
+                                          remarkPlugins={[remarkGfm]}
+                                        >
+                                          {segment.text || ''}
+                                        </ReactMarkdown>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))
+                        ) : (
+                          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                            {t('common.noSegmentsFoundForThisPage')}
+                          </p>
+                        )}
+                        {provided.placeholder}
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                      {t('common.noSegmentsFoundForThisPage')}
-                    </p>
-                  )}
-                </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
 
                 {hintsVisible && isTeluguTypingEnabled && (
                   <SuggestionBar suggestions={suggestions} />
@@ -1454,6 +1585,30 @@ function DocDigitization() {
           </button>
         </div>
       </div>
+
+      <AlertDialog
+        open={!!pendingReorder}
+        onOpenChange={(open) => !open && setPendingReorder(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('common.update.reading.order')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                'messages.areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence',
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReorder}>
+              {t('common.update.order')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

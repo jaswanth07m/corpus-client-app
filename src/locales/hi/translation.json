@@ -233,7 +233,13 @@
     },
     "Previous": "",
     "editSegmentText": "",
-    "noSegmentsFoundForThisPage": ""
+    "noSegmentsFoundForThisPage": "",
+    "update": {
+      "reading": {
+        "order": ""
+      },
+      "order": ""
+    }
   },
   "ui": {
     "failed": {
@@ -420,7 +426,8 @@
     "profileUpdatedSuccessfully": "प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई!",
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
-    "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है..."
+    "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
