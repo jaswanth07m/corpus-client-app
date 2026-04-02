@@ -863,14 +863,8 @@ function DocDigitization() {
                   {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
                 </button>
               </div>
-              <div className="flex justify-center min-h-[300px] p-2">
-                <div
-                  className="relative inline-block"
-                  style={{
-                    transform: `scale(${zoom})`,
-                    transformOrigin: 'top center',
-                  }}
-                >
+              <div className="flex justify-center min-h-[300px] p-2 overflow-auto">
+                <div className="relative inline-block">
                   <div className="relative">
                     <Document
                       file={bookData.pdfUrl}
@@ -880,7 +874,7 @@ function DocDigitization() {
                     >
                       <Page
                         pageNumber={pageNumber}
-                        scale={1}
+                        scale={zoom}
                         renderAnnotationLayer={false}
                         renderTextLayer={false}
                         onLoadSuccess={(page) => {
@@ -1143,14 +1137,11 @@ function DocDigitization() {
                       onMouseLeave={handleMouseLeaveOrUp}
                       onMouseUp={handleMouseLeaveOrUp}
                       onMouseMove={handleMouseMove}
-                      className="flex-grow flex flex-col items-center min-h-[300px] p-2 overflow-auto bg-gray-100 dark:bg-gray-900"
+                      className="flex-grow min-h-[300px] p-2 overflow-auto bg-gray-100 dark:bg-gray-900"
                     >
                       <div
-                        className="relative inline-block"
-                        style={{
-                          transform: `scale(${zoom})`,
-                          transformOrigin: 'top center',
-                        }}
+                        className="relative"
+                        style={{ width: 'fit-content', margin: '0 auto' }}
                       >
                         <div className="relative">
                           <Document
@@ -1163,7 +1154,7 @@ function DocDigitization() {
                           >
                             <Page
                               pageNumber={pageNumber}
-                              scale={1}
+                              scale={zoom}
                               renderAnnotationLayer={false}
                               renderTextLayer={false}
                               onLoadSuccess={(page) => {
