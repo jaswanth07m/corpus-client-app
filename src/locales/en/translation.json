@@ -12,6 +12,8 @@
         "text": "Proofread OCR Text"
       }
     },
+    "showCompleteText": "Show Complete Text",
+    "hideCompleteText": "Hide Complete Text",
     "submitPage": "Submit Page",
     "savePage": "Save Page",
     "loading": "Loading...",

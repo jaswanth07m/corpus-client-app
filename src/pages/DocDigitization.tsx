@@ -259,6 +259,9 @@ function DocDigitization() {
     null,
   );
   const [pendingReorder, setPendingReorder] = useState<DropResult | null>(null);
+  const [mobileTextMode, setMobileTextMode] = useState<
+    'hidden' | 'all' | 'single'
+  >('hidden');
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
@@ -791,84 +794,7 @@ function DocDigitization() {
           </div>
         </div>
 
-        {/* Mobile: Navigation & Progress - hidden when header is collapsed */}
-        <div
-          className={`${typeof window !== 'undefined' && isHeaderCollapsed && window.innerWidth < 768 ? 'hidden' : ''} w-full mt-2 p-2 border-t border-white/30 md:hidden`}
-        >
-          {error && (
-            <p className="text-red-200 text-sm mt-2 p-2 bg-red-900/50 rounded w-full mb-2 text-center">
-              {error}
-            </p>
-          )}
-
-          {bookData && (
-            <div className="flex flex-col items-center gap-3">
-              <div className="flex items-center justify-between w-full px-4">
-                <button
-                  onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
-                  disabled={pageNumber <= 1}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-30 transition-colors"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-                <div className="relative group">
-                  <select
-                    value={pageNumber}
-                    onChange={(e) => setPageNumber(Number(e.target.value))}
-                    className="appearance-none bg-white/10 border border-white/20 text-white text-[10px] font-black py-1 pl-2.5 pr-7 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer transition-colors"
-                  >
-                    {Array.from(
-                      { length: Math.max(0, Math.floor(numPages || 0)) },
-                      (_, i) => i + 1,
-                    ).map((p) => (
-                      <option
-                        key={`mobile_page_opt_${p}`}
-                        value={p}
-                        className={
-                          submittedPages[p] ? 'text-green-600' : 'text-gray-900'
-                        }
-                      >
-                        {t('proofreading.page')} {p}{' '}
-                        {submittedPages[p] ? '✓' : ''}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <ChevronDown className="h-4 w-4 text-white opacity-100" />
-                  </div>
-                </div>
-                <button
-                  onClick={() =>
-                    setPageNumber(Math.min(numPages, pageNumber + 1))
-                  }
-                  disabled={pageNumber >= numPages}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-30 transition-colors rotate-180"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="w-full px-4 space-y-1">
-                <div className="flex justify-between text-[10px] font-medium text-purple-100">
-                  <span>Progress</span>
-                  <span>
-                    {Object.keys(submittedPages).length} / {numPages} Pages
-                  </span>
-                </div>
-                <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-400 transition-all duration-500 ease-out"
-                    style={{
-                      width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Mobile: Header toggle with chevrons - below page numbers */}
+        {/* Mobile: Header toggle with chevrons */}
         <div className="flex justify-center items-center md:hidden">
           <button
             onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
@@ -888,35 +814,111 @@ function DocDigitization() {
         <div className="w-full p-3 border-b border-gray-300 dark:border-gray-700 md:hidden">
           {bookData ? (
             <>
-              <div className="p-2 flex justify-center items-center bg-gray-200 dark:bg-gray-800 rounded-lg mb-2 gap-2">
-                <div className="flex items-center">
+              {/* Mobile Toolbar with Progress, Nav and Zoom */}
+              <div className="flex flex-col bg-gray-200 dark:bg-gray-800 rounded-lg mb-2 p-2 gap-2">
+                {/* Progress Bar (Single Line) */}
+                <div className="w-full px-1 space-y-1">
+                  <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-gray-500">
+                    <span>Progress</span>
+                    <span>
+                      {Object.keys(submittedPages).length} / {numPages}
+                    </span>
+                  </div>
+                  <div className="w-full h-1 bg-white/20 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-400 transition-all duration-500 ease-out"
+                      style={{
+                        width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center gap-2">
+                  {/* Navigation Arrows & Dropdown */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+                      disabled={pageNumber <= 1}
+                      className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <div className="relative group">
+                      <select
+                        value={pageNumber}
+                        onChange={(e) => setPageNumber(Number(e.target.value))}
+                        className="appearance-none bg-white/10 dark:bg-gray-700 border border-white/20 dark:border-gray-600 text-gray-900 dark:text-gray-300 text-[10px] font-black py-1 pl-2 pr-6 rounded focus:outline-none cursor-pointer"
+                      >
+                        {Array.from(
+                          { length: Math.max(0, Math.floor(numPages || 0)) },
+                          (_, i) => i + 1,
+                        ).map((p) => (
+                          <option
+                            key={`mobile_zoom_page_opt_${p}`}
+                            value={p}
+                            className={
+                              submittedPages[p]
+                                ? 'text-green-600 font-bold'
+                                : 'text-gray-900'
+                            }
+                          >
+                            P{p} {submittedPages[p] ? '✓' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <ChevronDown className="h-3 w-3 text-white/60" />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        setPageNumber(Math.min(numPages, pageNumber + 1))
+                      }
+                      disabled={pageNumber >= numPages}
+                      className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                  {/* Zoom Controls */}
+                  <div className="flex items-center">
+                    <button
+                      className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded text-xs font-bold"
+                      onClick={() =>
+                        setZoom((prev) => Math.max(0.2, prev - 0.2))
+                      }
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold mx-2 text-[10px]">
+                      {Math.round(zoom * 100)}%
+                    </span>
+                    <button
+                      className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded text-xs font-bold"
+                      onClick={() => setZoom((prev) => prev + 0.2)}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                  {/* BBox Toggle */}
                   <button
-                    className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
-                    onClick={() => setZoom((prev) => Math.max(0.2, prev - 0.2))}
+                    className={`p-1 rounded text-[8px] font-black uppercase transition-colors ${
+                      showBboxes
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+                    }`}
+                    onClick={() => setShowBboxes(!showBboxes)}
                   >
-                    -
-                  </button>
-                  <span className="font-semibold mx-2">
-                    {Math.round(zoom * 100)}%
-                  </span>
-                  <button
-                    className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
-                    onClick={() => setZoom((prev) => prev + 0.2)}
-                  >
-                    +
+                    {showBboxes ? 'BBox' : 'Off'}
                   </button>
                 </div>
-                <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500 mx-1" />
-                <button
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                    showBboxes
-                      ? 'bg-purple-600 text-white hover:bg-purple-700'
-                      : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
-                  }`}
-                  onClick={() => setShowBboxes(!showBboxes)}
-                >
-                  {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
-                </button>
               </div>
               <div className="flex justify-center min-h-[300px] p-2 overflow-auto">
                 <div className="relative inline-block">
@@ -963,6 +965,7 @@ function DocDigitization() {
                               style={overlayStyle}
                               onClick={() => {
                                 setHighlightedSegmentIndex(idx);
+                                setMobileTextMode('single');
                                 // Scroll to corresponding segment editor
                                 const segmentElement = document.getElementById(
                                   `segment_edit_mobile_${idx}`,
@@ -973,10 +976,6 @@ function DocDigitization() {
                                     block: 'center',
                                   });
                                 }
-                                setTimeout(
-                                  () => setHighlightedSegmentIndex(null),
-                                  3000,
-                                );
                               }}
                               title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
                             >
@@ -993,6 +992,21 @@ function DocDigitization() {
                   </div>
                 </div>
               </div>
+
+              <div className="flex justify-center mt-2 px-3">
+                <button
+                  onClick={() =>
+                    setMobileTextMode((prev) =>
+                      prev === 'all' ? 'hidden' : 'all',
+                    )
+                  }
+                  className="w-full py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-bold rounded-lg border border-purple-200 dark:border-purple-800 transition-colors hover:bg-purple-200"
+                >
+                  {mobileTextMode === 'all'
+                    ? t('common.hideCompleteText')
+                    : t('common.showCompleteText')}
+                </button>
+              </div>
             </>
           ) : (
             <div className="flex justify-center items-center h-full p-4">
@@ -1007,152 +1021,202 @@ function DocDigitization() {
 
         {/* --- Mobile: OCR Text Editor with Segments --- */}
         <div className="w-full p-3 border-b border-gray-300 dark:border-gray-700 md:hidden">
-          <div className="flex flex-col items-center justify-between gap-2 mb-3">
-            <h2 className="text-xl font-bold flex-shrink-0">
-              Proofread OCR Text
+          <div className="flex flex-col items-center justify-center gap-1 mb-3">
+            <h2 className="text-lg font-bold text-center">
+              {t('common.proofread.ocr.text')}
             </h2>
             {currentPageSegments.length > 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Page {pageNumber} - {currentPageSegments.length} segments
               </p>
             )}
-
-            {hintsVisible && (
-              <p className="text-sm text-center">
-                {t('ui.start.typing.to.get.hints')}
-              </p>
-            )}
-
-            <div className="flex flex-col items-center gap-2 w-full">
-              <div className="flex items-center gap-1">
-                <input
-                  className="cursor-pointer"
-                  id="telugu-toggle"
-                  type="checkbox"
-                  checked={isTeluguTypingEnabled}
-                  onChange={() =>
-                    setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
-                  }
-                />
-                <label className="cursor-pointer" htmlFor="telugu-toggle">
-                  Telugu
-                </label>
-              </div>
-
-              {isTeluguTypingEnabled && (
-                <div className="flex items-center gap-1">
-                  <input
-                    id="telugu-hints-toggle"
-                    type="checkbox"
-                    checked={hintsVisible}
-                    onChange={() => setHintsVisible(!hintsVisible)}
-                  />
-                  <label htmlFor="telugu-hints-toggle">
-                    {t('common.showHints')}
-                  </label>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Mobile Segments - Direct editing */}
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="mobile-segments">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-1"
-                >
-                  {currentPageSegments.map((segment, idx) => (
-                    <Draggable
-                      key={`draggable-mobile-${idx}`}
-                      draggableId={`draggable-mobile-${idx}`}
-                      index={idx}
+          {/* Mobile Segments - Conditional rendering */}
+          <div className="space-y-1 mt-2">
+            {mobileTextMode === 'all' && (
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="mobile-segments">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-1"
                     >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          id={`segment_edit_mobile_${idx}`}
-                          className={`group relative flex gap-2 p-1 rounded transition-all duration-300 ${
-                            snapshot.isDragging
-                              ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg z-50'
-                              : highlightedSegmentIndex === idx
-                                ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
-                                : 'hover:bg-gray-200 dark:hover:bg-gray-800'
-                          }`}
+                      {currentPageSegments.map((segment, idx) => (
+                        <Draggable
+                          key={`draggable-mobile-${idx}`}
+                          draggableId={`draggable-mobile-${idx}`}
+                          index={idx}
                         >
-                          {/* Sidebar metadata & Drag Handle */}
-                          <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                          {(provided, snapshot) => (
                             <div
-                              {...provided.dragHandleProps}
-                              className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              id={`segment_edit_mobile_${idx}`}
+                              className={`group relative flex gap-2 p-1 rounded transition-all duration-300 ${
+                                snapshot.isDragging
+                                  ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg z-50'
+                                  : highlightedSegmentIndex === idx
+                                    ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
+                                    : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                              }`}
                             >
-                              <ChevronDown className="h-3 w-3 -mb-1" />
-                              <ChevronUp className="h-3 w-3 -mt-1" />
-                            </div>
-                            <span className="text-[8px] font-bold text-gray-400">
-                              {idx + 1}
-                            </span>
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-start items-center gap-2 h-4">
-                              {editingSegmentIndex !== idx ? (
-                                <>
-                                  <button
-                                    onClick={() => setEditingSegmentIndex(idx)}
-                                    className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
-                                  >
-                                    Edit
-                                  </button>
-                                  <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
-                                    {segment.type || 'Text'}
-                                  </span>
-                                </>
-                              ) : (
-                                <button
-                                  onClick={() => setEditingSegmentIndex(null)}
-                                  className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                              {/* Sidebar metadata & Drag Handle */}
+                              <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
                                 >
-                                  Done
-                                </button>
-                              )}
-                            </div>
-                            {editingSegmentIndex === idx ? (
-                              <AutoResizeTextArea
-                                value={segment.text || ''}
-                                onChange={(e) =>
-                                  handleSegmentChange(idx, e.target.value)
-                                }
-                                onKeyDown={
-                                  isTeluguTypingEnabled
-                                    ? inputProps.onKeyDown
-                                    : undefined
-                                }
-                                placeholder={t('ui.ocr.text.will.appear.here')}
-                                disabled={
-                                  !bookData || isLoading || isSubmitting
-                                }
-                              />
-                            ) : (
-                              <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {segment.text || ''}
-                                </ReactMarkdown>
+                                  <ChevronDown className="h-3 w-3 -mb-1" />
+                                  <ChevronUp className="h-3 w-3 -mt-1" />
+                                </div>
+                                <span className="text-[8px] font-bold text-gray-400">
+                                  {idx + 1}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        </div>
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-start items-center gap-2 h-4">
+                                  {editingSegmentIndex !== idx ? (
+                                    <>
+                                      <button
+                                        onClick={() =>
+                                          setEditingSegmentIndex(idx)
+                                        }
+                                        className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                      >
+                                        Edit
+                                      </button>
+                                      <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
+                                        {segment.type || 'Text'}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setEditingSegmentIndex(null)
+                                      }
+                                      className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                                    >
+                                      Done
+                                    </button>
+                                  )}
+                                </div>
+                                {editingSegmentIndex === idx ? (
+                                  <AutoResizeTextArea
+                                    value={segment.text || ''}
+                                    onChange={(e) =>
+                                      handleSegmentChange(idx, e.target.value)
+                                    }
+                                    onKeyDown={
+                                      isTeluguTypingEnabled
+                                        ? inputProps.onKeyDown
+                                        : undefined
+                                    }
+                                    placeholder={t(
+                                      'ui.ocr.text.will.appear.here',
+                                    )}
+                                    disabled={
+                                      !bookData || isLoading || isSubmitting
+                                    }
+                                  />
+                                ) : (
+                                  <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                      {segment.text || ''}
+                                    </ReactMarkdown>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
+
+            {mobileTextMode === 'single' &&
+              highlightedSegmentIndex !== null &&
+              currentPageSegments[highlightedSegmentIndex] && (
+                <div className="fixed bottom-20 left-4 right-4 z-[100] p-3 rounded-xl bg-white dark:bg-gray-800 shadow-2xl border-2 border-purple-500 animate-in slide-in-from-bottom duration-300">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-purple-600 text-white text-xs font-bold">
+                        {highlightedSegmentIndex + 1}
+                      </span>
+                      <span className="text-[10px] uppercase font-bold text-gray-500">
+                        {currentPageSegments[highlightedSegmentIndex].type ||
+                          'Text'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setMobileTextMode('hidden');
+                        setHighlightedSegmentIndex(null);
+                      }}
+                      className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-1.5 rounded-full transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4 rotate-90" />
+                    </button>
+                  </div>
+
+                  <div className="max-h-[40vh] overflow-y-auto">
+                    <div className="flex justify-start items-center gap-2 mb-2">
+                      {editingSegmentIndex !== highlightedSegmentIndex ? (
+                        <button
+                          onClick={() =>
+                            setEditingSegmentIndex(highlightedSegmentIndex)
+                          }
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                        >
+                          Edit
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setEditingSegmentIndex(null)}
+                          className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                        >
+                          Done
+                        </button>
                       )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
+                    </div>
+                    {editingSegmentIndex === highlightedSegmentIndex ? (
+                      <AutoResizeTextArea
+                        value={
+                          currentPageSegments[highlightedSegmentIndex].text ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          handleSegmentChange(
+                            highlightedSegmentIndex,
+                            e.target.value,
+                          )
+                        }
+                        onKeyDown={
+                          isTeluguTypingEnabled
+                            ? inputProps.onKeyDown
+                            : undefined
+                        }
+                        placeholder={t('ui.ocr.text.will.appear.here')}
+                        disabled={!bookData || isLoading || isSubmitting}
+                      />
+                    ) : (
+                      <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {currentPageSegments[highlightedSegmentIndex].text ||
+                            ''}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-            </Droppable>
-          </DragDropContext>
+          </div>
 
           {hintsVisible && <SuggestionBar suggestions={suggestions} />}
         </div>
