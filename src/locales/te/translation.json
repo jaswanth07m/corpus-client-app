@@ -504,7 +504,8 @@
     "audioTrack": "ఆడియో ట్రాక్",
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
     "imageUrl": "ఇమేజ్ URL",
-    "enterRecordId": ""
+    "enterRecordId": "",
+    "recordControls": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",

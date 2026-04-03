@@ -262,12 +262,11 @@ function DocDigitization() {
   const [mobileTextMode, setMobileTextMode] = useState<
     'hidden' | 'all' | 'single'
   >('hidden');
+  const [showRecordPanel, setShowRecordPanel] = useState(false);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
   const [hintsVisible, setHintsVisible] = useState(false);
-  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
-  const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -398,16 +397,6 @@ function DocDigitization() {
 
     setPendingReorder(null);
   };
-
-  // Reset header timeout ref on unmount to avoid memory leaks
-  useEffect(() => {
-    const timeoutRef = headerTimeoutRef;
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   const currentPageSegments = getCurrentPageSegments();
 
@@ -734,78 +723,70 @@ function DocDigitization() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* --- Header --- */}
-      <div
-        className={`gradient-purple text-white p-4 rounded-b-3xl shadow-xl transition-all duration-300 ${typeof window !== 'undefined' && isHeaderCollapsed && window.innerWidth < 768 ? 'pb-2' : ''}`}
-      >
-        {/* Main header content - hidden when collapsed on mobile */}
-        <div
-          className={`${typeof window !== 'undefined' && isHeaderCollapsed && window.innerWidth < 768 ? 'hidden' : ''} flex flex-col sm:flex-row items-center justify-between gap-4`}
+      {/* --- Header with Back and Record Buttons --- */}
+      <div className="relative flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => {
+            window.location.href = '/tools';
+          }}
+          className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 rounded-full p-2 transition-colors"
         >
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                window.location.href = '/tools';
-              }}
-              className="text-white hover:bg-white/20 w-10 h-10 rounded-full p-2"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold">
-                {t('common.docDigitization.tool')}
-              </h1>
-              <p className="text-purple-100 text-sm">
-                {t('common.reviewAndCorrectOcrTextFromDocuments')}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <form
-              onSubmit={handleSearchRecord}
-              className="flex gap-2 w-full sm:w-auto"
-            >
-              <input
-                type="text"
-                value={searchRecordId}
-                onChange={(e) => setSearchRecordId(e.target.value)}
-                placeholder={t('media.enterRecordId')}
-                className="px-3 py-2 rounded text-gray-900 text-sm w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-purple-300"
-                disabled={isSearching || isLoading}
-              />
-              <button
-                type="submit"
-                className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 whitespace-nowrap"
-                disabled={isSearching || isLoading || !searchRecordId.trim()}
-              >
-                {isSearching ? t('common.loading') : 'Search'}
-              </button>
-            </form>
-            <button
-              className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 w-full sm:w-auto"
-              onClick={fetchNextRecord}
-              disabled={isLoading || isSearching}
-            >
-              {isLoading
-                ? t('common.loading')
-                : t('proofreading.getNextRecord')}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile: Header toggle with chevrons */}
-        <div className="flex justify-center items-center md:hidden">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div className="relative">
           <button
-            onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
-            className="text-white flex items-center gap-1 mt-1"
+            onClick={() => setShowRecordPanel(!showRecordPanel)}
+            className="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 font-bold text-sm rounded-lg transition-colors"
           >
-            {isHeaderCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
+            Record
           </button>
+
+          {/* Record Popup Panel */}
+          {showRecordPanel && (
+            <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                  {t('media.recordControls')}
+                </h3>
+                <button
+                  onClick={() => setShowRecordPanel(false)}
+                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4 rotate-90" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <form onSubmit={handleSearchRecord} className="space-y-2">
+                  <input
+                    type="text"
+                    value={searchRecordId}
+                    onChange={(e) => setSearchRecordId(e.target.value)}
+                    placeholder={t('media.enterRecordId')}
+                    className="w-full px-3 py-2 rounded text-gray-900 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    disabled={isSearching || isLoading}
+                  />
+                  <button
+                    type="submit"
+                    className="w-full bg-purple-600 text-white hover:bg-purple-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+                    disabled={
+                      isSearching || isLoading || !searchRecordId.trim()
+                    }
+                  >
+                    {isSearching ? t('common.loading') : 'Search'}
+                  </button>
+                </form>
+                <button
+                  className="w-full bg-green-600 text-white hover:bg-green-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+                  onClick={fetchNextRecord}
+                  disabled={isLoading || isSearching}
+                >
+                  {isLoading
+                    ? t('common.loading')
+                    : t('proofreading.getNextRecord')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1223,15 +1204,6 @@ function DocDigitization() {
 
         {/* --- Desktop: Side-by-side layout remains unchanged --- */}
         <div className="hidden md:flex md:flex-row w-full h-full overflow-hidden">
-          {/* --- Left Sidebar --- */}
-          <div className="w-12 flex-shrink-0 flex flex-col items-center py-4 border-r border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-            {error && (
-              <p className="text-red-500 text-[10px] mt-2 p-1 bg-red-100 dark:bg-red-900 rounded text-center">
-                Err
-              </p>
-            )}
-          </div>
-
           {/* --- Main Content --- */}
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             <div className="flex flex-1 overflow-hidden">

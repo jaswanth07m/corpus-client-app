@@ -504,7 +504,8 @@
     "audioTrack": "ऑडियो ट्रैक",
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
     "imageUrl": "छवि URL",
-    "enterRecordId": ""
+    "enterRecordId": "",
+    "recordControls": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",

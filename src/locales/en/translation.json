@@ -504,7 +504,8 @@
     "audioTrack": "Audio Track",
     "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
     "imageUrl": "Image URL",
-    "enterRecordId": "Enter Record ID"
+    "enterRecordId": "Enter Record ID",
+    "recordControls": "Record Controls"
   },
   "stats": {
     "contributionsYet": "contributions yet.",
