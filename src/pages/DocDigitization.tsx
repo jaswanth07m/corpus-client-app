@@ -901,76 +901,71 @@ function DocDigitization() {
                   </button>
                 </div>
               </div>
-              <div className="flex justify-center min-h-[300px] p-2 overflow-auto">
-                <div className="relative inline-block">
-                  <div className="relative">
-                    <Document
-                      file={bookData.pdfUrl}
-                      loading="Loading PDF..."
-                      className="inline-block"
-                      onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                    >
-                      <Page
-                        pageNumber={pageNumber}
-                        scale={zoom}
-                        renderAnnotationLayer={false}
-                        renderTextLayer={false}
-                        onLoadSuccess={(page) => {
-                          setPdfPageSize({
-                            width: page.originalWidth || 0,
-                            height: page.originalHeight || 0,
-                          });
-                        }}
-                      />
-                    </Document>
-                    {/* Bounding Box Overlays */}
-                    {showBboxes && pdfPageSize.width > 0 && (
-                      <div className="absolute inset-0 pointer-events-none">
-                        {currentPageSegments.map((segment, idx) => {
-                          const normalizedBox = normalizeBbox(segment.bbox);
-                          const overlayStyle = buildOverlayStyle(
-                            normalizedBox,
-                            ocrRefDimensions.width,
-                            ocrRefDimensions.height,
-                          );
-                          if (!overlayStyle) return null;
+              <div className="w-full h-[500px] overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
+                <div className="relative" style={{ width: 'max-content' }}>
+                  <Document
+                    file={bookData.pdfUrl}
+                    loading="Loading PDF..."
+                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  >
+                    <Page
+                      pageNumber={pageNumber}
+                      scale={zoom}
+                      renderAnnotationLayer={false}
+                      renderTextLayer={false}
+                      onLoadSuccess={(page) => {
+                        setPdfPageSize({
+                          width: page.originalWidth || 0,
+                          height: page.originalHeight || 0,
+                        });
+                      }}
+                    />
+                  </Document>
+                  {/* Bounding Box Overlays */}
+                  {showBboxes && pdfPageSize.width > 0 && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      {currentPageSegments.map((segment, idx) => {
+                        const normalizedBox = normalizeBbox(segment.bbox);
+                        const overlayStyle = buildOverlayStyle(
+                          normalizedBox,
+                          ocrRefDimensions.width,
+                          ocrRefDimensions.height,
+                        );
+                        if (!overlayStyle) return null;
 
-                          const colorClasses = getBboxColorClasses(
-                            segment.type,
-                          );
+                        const colorClasses = getBboxColorClasses(segment.type);
 
-                          return (
-                            <div
-                              key={`bbox_overlay_mobile_${idx}`}
-                              className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
-                              style={overlayStyle}
-                              onClick={() => {
-                                setHighlightedSegmentIndex(idx);
-                                setMobileTextMode('single');
-                                // Scroll to corresponding segment editor
-                                const segmentElement = document.getElementById(
-                                  `segment_edit_mobile_${idx}`,
-                                );
-                                if (segmentElement) {
-                                  segmentElement.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center',
-                                  });
-                                }
-                              }}
-                              title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
+                        return (
+                          <div
+                            key={`bbox_overlay_mobile_${idx}`}
+                            className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
+                            style={overlayStyle}
+                            onClick={() => {
+                              setHighlightedSegmentIndex(idx);
+                              setMobileTextMode('single');
+                              // Scroll to corresponding segment editor
+                              const segmentElement = document.getElementById(
+                                `segment_edit_mobile_${idx}`,
+                              );
+                              if (segmentElement) {
+                                segmentElement.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'center',
+                                });
+                              }
+                            }}
+                            title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
+                          >
+                            <span
+                              className={`absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded text-white ${colorClasses.label}`}
                             >
-                              <span
-                                className={`absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded text-white ${colorClasses.label}`}
-                              >
-                                {idx + 1}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                              {idx + 1}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
