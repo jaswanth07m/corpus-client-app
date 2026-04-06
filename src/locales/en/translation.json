@@ -227,7 +227,19 @@
     "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "The user might not be in the loaded records yet. Try clearing\n                the search and scrolling to load more records.",
     "processing": "Processing...",
     "noFollowersFound": "No followers found",
-    "noUsersBeingFollowed": "No users being followed"
+    "noUsersBeingFollowed": "No users being followed",
+    "on": {
+      "page": "on Page"
+    },
+    "Previous": "← Previous",
+    "editSegmentText": "Edit segment text...",
+    "noSegmentsFoundForThisPage": "No segments found for this page.",
+    "update": {
+      "reading": {
+        "order": "Update Reading Order?"
+      },
+      "order": "Update Order"
+    }
   },
   "ui": {
     "failed": {
@@ -414,7 +426,8 @@
     "profileUpdatedSuccessfully": "Profile updated successfully!",
     "loadingProfile": "Loading profile...",
     "profilePictureUpdatedSuccessfully": "Profile picture updated successfully!",
-    "loadingPointsData": "Loading points data..."
+    "loadingPointsData": "Loading points data...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -482,7 +495,8 @@
     "capturedPhoto": "Captured photo",
     "audioTrack": "Audio Track",
     "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
-    "imageUrl": "Image URL"
+    "imageUrl": "Image URL",
+    "enterRecordId": "Enter Record ID"
   },
   "stats": {
     "contributionsYet": "contributions yet.",

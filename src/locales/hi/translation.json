@@ -227,7 +227,19 @@
     "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "उपयोगकर्ता लोड किए गए रिकॉर्ड में नहीं हो सकता है। खोज को साफ़ करने और अधिक रिकॉर्ड लोड करने के लिए स्क्रॉल करने का प्रयास करें।",
     "processing": "प्रसंस्करण...",
     "noFollowersFound": "कोई फ़ॉलोअर नहीं मिला",
-    "noUsersBeingFollowed": "कोई उपयोगकर्ता फ़ॉलो नहीं किए जा रहे"
+    "noUsersBeingFollowed": "कोई उपयोगकर्ता फ़ॉलो नहीं किए जा रहे",
+    "on": {
+      "page": ""
+    },
+    "Previous": "",
+    "editSegmentText": "",
+    "noSegmentsFoundForThisPage": "",
+    "update": {
+      "reading": {
+        "order": ""
+      },
+      "order": ""
+    }
   },
   "ui": {
     "failed": {
@@ -414,7 +426,8 @@
     "profileUpdatedSuccessfully": "प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई!",
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
-    "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है..."
+    "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -482,7 +495,8 @@
     "capturedPhoto": "कैप्चर की गई फ़ोटो",
     "audioTrack": "ऑडियो ट्रैक",
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
-    "imageUrl": "छवि URL"
+    "imageUrl": "छवि URL",
+    "enterRecordId": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",
