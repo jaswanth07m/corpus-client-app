@@ -36,6 +36,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 const languages = [
   'assamese',
@@ -289,6 +290,87 @@ function Profile() {
     showProfileInfo,
     showProfilePictureModal,
   ]);
+
+  // Sync local state when global preferences change
+  useEffect(() => {
+    setLocalPrefs({
+      location: preferences.location,
+      language: preferences.language,
+      rights: preferences.rights,
+    });
+  }, [preferences]);
+
+  // Verify location when coordinates change
+  const verifyPrefLocation = useCallback(async (lat: number, lng: number) => {
+    if (!lat || !lng) return;
+    setIsVerifyingLocation(true);
+    setPrefLocationError('');
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/location/verify-location`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: lat, longitude: lng }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPrefVerifiedLocation(data);
+        setLocalPrefs((prev) => ({
+          ...prev,
+          location: data.formatted_address,
+        }));
+      } else {
+        throw new Error('Failed to verify location');
+      }
+    } catch (error) {
+      console.error('Location verification error:', error);
+      setPrefLocationError('Could not verify location');
+    } finally {
+      setIsVerifyingLocation(false);
+    }
+  }, []);
+
+  // Auto-verify location when coordinates are set from map
+  useEffect(() => {
+    if (prefLocationCoords && !prefVerifiedLocation) {
+      verifyPrefLocation(prefLocationCoords.lat, prefLocationCoords.lng);
+    }
+  }, [prefLocationCoords, prefVerifiedLocation, verifyPrefLocation]);
+
+  // Request current location for preferences
+  const requestPrefLocation = () => {
+    setPrefLocationError('');
+    if (!navigator.geolocation) {
+      setPrefLocationError('Geolocation is not supported');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setPrefLocationCoords(coords);
+        setPreferences({ locationCoords: coords });
+      },
+      (err) => {
+        setPrefLocationError('Location access denied');
+      },
+      { enableHighAccuracy: true, timeout: 15000 },
+    );
+  };
+
+  // Save preferences handler
+  const handleSavePreferences = () => {
+    setPreferences({
+      location: localPrefs.location,
+      language: localPrefs.language,
+      rights: localPrefs.rights,
+    });
+    toast.success(t('common.preferencesSavedSuccessfully'));
+    setShowPreferencesPanel(false);
+  };
 
   // Sync local state when global preferences change
   useEffect(() => {
@@ -1460,6 +1542,182 @@ function Profile() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* User Preferences Modal */}
+      {showPreferencesPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {t('common.user.preferences')}
+                </h3>
+                <button
+                  onClick={() => setShowPreferencesPanel(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Location Section - Same as Upload Page */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      Location
+                    </span>
+                  </div>
+
+                  {isVerifyingLocation ? (
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Verifying location...</span>
+                    </div>
+                  ) : prefVerifiedLocation ? (
+                    <div>
+                      <div className="flex items-center gap-2 text-green-600">
+                        <Check className="w-4 h-4" />
+                        <span className="text-sm font-medium">
+                          {prefVerifiedLocation.formatted_address}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setPrefLocationCoords(null);
+                          setPrefVerifiedLocation(null);
+                          setLocalPrefs((prev) => ({ ...prev, location: '' }));
+                        }}
+                        className="text-xs text-blue-600 hover:underline mt-1"
+                      >
+                        {t('user.changeLocation')}
+                      </button>
+                    </div>
+                  ) : prefLocationError ? (
+                    <div className="flex items-center gap-2 text-red-600">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">{prefLocationError}</span>
+                    </div>
+                  ) : prefLocationCoords ? (
+                    <div className="flex items-center gap-2 text-orange-600">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">
+                        {t('user.locationCapturedVerifying')}
+                      </span>
+                    </div>
+                  ) : null}
+
+                  {!prefLocationCoords && !prefVerifiedLocation && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={requestPrefLocation}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        <MapPin className="w-3 h-3" />
+                        Use Current Location
+                      </button>
+                      <button
+                        onClick={() => setShowLocationPicker(true)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        Pick from Map
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="prefLanguage"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('common.default.language')}
+                  </label>
+                  <select
+                    id="prefLanguage"
+                    value={localPrefs.language}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, language: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Language</option>
+                    {languages.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="prefRights"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('ui.default.release.rights')}
+                  </label>
+                  <select
+                    id="prefRights"
+                    value={localPrefs.rights}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, rights: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Release Rights</option>
+                    <option value="creator">
+                      This work is created by me and anyone is free to use it.
+                    </option>
+                    <option value="others">Others</option>
+                    <option value="downloaded">
+                      I downloaded this from the internet and/or I don't know if
+                      it is free to share.
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreferencesPanel(false);
+                    setPrefLocationCoords(null);
+                    setPrefVerifiedLocation(null);
+                    setPrefLocationError('');
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePreferences}
+                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors"
+                >
+                  {t('common.savePreferences')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Location Picker Modal */}
+      {showLocationPicker && (
+        <LocationPicker
+          onLocationSelect={(lat, lng) => {
+            const coords = { lat, lng };
+            setPrefLocationCoords(coords);
+            setPreferences({ locationCoords: coords });
+            setShowLocationPicker(false);
+          }}
+          onClose={() => setShowLocationPicker(false)}
+        />
       )}
     </div>
   );

@@ -431,6 +431,11 @@
       "release": {
         "rights": ""
       }
+    },
+    "default": {
+      "release": {
+        "rights": ""
+      }
     }
   },
   "messages": {
@@ -470,6 +475,8 @@
     "shortBio": "संक्षिप्त परिचय",
     "profession": "व्यवसाय",
     "organisation": "संगठन",
+    "changeLocation": "",
+    "locationCapturedVerifying": "",
     "changeLocation": "",
     "locationCapturedVerifying": ""
   },

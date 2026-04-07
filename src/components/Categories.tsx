@@ -20,6 +20,7 @@ import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import SwechaLogo from './SwechaLogo';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
@@ -211,6 +212,23 @@ const Categories: React.FC<CategoriesProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preSelectedMediaType]);
+
+  // Apply preferences when entering upload mode
+  useEffect(() => {
+    if (uploadMode) {
+      if (preferences.language && !selectedLanguage) {
+        setSelectedLangugae(preferences.language);
+      }
+      if (preferences.rights && !releaseRights) {
+        setreleaseRights(preferences.rights);
+      }
+      // Apply location from preferences if available
+      if (preferences.locationCoords && !location) {
+        setLocation(preferences.locationCoords);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadMode, preferences]);
 
   // Apply preferences when entering upload mode
   useEffect(() => {
@@ -797,6 +815,11 @@ const Categories: React.FC<CategoriesProps> = ({
           'Content uploaded successfully! Redirecting to Landing...',
         );
         resetUploadState();
+          // Update preferences based on current upload values
+          setPreferences({
+            language: selectedLanguage,
+            rights: releaseRights,
+          });
         setPreferences({
           language: selectedLanguage,
           rights: releaseRights,

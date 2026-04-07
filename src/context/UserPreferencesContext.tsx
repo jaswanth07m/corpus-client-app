@@ -8,6 +8,8 @@ import React, {
 } from 'react';
 
 export interface UserPreferences {
+  location: string;
+  locationCoords: { lat: number; lng: number } | null;
   language: string;
   rights: string;
 }
@@ -21,6 +23,8 @@ interface UserPreferencesContextType {
 const STORAGE_KEY = 'user_preferences';
 
 const defaultPreferences: UserPreferences = {
+  location: '',
+  locationCoords: null,
   language: '',
   rights: '',
 };
