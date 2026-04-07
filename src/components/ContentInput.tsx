@@ -34,6 +34,7 @@ import MediaUploadComponent from './MediaUploadComponent';
 import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
 import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 interface Category {
   id: string;
@@ -180,6 +181,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   isChunkedUploading = false,
 }) => {
   const { t } = useTranslation();
+  const { setPreferences } = useUserPreferences();
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -280,6 +282,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     if (setLocation) {
       setLocation({ lat, lng });
     }
+    setPreferences({ locationCoords: { lat, lng } });
     setShowLocationPicker(false);
   };
 

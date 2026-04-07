@@ -239,7 +239,15 @@
         "order": "Update Reading Order?"
       },
       "order": "Update Order"
-    }
+    },
+    "preferencesSavedSuccessfully": "Preferences saved successfully",
+    "user": {
+      "preferences": "User Preferences"
+    },
+    "default": {
+      "language": "Default Language"
+    },
+    "savePreferences": "Save Preferences"
   },
   "ui": {
     "failed": {
@@ -409,6 +417,11 @@
           }
         }
       }
+    },
+    "default": {
+      "release": {
+        "rights": "Default Release Rights"
+      }
     }
   },
   "messages": {
@@ -446,7 +459,9 @@
     "enterFullName": "Enter full name",
     "shortBio": "Short Bio",
     "profession": "Profession",
-    "organisation": "Organisation"
+    "organisation": "Organisation",
+    "changeLocation": "Change location",
+    "locationCapturedVerifying": "Location captured - verifying..."
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "Please enter valid latitude and longitude values",

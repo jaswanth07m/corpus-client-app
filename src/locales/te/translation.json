@@ -239,7 +239,15 @@
         "order": ""
       },
       "order": ""
-    }
+    },
+    "preferencesSavedSuccessfully": "",
+    "user": {
+      "preferences": ""
+    },
+    "default": {
+      "language": ""
+    },
+    "savePreferences": ""
   },
   "ui": {
     "failed": {
@@ -409,6 +417,11 @@
           }
         }
       }
+    },
+    "default": {
+      "release": {
+        "rights": ""
+      }
     }
   },
   "messages": {
@@ -446,7 +459,9 @@
     "enterFullName": "పూర్తి పేరు నమోదు చేయండి",
     "shortBio": "చిన్న పరిచయం",
     "profession": "వృత్తి",
-    "organisation": "సంస్థ"
+    "organisation": "సంస్థ",
+    "changeLocation": "",
+    "locationCapturedVerifying": ""
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "దయచేసి సరైన అక్షాంశం మరియు రేఖాంశం విలువలను నమోదు చేయండి",

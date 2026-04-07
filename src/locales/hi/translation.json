@@ -239,7 +239,15 @@
         "order": ""
       },
       "order": ""
-    }
+    },
+    "preferencesSavedSuccessfully": "",
+    "user": {
+      "preferences": ""
+    },
+    "default": {
+      "language": ""
+    },
+    "savePreferences": ""
   },
   "ui": {
     "failed": {
@@ -409,6 +417,11 @@
           }
         }
       }
+    },
+    "default": {
+      "release": {
+        "rights": ""
+      }
     }
   },
   "messages": {
@@ -446,7 +459,9 @@
     "enterFullName": "पूरा नाम दर्ज करें",
     "shortBio": "संक्षिप्त परिचय",
     "profession": "व्यवसाय",
-    "organisation": "संगठन"
+    "organisation": "संगठन",
+    "changeLocation": "",
+    "locationCapturedVerifying": ""
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "कृपया मान्य अक्षांश और देशांतर मान दर्ज करें",

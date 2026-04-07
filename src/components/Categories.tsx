@@ -20,6 +20,7 @@ import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import posthog from 'posthog-js';
 import SwechaLogo from './SwechaLogo';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
@@ -88,6 +89,7 @@ const Categories: React.FC<CategoriesProps> = ({
   preSelectedMediaType,
 }) => {
   const { t } = useTranslation();
+  const { preferences, setPreferences } = useUserPreferences();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -210,6 +212,23 @@ const Categories: React.FC<CategoriesProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preSelectedMediaType]);
+
+  // Apply preferences when entering upload mode
+  useEffect(() => {
+    if (uploadMode) {
+      if (preferences.language && !selectedLanguage) {
+        setSelectedLangugae(preferences.language);
+      }
+      if (preferences.rights && !releaseRights) {
+        setreleaseRights(preferences.rights);
+      }
+      // Apply location from preferences if available
+      if (preferences.locationCoords && !location) {
+        setLocation(preferences.locationCoords);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadMode, preferences]);
 
   // REPLACE YOUR EXISTING fetchUserProfile FUNCTION WITH THIS
   const fetchUserProfile = async () => {
@@ -363,13 +382,16 @@ const Categories: React.FC<CategoriesProps> = ({
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
+        const coords = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-        });
+        };
+        setLocation(coords);
         setLocationError('');
         setShowManualLocation(false);
         toast.success(t('user.locationAccessGranted'));
+        // Also update global preferences
+        setPreferences({ locationCoords: coords });
       },
       (error) => {
         console.error('Location error:', error);
@@ -709,6 +731,11 @@ const Categories: React.FC<CategoriesProps> = ({
           );
           resetUploadState();
           posthog.capture('upload_success');
+          // Update preferences based on current upload values
+          setPreferences({
+            language: selectedLanguage,
+            rights: releaseRights,
+          });
           // Redirect to landing page after successful upload
           setTimeout(() => {
             window.location.href = '/';
