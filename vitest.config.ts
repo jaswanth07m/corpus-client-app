@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(process.cwd(), './src'),
     },
   },
   test: {
@@ -14,6 +14,10 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: true,
-    testTimeout: 30000,
+    testTimeout: 15000,
+    coverage: {
+      reporter: ['text', 'json', 'html', 'cobertura'],
+      exclude: ['node_modules/', 'tests/'],
+    },
   },
 });
