@@ -1,8 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ContributionsList, PaginationControls } from '../../../src/components/ContributionsList';
-import type { UserContributions, ContributionsListProps, ContributionItem } from '../../../src/components/ContributionsList';
+import {
+  ContributionsList,
+  PaginationControls,
+} from '../../../src/components/ContributionsList';
+import type {
+  UserContributions,
+  ContributionsListProps,
+  ContributionItem,
+} from '../../../src/components/ContributionsList';
 
 // Mock i18next
 vi.mock('react-i18next', () => ({
@@ -13,7 +20,13 @@ vi.mock('react-i18next', () => ({
 
 // Mock MediaGridItem
 vi.mock('../../../src/components/MediaGridItem', () => ({
-  MediaGridItem: ({ item, mediaType }: { item: ContributionItem; mediaType: string }) => (
+  MediaGridItem: ({
+    item,
+    mediaType,
+  }: {
+    item: ContributionItem;
+    mediaType: string;
+  }) => (
     <div data-testid="media-grid-item" data-media-type={mediaType}>
       {item.title}
     </div>
@@ -39,7 +52,7 @@ const mockContributionItem = {
 };
 
 const createMockContributions = (
-  overrides: Partial<UserContributions> = {}
+  overrides: Partial<UserContributions> = {},
 ): UserContributions => ({
   totalContributions: 100,
   contributionsByType: {
@@ -49,34 +62,42 @@ const createMockContributions = (
     video: 15,
     document: 10,
   },
-  audioContributions: Array(35).fill(mockContributionItem).map((item, index) => ({
-    ...item,
-    id: `audio-${index}`,
-  })),
-  videoContributions: Array(15).fill(mockContributionItem).map((item, index) => ({
-    ...item,
-    id: `video-${index}`,
-  })),
-  textContributions: Array(20).fill(mockContributionItem).map((item, index) => ({
-    ...item,
-    id: `text-${index}`,
-  })),
-  imageContributions: Array(20).fill(mockContributionItem).map((item, index) => ({
-    ...item,
-    id: `image-${index}`,
-  })),
-  documentContributions: Array(10).fill(mockContributionItem).map((item, index) => ({
-    ...item,
-    id: `doc-${index}`,
-  })),
+  audioContributions: Array(35)
+    .fill(mockContributionItem)
+    .map((item, index) => ({
+      ...item,
+      id: `audio-${index}`,
+    })),
+  videoContributions: Array(15)
+    .fill(mockContributionItem)
+    .map((item, index) => ({
+      ...item,
+      id: `video-${index}`,
+    })),
+  textContributions: Array(20)
+    .fill(mockContributionItem)
+    .map((item, index) => ({
+      ...item,
+      id: `text-${index}`,
+    })),
+  imageContributions: Array(20)
+    .fill(mockContributionItem)
+    .map((item, index) => ({
+      ...item,
+      id: `image-${index}`,
+    })),
+  documentContributions: Array(10)
+    .fill(mockContributionItem)
+    .map((item, index) => ({
+      ...item,
+      id: `doc-${index}`,
+    })),
   audioDuration: 1800,
   videoDuration: 3000,
   ...overrides,
 });
 
-const createMockProps = (
-  overrides: Partial<ContributionsListProps> = {}
-) => ({
+const createMockProps = (overrides: Partial<ContributionsListProps> = {}) => ({
   contributions: createMockContributions(),
   selectedMediaType: 'audio' as const,
   token: 'test-token',
@@ -92,14 +113,14 @@ describe('ContributionsList', () => {
   describe('Null/Empty States', () => {
     it('returns null when contributions is null', () => {
       const { container } = render(
-        <ContributionsList {...createMockProps({ contributions: null })} />
+        <ContributionsList {...createMockProps({ contributions: null })} />,
       );
       expect(container.firstChild).toBeNull();
     });
 
     it('returns null when selectedMediaType is null', () => {
       const { container } = render(
-        <ContributionsList {...createMockProps({ selectedMediaType: null })} />
+        <ContributionsList {...createMockProps({ selectedMediaType: null })} />,
       );
       expect(container.firstChild).toBeNull();
     });
@@ -115,7 +136,7 @@ describe('ContributionsList', () => {
             contributions: emptyContributions,
             selectedMediaType: 'audio',
           })}
-        />
+        />,
       );
 
       expect(screen.getByText(/No Audio/)).toBeInTheDocument();
@@ -132,7 +153,7 @@ describe('ContributionsList', () => {
             contributions: emptyContributions,
             selectedMediaType: 'video',
           })}
-        />
+        />,
       );
 
       expect(screen.getByText(/No Video/)).toBeInTheDocument();
@@ -149,7 +170,7 @@ describe('ContributionsList', () => {
             contributions: emptyContributions,
             selectedMediaType: 'text',
           })}
-        />
+        />,
       );
 
       expect(screen.getByText(/No Text/)).toBeInTheDocument();
@@ -166,7 +187,7 @@ describe('ContributionsList', () => {
             contributions: emptyContributions,
             selectedMediaType: 'image',
           })}
-        />
+        />,
       );
 
       expect(screen.getByText(/No Image/)).toBeInTheDocument();
@@ -183,7 +204,7 @@ describe('ContributionsList', () => {
             contributions: emptyContributions,
             selectedMediaType: 'document',
           })}
-        />
+        />,
       );
 
       expect(screen.getByText(/No Document/)).toBeInTheDocument();
@@ -192,7 +213,11 @@ describe('ContributionsList', () => {
 
   describe('Media Type Rendering', () => {
     it('renders audio contributions', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'audio' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'audio' })}
+        />,
+      );
 
       const mediaItems = screen.getAllByTestId('media-grid-item');
       expect(mediaItems.length).toBeGreaterThan(0);
@@ -200,7 +225,11 @@ describe('ContributionsList', () => {
     });
 
     it('renders video contributions', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'video' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'video' })}
+        />,
+      );
 
       const mediaItems = screen.getAllByTestId('media-grid-item');
       expect(mediaItems.length).toBeGreaterThan(0);
@@ -208,7 +237,11 @@ describe('ContributionsList', () => {
     });
 
     it('renders text contributions', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'text' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'text' })}
+        />,
+      );
 
       const mediaItems = screen.getAllByTestId('media-grid-item');
       expect(mediaItems.length).toBeGreaterThan(0);
@@ -216,7 +249,11 @@ describe('ContributionsList', () => {
     });
 
     it('renders image contributions', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'image' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'image' })}
+        />,
+      );
 
       const mediaItems = screen.getAllByTestId('media-grid-item');
       expect(mediaItems.length).toBeGreaterThan(0);
@@ -224,7 +261,11 @@ describe('ContributionsList', () => {
     });
 
     it('renders document contributions', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'document' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'document' })}
+        />,
+      );
 
       const mediaItems = screen.getAllByTestId('media-grid-item');
       expect(mediaItems.length).toBeGreaterThan(0);
@@ -241,7 +282,11 @@ describe('ContributionsList', () => {
 
   describe('Pagination', () => {
     it('shows pagination when there are more than 20 items', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'audio' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'audio' })}
+        />,
+      );
 
       // Check for pagination container
       expect(screen.getByText('Prev')).toBeInTheDocument();
@@ -258,7 +303,7 @@ describe('ContributionsList', () => {
             contributions: smallContributions,
             selectedMediaType: 'audio',
           })}
-        />
+        />,
       );
 
       expect(screen.queryByText('Prev')).not.toBeInTheDocument();
@@ -266,7 +311,11 @@ describe('ContributionsList', () => {
     });
 
     it('displays up to 20 items per page', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'audio' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'audio' })}
+        />,
+      );
 
       const mediaItems = screen.getAllByTestId('media-grid-item');
       // First page should have up to 20 items
@@ -275,7 +324,11 @@ describe('ContributionsList', () => {
     });
 
     it('shows different items when navigating to page 2', () => {
-      render(<ContributionsList {...createMockProps({ selectedMediaType: 'audio' })} />);
+      render(
+        <ContributionsList
+          {...createMockProps({ selectedMediaType: 'audio' })}
+        />,
+      );
 
       const nextPageButton = screen.getByText('Next');
       fireEvent.click(nextPageButton);
@@ -288,7 +341,9 @@ describe('ContributionsList', () => {
 
   describe('Grid Layout', () => {
     it('renders grid with correct CSS classes', () => {
-      const { container } = render(<ContributionsList {...createMockProps()} />);
+      const { container } = render(
+        <ContributionsList {...createMockProps()} />,
+      );
 
       const grid = container.querySelector('.grid');
       expect(grid).toBeInTheDocument();
@@ -305,7 +360,11 @@ describe('PaginationControls', () => {
   describe('Basic Rendering', () => {
     it('renders pagination controls', () => {
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       expect(screen.getByText('Prev')).toBeInTheDocument();
@@ -314,7 +373,11 @@ describe('PaginationControls', () => {
 
     it('renders all page numbers', () => {
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       expect(screen.getByText('1')).toBeInTheDocument();
@@ -326,7 +389,11 @@ describe('PaginationControls', () => {
 
     it('disables Prev button on first page', () => {
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const prevButton = screen.getByText('Prev');
@@ -335,7 +402,11 @@ describe('PaginationControls', () => {
 
     it('disables Next button on last page', () => {
       render(
-        <PaginationControls currentPage={5} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={5}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const nextButton = screen.getByText('Next');
@@ -344,7 +415,11 @@ describe('PaginationControls', () => {
 
     it('highlights current page', () => {
       render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const currentPageButton = screen.getByText('3');
@@ -357,7 +432,11 @@ describe('PaginationControls', () => {
     it('calls onPageChange when clicking Next', () => {
       const onPageChange = vi.fn();
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={onPageChange} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={onPageChange}
+        />,
       );
 
       const nextButton = screen.getByText('Next');
@@ -369,7 +448,11 @@ describe('PaginationControls', () => {
     it('calls onPageChange when clicking Prev', () => {
       const onPageChange = vi.fn();
       render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={onPageChange} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={onPageChange}
+        />,
       );
 
       const prevButton = screen.getByText('Prev');
@@ -381,7 +464,11 @@ describe('PaginationControls', () => {
     it('calls onPageChange when clicking page number', () => {
       const onPageChange = vi.fn();
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={onPageChange} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={onPageChange}
+        />,
       );
 
       const pageButton = screen.getByText('3');
@@ -393,7 +480,11 @@ describe('PaginationControls', () => {
     it('does not call onPageChange when clicking disabled Prev', () => {
       const onPageChange = vi.fn();
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={onPageChange} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={onPageChange}
+        />,
       );
 
       const prevButton = screen.getByText('Prev');
@@ -405,7 +496,11 @@ describe('PaginationControls', () => {
     it('does not call onPageChange when clicking disabled Next', () => {
       const onPageChange = vi.fn();
       render(
-        <PaginationControls currentPage={5} totalPages={5} onPageChange={onPageChange} />
+        <PaginationControls
+          currentPage={5}
+          totalPages={5}
+          onPageChange={onPageChange}
+        />,
       );
 
       const nextButton = screen.getByText('Next');
@@ -418,7 +513,11 @@ describe('PaginationControls', () => {
   describe('Pagination Logic', () => {
     it('shows ellipsis when near the beginning', () => {
       render(
-        <PaginationControls currentPage={2} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={2}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       expect(screen.getByText('...')).toBeInTheDocument();
@@ -426,7 +525,11 @@ describe('PaginationControls', () => {
 
     it('shows ellipsis when near the end', () => {
       render(
-        <PaginationControls currentPage={9} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={9}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const ellipsisElements = screen.getAllByText('...');
@@ -435,7 +538,11 @@ describe('PaginationControls', () => {
 
     it('shows ellipsis in the middle', () => {
       render(
-        <PaginationControls currentPage={5} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={5}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const ellipsisElements = screen.getAllByText('...');
@@ -444,7 +551,11 @@ describe('PaginationControls', () => {
 
     it('shows all pages when total pages is 5 or less', () => {
       render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       // Should not show ellipsis
@@ -453,7 +564,11 @@ describe('PaginationControls', () => {
 
     it('shows first page, ellipsis, and last 4 pages when near beginning', () => {
       render(
-        <PaginationControls currentPage={3} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       expect(screen.getByText('1')).toBeInTheDocument();
@@ -462,7 +577,11 @@ describe('PaginationControls', () => {
 
     it('shows first page, ellipsis, and last pages when near end', () => {
       render(
-        <PaginationControls currentPage={8} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={8}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       expect(screen.getByText('1')).toBeInTheDocument();
@@ -473,7 +592,11 @@ describe('PaginationControls', () => {
   describe('Styling', () => {
     it('applies correct styles to disabled buttons', () => {
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const prevButton = screen.getByText('Prev');
@@ -484,7 +607,11 @@ describe('PaginationControls', () => {
 
     it('applies correct styles to enabled buttons', () => {
       render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const nextButton = screen.getByText('Next');
@@ -494,7 +621,11 @@ describe('PaginationControls', () => {
 
     it('applies hover styles to enabled buttons', () => {
       render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const nextButton = screen.getByText('Next');
@@ -503,7 +634,11 @@ describe('PaginationControls', () => {
 
     it('applies correct styles to page number buttons', () => {
       render(
-        <PaginationControls currentPage={2} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={2}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const pageButton = screen.getByText('2');
@@ -513,7 +648,11 @@ describe('PaginationControls', () => {
 
     it('applies correct styles to inactive page number buttons', () => {
       render(
-        <PaginationControls currentPage={2} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={2}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const pageButton = screen.getByText('3');
@@ -525,7 +664,11 @@ describe('PaginationControls', () => {
   describe('Edge Cases', () => {
     it('handles single page correctly', () => {
       render(
-        <PaginationControls currentPage={1} totalPages={1} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={1}
+          onPageChange={vi.fn()}
+        />,
       );
 
       // Both Prev and Next should be disabled
@@ -537,7 +680,11 @@ describe('PaginationControls', () => {
 
     it('handles two pages', () => {
       render(
-        <PaginationControls currentPage={1} totalPages={2} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={2}
+          onPageChange={vi.fn()}
+        />,
       );
 
       expect(screen.getByText('1')).toBeInTheDocument();
@@ -546,7 +693,11 @@ describe('PaginationControls', () => {
 
     it('handles large number of pages', () => {
       render(
-        <PaginationControls currentPage={50} totalPages={100} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={50}
+          totalPages={100}
+          onPageChange={vi.fn()}
+        />,
       );
 
       expect(screen.getByText('1')).toBeInTheDocument();
@@ -557,7 +708,11 @@ describe('PaginationControls', () => {
     it('handles page change at boundary (page 1)', () => {
       const onPageChange = vi.fn();
       render(
-        <PaginationControls currentPage={1} totalPages={10} onPageChange={onPageChange} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={10}
+          onPageChange={onPageChange}
+        />,
       );
 
       const page1Button = screen.getByText('1');
@@ -569,7 +724,11 @@ describe('PaginationControls', () => {
     it('handles page change at boundary (last page)', () => {
       const onPageChange = vi.fn();
       render(
-        <PaginationControls currentPage={10} totalPages={10} onPageChange={onPageChange} />
+        <PaginationControls
+          currentPage={10}
+          totalPages={10}
+          onPageChange={onPageChange}
+        />,
       );
 
       const page10Button = screen.getByText('10');
@@ -582,7 +741,11 @@ describe('PaginationControls', () => {
   describe('Responsive Design', () => {
     it('renders with responsive padding classes', () => {
       render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const prevButton = screen.getByText('Prev');
@@ -594,7 +757,11 @@ describe('PaginationControls', () => {
 
     it('renders with responsive gap classes', () => {
       const { container } = render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const controlsDiv = container.firstChild as HTMLElement;
@@ -604,7 +771,11 @@ describe('PaginationControls', () => {
 
     it('renders with responsive margin classes', () => {
       const { container } = render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const controlsDiv = container.firstChild as HTMLElement;
@@ -616,7 +787,11 @@ describe('PaginationControls', () => {
   describe('Accessibility', () => {
     it('renders buttons with proper roles', () => {
       render(
-        <PaginationControls currentPage={3} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={3}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const buttons = screen.getAllByRole('button');
@@ -625,7 +800,11 @@ describe('PaginationControls', () => {
 
     it('has proper disabled state for boundary buttons', () => {
       render(
-        <PaginationControls currentPage={1} totalPages={5} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={1}
+          totalPages={5}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const prevButton = screen.getByRole('button', { name: /prev/i });
@@ -636,7 +815,11 @@ describe('PaginationControls', () => {
   describe('Ellipsis Display Logic', () => {
     it('shows ellipsis after page 4 when current page is 2', () => {
       render(
-        <PaginationControls currentPage={2} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={2}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const ellipsisElements = screen.getAllByText('...');
@@ -645,7 +828,11 @@ describe('PaginationControls', () => {
 
     it('shows ellipsis before last pages when current page is near end', () => {
       render(
-        <PaginationControls currentPage={8} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={8}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const ellipsisElements = screen.getAllByText('...');
@@ -654,7 +841,11 @@ describe('PaginationControls', () => {
 
     it('shows two ellipsis elements when in middle range', () => {
       render(
-        <PaginationControls currentPage={5} totalPages={10} onPageChange={vi.fn()} />
+        <PaginationControls
+          currentPage={5}
+          totalPages={10}
+          onPageChange={vi.fn()}
+        />,
       );
 
       const ellipsisElements = screen.getAllByText('...');
