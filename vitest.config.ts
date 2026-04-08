@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react-swc';
-import path from 'node:path';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -14,5 +14,15 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: true,
+    testTimeout: 15000,
+    coverage: {
+      reporter: ['text', 'json', 'html', 'cobertura'],
+      exclude: ['node_modules/', 'tests/'],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
 });
