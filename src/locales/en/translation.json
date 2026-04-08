@@ -12,7 +12,10 @@
         "text": "Proofread OCR Text"
       }
     },
+    "showCompleteText": "Show Complete Text",
+    "hideCompleteText": "Hide Complete Text",
     "submitPage": "Submit Page",
+    "savePage": "Save Page",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -517,7 +520,8 @@
     "audioTrack": "Audio Track",
     "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
     "imageUrl": "Image URL",
-    "enterRecordId": "Enter Record ID"
+    "enterRecordId": "Enter Record ID",
+    "recordControls": "Record Controls"
   },
   "stats": {
     "contributionsYet": "contributions yet.",

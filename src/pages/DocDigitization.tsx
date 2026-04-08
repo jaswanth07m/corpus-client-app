@@ -259,12 +259,14 @@ function DocDigitization() {
     null,
   );
   const [pendingReorder, setPendingReorder] = useState<DropResult | null>(null);
+  const [mobileTextMode, setMobileTextMode] = useState<
+    'hidden' | 'all' | 'single'
+  >('hidden');
+  const [showRecordPanel, setShowRecordPanel] = useState(false);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping();
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
   const [hintsVisible, setHintsVisible] = useState(false);
-  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
-  const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -396,16 +398,6 @@ function DocDigitization() {
     setPendingReorder(null);
   };
 
-  // Reset header timeout ref on unmount to avoid memory leaks
-  useEffect(() => {
-    const timeoutRef = headerTimeoutRef;
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
   const currentPageSegments = getCurrentPageSegments();
 
   // Compute the reference dimensions for bbox overlay positioning.
@@ -416,10 +408,6 @@ function DocDigitization() {
     if (inferred) return inferred;
     return pdfPageSize;
   }, [currentPageSegments, pdfPageSize]);
-
-  const navigateToPage = (pageNum: number) => {
-    setPageNumber(pageNum);
-  };
 
   async function fetchRecordById(recordId: string) {
     setIsLoading(true);
@@ -722,7 +710,7 @@ function DocDigitization() {
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
 
       if (numPages && pageNumber < numPages) {
-        navigateToPage(pageNumber + 1);
+        setPageNumber(pageNumber + 1);
       }
     } catch (err) {
       const error = err as Error;
@@ -735,156 +723,70 @@ function DocDigitization() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* --- Header --- */}
-      <div
-        className={`gradient-purple text-white p-4 rounded-b-3xl shadow-xl transition-all duration-300 ${typeof window !== 'undefined' && isHeaderCollapsed && window.innerWidth < 768 ? 'pb-2' : ''}`}
-      >
-        {/* Main header content - hidden when collapsed on mobile */}
-        <div
-          className={`${typeof window !== 'undefined' && isHeaderCollapsed && window.innerWidth < 768 ? 'hidden' : ''} flex flex-col sm:flex-row items-center justify-between gap-4`}
+      {/* --- Header with Back and Record Buttons --- */}
+      <div className="relative flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => {
+            window.location.href = '/tools';
+          }}
+          className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 w-10 h-10 rounded-full p-2 transition-colors"
         >
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                window.location.href = '/tools';
-              }}
-              className="text-white hover:bg-white/20 w-10 h-10 rounded-full p-2"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold">
-                {t('common.docDigitization.tool')}
-              </h1>
-              <p className="text-purple-100 text-sm">
-                {t('common.reviewAndCorrectOcrTextFromDocuments')}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <form
-              onSubmit={handleSearchRecord}
-              className="flex gap-2 w-full sm:w-auto"
-            >
-              <input
-                type="text"
-                value={searchRecordId}
-                onChange={(e) => setSearchRecordId(e.target.value)}
-                placeholder={t('media.enterRecordId')}
-                className="px-3 py-2 rounded text-gray-900 text-sm w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-purple-300"
-                disabled={isSearching || isLoading}
-              />
-              <button
-                type="submit"
-                className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 whitespace-nowrap"
-                disabled={isSearching || isLoading || !searchRecordId.trim()}
-              >
-                {isSearching ? t('common.loading') : 'Search'}
-              </button>
-            </form>
-            <button
-              className="bg-white text-purple-700 hover:bg-purple-100 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50 w-full sm:w-auto"
-              onClick={fetchNextRecord}
-              disabled={isLoading || isSearching}
-            >
-              {isLoading
-                ? t('common.loading')
-                : t('proofreading.getNextRecord')}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile: Page Numbers - hidden when header is collapsed */}
-        <div
-          className={`${typeof window !== 'undefined' && isHeaderCollapsed && window.innerWidth < 768 ? 'hidden' : ''} w-full mt-2 p-2 border-t border-white/30 md:hidden`}
-        >
-          {error && (
-            <p className="text-red-200 text-sm mt-2 p-2 bg-red-900/50 rounded w-full mb-2 text-center">
-              {error}
-            </p>
-          )}
-
-          {bookData && (
-            <>
-              <h3 className="text-sm font-bold mb-2 text-center">
-                {t('proofreading.page')} {pageNumber}
-              </h3>
-              <div className="w-full overflow-x-auto overflow-y-visible flex flex-row items-center justify-start gap-1 pb-2 scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
-                {Array.from(
-                  { length: Math.max(0, Math.floor(numPages || 0)) },
-                  (_, index) => {
-                    const currentPage = index + 1;
-                    const isSubmitted = submittedPages[currentPage];
-                    const isActive = pageNumber === currentPage;
-
-                    const buttonClasses = [
-                      'w-9',
-                      'h-9',
-                      'text-center',
-                      'text-xs',
-                      'p-1',
-                      'mx-0.5',
-                      'rounded-md',
-                      'transition-colors',
-                      'duration-150',
-                      'font-semibold',
-                    ];
-
-                    if (isSubmitted) {
-                      buttonClasses.push(
-                        'bg-yellow-500',
-                        'dark:bg-yellow-600',
-                        'text-white',
-                      );
-                    } else {
-                      buttonClasses.push(
-                        'bg-white',
-                        'dark:bg-gray-700',
-                        'text-gray-900',
-                        'dark:text-gray-100',
-                        'hover:bg-gray-200',
-                        'dark:hover:bg-gray-600',
-                      );
-                    }
-
-                    if (isActive) {
-                      buttonClasses.push(
-                        'ring-2',
-                        'ring-offset-2',
-                        'ring-blue-500',
-                        'dark:ring-offset-gray-900',
-                      );
-                    }
-
-                    return (
-                      <button
-                        key={`page_button_${currentPage}`}
-                        onClick={() => navigateToPage(currentPage)}
-                        className={buttonClasses.join(' ')}
-                      >
-                        {currentPage}
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Mobile: Header toggle with chevrons - below page numbers */}
-        <div className="flex justify-center items-center md:hidden">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div className="relative">
           <button
-            onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
-            className="text-white flex items-center gap-1 mt-1"
+            onClick={() => setShowRecordPanel(!showRecordPanel)}
+            className="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 font-bold text-sm rounded-lg transition-colors"
           >
-            {isHeaderCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronUp className="h-4 w-4" />
-            )}
+            Record
           </button>
+
+          {/* Record Popup Panel */}
+          {showRecordPanel && (
+            <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                  {t('media.recordControls')}
+                </h3>
+                <button
+                  onClick={() => setShowRecordPanel(false)}
+                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4 rotate-90" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <form onSubmit={handleSearchRecord} className="space-y-2">
+                  <input
+                    type="text"
+                    value={searchRecordId}
+                    onChange={(e) => setSearchRecordId(e.target.value)}
+                    placeholder={t('media.enterRecordId')}
+                    className="w-full px-3 py-2 rounded text-gray-900 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    disabled={isSearching || isLoading}
+                  />
+                  <button
+                    type="submit"
+                    className="w-full bg-purple-600 text-white hover:bg-purple-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+                    disabled={
+                      isSearching || isLoading || !searchRecordId.trim()
+                    }
+                  >
+                    {isSearching ? t('common.loading') : 'Search'}
+                  </button>
+                </form>
+                <button
+                  className="w-full bg-green-600 text-white hover:bg-green-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+                  onClick={fetchNextRecord}
+                  disabled={isLoading || isSearching}
+                >
+                  {isLoading
+                    ? t('common.loading')
+                    : t('proofreading.getNextRecord')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -893,110 +795,193 @@ function DocDigitization() {
         <div className="w-full p-3 border-b border-gray-300 dark:border-gray-700 md:hidden">
           {bookData ? (
             <>
-              <div className="p-2 flex justify-center items-center bg-gray-200 dark:bg-gray-800 rounded-lg mb-2 gap-2">
-                <div className="flex items-center">
-                  <button
-                    className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
-                    onClick={() => setZoom((prev) => Math.max(0.2, prev - 0.2))}
-                  >
-                    -
-                  </button>
-                  <span className="font-semibold mx-2">
-                    {Math.round(zoom * 100)}%
-                  </span>
-                  <button
-                    className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm"
-                    onClick={() => setZoom((prev) => prev + 0.2)}
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500 mx-1" />
-                <button
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                    showBboxes
-                      ? 'bg-purple-600 text-white hover:bg-purple-700'
-                      : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
-                  }`}
-                  onClick={() => setShowBboxes(!showBboxes)}
-                >
-                  {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
-                </button>
-              </div>
-              <div className="flex justify-center min-h-[300px] p-2 overflow-auto">
-                <div className="relative inline-block">
-                  <div className="relative">
-                    <Document
-                      file={bookData.pdfUrl}
-                      loading="Loading PDF..."
-                      className="inline-block"
-                      onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                    >
-                      <Page
-                        pageNumber={pageNumber}
-                        scale={zoom}
-                        renderAnnotationLayer={false}
-                        renderTextLayer={false}
-                        onLoadSuccess={(page) => {
-                          setPdfPageSize({
-                            width: page.originalWidth || 0,
-                            height: page.originalHeight || 0,
-                          });
-                        }}
-                      />
-                    </Document>
-                    {/* Bounding Box Overlays */}
-                    {showBboxes && pdfPageSize.width > 0 && (
-                      <div className="absolute inset-0 pointer-events-none">
-                        {currentPageSegments.map((segment, idx) => {
-                          const normalizedBox = normalizeBbox(segment.bbox);
-                          const overlayStyle = buildOverlayStyle(
-                            normalizedBox,
-                            ocrRefDimensions.width,
-                            ocrRefDimensions.height,
-                          );
-                          if (!overlayStyle) return null;
-
-                          const colorClasses = getBboxColorClasses(
-                            segment.type,
-                          );
-
-                          return (
-                            <div
-                              key={`bbox_overlay_mobile_${idx}`}
-                              className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
-                              style={overlayStyle}
-                              onClick={() => {
-                                setHighlightedSegmentIndex(idx);
-                                // Scroll to corresponding segment editor
-                                const segmentElement = document.getElementById(
-                                  `segment_edit_mobile_${idx}`,
-                                );
-                                if (segmentElement) {
-                                  segmentElement.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center',
-                                  });
-                                }
-                                setTimeout(
-                                  () => setHighlightedSegmentIndex(null),
-                                  3000,
-                                );
-                              }}
-                              title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
-                            >
-                              <span
-                                className={`absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded text-white ${colorClasses.label}`}
-                              >
-                                {idx + 1}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+              {/* Mobile Toolbar with Progress, Nav and Zoom */}
+              <div className="flex flex-col bg-gray-200 dark:bg-gray-800 rounded-lg mb-2 p-2 gap-2">
+                {/* Progress Bar (Single Line) */}
+                <div className="w-full px-1 space-y-1">
+                  <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-gray-500">
+                    <span>Progress</span>
+                    <span>
+                      {Object.keys(submittedPages).length} / {numPages}
+                    </span>
+                  </div>
+                  <div className="w-full h-1 bg-white/20 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-400 transition-all duration-500 ease-out"
+                      style={{
+                        width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                      }}
+                    />
                   </div>
                 </div>
+
+                <div className="flex justify-between items-center gap-2">
+                  {/* Navigation Arrows & Dropdown */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+                      disabled={pageNumber <= 1}
+                      className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <div className="relative group">
+                      <select
+                        value={pageNumber}
+                        onChange={(e) => setPageNumber(Number(e.target.value))}
+                        className="appearance-none bg-white/10 dark:bg-gray-700 border border-white/20 dark:border-gray-600 text-gray-900 dark:text-gray-300 text-[10px] font-black py-1 pl-2 pr-6 rounded focus:outline-none cursor-pointer"
+                      >
+                        {Array.from(
+                          { length: Math.max(0, Math.floor(numPages || 0)) },
+                          (_, i) => i + 1,
+                        ).map((p) => (
+                          <option
+                            key={`mobile_zoom_page_opt_${p}`}
+                            value={p}
+                            className={
+                              submittedPages[p]
+                                ? 'text-green-600 font-bold'
+                                : 'text-gray-900'
+                            }
+                          >
+                            P{p} {submittedPages[p] ? '✓' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <ChevronDown className="h-3 w-3 text-white/60" />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        setPageNumber(Math.min(numPages, pageNumber + 1))
+                      }
+                      disabled={pageNumber >= numPages}
+                      className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                  {/* Zoom Controls */}
+                  <div className="flex items-center">
+                    <button
+                      className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded text-xs font-bold"
+                      onClick={() =>
+                        setZoom((prev) => Math.max(0.2, prev - 0.2))
+                      }
+                    >
+                      -
+                    </button>
+                    <span className="font-semibold mx-2 text-[10px]">
+                      {Math.round(zoom * 100)}%
+                    </span>
+                    <button
+                      className="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded text-xs font-bold"
+                      onClick={() => setZoom((prev) => prev + 0.2)}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                  {/* BBox Toggle */}
+                  <button
+                    className={`p-1 rounded text-[8px] font-black uppercase transition-colors ${
+                      showBboxes
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+                    }`}
+                    onClick={() => setShowBboxes(!showBboxes)}
+                  >
+                    {showBboxes ? 'BBox' : 'Off'}
+                  </button>
+                </div>
+              </div>
+              <div className="w-full h-[500px] overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
+                <div className="relative" style={{ width: 'max-content' }}>
+                  <Document
+                    file={bookData.pdfUrl}
+                    loading="Loading PDF..."
+                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  >
+                    <Page
+                      pageNumber={pageNumber}
+                      scale={zoom}
+                      renderAnnotationLayer={false}
+                      renderTextLayer={false}
+                      onLoadSuccess={(page) => {
+                        setPdfPageSize({
+                          width: page.originalWidth || 0,
+                          height: page.originalHeight || 0,
+                        });
+                      }}
+                    />
+                  </Document>
+                  {/* Bounding Box Overlays */}
+                  {showBboxes && pdfPageSize.width > 0 && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      {currentPageSegments.map((segment, idx) => {
+                        const normalizedBox = normalizeBbox(segment.bbox);
+                        const overlayStyle = buildOverlayStyle(
+                          normalizedBox,
+                          ocrRefDimensions.width,
+                          ocrRefDimensions.height,
+                        );
+                        if (!overlayStyle) return null;
+
+                        const colorClasses = getBboxColorClasses(segment.type);
+
+                        return (
+                          <div
+                            key={`bbox_overlay_mobile_${idx}`}
+                            className={`absolute border-2 transition-colors cursor-pointer pointer-events-auto ${colorClasses.box}`}
+                            style={overlayStyle}
+                            onClick={() => {
+                              setHighlightedSegmentIndex(idx);
+                              setMobileTextMode('single');
+                              // Scroll to corresponding segment editor
+                              const segmentElement = document.getElementById(
+                                `segment_edit_mobile_${idx}`,
+                              );
+                              if (segmentElement) {
+                                segmentElement.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'center',
+                                });
+                              }
+                            }}
+                            title={`Segment ${idx + 1}: ${segment.text?.substring(0, 50) || ''}...`}
+                          >
+                            <span
+                              className={`absolute -top-5 left-0 px-1.5 py-0.5 text-xs font-bold rounded text-white ${colorClasses.label}`}
+                            >
+                              {idx + 1}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-center mt-2 px-3">
+                <button
+                  onClick={() =>
+                    setMobileTextMode((prev) =>
+                      prev === 'all' ? 'hidden' : 'all',
+                    )
+                  }
+                  className="w-full py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-bold rounded-lg border border-purple-200 dark:border-purple-800 transition-colors hover:bg-purple-200"
+                >
+                  {mobileTextMode === 'all'
+                    ? t('common.hideCompleteText')
+                    : t('common.showCompleteText')}
+                </button>
               </div>
             </>
           ) : (
@@ -1012,232 +997,208 @@ function DocDigitization() {
 
         {/* --- Mobile: OCR Text Editor with Segments --- */}
         <div className="w-full p-3 border-b border-gray-300 dark:border-gray-700 md:hidden">
-          <div className="flex flex-col items-center justify-between gap-2 mb-3">
-            <h2 className="text-xl font-bold flex-shrink-0">
-              Proofread OCR Text
+          <div className="flex flex-col items-center justify-center gap-1 mb-3">
+            <h2 className="text-lg font-bold text-center">
+              {t('common.proofread.ocr.text')}
             </h2>
             {currentPageSegments.length > 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Page {pageNumber} - {currentPageSegments.length} segments
               </p>
             )}
-
-            {hintsVisible && (
-              <p className="text-sm text-center">
-                {t('ui.start.typing.to.get.hints')}
-              </p>
-            )}
-
-            <div className="flex flex-col items-center gap-2 w-full">
-              <div className="flex items-center gap-1">
-                <input
-                  className="cursor-pointer"
-                  id="telugu-toggle"
-                  type="checkbox"
-                  checked={isTeluguTypingEnabled}
-                  onChange={() =>
-                    setIsTeluguTypingEnabled(!isTeluguTypingEnabled)
-                  }
-                />
-                <label className="cursor-pointer" htmlFor="telugu-toggle">
-                  Telugu
-                </label>
-              </div>
-
-              {isTeluguTypingEnabled && (
-                <div className="flex items-center gap-1">
-                  <input
-                    id="telugu-hints-toggle"
-                    type="checkbox"
-                    checked={hintsVisible}
-                    onChange={() => setHintsVisible(!hintsVisible)}
-                  />
-                  <label htmlFor="telugu-hints-toggle">
-                    {t('common.showHints')}
-                  </label>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Mobile Segments - Direct editing */}
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="mobile-segments">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-1"
-                >
-                  {currentPageSegments.map((segment, idx) => (
-                    <Draggable
-                      key={`draggable-mobile-${idx}`}
-                      draggableId={`draggable-mobile-${idx}`}
-                      index={idx}
+          {/* Mobile Segments - Conditional rendering */}
+          <div className="space-y-1 mt-2">
+            {mobileTextMode === 'all' && (
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="mobile-segments">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-1"
                     >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          id={`segment_edit_mobile_${idx}`}
-                          className={`group relative flex gap-2 p-1 rounded transition-all duration-300 ${
-                            snapshot.isDragging
-                              ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg z-50'
-                              : highlightedSegmentIndex === idx
-                                ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
-                                : 'hover:bg-gray-200 dark:hover:bg-gray-800'
-                          }`}
+                      {currentPageSegments.map((segment, idx) => (
+                        <Draggable
+                          key={`draggable-mobile-${idx}`}
+                          draggableId={`draggable-mobile-${idx}`}
+                          index={idx}
                         >
-                          {/* Sidebar metadata & Drag Handle */}
-                          <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                          {(provided, snapshot) => (
                             <div
-                              {...provided.dragHandleProps}
-                              className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              id={`segment_edit_mobile_${idx}`}
+                              className={`group relative flex gap-2 p-1 rounded transition-all duration-300 ${
+                                snapshot.isDragging
+                                  ? 'bg-blue-50 dark:bg-blue-900/20 shadow-lg z-50'
+                                  : highlightedSegmentIndex === idx
+                                    ? 'bg-purple-100 dark:bg-purple-900/30 ring-2 ring-purple-500 shadow-sm'
+                                    : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                              }`}
                             >
-                              <ChevronDown className="h-3 w-3 -mb-1" />
-                              <ChevronUp className="h-3 w-3 -mt-1" />
-                            </div>
-                            <span className="text-[8px] font-bold text-gray-400">
-                              {idx + 1}
-                            </span>
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-start items-center gap-2 h-4">
-                              {editingSegmentIndex !== idx ? (
-                                <>
-                                  <button
-                                    onClick={() => setEditingSegmentIndex(idx)}
-                                    className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
-                                  >
-                                    Edit
-                                  </button>
-                                  <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
-                                    {segment.type || 'Text'}
-                                  </span>
-                                </>
-                              ) : (
-                                <button
-                                  onClick={() => setEditingSegmentIndex(null)}
-                                  className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                              {/* Sidebar metadata & Drag Handle */}
+                              <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
                                 >
-                                  Done
-                                </button>
-                              )}
-                            </div>
-                            {editingSegmentIndex === idx ? (
-                              <AutoResizeTextArea
-                                value={segment.text || ''}
-                                onChange={(e) =>
-                                  handleSegmentChange(idx, e.target.value)
-                                }
-                                onKeyDown={
-                                  isTeluguTypingEnabled
-                                    ? inputProps.onKeyDown
-                                    : undefined
-                                }
-                                placeholder={t('ui.ocr.text.will.appear.here')}
-                                disabled={
-                                  !bookData || isLoading || isSubmitting
-                                }
-                              />
-                            ) : (
-                              <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {segment.text || ''}
-                                </ReactMarkdown>
+                                  <ChevronDown className="h-3 w-3 -mb-1" />
+                                  <ChevronUp className="h-3 w-3 -mt-1" />
+                                </div>
+                                <span className="text-[8px] font-bold text-gray-400">
+                                  {idx + 1}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        </div>
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-start items-center gap-2 h-4">
+                                  {editingSegmentIndex !== idx ? (
+                                    <>
+                                      <button
+                                        onClick={() =>
+                                          setEditingSegmentIndex(idx)
+                                        }
+                                        className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                      >
+                                        Edit
+                                      </button>
+                                      <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
+                                        {segment.type || 'Text'}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setEditingSegmentIndex(null)
+                                      }
+                                      className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                                    >
+                                      Done
+                                    </button>
+                                  )}
+                                </div>
+                                {editingSegmentIndex === idx ? (
+                                  <AutoResizeTextArea
+                                    value={segment.text || ''}
+                                    onChange={(e) =>
+                                      handleSegmentChange(idx, e.target.value)
+                                    }
+                                    onKeyDown={
+                                      isTeluguTypingEnabled
+                                        ? inputProps.onKeyDown
+                                        : undefined
+                                    }
+                                    placeholder={t(
+                                      'ui.ocr.text.will.appear.here',
+                                    )}
+                                    disabled={
+                                      !bookData || isLoading || isSubmitting
+                                    }
+                                  />
+                                ) : (
+                                  <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                      {segment.text || ''}
+                                    </ReactMarkdown>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
+
+            {mobileTextMode === 'single' &&
+              highlightedSegmentIndex !== null &&
+              currentPageSegments[highlightedSegmentIndex] && (
+                <div className="fixed bottom-20 left-4 right-4 z-[100] p-3 rounded-xl bg-white dark:bg-gray-800 shadow-2xl border-2 border-purple-500 animate-in slide-in-from-bottom duration-300">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-purple-600 text-white text-xs font-bold">
+                        {highlightedSegmentIndex + 1}
+                      </span>
+                      <span className="text-[10px] uppercase font-bold text-gray-500">
+                        {currentPageSegments[highlightedSegmentIndex].type ||
+                          'Text'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setMobileTextMode('hidden');
+                        setHighlightedSegmentIndex(null);
+                      }}
+                      className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 p-1.5 rounded-full transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4 rotate-90" />
+                    </button>
+                  </div>
+
+                  <div className="max-h-[40vh] overflow-y-auto">
+                    <div className="flex justify-start items-center gap-2 mb-2">
+                      {editingSegmentIndex !== highlightedSegmentIndex ? (
+                        <button
+                          onClick={() =>
+                            setEditingSegmentIndex(highlightedSegmentIndex)
+                          }
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                        >
+                          Edit
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setEditingSegmentIndex(null)}
+                          className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                        >
+                          Done
+                        </button>
                       )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
+                    </div>
+                    {editingSegmentIndex === highlightedSegmentIndex ? (
+                      <AutoResizeTextArea
+                        value={
+                          currentPageSegments[highlightedSegmentIndex].text ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          handleSegmentChange(
+                            highlightedSegmentIndex,
+                            e.target.value,
+                          )
+                        }
+                        onKeyDown={
+                          isTeluguTypingEnabled
+                            ? inputProps.onKeyDown
+                            : undefined
+                        }
+                        placeholder={t('ui.ocr.text.will.appear.here')}
+                        disabled={!bookData || isLoading || isSubmitting}
+                      />
+                    ) : (
+                      <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {currentPageSegments[highlightedSegmentIndex].text ||
+                            ''}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-            </Droppable>
-          </DragDropContext>
+          </div>
 
           {hintsVisible && <SuggestionBar suggestions={suggestions} />}
         </div>
 
         {/* --- Desktop: Side-by-side layout remains unchanged --- */}
         <div className="hidden md:flex md:flex-row w-full h-full overflow-hidden">
-          {/* --- Left Sidebar --- */}
-          <div className="w-20 flex-shrink-0 flex flex-col p-0 border-r border-gray-300 dark:border-gray-700">
-            {error && (
-              <p className="text-red-500 text-sm mt-2 p-2 bg-red-100 dark:bg-red-900 rounded">
-                {error}
-              </p>
-            )}
-
-            {bookData && (
-              <>
-                <h3 className="text-md font-bold mt-4 mb-2 text-center">
-                  {t('proofreading.pages')}
-                </h3>
-                <div className="w-full flex-grow overflow-y-auto pr-2 flex flex-col items-center">
-                  {Array.from(
-                    { length: Math.max(0, Math.floor(numPages || 0)) },
-                    (_, index) => {
-                      const currentPage = index + 1;
-                      const isSubmitted = submittedPages[currentPage];
-                      const isActive = pageNumber === currentPage;
-
-                      const buttonClasses = [
-                        'w-1/2',
-                        'text-center',
-                        'p-1',
-                        'my-1',
-                        'rounded-md',
-                        'transition-colors',
-                        'duration-150',
-                        'font-semibold',
-                      ];
-
-                      if (isSubmitted) {
-                        buttonClasses.push(
-                          'bg-yellow-500',
-                          'dark:bg-yellow-600',
-                          'text-white',
-                        );
-                      } else {
-                        buttonClasses.push(
-                          'bg-white',
-                          'dark:bg-gray-700',
-                          'text-gray-900',
-                          'dark:text-gray-100',
-                          'hover:bg-gray-200',
-                          'dark:hover:bg-gray-600',
-                        );
-                      }
-
-                      if (isActive) {
-                        buttonClasses.push(
-                          'ring-2',
-                          'ring-offset-2',
-                          'ring-blue-500',
-                          'dark:ring-offset-gray-900',
-                        );
-                      }
-
-                      return (
-                        <button
-                          key={`page_button_${currentPage}`}
-                          onClick={() => navigateToPage(currentPage)}
-                          className={buttonClasses.join(' ')}
-                        >
-                          {currentPage}
-                        </button>
-                      );
-                    },
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-
           {/* --- Main Content --- */}
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             <div className="flex flex-1 overflow-hidden">
@@ -1245,29 +1206,108 @@ function DocDigitization() {
               <div className="w-1/2 flex flex-col p-5 overflow-y-auto border-r border-gray-300 dark:border-gray-700">
                 {bookData ? (
                   <>
-                    <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg gap-3">
+                    {/* Progress Bar above toolbar */}
+                    <div className="w-full px-1 mb-2 space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                        <span>{t('common.overall.progress')}</span>
+                        <span>
+                          {Object.keys(submittedPages).length} / {numPages}
+                        </span>
+                      </div>
+                      <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500 transition-all duration-500 ease-out"
+                          style={{
+                            width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex-shrink-0 flex justify-center items-center mb-4 p-2 bg-gray-200 dark:bg-gray-800 rounded-lg gap-4">
+                      {/* Navigation Arrows */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() =>
+                            setPageNumber(Math.max(1, pageNumber - 1))
+                          }
+                          disabled={pageNumber <= 1}
+                          className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+                          title={t('common.previousPage')}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </button>
+                        <div className="relative">
+                          <select
+                            value={pageNumber}
+                            onChange={(e) =>
+                              setPageNumber(Number(e.target.value))
+                            }
+                            className="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-[9px] font-black py-1 pl-2 pr-7 rounded uppercase tracking-tighter focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer transition-colors"
+                          >
+                            {Array.from(
+                              {
+                                length: Math.max(0, Math.floor(numPages || 0)),
+                              },
+                              (_, i) => i + 1,
+                            ).map((p) => (
+                              <option
+                                key={`desktop_page_opt_${p}`}
+                                value={p}
+                                className={
+                                  submittedPages[p]
+                                    ? 'text-green-600 font-bold'
+                                    : 'text-gray-900 dark:text-gray-100'
+                                }
+                              >
+                                Page {p} {submittedPages[p] ? '✓' : ''}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <ChevronDown className="h-3.5 w-3.5 text-gray-500 opacity-100" />
+                          </div>
+                        </div>
+                        <button
+                          onClick={() =>
+                            setPageNumber(Math.min(numPages, pageNumber + 1))
+                          }
+                          disabled={pageNumber >= numPages}
+                          className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
+                          title={t('common.nextPage')}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                      {/* Zoom Controls */}
                       <div className="flex items-center">
                         <button
-                          className="mx-2 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                          className="mx-1 px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors text-xs font-bold"
                           onClick={() =>
                             setZoom((prev) => Math.max(0.2, prev - 0.2))
                           }
                         >
                           -
                         </button>
-                        <span className="font-semibold w-12 text-center">
+                        <span className="font-bold w-10 text-center text-xs">
                           {Math.round(zoom * 100)}%
                         </span>
                         <button
-                          className="mx-2 px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                          className="mx-1 px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors text-xs font-bold"
                           onClick={() => setZoom((prev) => prev + 0.2)}
                         >
                           +
                         </button>
                       </div>
+
                       <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
+
+                      {/* Toggle Buttons */}
                       <button
-                        className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
+                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
                           showBboxes
                             ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
                             : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
@@ -1565,16 +1605,14 @@ function DocDigitization() {
         {/* Submit Button Section */}
         <div className="border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col sm:flex-row justify-center gap-4">
           <button
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => {
               setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
-              if (numPages && pageNumber < numPages) {
-                navigateToPage(pageNumber + 1);
-              }
+              setPageNumber(Math.min(numPages, pageNumber + 1));
             }}
             disabled={isSubmitting}
           >
-            {t('common.submitPage')}
+            {t('common.savePage')}
           </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"

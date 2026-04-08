@@ -12,7 +12,10 @@
         "text": "OCR టెక్స్ట్‌ను సమీక్షించండి"
       }
     },
+    "showCompleteText": "పూర్తి టెక్స్ట్‌ని చూపించు",
+    "hideCompleteText": "పూర్తి టెక్స్ట్‌ని దాచు",
     "submitPage": "పేజీని సమర్పించండి",
+    "savePage": "పేజీని సేవ్ చేయండి",
     "loading": "లోడ్ అవుతోంది...",
     "error": "లోపం",
     "success": "విజయవంతమైంది",
@@ -517,7 +520,8 @@
     "audioTrack": "ఆడియో ట్రాక్",
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
     "imageUrl": "ఇమేజ్ URL",
-    "enterRecordId": ""
+    "enterRecordId": "",
+    "recordControls": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
