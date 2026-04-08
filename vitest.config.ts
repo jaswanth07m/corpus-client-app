@@ -4,11 +4,21 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: true,
+    testTimeout: 15000,
+    coverage: {
+      reporter: ['text', 'json', 'html', 'cobertura'],
+      exclude: ['node_modules/', 'tests/'],
+    },
   },
   resolve: {
     alias: {

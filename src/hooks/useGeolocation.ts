@@ -73,6 +73,7 @@ export const useGeolocation = (initialLat = '', initialLng = '') => {
   return {
     ...state,
     getCurrentLocation,
+    setCoordinates,
     setLatitude,
     setLongitude,
   };
