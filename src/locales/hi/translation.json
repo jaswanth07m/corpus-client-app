@@ -247,7 +247,11 @@
     "default": {
       "language": ""
     },
-    "savePreferences": ""
+    "savePreferences": "",
+    "uploadDocumentFilesPdfDocxTxtMax5Files": "",
+    "uploadAudioFilesMax5Files": "",
+    "uploadVideoFilesMax5Files": "",
+    "uploadImageFilesMax5Files": ""
   },
   "ui": {
     "failed": {
@@ -440,7 +444,9 @@
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": ""
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "",
+    "somethingWentWrong": "",
+    "tryAgain": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",

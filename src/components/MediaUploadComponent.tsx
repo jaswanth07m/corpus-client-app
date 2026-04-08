@@ -126,6 +126,8 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
   fileMetadata = [],
   setFileMetadata,
 }) => {
+  const { t } = useTranslation();
+
   // Handler to update file metadata (title/description)
   const updateFileMetadata = (
     index: number,
@@ -164,7 +166,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
           <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
             <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
             <span className="text-gray-600 text-sm sm:text-base">
-              Upload Document Files (PDF, DOCX, TXT) - Max 5 files
+              {t('common.uploadDocumentFilesPdfDocxTxtMax5Files')}
             </span>
           </div>
         </label>
@@ -347,7 +349,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600">
-                Upload Audio Files (Max 5 files)
+                {t('common.uploadAudioFilesMax5Files')}
               </span>
             </div>
           </label>
@@ -542,7 +544,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600 text-sm sm:text-base">
-                Upload Video Files (Max 5 files)
+                {t('common.uploadVideoFilesMax5Files')}
               </span>
             </div>
           </label>
@@ -724,7 +726,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600 text-sm sm:text-base">
-                Upload Image Files (Max 5 files)
+                {t('common.uploadImageFilesMax5Files')}
               </span>
             </div>
           </label>

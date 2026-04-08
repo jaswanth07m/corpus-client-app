@@ -62,6 +62,20 @@ i18n
       useSuspense: false,
     },
 
+    // Return key if translation missing
+    appendMissingTo: 'fallback',
+    appendMissingKey: true,
+
     // Load translations on demand (optional - for large apps)
     // partialBundledLanguages: true,
   });
+
+// Safe translation helper to prevent crashes
+export const safeT = (key: string, fallback?: string): string => {
+  const translation = i18n.t(key);
+  // Check if translation was found or if i18n returned the key itself (meaning no translation exists)
+  if (translation === key || translation.includes('undefined')) {
+    return fallback || key;
+  }
+  return translation;
+};
