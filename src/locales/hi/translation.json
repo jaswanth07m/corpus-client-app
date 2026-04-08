@@ -12,7 +12,10 @@
         "text": "OCR टेक्स्ट की समीक्षा करें"
       }
     },
+    "showCompleteText": "पूरा टेक्स्ट दिखाएं",
+    "hideCompleteText": "पूरा टेक्स्ट छिपाएं",
     "submitPage": "पृष्ठ सबमिट करें",
+    "savePage": "पृष्ठ सहेजें",
     "loading": "लोड हो रहा है...",
     "error": "त्रुटि",
     "success": "सफल",
@@ -239,7 +242,12 @@
         "order": ""
       },
       "order": ""
-    }
+    },
+    "overall": {
+      "progress": ""
+    },
+    "previousPage": "",
+    "nextPage": ""
   },
   "ui": {
     "failed": {
@@ -496,7 +504,8 @@
     "audioTrack": "ऑडियो ट्रैक",
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
     "imageUrl": "छवि URL",
-    "enterRecordId": ""
+    "enterRecordId": "",
+    "recordControls": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",

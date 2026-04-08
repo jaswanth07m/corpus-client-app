@@ -12,7 +12,10 @@
         "text": "Proofread OCR Text"
       }
     },
+    "showCompleteText": "Show Complete Text",
+    "hideCompleteText": "Hide Complete Text",
     "submitPage": "Submit Page",
+    "savePage": "Save Page",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -239,7 +242,12 @@
         "order": "Update Reading Order?"
       },
       "order": "Update Order"
-    }
+    },
+    "overall": {
+      "progress": "Overall Progress"
+    },
+    "previousPage": "Previous Page",
+    "nextPage": "Next Page"
   },
   "ui": {
     "failed": {
@@ -496,7 +504,8 @@
     "audioTrack": "Audio Track",
     "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
     "imageUrl": "Image URL",
-    "enterRecordId": "Enter Record ID"
+    "enterRecordId": "Enter Record ID",
+    "recordControls": "Record Controls"
   },
   "stats": {
     "contributionsYet": "contributions yet.",
