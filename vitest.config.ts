@@ -11,7 +11,7 @@ export default defineConfig({
     css: true,
     coverage: {
       include: ['src/components/MediaDetailModal.tsx'],
-      reporter: ['text', 'html'],
+      reporter: ['text', 'html', 'cobertura'],
     },
   },
   resolve: {
