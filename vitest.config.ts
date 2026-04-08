@@ -20,9 +20,4 @@ export default defineConfig({
       exclude: ['node_modules/', 'tests/'],
     },
   },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
 });

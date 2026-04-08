@@ -8,6 +8,7 @@ import {
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
 import { InlineEditHistory } from '@/components/InlineEditHistory';
+import { BACKEND_URL } from '@/lib/constants';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -60,7 +61,7 @@ describe('InlineEditHistory', () => {
     expect(screen.getByText('common.editHistory')).toBeInTheDocument();
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
-      'undefined/history/record/record-123/history',
+      `${BACKEND_URL}/history/record/record-123/history`,
       {
         headers: {
           Authorization: 'Bearer token-abc',
