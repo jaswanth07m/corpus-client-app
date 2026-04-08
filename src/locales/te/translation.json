@@ -9,10 +9,13 @@
     "91": "+91",
     "proofread": {
       "ocr": {
-        "text": "OCR టెక్స్ట్\u200cను సమీక్షించండి"
+        "text": "OCR టెక్స్ట్‌ను సమీక్షించండి"
       }
     },
+    "showCompleteText": "పూర్తి టెక్స్ట్‌ని చూపించు",
+    "hideCompleteText": "పూర్తి టెక్స్ట్‌ని దాచు",
     "submitPage": "పేజీని సమర్పించండి",
+    "savePage": "పేజీని సేవ్ చేయండి",
     "loading": "లోడ్ అవుతోంది...",
     "error": "లోపం",
     "success": "విజయవంతమైంది",
@@ -38,7 +41,7 @@
     "goToNextPage": "తర్వాతి పేజీకి వెళ్ళు",
     "morePages": "మరిన్ని పేజీలు",
     "toggle": {
-      "sidebar": "సైడ్\u200cబార్ టోగుల్ చేయి"
+      "sidebar": "సైడ్‌బార్ టోగుల్ చేయి"
     },
     "selectALocation": "స్థానాన్ని ఎంచుకోండి",
     "confirmLocation": "స్థానాన్ని నిర్ధారించండి",
@@ -46,19 +49,19 @@
     "to": {
       "choose": "ఎంచుకోవడానికి"
     },
-    "documentUpload": "డాక్యుమెంట్ అప్\u200cలోడ్ *",
-    "uploadDocumentFilesPdfDocxTxt": "డాక్యుమెంట్ ఫైల్\u200cలను అప్\u200cలోడ్ చేయండి (PDF, DOCX, TXT)",
+    "documentUpload": "డాక్యుమెంట్ అప్‌లోడ్ *",
+    "uploadDocumentFilesPdfDocxTxt": "డాక్యుమెంట్ ఫైల్‌లను అప్‌లోడ్ చేయండి (PDF, DOCX, TXT)",
     "selectedFile": "ఎంచుకున్న ఫైల్:",
     "content": "కంటెంట్ *",
-    "yourBrowserDoesNotSupportTheAudioElement": "మీ బ్రౌజర్ ఆడియో ఎలిమెంట్\u200cను సమర్థించదు.",
-    "uploadAudioFilesSingleFile": "ఆడియో ఫైల్\u200cలను అప్\u200cలోడ్ చేయండి (ఒకే ఫైల్)",
+    "yourBrowserDoesNotSupportTheAudioElement": "మీ బ్రౌజర్ ఆడియో ఎలిమెంట్‌ను సమర్థించదు.",
+    "uploadAudioFilesSingleFile": "ఆడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
     "switch": {
       "to": "మార్చు"
     },
-    "yourBrowserDoesNotSupportTheVideoElement": "మీ బ్రౌజర్ వీడియో ఎలిమెంట్\u200cను సమర్థించదు.",
-    "uploadVideoFilesSingleFile": "వీడియో ఫైల్\u200cలను అప్\u200cలోడ్ చేయండి (ఒకే ఫైల్)",
+    "yourBrowserDoesNotSupportTheVideoElement": "మీ బ్రౌజర్ వీడియో ఎలిమెంట్‌ను సమర్థించదు.",
+    "uploadVideoFilesSingleFile": "వీడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
     "selectedFiles": "ఎంచుకున్న ఫైల్స్:",
-    "uploadImageFilesSingleFile": "ఇమేజ్ ఫైల్\u200cలను అప్\u200cలోడ్ చేయండి (ఒకే ఫైల్)",
+    "uploadImageFilesSingleFile": "ఇమేజ్ ఫైల్‌లను అప్‌లోడ్ చేయండి (ఒకే ఫైల్)",
     "technologyForSociety": "సమాజం కోసం సాంకేతికత",
     "userIdNotFoundPleaseTryLoggingInAgain": "యూజర్ ID కనుగొనబడలేదు. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి.",
     "geolocationNotSupported": "జియోలోకేషన్ సమర్థించబడలేదు",
@@ -66,13 +69,13 @@
     "releaseRightsNotFoundCheckForReleaseRights": "విడుదల హక్కులు కనుగొనబడలేదు. విడుదల హక్కులను తనిఖీ చేయండి",
     "others": "ఇతరులు",
     "notDoneByAuthor": "రచయిత ద్వారా చేయబడలేదు",
-    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "మీరు సృష్టించిన ఏదైనా పనులను అప్\u200cలోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్\u200cలోడ్ చేయండి.",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "మీరు సృష్టించిన ఏదైనా పనులను అప్‌లోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్‌లోడ్ చేయండి.",
     "selectALangauge": "భాషను ఎంచుకోండి",
-    "pleaseSelectAFile": "దయచేసి ఒక ఫైల్\u200cను ఎంచుకోండి",
-    "uploadFailedPleaseTryAgain": "అప్\u200cలోడ్ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    "pleaseSelectAFile": "దయచేసి ఒక ఫైల్‌ను ఎంచుకోండి",
+    "uploadFailedPleaseTryAgain": "అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
     "searchByUserId": "యూజర్ ID ద్వారా శోధించండి...",
     "searchByTitleDescription": "శీర్షిక, వివరణ ద్వారా శోధించండి...",
-    "searchUsers": "యూజర్\u200cలను శోధించండి",
+    "searchUsers": "యూజర్‌లను శోధించండి",
     "peerReview": "పీర్ రివ్యూ",
     "noContributionDataAvailable": "సహకార డేటా అందుబాటులో లేదు.",
     "editHistory": "సవరణ చరిత్ర",
@@ -116,8 +119,8 @@
         "characters": "కనీసం 8 అక్షరాలు"
       }
     },
-    "confirmPassword": "పాస్\u200cవర్డ్ నిర్ధారించండి *",
-    "passwordsDoNotMatch": "*పాస్\u200cవర్డ్\u200cలు సరిపోలడం లేదు",
+    "confirmPassword": "పాస్‌వర్డ్ నిర్ధారించండి *",
+    "passwordsDoNotMatch": "*పాస్‌వర్డ్‌లు సరిపోలడం లేదు",
     "i": {
       "agree": {
         "to": {
@@ -133,9 +136,9 @@
     "privacy": {
       "policy": "గోప్యతా విధానం"
     },
-    "backToSignupForm": "సైన్అప్ ఫారమ్\u200cకు తిరిగి వెళ్ళు",
+    "backToSignupForm": "సైన్అప్ ఫారమ్‌కు తిరిగి వెళ్ళు",
     "documentPreview": "డాక్యుమెంట్ ప్రివ్యూ",
-    "openInNewTab": "కొత్త ట్యాబ్\u200cలో తెరవండి",
+    "openInNewTab": "కొత్త ట్యాబ్‌లో తెరవండి",
     "viewText": "టెక్స్ట్ చూడండి",
     "openDocument": "డాక్యుమెంట్ తెరవండి",
     "noChangesToSave": "సేవ్ చేయడానికి మార్పులు లేవు",
@@ -153,7 +156,7 @@
     "media": {
       "unavailable": "మీడియా అందుబాటులో లేదు"
     },
-    "uploadedMedia": "అప్\u200cలోడ్ చేయబడిన మీడియా",
+    "uploadedMedia": "అప్‌లోడ్ చేయబడిన మీడియా",
     "unsupported": {
       "media": "సమర్థించని మీడియా"
     },
@@ -169,7 +172,7 @@
       "profession": "వృత్తిని నమోదు చేయండి",
       "organisation": "సంస్థను నమోదు చేయండి"
     },
-    "noUsersFound": "యూజర్\u200cలు కనుగొనబడలేదు",
+    "noUsersFound": "యూజర్‌లు కనుగొనబడలేదు",
     "from": {
       "place": "నుండి స్థలం"
     },
@@ -186,8 +189,8 @@
     "addPlace": "స్థలాన్ని జోడించండి",
     "addSocialMedia": "సోషల్ మీడియాను జోడించండి",
     "fileRemoved": "ఫైల్ తొలగించబడింది",
-    "textUploadFailed": "టెక్స్ట్ అప్\u200cలోడ్ విఫలమైంది",
-    "uploadContent": "కంటెంట్\u200cను అప్\u200cలోడ్ చేయండి",
+    "textUploadFailed": "టెక్స్ట్ అప్‌లోడ్ విఫలమైంది",
+    "uploadContent": "కంటెంట్‌ను అప్‌లోడ్ చేయండి",
     "title": "శీర్షిక *",
     "description": "వివరణ *",
     "selectCategories": "వర్గాలను ఎంచుకోండి *",
@@ -198,16 +201,16 @@
       }
     },
     "SelectALanguage": "-- భాషను ఎంచుకోండి --",
-    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "క్షమించండి! దయచేసి మీరు సృష్టించిన పనులను అప్\u200cలోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్\u200cలోడ్ చేయండి.",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "క్షమించండి! దయచేసి మీరు సృష్టించిన పనులను అప్‌లోడ్ చేయండి లేదా మీ కుటుంబ సభ్యులు/స్నేహితుల పనులను వారి అనుమతితో అప్‌లోడ్ చేయండి.",
     "selectReleaseRights": "విడుదల హక్కులను ఎంచుకోండి",
-    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "నేను దీనిని ఇంటర్నెట్ నుండి డౌన్\u200cలోడ్ చేశాను మరియు/లేదా ఇది ఉచితంగా షేర్ చేయడానికి అనుకూలమైనదా అని నాకు తెలియదు.",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "నేను దీనిని ఇంటర్నెట్ నుండి డౌన్‌లోడ్ చేశాను మరియు/లేదా ఇది ఉచితంగా షేర్ చేయడానికి అనుకూలమైనదా అని నాకు తెలియదు.",
     "creator": "సృష్టికర్త *",
     "oopsPageNotFound": "అయ్యో! పేజీ కనుగొనబడలేదు",
-    "backToLogin": "లాగిన్\u200cకు తిరిగి వెళ్ళు",
-    "confirmNewPassword": "కొత్త పాస్\u200cవర్డ్\u200cను నిర్ధారించండి",
-    "resetPassword": "పాస్\u200cవర్డ్ రీసెట్ చేయండి",
+    "backToLogin": "లాగిన్‌కు తిరిగి వెళ్ళు",
+    "confirmNewPassword": "కొత్త పాస్‌వర్డ్‌ను నిర్ధారించండి",
+    "resetPassword": "పాస్‌వర్డ్ రీసెట్ చేయండి",
     "backToInitiate": "ప్రారంభించడానికి తిరిగి వెళ్ళు",
-    "uploadFiles": "ఫైల్\u200cలను అప్\u200cలోడ్ చేయండి",
+    "uploadFiles": "ఫైల్‌లను అప్‌లోడ్ చేయండి",
     "click": {
       "to": {
         "get": {
@@ -219,15 +222,32 @@
     "docDigitization": {
       "tool": "డాక్యుమెంట్ డిజిటైజేషన్ సాధనం"
     },
-    "reviewAndCorrectOcrTextFromDocuments": "డాక్యుమెంట్\u200cల నుండి OCR టెక్స్ట్\u200cను సమీక్షించండి మరియు సరిదిద్దండి",
-    "showHints": "హింట్\u200cలను చూపించు",
+    "reviewAndCorrectOcrTextFromDocuments": "డాక్యుమెంట్‌ల నుండి OCR టెక్స్ట్‌ను సమీక్షించండి మరియు సరిదిద్దండి",
+    "showHints": "హింట్‌లను చూపించు",
     "reviewCommunityContributions": "కమ్యూనిటీ సహకారాలను సమీక్షించండి",
-    "refreshFeed": "ఫీడ్\u200cను రిఫ్రెష్ చేయండి",
+    "refreshFeed": "ఫీడ్‌ను రిఫ్రెష్ చేయండి",
     "noResultsFoundFor": "కోసం ఫలితాలు కనుగొనబడలేదు \"",
-    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "యూజర్ లోడ్ చేయబడిన రికార్డ్\u200cలలో లేకపోవచ్చు. శోధనను క్లియర్ చేసి మరిన్ని రికార్డ్\u200cలను లోడ్ చేయడానికి స్క్రోల్ చేయడానికి ప్రయత్నించండి.",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "యూజర్ లోడ్ చేయబడిన రికార్డ్‌లలో లేకపోవచ్చు. శోధనను క్లియర్ చేసి మరిన్ని రికార్డ్‌లను లోడ్ చేయడానికి స్క్రోల్ చేయడానికి ప్రయత్నించండి.",
     "processing": "ప్రాసెసింగ్...",
-    "noFollowersFound": "ఫాలోవర్\u200cలు కనుగొనబడలేదు",
-    "noUsersBeingFollowed": "ఫాలో అవుతున్న యూజర్\u200cలు లేరు"
+    "noFollowersFound": "ఫాలోవర్‌లు కనుగొనబడలేదు",
+    "noUsersBeingFollowed": "ఫాలో అవుతున్న యూజర్‌లు లేరు",
+    "on": {
+      "page": ""
+    },
+    "Previous": "",
+    "editSegmentText": "",
+    "noSegmentsFoundForThisPage": "",
+    "update": {
+      "reading": {
+        "order": ""
+      },
+      "order": ""
+    },
+    "overall": {
+      "progress": ""
+    },
+    "previousPage": "",
+    "nextPage": ""
   },
   "ui": {
     "failed": {
@@ -283,7 +303,7 @@
       "your": {
         "text": {
           "content": {
-            "here": "మీ టెక్స్ట్ కంటెంట్\u200cను ఇక్కడ నమోదు చేయండి..."
+            "here": "మీ టెక్స్ట్ కంటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
           }
         }
       }
@@ -384,7 +404,7 @@
       "typing": {
         "to": {
           "get": {
-            "hints": "*హింట్\u200cలను పొందడానికి టైప్ చేయడం ప్రారంభించండి"
+            "hints": "*హింట్‌లను పొందడానికి టైప్ చేయడం ప్రారంభించండి"
           }
         }
       }
@@ -400,10 +420,10 @@
     }
   },
   "messages": {
-    "networkErrorPleaseTryAgain": "నెట్\u200cవర్క్ లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.",
-    "contentUploadedSuccessfullyRedirectingToLanding": "కంటెంట్ విజయవంతంగా అప్\u200cలోడ్ అయింది! ల్యాండింగ్\u200cకు దారిమారుస్తోంది...",
-    "networkErrorPleaseCheckYourConnectionAndTryAgain": "నెట్\u200cవర్క్ లోపం. దయచేసి మీ కనెక్షన్\u200cను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
-    "loadingContributionsDashboard": "సహకార డాష్\u200cబోర్డ్ లోడ్ అవుతోంది...",
+    "networkErrorPleaseTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    "contentUploadedSuccessfullyRedirectingToLanding": "కంటెంట్ విజయవంతంగా అప్‌లోడ్ అయింది! ల్యాండింగ్‌కు దారిమారుస్తోంది...",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
+    "loadingContributionsDashboard": "సహకార డాష్‌బోర్డ్ లోడ్ అవుతోంది...",
     "otpSentSuccessfully": "OTP విజయవంతంగా పంపబడింది!",
     "loginSuccessful": "లాగిన్ విజయవంతమైంది!",
     "signupOtpSentSuccessfully": "సైన్అప్ OTP విజయవంతంగా పంపబడింది!",
@@ -411,16 +431,17 @@
     "signupOtpResentSuccessfully": "సైన్అప్ OTP విజయవంతంగా మళ్లీ పంపబడింది!",
     "loading": "లోడ్ అవుతోంది...",
     "errorLoadingContributions": "సహకారాలను లోడ్ చేయడంలో లోపం:",
-    "profileUpdatedSuccessfully": "ప్రొఫైల్ విజయవంతంగా అప్\u200cడేట్ అయింది!",
+    "profileUpdatedSuccessfully": "ప్రొఫైల్ విజయవంతంగా అప్‌డేట్ అయింది!",
     "loadingProfile": "ప్రొఫైల్ లోడ్ అవుతోంది...",
-    "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్\u200cడేట్ అయింది!",
-    "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది..."
+    "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
+    "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
     "locationAccessGranted": "స్థానం యాక్సెస్ మంజూరు చేయబడింది!",
-    "locationSetManually": "స్థానం మానువల్\u200cగా సెట్ చేయబడింది!",
-    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "స్థానం అవసరం. దయచేసి స్థాన యాక్సెస్\u200cను ప్రారంభించండి లేదా మానువల్\u200cగా నమోదు చేయండి",
+    "locationSetManually": "స్థానం మానువల్‌గా సెట్ చేయబడింది!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "స్థానం అవసరం. దయచేసి స్థాన యాక్సెస్‌ను ప్రారంభించండి లేదా మానువల్‌గా నమోదు చేయండి",
     "verifyingLocation": "స్థానాన్ని నిర్ధారిస్తుంది...",
     "locationCapturedAwaitingVerification": "స్థానం సంగ్రహించబడింది, నిర్ధారణ కోసం వేచి ఉంది...",
     "locationRequired": "స్థానం అవసరం",
@@ -439,7 +460,7 @@
     "pleaseEnterValidLatitudeAndLongitudeValues": "దయచేసి సరైన అక్షాంశం మరియు రేఖాంశం విలువలను నమోదు చేయండి",
     "latitudeMustBeBetween90And90": "అక్షాంశం -90 మరియు 90 మధ్య ఉండాలి",
     "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
-    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్\u200cను నమోదు చేయండి"
+    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి"
   },
   "categories": {
     "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",
@@ -482,7 +503,9 @@
     "capturedPhoto": "క్యాప్చర్ చేయబడిన ఫోటో",
     "audioTrack": "ఆడియో ట్రాక్",
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
-    "imageUrl": "ఇమేజ్ URL"
+    "imageUrl": "ఇమేజ్ URL",
+    "enterRecordId": "",
+    "recordControls": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
@@ -491,55 +514,55 @@
     "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి."
   },
   "auth": {
-    "pleaseEnterAValid10digitPhoneNumber": "దయచేసి సరైన 10 అంకెల ఫోన్ నంబర్\u200cను నమోదు చేయండి",
+    "pleaseEnterAValid10digitPhoneNumber": "దయచేసి సరైన 10 అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి",
     "pleaseEnterAValid6digitOtp": "దయచేసి సరైన 6 అంకెల OTP ని నమోదు చేయండి",
     "invalidOtpPleaseCheckAndTryAgain": "చెల్లని OTP. దయచేసి తనిఖీ చేసి మళ్లీ ప్రయత్నించండి",
     "otpVerificationFailedPleaseTryAgain": "OTP నిర్ధారణ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి",
     "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP గడువు ముగిసింది లేదా చెల్లదు. దయచేసి కొత్తదాన్ని అభ్యర్థించండి",
-    "pleaseEnterAValidPhoneNumberAndPassword": "దయచేసి సరైన ఫోన్ నంబర్ మరియు పాస్\u200cవర్డ్\u200cను నమోదు చేయండి",
-    "pleaseEnterAValidUsername": "దయచేసి సరైన యూజర్\u200cనేమ్\u200cను నమోదు చేయండి",
-    "passwordMustBeAtLeast6CharactersLong": "పాస్\u200cవర్డ్ కనీసం 6 అక్షరాలు ఉండాలి",
+    "pleaseEnterAValidPhoneNumberAndPassword": "దయచేసి సరైన ఫోన్ నంబర్ మరియు పాస్‌వర్డ్‌ను నమోదు చేయండి",
+    "pleaseEnterAValidUsername": "దయచేసి సరైన యూజర్‌నేమ్‌ను నమోదు చేయండి",
+    "passwordMustBeAtLeast6CharactersLong": "పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి",
     "welcomeBack": "స్వాగతం",
     "createAccount": "ఖాతా సృష్టించండి",
     "signInToContinueYourJourney": "మీ ప్రయాణాన్ని కొనసాగించడానికి సైన్ ఇన్ చేయండి",
     "joinOurCommunityToday": "నేడే మా కమ్యూనిటీలో చేరండి",
     "login": "లాగిన్",
     "signUp": "సైన్ అప్",
-    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP స్వీకరించడానికి మీ నమోదిత ఫోన్ నంబర్\u200cను నమోదు చేయండి",
-    "enter10digitPhoneNumber": "10 అంకెల ఫోన్ నంబర్\u200cను నమోదు చేయండి",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP స్వీకరించడానికి మీ నమోదిత ఫోన్ నంబర్‌ను నమోదు చేయండి",
+    "enter10digitPhoneNumber": "10 అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి",
     "phoneNumberIsInvalid": "*ఫోన్ నంబర్ చెల్లదు",
     "otpSentTo91": "+91 కు OTP పంపబడింది",
     "enter6digitOtp": "6 అంకెల OTP ని నమోదు చేయండి",
-    "enterYourPassword": "మీ పాస్\u200cవర్డ్\u200cను నమోదు చేయండి",
-    "forgotPassword": "పాస్\u200cవర్డ్ మర్చిపోయారా?",
-    "username": "యూజర్\u200cనేమ్*",
-    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*యూజర్\u200cనేమ్ అక్షరాలు, అండర్\u200cస్కోర్లు, అంకెలు మాత్రమే కలిగి ఉండాలి",
+    "enterYourPassword": "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
+    "forgotPassword": "పాస్‌వర్డ్ మర్చిపోయారా?",
+    "username": "యూజర్‌నేమ్*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*యూజర్‌నేమ్ అక్షరాలు, అండర్‌స్కోర్లు, అంకెలు మాత్రమే కలిగి ఉండాలి",
     "emailIsInvalid": "*ఇమెయిల్ చెల్లదు",
     "selectGender": "లింగం ఎంచుకోండి",
     "male": "పురుషుడు",
     "female": "మహిళ",
     "other": "",
     "dateOfBirth": "పుట్టిన తేదీ",
-    "createPassword": "పాస్\u200cవర్డ్ సృష్టించండి *",
-    "passwordStrength": "పాస్\u200cవర్డ్ బలం:",
-    "passwordShouldContain": "పాస్\u200cవర్డ్ కలిగి ఉండాలి :",
+    "createPassword": "పాస్‌వర్డ్ సృష్టించండి *",
+    "passwordStrength": "పాస్‌వర్డ్ బలం:",
+    "passwordShouldContain": "పాస్‌వర్డ్ కలిగి ఉండాలి :",
     "sendingOtp": "OTP పంపుతోంది...",
     "requestOtpForPhoneVerification": "ఫోన్ నిర్ధారణ కోసం OTP ని అభ్యర్థించండి",
     "securedBy": "చేత రక్షించబడింది",
-    "enterUsername": "యూజర్\u200cనేమ్ నమోదు చేయండి",
+    "enterUsername": "యూజర్‌నేమ్ నమోదు చేయండి",
     "gender": "లింగం",
     "phoneNumber": "ఫోన్ నంబర్",
-    "enterYourPhoneNumber": "మీ ఫోన్ నంబర్\u200cను నమోదు చేయండి",
+    "enterYourPhoneNumber": "మీ ఫోన్ నంబర్‌ను నమోదు చేయండి",
     "sendOtp": "OTP పంపు",
     "otpCode": "OTP కోడ్",
     "enterOtp": "OTP నమోదు చేయండి",
-    "newPassword": "కొత్త పాస్\u200cవర్డ్",
-    "enterNewPassword": "కొత్త పాస్\u200cవర్డ్\u200cను నమోదు చేయండి",
-    "passwordMustBeAtLeast8CharactersAndContain": "పాస్\u200cవర్డ్ కనీసం 8 అక్షరాలు కలిగి ఉండాలి మరియు కలిగి ఉండాలి:",
+    "newPassword": "కొత్త పాస్‌వర్డ్",
+    "enterNewPassword": "కొత్త పాస్‌వర్డ్‌ను నమోదు చేయండి",
+    "passwordMustBeAtLeast8CharactersAndContain": "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు కలిగి ఉండాలి మరియు కలిగి ఉండాలి:",
     "email": "ఇమెయిల్",
-    "password": "పాస్\u200cవర్డ్",
-    "resetPassword": "పాస్\u200cవర్డ్ రీసెట్ చేయి",
-    "loginTitle": "కార్పస్\u200cకు లాగిన్ అవ్వండి",
+    "password": "పాస్‌వర్డ్",
+    "resetPassword": "పాస్‌వర్డ్ రీసెట్ చేయి",
+    "loginTitle": "కార్పస్‌కు లాగిన్ అవ్వండి",
     "loginButton": "లాగిన్",
     "noAccount": "ఖాతా లేదా?",
     "hasAccount": "ఇప్పటికే ఖాతా ఉందా?",
@@ -548,25 +571,25 @@
     "resendOtp": "OTP మళ్లీ పంపు",
     "resendIn": "లో మళ్లీ పంపు",
     "back": "వెనుకకు",
-    "preferPasswordLogin": "పాస్\u200cవర్డ్ లాగిన్ ఇష్టపడతారా?",
-    "loginWithPassword": "పాస్\u200cవర్డ్\u200cతో లాగిన్ చేయండి",
+    "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారా?",
+    "loginWithPassword": "పాస్‌వర్డ్‌తో లాగిన్ చేయండి",
     "loginWithOtp": "OTPతో లాగిన్ చేయండి",
-    "enterPassword": "పాస్\u200cవర్డ్ నమోదు చేయండి"
+    "enterPassword": "పాస్‌వర్డ్ నమోదు చేయండి"
   },
   "nav": {
-    "preferPasswordLogin": "పాస్\u200cవర్డ్ లాగిన్ ఇష్టపడతారు?",
-    "loginWithPassword": "పాస్\u200cవర్డ్\u200cతో లాగిన్ చేయండి",
+    "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారు?",
+    "loginWithPassword": "పాస్‌వర్డ్‌తో లాగిన్ చేయండి",
     "failedToLoadProfileData": "ప్రొఫైల్ డేటా లోడ్ చేయడం విఫలమైంది",
     "tellUsAboutYourself": "మీ గురించి మాకు చెప్పండి",
-    "socialMediaProfiles": "సోషల్ మీడియా ప్రొఫైల్\u200cలు",
+    "socialMediaProfiles": "సోషల్ మీడియా ప్రొఫైల్‌లు",
     "profileUrl": "ప్రొఫైల్ URL",
-    "returnToHome": "హోమ్\u200cకు తిరిగి వెళ్ళు",
-    "searchUsers": "యూజర్\u200cల కోసం శోధించండి...",
-    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్\u200cడేట్ చేయండి",
+    "returnToHome": "హోమ్‌కు తిరిగి వెళ్ళు",
+    "searchUsers": "యూజర్‌ల కోసం శోధించండి...",
+    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్‌డేట్ చేయండి",
     "enterAValidImageUrlForYourProfilePicture": "మీ ప్రొఫైల్ చిత్రం కోసం సరైన ఇమేజ్ URL నమోదు చేయండి",
     "home": "హోమ్",
     "profile": "ప్రొఫైల్",
-    "settings": "సెట్టింగ్\u200cలు",
+    "settings": "సెట్టింగ్‌లు",
     "logout": "లాగౌట్",
     "login": "లాగిన్"
   },
@@ -578,12 +601,12 @@
     "viewProfileInfo": "ప్రొఫైల్ సమాచారాన్ని చూడండి",
     "info": "సమాచారం",
     "follow": "ఫాలో అవ్వండి",
-    "unfollow": "అన్\u200cఫాలో",
+    "unfollow": "అన్‌ఫాలో",
     "noFollowers": "ఇంకా ఫాలోవర్స్ లేరు",
     "noFollowing": "ఇంకా ఎవరినీ ఫాలో అవ్వలేదు",
     "viewProfile": "ప్రొఫైల్ చూడండి",
     "editProfile": "ప్రొఫైల్ సవరించండి",
-    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్\u200cడేట్ చేయండి",
+    "updateProfilePicture": "ప్రొఫైల్ చిత్రాన్ని అప్‌డేట్ చేయండి",
     "enterProfilePictureUrl": "ప్రొఫైల్ చిత్రం URL నమోదు చేయండి",
     "shortBio": "చిన్న పరిచయం",
     "loading": "ప్రొఫైల్ లోడ్ అవుతోంది...",
@@ -595,8 +618,8 @@
   },
   "tour": {
     "upload": {
-      "title": "ఫైల్\u200cలను అప్\u200cలోడ్ చేయండి",
-      "description": "మీడియా ఫైల్\u200cలను అప్\u200cలోడ్ చేయడానికి మరియు సహకరించడం ప్రారంభించడానికి ఇక్కడ క్లిక్ చేయండి."
+      "title": "ఫైల్‌లను అప్‌లోడ్ చేయండి",
+      "description": "మీడియా ఫైల్‌లను అప్‌లోడ్ చేయడానికి మరియు సహకరించడం ప్రారంభించడానికి ఇక్కడ క్లిక్ చేయండి."
     },
     "media": {
       "title": "మీడియా రకాన్ని ఎంచుకోండి",
@@ -604,11 +627,11 @@
     },
     "stats": {
       "title": "మీ సహకారాలు",
-      "description": "ఇక్కడ మీరు మీ పాయింట్లు మరియు ప్లాట్\u200cఫారమ్\u200cకు చేసిన మొత్తం సహకారాలను చూడవచ్చు."
+      "description": "ఇక్కడ మీరు మీ పాయింట్లు మరియు ప్లాట్‌ఫారమ్‌కు చేసిన మొత్తం సహకారాలను చూడవచ్చు."
     },
     "home": {
       "title": "హోమ్",
-      "description": "ఎప్పుడైనా ఈ డాష్\u200cబోర్డ్\u200cకు తిరిగి రండి."
+      "description": "ఎప్పుడైనా ఈ డాష్‌బోర్డ్‌కు తిరిగి రండి."
     },
     "tools": {
       "title": "సాధనాలు",
@@ -624,11 +647,11 @@
     },
     "audioReview": {
       "title": "ఆడియో టూల్",
-      "description": "ఆడియో రికార్డింగ్\u200cలను సమీక్షించడానికి ప్రత్యేక సాధనం."
+      "description": "ఆడియో రికార్డింగ్‌లను సమీక్షించడానికి ప్రత్యేక సాధనం."
     },
     "videoReview": {
       "title": "వీడియో టూల్",
-      "description": "వీడియో కంటెంట్ సమీక్ష కోసం ప్రత్యేక ఇంటర్\u200cఫేస్."
+      "description": "వీడియో కంటెంట్ సమీక్ష కోసం ప్రత్యేక ఇంటర్‌ఫేస్."
     },
     "docDigitization": {
       "title": "డాక్యుమెంట్ డిజిటైజేషన్",
@@ -636,47 +659,47 @@
     },
     "futureTools": {
       "title": "రాబోయే లక్షణాలు",
-      "description": "అస్క్ యార్ కార్పస్, స్టోరీ జనరేటర్, ఏజెంట్ వర్క్\u200cఫ్లోలు మరియు మరిన్నింటి కోసం వేచి ఉండండి!"
+      "description": "అస్క్ యార్ కార్పస్, స్టోరీ జనరేటర్, ఏజెంట్ వర్క్‌ఫ్లోలు మరియు మరిన్నింటి కోసం వేచి ఉండండి!"
     },
     "profile": {
       "title": "ప్రొఫైల్",
-      "description": "ఇక్కడ మీ గణాంకాలను చూడండి మరియు సెట్టింగ్\u200cలను నిర్వహించండి."
+      "description": "ఇక్కడ మీ గణాంకాలను చూడండి మరియు సెట్టింగ్‌లను నిర్వహించండి."
     },
     "language": {
       "title": "భాష",
       "description": "అప్లికేషన్ భాషను ఇక్కడ మార్చండి."
     },
     "heatmap": {
-      "title": "కార్యాచరణ హీట్\u200cమ్యాప్",
-      "description": "కాలక్రమేణా మీ రోజువారీ సహకారాలను మరియు స్ట్రీక్\u200cలను ట్రాక్ చేయండి."
+      "title": "కార్యాచరణ హీట్‌మ్యాప్",
+      "description": "కాలక్రమేణా మీ రోజువారీ సహకారాలను మరియు స్ట్రీక్‌లను ట్రాక్ చేయండి."
     },
     "dashboard": {
-      "title": "కంట్రిబ్యూషన్స్ డాష్\u200cబోర్డ్",
+      "title": "కంట్రిబ్యూషన్స్ డాష్‌బోర్డ్",
       "description": "మీడియా రకం ద్వారా నిర్వహించబడిన మీ సహకారాలను చూడండి."
     }
   },
   "tools": {
     "docDigitization": "డాక్యుమెంట్ డిజిటైజేషన్",
-    "docDigitizationDescription": "డాక్యుమెంట్\u200cల నుండి OCR టెక్స్ట్\u200cను సమీక్షించండి మరియు సరిదిద్దండి",
+    "docDigitizationDescription": "డాక్యుమెంట్‌ల నుండి OCR టెక్స్ట్‌ను సమీక్షించండి మరియు సరిదిద్దండి",
     "askYourCorpus": "అస్క్ యార్ కార్పస్",
     "askYourCorpusDescription": "తెలివైన డాక్యుమెంట్ క్వెరీంగ్ కోసం రిట్రీవల్-ఆగ్మెంటెడ్ జనరేషన్",
     "peerReview": "పీర్ రివ్యూ",
     "peerReviewDescription": "ఇతర వినియోగదారుల సహకారాలను సమీక్షించండి మరియు సలహా ఇవ్వండి",
     "imageAnnotation": "ఇమేజ్ ఎనోటేషన్",
-    "imageAnnotationDescription": "ఇమేజ్\u200cలలో వస్తువులు, ప్రాంతాలు మరియు నమూనాలను ఎనోటేట్ చేయండి",
+    "imageAnnotationDescription": "ఇమేజ్‌లలో వస్తువులు, ప్రాంతాలు మరియు నమూనాలను ఎనోటేట్ చేయండి",
     "audioTool": "ఆడియో టూల్",
-    "audioToolDescription": "ఆడియో రికార్డింగ్\u200cలను సమీక్షించండి మరియు ఎనోటేట్ చేయండి",
+    "audioToolDescription": "ఆడియో రికార్డింగ్‌లను సమీక్షించండి మరియు ఎనోటేట్ చేయండి",
     "videoTool": "వీడియో టూల్",
-    "videoToolDescription": "వీడియో కంటెంట్\u200cను సమీక్షించండి మరియు ఎనోటేట్ చేయండి",
-    "transcription": "ట్రాన్స్\u200cక్రిప్షన్",
-    "transcriptionDescription": "ఆడియో మరియు వీడియో కంటెంట్\u200cను టెక్స్ట్\u200cగా మార్చండి",
-    "textExtraction": "టెక్స్ట్ ఎక్స్\u200cట్రాక్షన్",
-    "textExtractionDescription": "ఇమేజ్\u200cలు మరియు డాక్యుమెంట్\u200cల నుండి టెక్స్ట్\u200cను సంగ్రహించండి",
-    "audioProofreading": "ఆడియో ప్రూఫ్\u200cరీడింగ్",
-    "audioProofreadingDescription": "ట్రాన్స్\u200cక్రిప్ట్ చేయబడిన ఆడియో కంటెంట్\u200cను వినండి మరియు సరిదిద్దండి",
+    "videoToolDescription": "వీడియో కంటెంట్‌ను సమీక్షించండి మరియు ఎనోటేట్ చేయండి",
+    "transcription": "ట్రాన్స్‌క్రిప్షన్",
+    "transcriptionDescription": "ఆడియో మరియు వీడియో కంటెంట్‌ను టెక్స్ట్‌గా మార్చండి",
+    "textExtraction": "టెక్స్ట్ ఎక్స్‌ట్రాక్షన్",
+    "textExtractionDescription": "ఇమేజ్‌లు మరియు డాక్యుమెంట్‌ల నుండి టెక్స్ట్‌ను సంగ్రహించండి",
+    "audioProofreading": "ఆడియో ప్రూఫ్‌రీడింగ్",
+    "audioProofreadingDescription": "ట్రాన్స్‌క్రిప్ట్ చేయబడిన ఆడియో కంటెంట్‌ను వినండి మరియు సరిదిద్దండి",
     "storyGenerator": "స్టోరీ జనరేటర్",
     "storyGeneratorDescription": "సేకరించిన డేటా నుండి ఆకర్షణీయమైన కథలను స్వయంచాలకంగా ఉత్పత్తి చేయండి",
-    "agentWorkflows": "ఏజెంట్ వర్క్\u200cఫ్లోలు",
+    "agentWorkflows": "ఏజెంట్ వర్క్‌ఫ్లోలు",
     "agentWorkflowsDescription": "స్వయంచాలక AI ఏజెంట్ ప్రక్రియలను రూపొందించండి మరియు నిర్వహించండి",
     "metadataIndex": "మెటాడేటా ఇండెక్స్",
     "metadataIndexDescription": "సముదాయ మెటాడేటా కోసం అధునాతన ఇండెక్సింగ్ మరియు శోధన",
