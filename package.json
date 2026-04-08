@@ -16,6 +16,7 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "ci-local": "npm run format && npm-run-all -p lint:fix type-check && npm run build",
+    "ci": "npm run format:check && npm run lint && npm run type-check && npm run test:run && npm run build",
     "test:run": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --passWithNoTests --coverage",
     "test:ui": "vitest --ui",
