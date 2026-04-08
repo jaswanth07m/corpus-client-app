@@ -170,7 +170,10 @@
         "place": "ప్రస్తుత స్థలాన్ని నమోదు చేయండి"
       },
       "profession": "వృత్తిని నమోదు చేయండి",
-      "organisation": "సంస్థను నమోదు చేయండి"
+      "organisation": "సంస్థను నమోదు చేయండి",
+      "roll": {
+        "number": ""
+      }
     },
     "noUsersFound": "యూజర్‌లు కనుగొనబడలేదు",
     "from": {
@@ -248,15 +251,139 @@
     },
     "previousPage": "మునుపటి పేజీ",
     "nextPage": "తదుపరి పేజీ",
-    "storageUploadFailedPleaseContactAdminOrRetryLater": "",
-    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "",
+    "noOptionFound": "",
+    "pleaseUploadAPdfFile": "",
+    "fileSizeMustBeLessThan5mb": "",
+    "authenticationRequiredForUpload": "",
+    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "",
+    "failedToViewResume": "",
+    "selectType": "",
+    "selectDistrict": "",
+    "permanentPostalAddress": "",
+    "enterPermanentPostalAddress": "",
+    "college": {
+      "institution": "",
+      "roll": {
+        "number": ""
+      }
+    },
+    "selectCollege": "",
+    "cantFindYourInstitutionSelectOtherNotInList": "",
+    "selectCategory": "",
+    "specific": {
+      "stream": ""
+    },
+    "selectStream": "",
+    "selectYear": "",
+    "task": {
+      "registered": {
+        "id": ""
+      },
+      "id": ""
+    },
+    "device": {
+      "internet": ""
+    },
+    "has": {
+      "laptop": ""
+    },
+    "laptop": {
+      "os": "",
+      "ram": ""
+    },
+    "selectOs": "",
+    "selectRam": "",
     "mobile": {
       "os": "",
       "ram": ""
     },
-    "goBackHome": "",
-    "selectOs": "",
-    "selectRam": ""
+    "internet": {
+      "speed": ""
+    },
+    "selectSpeed": "",
+    "daily": {
+      "data": {
+        "limit": ""
+      }
+    },
+    "selectLimit": "",
+    "list": {
+      "your": {
+        "ai": {
+          "courses": ""
+        }
+      }
+    },
+    "language": {
+      "proficiency": ""
+    },
+    "selectYourProficiencyLevelForEachLanguage": "",
+    "rural": {
+      "area": {
+        "access": ""
+      }
+    },
+    "completed": {
+      "ai": {
+        "courses": ""
+      }
+    },
+    "gender": "",
+    "academic": {
+      "details": "",
+      "stream": ""
+    },
+    "roll": {
+      "number": ""
+    },
+    "whatIsYourPermanentPostalAddress": "",
+    "enterYourCompletePermanentAddress": "",
+    "uploadResumePdfOnlyMax5mb": "",
+    "do": {
+      "you": {
+        "have": {
+          "a": {
+            "laptop": ""
+          }
+        }
+      }
+    },
+    "saving": "సేవ్ అవుతోంది...",
+    "preview": "ప్రివ్యూ:",
+    "noPreviewAvailable": "ప్రివ్యూ అందుబాటులో లేదు",
+    "searchPlaceOrAddress": "స్థలం లేదా చిరునామా వెతకండి",
+    "searching": "వెతుకుతోంది...",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": "URLను కాపీ చేయడం విఫలమైంది"
+        }
+      }
+    },
+    "goBackHome": "హోమ్‌కు తిరిగి వెళ్ళు",
+    "recordNotFound": "రికార్డ్ కనుగొనబడలేదు",
+    "viewDocument": "డాక్యుమెంట్‌ను చూడండి",
+    "noRecordsFoundInThisCategory": "ఈ వర్గంలో రికార్డులు లభించలేదు",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "వేరే వర్గాన్ని ఎంచుకోండి లేదా ఫిల్టర్‌ను క్లియర్ చేయడానికి ప్రయత్నించండి.",
+    "clearFilter": "ఫిల్టర్‌ను క్లియర్ చేయండి",
+    "workstation": {
+      "os": "వర్క్‌స్టేషన్ OS",
+      "ram": "వర్క్‌స్టేషన్ RAM"
+    },
+    "normalUser": "సాధారణ వినియోగదారు",
+    "are": {
+      "you": {
+        "an": {
+          "intern": "మీరు ఇంటర్న్‌నా? *"
+        }
+      }
+    },
+    "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది"
+    "savePreferences": "",
+    "uploadDocumentFilesPdfDocxTxtMax5Files": "",
+    "uploadAudioFilesMax5Files": "",
+    "uploadVideoFilesMax5Files": "",
+    "uploadImageFilesMax5Files": ""
   },
   "ui": {
     "failed": {
@@ -268,7 +395,7 @@
                 "try": {
                   "logging": {
                     "in": {
-                      "again": "యూజర్ సమాచారాన్ని పొందడం విఫలమైంది. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి."
+                      "again": "యూజర్ సమాచారాన్ని పొందడం విఫలమైంది. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి"
                     }
                   }
                 }
@@ -312,8 +439,13 @@
       "your": {
         "text": {
           "content": {
-            "here": "మీ టెక్స్ట్ కంటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
+            "here": "మీ టెక్స్ట్ కoటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
           }
+        }
+      },
+      "task": {
+        "id": {
+          "optional": ""
         }
       }
     },
@@ -381,6 +513,36 @@
             }
           }
         }
+      },
+      "list": {
+        "all": {
+          "ai": {
+            "courses": {
+              "you": {
+                "have": {
+                  "completed": ""
+                }
+              }
+            }
+          }
+        }
+      },
+      "fill": {
+        "in": {
+          "the": {
+            "remaining": {
+              "details": {
+                "to": {
+                  "complete": {
+                    "your": {
+                      "registration": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "place": {
@@ -432,9 +594,119 @@
         "rights": ""
       }
     },
-    "default": {
-      "release": {
-        "rights": ""
+    "do": {
+      "you": {
+        "have": {
+          "access": {
+            "to": {
+              "any": {
+                "rural": {
+                  "areas": {
+                    "nearby": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "education": {
+      "institution": ""
+    },
+    "have": {
+      "you": {
+        "completed": {
+          "any": {
+            "ai": {
+              "courses": ""
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "of": {
+        "ai": {
+          "courses": {
+            "completed": ""
+          }
+        }
+      }
+    },
+    "resume": {
+      "pdf": {
+        "only": {
+          "max": {
+            "5mb": ""
+          }
+        }
+      }
+    },
+    "internship": {
+      "language": {
+        "proficiency": ""
+      }
+    },
+    "task": {
+      "registered": {
+        "id": {
+          "optional": ""
+        }
+      }
+    },
+    "eg": {
+      "nearby": {
+        "villages": {
+          "shamirpet": {
+            "medchal": {
+              "etc": ""
+            }
+          }
+        }
+      }
+    },
+    "laptop": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "mobile": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "internet": {
+      "connection": {
+        "speed": {
+          "mbps": ""
+        }
+      }
+    },
+    "daily": {
+      "data": {
+        "limit": {
+          "quota": ""
+        }
+      }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": ""
+        }
+      }
+    },
+    "step": {
+      "1": {
+        "general": {
+          "information": ""
+        }
+      },
+      "2": {
+        "academic": {
+          "details": ""
+        }
       }
     }
   },
@@ -455,7 +727,21 @@
     "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
     "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది.",
-    "resumeUploadedSuccessfully": ""
+    "resumeUploadedSuccessfully": "",
+    "uploadingNewResume": "",
+    "profileCompletedSuccessfully": "",
+    "uploadingResume": "",
+    "loadingCategories": "",
+    "linkCopiedSuccessfully": "",
+    "recordUpdatedSuccessfully": "రికార్డు విజయవంతంగా అప్‌డేట్ అయింది!",
+    "error": "",
+    "saving": "సేవ్ చేస్తోంది...",
+    "loadingMap": "మ్యాప్ లోడ్ అవుతోంది...",
+    "loadingDistrictBoundariesPleaseWait": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి... దయచేసి వేచి ఉండండి",
+    "loadingDistrictBoundaries": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి..."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "",
+    "somethingWentWrong": "",
+    "tryAgain": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -477,21 +763,26 @@
     "organisation": "సంస్థ",
     "changeLocation": "",
     "locationCapturedVerifying": "",
-    "changeLocation": "",
-    "locationCapturedVerifying": ""
+    "workLocation": "",
+    "cityState": "",
+    "locationDetails": "",
+    "chooseYourWorkLocationForTheInternship": ""
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "దయచేసి సరైన అక్షాంశం మరియు రేఖాంశం విలువలను నమోదు చేయండి",
     "latitudeMustBeBetween90And90": "అక్షాంశం -90 మరియు 90 మధ్య ఉండాలి",
     "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
-    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి"
+    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి",
+    "authenticationRequired": ""
   },
   "categories": {
     "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",
     "changeType": "రకాన్ని మార్చు:",
     "unsupportedMediaType": "సమర్థించని మీడియా రకం",
     "sourceLabel": "మూలం లేబుల్",
-    "type": "రకం:"
+    "type": "రకం:",
+    "organisationType": "",
+    "educationCategory": ""
   },
   "media": {
     "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",
@@ -529,13 +820,16 @@
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
     "imageUrl": "ఇమేజ్ URL",
     "enterRecordId": "రికార్డ్ IDని నమోదు చేయండి",
-    "recordControls": "రికార్డ్ నియంత్రణలు"
+    "recordControls": "రికార్డ్ నియంత్రణలు",
+    "resumeRecordId": "",
+    "copyRecordUrl": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
     "pointsActivity": "పాయింట్ల కార్యకలాపం",
     "contributions": "సహకారాలు...",
-    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి."
+    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి.",
+    "myContributionsOnTheMap": "మ్యాప్‌లో నా సహకారాలు"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "దయచేసి సరైన 10 అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి",
@@ -598,7 +892,8 @@
     "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారా?",
     "loginWithPassword": "పాస్‌వర్డ్‌తో లాగిన్ చేయండి",
     "loginWithOtp": "OTPతో లాగిన్ చేయండి",
-    "enterPassword": "పాస్‌వర్డ్ నమోదు చేయండి"
+    "enterPassword": "పాస్‌వర్డ్ నమోదు చేయండి",
+    "emailIsRequired": ""
   },
   "nav": {
     "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారు?",
@@ -615,7 +910,13 @@
     "profile": "ప్రొఫైల్",
     "settings": "సెట్టింగ్‌లు",
     "logout": "లాగౌట్",
-    "login": "లాగిన్"
+    "login": "లాగిన్",
+    "internshipProfile": "",
+    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "",
+    "profileIncompletePleaseCompleteIt": "",
+    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "",
+    "completeProfile": "",
+    "completeYourProfile": ""
   },
   "profile": {
     "setLocation": "స్థానాన్ని సెట్ చేయండి",
@@ -694,8 +995,11 @@
       "description": "అప్లికేషన్ భాషను ఇక్కడ మార్చండి."
     },
     "heatmap": {
-      "title": "కార్యాచరణ హీట్‌మ్యాప్",
-      "description": "కాలక్రమేణా మీ రోజువారీ సహకారాలను మరియు స్ట్రీక్‌లను ట్రాక్ చేయండి."
+      "title": "యాక్టివిటీ హీట్‌మ్యాప్",
+      "description": "కాలక్రమేణా మీ రోజువారీ సహకారాలు మరియు స్ట్రీక్‌లను ట్రాక్ చేయండి.",
+      "less": "తక్కువ",
+      "more": "ఎక్కువ",
+      "activityOnDate": "{{date}} న {{count}} పాయింట్లు"
     },
     "dashboard": {
       "title": "కంట్రిబ్యూషన్స్ డాష్‌బోర్డ్",
@@ -756,5 +1060,8 @@
     "tamil": "తమిళం",
     "bengali": "బెంగాలీ",
     "malayalam": "మలయాళం"
+  },
+  "time": {
+    "currentYearOfStudy": ""
   }
 }

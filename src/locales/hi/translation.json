@@ -170,7 +170,10 @@
         "place": "वर्तमान स्थान दर्ज करें"
       },
       "profession": "व्यवसाय दर्ज करें",
-      "organisation": "संगठन दर्ज करें"
+      "organisation": "संगठन दर्ज करें",
+      "roll": {
+        "number": ""
+      }
     },
     "noUsersFound": "कोई उपयोगकर्ता नहीं मिला",
     "from": {
@@ -248,15 +251,144 @@
     },
     "previousPage": "पिछला पेज",
     "nextPage": "अगला पेज",
-    "storageUploadFailedPleaseContactAdminOrRetryLater": "",
-    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "",
+    "noOptionFound": "",
+    "pleaseUploadAPdfFile": "",
+    "fileSizeMustBeLessThan5mb": "",
+    "authenticationRequiredForUpload": "",
+    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "",
+    "failedToViewResume": "",
+    "selectType": "",
+    "selectDistrict": "",
+    "permanentPostalAddress": "",
+    "enterPermanentPostalAddress": "",
+    "college": {
+      "institution": "",
+      "roll": {
+        "number": ""
+      }
+    },
+    "selectCollege": "",
+    "cantFindYourInstitutionSelectOtherNotInList": "",
+    "selectCategory": "",
+    "specific": {
+      "stream": ""
+    },
+    "selectStream": "",
+    "selectYear": "",
+    "task": {
+      "registered": {
+        "id": ""
+      },
+      "id": ""
+    },
+    "device": {
+      "internet": ""
+    },
+    "has": {
+      "laptop": ""
+    },
+    "laptop": {
+      "os": "",
+      "ram": ""
+    },
+    "selectOs": "",
+    "selectRam": "",
     "mobile": {
       "os": "",
       "ram": ""
     },
-    "goBackHome": "",
-    "selectOs": "",
-    "selectRam": ""
+    "internet": {
+      "speed": ""
+    },
+    "selectSpeed": "",
+    "daily": {
+      "data": {
+        "limit": ""
+      }
+    },
+    "selectLimit": "",
+    "list": {
+      "your": {
+        "ai": {
+          "courses": ""
+        }
+      }
+    },
+    "language": {
+      "proficiency": ""
+    },
+    "selectYourProficiencyLevelForEachLanguage": "",
+    "rural": {
+      "area": {
+        "access": ""
+      }
+    },
+    "completed": {
+      "ai": {
+        "courses": ""
+      }
+    },
+    "gender": "",
+    "academic": {
+      "details": "",
+      "stream": ""
+    },
+    "roll": {
+      "number": ""
+    },
+    "whatIsYourPermanentPostalAddress": "",
+    "enterYourCompletePermanentAddress": "",
+    "uploadResumePdfOnlyMax5mb": "",
+    "do": {
+      "you": {
+        "have": {
+          "a": {
+            "laptop": ""
+          }
+        }
+      }
+    },
+    "saving": "सहेजा जा रहा है...",
+    "preview": "",
+    "noPreviewAvailable": "",
+    "searchPlaceOrAddress": "स्थान या पता खोजें",
+    "searching": "खोज रहे हैं...",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": "URL कॉपी करने में विफल"
+        }
+      }
+    },
+    "goBackHome": "होम पर वापस जाएं",
+    "recordNotFound": "रिकॉर्ड नहीं मिला",
+    "viewDocument": "दस्तावेज़ देखें",
+    "noRecordsFoundInThisCategory": "इस श्रेणी में कोई रिकॉर्ड नहीं मिला",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "किसी दूसरी श्रेणी को चुनने या फ़िल्टर साफ़ करने का प्रयास करें।",
+    "clearFilter": "फ़िल्टर साफ़ करें",
+    "workstation": {
+      "os": "वर्कस्टेशन OS",
+      "ram": "वर्कस्टेशन RAM"
+    },
+    "normalUser": "सामान्य उपयोगकर्ता",
+    "are": {
+      "you": {
+        "an": {
+          "intern": "क्या आप इंटर्न हैं? *"
+        }
+      }
+    },
+    "reviewedAndVerified": "समीक्षित और सत्यापित",
+    "viewContributionsOnMap": "मानचित्र पर योगदान देखें",
+    "couldNotLoadContributions": "योगदान लोड नहीं हो सके.",
+    "noGeotaggedContributionsYet": "अभी तक कोई जियोटैग योगदान नहीं हैं.",
+    "closeMap": "मानचित्र बंद करें",
+    "retry": "पुनः प्रयास करें"
+    "savePreferences": "",
+    "uploadDocumentFilesPdfDocxTxtMax5Files": "",
+    "uploadAudioFilesMax5Files": "",
+    "uploadVideoFilesMax5Files": "",
+    "uploadImageFilesMax5Files": ""
   },
   "ui": {
     "failed": {
@@ -314,6 +446,11 @@
           "content": {
             "here": "अपनी टेक्स्ट सामग्री को यहां दर्ज करें..."
           }
+        }
+      },
+      "task": {
+        "id": {
+          "optional": ""
         }
       }
     },
@@ -381,6 +518,36 @@
             }
           }
         }
+      },
+      "list": {
+        "all": {
+          "ai": {
+            "courses": {
+              "you": {
+                "have": {
+                  "completed": ""
+                }
+              }
+            }
+          }
+        }
+      },
+      "fill": {
+        "in": {
+          "the": {
+            "remaining": {
+              "details": {
+                "to": {
+                  "complete": {
+                    "your": {
+                      "registration": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "place": {
@@ -432,9 +599,119 @@
         "rights": ""
       }
     },
-    "default": {
-      "release": {
-        "rights": ""
+    "do": {
+      "you": {
+        "have": {
+          "access": {
+            "to": {
+              "any": {
+                "rural": {
+                  "areas": {
+                    "nearby": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "education": {
+      "institution": ""
+    },
+    "have": {
+      "you": {
+        "completed": {
+          "any": {
+            "ai": {
+              "courses": ""
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "of": {
+        "ai": {
+          "courses": {
+            "completed": ""
+          }
+        }
+      }
+    },
+    "resume": {
+      "pdf": {
+        "only": {
+          "max": {
+            "5mb": ""
+          }
+        }
+      }
+    },
+    "internship": {
+      "language": {
+        "proficiency": ""
+      }
+    },
+    "task": {
+      "registered": {
+        "id": {
+          "optional": ""
+        }
+      }
+    },
+    "eg": {
+      "nearby": {
+        "villages": {
+          "shamirpet": {
+            "medchal": {
+              "etc": ""
+            }
+          }
+        }
+      }
+    },
+    "laptop": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "mobile": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "internet": {
+      "connection": {
+        "speed": {
+          "mbps": ""
+        }
+      }
+    },
+    "daily": {
+      "data": {
+        "limit": {
+          "quota": ""
+        }
+      }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": ""
+        }
+      }
+    },
+    "step": {
+      "1": {
+        "general": {
+          "information": ""
+        }
+      },
+      "2": {
+        "academic": {
+          "details": ""
+        }
       }
     }
   },
@@ -455,7 +732,21 @@
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।",
-    "resumeUploadedSuccessfully": ""
+    "resumeUploadedSuccessfully": "",
+    "uploadingNewResume": "",
+    "profileCompletedSuccessfully": "",
+    "uploadingResume": "",
+    "loadingCategories": "",
+    "linkCopiedSuccessfully": "",
+    "recordUpdatedSuccessfully": "रिकॉर्ड सफलतापूर्वक अपडेट किया गया!",
+    "error": "",
+    "saving": "सहेजा जा रहा है...",
+    "loadingMap": "मानचित्र लोड हो रहा है...",
+    "loadingDistrictBoundariesPleaseWait": "जिला सीमाएँ लोड हो रही हैं... कृपया प्रतीक्षा करें",
+    "loadingDistrictBoundaries": "जिला सीमाएँ लोड हो रही हैं..."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "",
+    "somethingWentWrong": "",
+    "tryAgain": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -477,21 +768,26 @@
     "organisation": "संगठन",
     "changeLocation": "",
     "locationCapturedVerifying": "",
-    "changeLocation": "",
-    "locationCapturedVerifying": ""
+    "workLocation": "",
+    "cityState": "",
+    "locationDetails": "",
+    "chooseYourWorkLocationForTheInternship": ""
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "कृपया मान्य अक्षांश और देशांतर मान दर्ज करें",
     "latitudeMustBeBetween90And90": "अक्षांश -90 और 90 के बीच होना चाहिए",
     "longitudeMustBeBetween180And180": "देशांतर -180 और 180 के बीच होना चाहिए",
-    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें"
+    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें",
+    "authenticationRequired": ""
   },
   "categories": {
     "chooseACategoryToContributeContent": "सामग्री योगदान देने के लिए एक श्रेणी चुनें",
     "changeType": "प्रकार बदलें:",
     "unsupportedMediaType": "असमर्थित मीडिया प्रकार",
     "sourceLabel": "स्रोत लेबल",
-    "type": "प्रकार:"
+    "type": "प्रकार:",
+    "organisationType": "",
+    "educationCategory": ""
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",
@@ -529,13 +825,16 @@
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
     "imageUrl": "छवि URL",
     "enterRecordId": "रिकॉर्ड आईडी दर्ज करें",
-    "recordControls": "रिकॉर्ड नियंत्रण"
+    "recordControls": "रिकॉर्ड नियंत्रण",
+    "resumeRecordId": "",
+    "copyRecordUrl": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",
     "pointsActivity": "पॉइंट्स गतिविधि",
     "contributions": "योगदान...",
-    "contributionsFound": "योगदान मिले।"
+    "contributionsFound": "योगदान मिले।",
+    "myContributionsOnTheMap": "मानचित्र पर मेरे योगदान"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "कृपया एक मान्य 10 अंकों वाला फोन नंबर दर्ज करें",
@@ -598,7 +897,8 @@
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
     "loginWithPassword": "पासवर्ड से लॉगिन करें",
     "loginWithOtp": "OTP से लॉगिन करें",
-    "enterPassword": "पासवर्ड दर्ज करें"
+    "enterPassword": "पासवर्ड दर्ज करें",
+    "emailIsRequired": ""
   },
   "nav": {
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
@@ -615,7 +915,13 @@
     "profile": "प्रोफ़ाइल",
     "settings": "सेटिंग्स",
     "logout": "लॉगआउट",
-    "login": "लॉगिन"
+    "login": "लॉगिन",
+    "internshipProfile": "",
+    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "",
+    "profileIncompletePleaseCompleteIt": "",
+    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "",
+    "completeProfile": "",
+    "completeYourProfile": ""
   },
   "profile": {
     "setLocation": "स्थान सेट करें",
@@ -695,7 +1001,10 @@
     },
     "heatmap": {
       "title": "गतिविधि हीटमैप",
-      "description": "समय के साथ अपने दैनिक योगदान और स्ट्रीक्स को ट्रैक करें।"
+      "description": "समय के साथ अपने दैनिक योगदान और स्ट्रीक्स को ट्रैक करें।",
+      "less": "कम",
+      "more": "अधिक",
+      "activityOnDate": "{{date}} को {{count}} अंक"
     },
     "dashboard": {
       "title": "योगदान डैशबोर्ड",
@@ -756,5 +1065,8 @@
     "tamil": "तमिल",
     "bengali": "बंगाली",
     "malayalam": "मलयालम"
+  },
+  "time": {
+    "currentYearOfStudy": ""
   }
 }
