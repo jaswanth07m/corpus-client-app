@@ -2,16 +2,25 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
-import LoginForm from '../../src/components/LoginForm';
+import LoginForm from '../../../src/components/LoginForm';
 import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 
 // Mock language switcher and translations
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+vi.mock('react-i18next', async () => {
+  const actual =
+    await vi.importActual<typeof import('react-i18next')>('react-i18next');
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => key,
+      i18n: {
+        changeLanguage: vi.fn(),
+        language: 'en',
+      },
+    }),
+  };
+});
 
 vi.mock('../../src/components/LanguageSwitcher', () => ({
   LanguageSwitcher: () => <div data-testid="language-switcher" />,
