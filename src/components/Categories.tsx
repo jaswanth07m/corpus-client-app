@@ -533,16 +533,21 @@ const Categories: React.FC<CategoriesProps> = ({
     uploadUuid,
     totalChunks,
     filename,
+    customTitle,
+    customDescription,
   }: {
     uploadUuid: string;
     totalChunks: number;
     filename: string;
+    customTitle?: string;
+    customDescription?: string;
   }): Promise<boolean> => {
     try {
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
-      formData.append('title', title);
-      formData.append('description', description);
+      // Use custom title/description if provided, otherwise fall back to component state
+      formData.append('title', customTitle || title);
+      formData.append('description', customDescription || description);
 
       // Send category_ids as a JSON string array instead of individual form fields
       const categoryIds =
@@ -645,11 +650,23 @@ const Categories: React.FC<CategoriesProps> = ({
   };
 
   // Step 3.1: Modify handleUpload Function
-  const handleUpload = async () => {
+  // Returns: void when file param provided (multi-file mode), handles redirect internally when no file param
+  const handleUpload = async (
+    file?: File,
+    description?: string,
+    fileTitle?: string,
+  ): Promise<void> => {
+    // Use provided parameters or fall back to component state
+    const uploadTitle = fileTitle || title;
+    const uploadDescription = description || '';
+
+    // Track if this is a multi-file upload (file param provided)
+    const isMultiFileUpload = !!file;
+
     // Validation checks (existing logic)
     if (
       (selectedCategories.length === 0 && !selectedCategory) ||
-      !title.trim()
+      !uploadTitle.trim()
     ) {
       toast.error(t('common.pleaseSelectAtLeastOneCategoryAndProvideATitle'));
       return;
@@ -688,8 +705,8 @@ const Categories: React.FC<CategoriesProps> = ({
       toast.error(t('common.selectALangauge'));
     }
 
-    // Prepare file for upload
-    let fileToUpload = selectedFile;
+    // Prepare file for upload - use provided file or fall back to component state
+    let fileToUpload = file || selectedFile;
     if (uploadMode === 'text') {
       if (!textContent.trim()) {
         toast.error(t('validation.pleaseEnterTextContent'));
@@ -699,8 +716,8 @@ const Categories: React.FC<CategoriesProps> = ({
       fileToUpload = new File([textBlob], 'text-content.txt', {
         type: 'text/plain',
       });
-    } else if (!selectedFile) {
-      toast.error(t('common.pleaseSelectAFile'));
+    } else if (!fileToUpload) {
+      toast.error('Please select a file');
       return;
     }
 
@@ -724,22 +741,31 @@ const Categories: React.FC<CategoriesProps> = ({
           uploadUuid: newUploadUuid,
           totalChunks: totalChunks,
           filename: fileToUpload!.name,
+          customTitle: uploadTitle,
+          customDescription: uploadDescription,
         });
         if (finalized) {
-          toast.success(
-            t('messages.contentUploadedSuccessfullyRedirectingToLanding'),
-          );
-          resetUploadState();
           posthog.capture('upload_success');
-          // Update preferences based on current upload values
+
+          // Only redirect and reset for single file uploads (when file param is NOT provided)
+          // For multi-file uploads, let the caller handle the redirect
+          if (!isMultiFileUpload) {
+            toast.success(
+              'Content uploaded successfully! Redirecting to Landing...',
+            );
+            resetUploadState();
+            // Update preferences based on current upload values
           setPreferences({
             language: selectedLanguage,
             rights: releaseRights,
           });
           // Redirect to landing page after successful upload
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1500);
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1500);
+          }
+          // For multi-file upload, return success without redirecting
+          return;
         } else {
           posthog.capture('upload_finalization_failed');
           partialResetUploadState();
