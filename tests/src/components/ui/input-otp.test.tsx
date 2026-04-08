@@ -1,8 +1,11 @@
+/**
+ * @vitest-environment jsdom
+ */
 import * as React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   InputOTP,
   InputOTPGroup,
@@ -31,6 +34,12 @@ if (!document.elementFromPoint) {
 }
 
 describe('InputOTP', () => {
+  afterEach(async () => {
+    // Give any pending async tasks (like setTimeouts in input-otp)
+    // a chance to complete before the test environment is torn down.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+
   it('renders correctly with given slots', () => {
     render(
       <InputOTP maxLength={6}>
