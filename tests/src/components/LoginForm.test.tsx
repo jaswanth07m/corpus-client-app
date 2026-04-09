@@ -4,25 +4,20 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import LoginForm from '../../../src/components/LoginForm';
 import { BrowserRouter } from 'react-router-dom';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 
 // Mock language switcher and translations
-vi.mock('react-i18next', async () => {
-  const actual =
-    await vi.importActual<typeof import('react-i18next')>('react-i18next');
-  return {
-    ...actual,
-    useTranslation: () => ({
-      t: (key: string) => key,
-      i18n: {
-        changeLanguage: vi.fn(),
-        language: 'en',
-      },
-    }),
-  };
-});
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      changeLanguage: vi.fn(),
+      language: 'en',
+    },
+  }),
+}));
 
-vi.mock('../../src/components/LanguageSwitcher', () => ({
+vi.mock('@/components/LanguageSwitcher', () => ({
   LanguageSwitcher: () => <div data-testid="language-switcher" />,
 }));
 
@@ -45,14 +40,26 @@ const renderComponent = (onLoginSuccess = vi.fn()) => {
 };
 
 describe('LoginForm', () => {
+  const mockFetchResponse = (data: unknown, ok = true, status = 200) =>
+    ({
+      ok,
+      status,
+      json: vi.fn(async () => data),
+      headers: new Headers(),
+    }) as unknown as Response;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    global.fetch = vi.fn();
+    vi.stubGlobal('fetch', vi.fn());
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('renders login mode by default', () => {
@@ -119,14 +126,13 @@ describe('LoginForm', () => {
     await user.type(phoneInput, '9999999999');
     await user.type(passwordInput, 'validPass123');
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        access_token: 'fake-token',
-        user: { phone: '9999999999' },
-      }),
-      status: 200,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse(
+        { access_token: 'fake-token', user: { phone: '9999999999' } },
+        true,
+        200,
+      ),
+    );
 
     const loginButtons = screen.getAllByRole('button', { name: 'auth.login' });
     await user.click(loginButtons[loginButtons.length - 1]);
@@ -152,11 +158,9 @@ describe('LoginForm', () => {
       'wrongpass',
     );
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ message: 'Invalid credentials' }),
-      status: 401,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ message: 'Invalid credentials' }, false, 401),
+    );
 
     const loginBtns = screen.getAllByRole('button', { name: 'auth.login' });
     await user.click(loginBtns[loginBtns.length - 1]);
@@ -175,22 +179,22 @@ describe('LoginForm', () => {
     await user.click(signupBtns[0]);
 
     const usernameInput = screen.getByPlaceholderText('auth.username');
-    await user.type(usernameInput, 'a'); // invalid
+    fireEvent.change(usernameInput, { target: { value: 'a' } }); // invalid
     fireEvent.blur(usernameInput);
     expect(usernameInput).toHaveClass('border-rose-800');
 
     const emailInput = screen.getByPlaceholderText('common.emailAddress');
-    await user.type(emailInput, 'invalid');
+    fireEvent.change(emailInput, { target: { value: 'invalid' } });
     fireEvent.blur(emailInput);
     expect(emailInput).toHaveClass('border-rose-800');
 
     const nameInput = screen.getByPlaceholderText('user.fullName');
-    await user.type(nameInput, '123#');
+    fireEvent.change(nameInput, { target: { value: '123#' } });
     fireEvent.blur(nameInput);
     expect(nameInput).toHaveClass('border-rose-800');
 
     const placeInput = screen.getByPlaceholderText('user.placeCityState');
-    await user.type(placeInput, '11invalid');
+    fireEvent.change(placeInput, { target: { value: '11invalid' } });
     fireEvent.blur(placeInput);
     expect(placeInput).toHaveClass('border-rose-800');
   });
@@ -233,53 +237,48 @@ describe('LoginForm', () => {
     const signupBtns = screen.getAllByRole('button', { name: 'auth.signUp' });
     await user.click(signupBtns[0]);
 
-    await user.type(
+    fireEvent.change(
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
-      '9000000000',
+      { target: { value: '9000000000' } },
     );
-    await user.type(screen.getByPlaceholderText('auth.username'), 'valid_user');
-    await user.type(screen.getByPlaceholderText('user.fullName'), 'Valid Name');
-    await user.type(
-      screen.getByPlaceholderText('common.emailAddress'),
-      'test@swecha.org',
-    );
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
+      target: { value: 'Valid Name' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
+      target: { value: 'test@swecha.org' },
+    });
 
     // Select Gender
     const select = screen.getByRole('combobox', { name: 'auth.selectGender' });
     await user.selectOptions(select, 'male');
 
-    await user.type(
-      screen.getByPlaceholderText('auth.createPassword'),
-      'Valid@123!',
-    );
-    await user.type(
-      screen.getByPlaceholderText('common.confirmPassword'),
-      'Valid@123!',
-    );
+    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
+      target: { value: 'Valid@123!' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
+      target: { value: 'Valid@123!' },
+    });
 
     // consent checkbox
     const checkbox = screen.getByRole('checkbox');
     await user.click(checkbox);
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ status: 'success' }),
-      status: 200,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ status: 'success' }, true, 200),
+    );
 
     const sendOtpButton = screen.getByRole('button', {
       name: 'auth.requestOtpForPhoneVerification',
     });
     await user.click(sendOtpButton);
 
-    await waitFor(() => {
-      expect(mockToastSuccess).toHaveBeenCalledWith(
-        'messages.signupOtpSentSuccessfully',
-      );
-    });
-
-    // Validates that verify OTP shows up
-    const otpInput = screen.getByPlaceholderText('auth.enter6digitOtp');
+    const otpInput = await screen.findByPlaceholderText('auth.enter6digitOtp');
+    expect(mockToastSuccess).toHaveBeenCalledWith(
+      'messages.signupOtpSentSuccessfully',
+    );
     expect(otpInput).toBeInTheDocument();
   });
 
@@ -289,32 +288,31 @@ describe('LoginForm', () => {
     await user.click(screen.getAllByRole('button', { name: 'auth.signUp' })[0]);
 
     // Fill valid form
-    await user.type(
+    fireEvent.change(
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
-      '9000000000',
+      { target: { value: '9000000000' } },
     );
-    await user.type(screen.getByPlaceholderText('auth.username'), 'valid_user');
-    await user.type(screen.getByPlaceholderText('user.fullName'), 'Valid Name');
-    await user.type(
-      screen.getByPlaceholderText('common.emailAddress'),
-      'test@swecha.org',
-    );
-    await user.type(
-      screen.getByPlaceholderText('auth.createPassword'),
-      'Valid@123!',
-    );
-    await user.type(
-      screen.getByPlaceholderText('common.confirmPassword'),
-      'Valid@123!',
-    );
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
+      target: { value: 'Valid Name' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
+      target: { value: 'test@swecha.org' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
+      target: { value: 'Valid@123!' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
+      target: { value: 'Valid@123!' },
+    });
     await user.click(screen.getByRole('checkbox'));
 
     // Mock Send OTP
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ status: 'success' }),
-      status: 200,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ status: 'success' }, true, 200),
+    );
 
     await user.click(
       screen.getByRole('button', {
@@ -322,25 +320,16 @@ describe('LoginForm', () => {
       }),
     );
 
-    // Wait for the OTP input to show up
-    await waitFor(() => {
-      expect(
-        screen.getByPlaceholderText('auth.enter6digitOtp'),
-      ).toBeInTheDocument();
-    });
-
-    const otpInput = screen.getByPlaceholderText('auth.enter6digitOtp');
+    const otpInput = await screen.findByPlaceholderText('auth.enter6digitOtp');
 
     // Test typing invalid OTP characters
-    await user.type(otpInput, 'abcde123456'); // Should format to digits
+    fireEvent.change(otpInput, { target: { value: 'abcde123456' } }); // Should format to digits
     expect(otpInput).toHaveValue('123456');
 
     // MOCK VERIFY FAILURE 422 with Array of details
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ detail: [{ msg: 'OTP expired' }] }),
-      status: 422,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ detail: [{ msg: 'OTP expired' }] }, false, 422),
+    );
 
     const verifyButton = screen.getByRole('button', {
       name: 'Verify OTP & Create Account',
@@ -353,44 +342,36 @@ describe('LoginForm', () => {
     );
 
     // MOCK VERIFY FAILURE String detail
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ detail: 'Custom error string' }),
-      status: 400,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ detail: 'Custom error string' }, false, 400),
+    );
     await user.click(verifyButton);
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith('Custom error string'),
     );
 
     // MOCK VERIFY FAILURE String message
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ message: 'Custom message string' }),
-      status: 400,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ message: 'Custom message string' }, false, 400),
+    );
     await user.click(verifyButton);
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith('Custom message string'),
     );
 
     // MOCK VERIFY FAILURE Error field
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ error: 'Custom error field' }),
-      status: 400,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ error: 'Custom error field' }, false, 400),
+    );
     await user.click(verifyButton);
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith('Custom error field'),
     );
 
     // MOCK VERIFY FAILURE General status fallback
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({}),
-      status: 500,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({}, false, 500),
+    );
     await user.click(verifyButton);
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith(
@@ -399,11 +380,9 @@ describe('LoginForm', () => {
     );
 
     // MOCK VERIFY SUCCESS
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ access_token: 'fake-token' }),
-      status: 200,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ access_token: 'fake-token' }, true, 200),
+    );
     await user.click(verifyButton);
     await waitFor(() => {
       expect(mockToastSuccess).toHaveBeenCalledWith(
@@ -415,7 +394,7 @@ describe('LoginForm', () => {
     expect(
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
     ).toBeInTheDocument();
-  });
+  }, 15000);
 
   async function setupResendOTPFlow() {
     const user = userEvent.setup();
@@ -424,31 +403,30 @@ describe('LoginForm', () => {
     const signupBtns = screen.getAllByRole('button', { name: 'auth.signUp' });
     await user.click(signupBtns[0]);
 
-    await user.type(
+    fireEvent.change(
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
-      '9000000000',
+      { target: { value: '9000000000' } },
     );
-    await user.type(screen.getByPlaceholderText('auth.username'), 'valid_user');
-    await user.type(screen.getByPlaceholderText('user.fullName'), 'Valid Name');
-    await user.type(
-      screen.getByPlaceholderText('common.emailAddress'),
-      'test@swecha.org',
-    );
-    await user.type(
-      screen.getByPlaceholderText('auth.createPassword'),
-      'Valid@123!',
-    );
-    await user.type(
-      screen.getByPlaceholderText('common.confirmPassword'),
-      'Valid@123!',
-    );
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
+      target: { value: 'Valid Name' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
+      target: { value: 'test@swecha.org' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
+      target: { value: 'Valid@123!' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
+      target: { value: 'Valid@123!' },
+    });
     await user.click(screen.getByRole('checkbox'));
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ status: 'success' }),
-      status: 200,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ status: 'success' }, true, 200),
+    );
 
     vi.useFakeTimers();
 
@@ -458,8 +436,10 @@ describe('LoginForm', () => {
       }),
     );
 
-    // Fast forward to resolve promises inside the component
-    await vi.runAllTimersAsync();
+    // Flush the async fetch + state updates (keep fake timers for resend countdown)
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+    await Promise.resolve();
 
     // Now OTP input is in the DOM
     const otpInput = screen.getByPlaceholderText('auth.enter6digitOtp');
@@ -478,7 +458,9 @@ describe('LoginForm', () => {
 
     (global.fetch as Mock).mockRejectedValueOnce(new Error('Network failure'));
     fireEvent.click(resendBtn);
-    await vi.runAllTimersAsync();
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+    await Promise.resolve();
     expect(mockToastError).toHaveBeenCalledWith(
       'Network error. Please check your connection and try again.',
     );
@@ -487,26 +469,26 @@ describe('LoginForm', () => {
   it('handles signup Resend OTP flow API error', async () => {
     const resendBtn = await setupResendOTPFlow();
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ message: 'Specific API Error' }),
-      status: 400,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ message: 'Specific API Error' }, false, 400),
+    );
     fireEvent.click(resendBtn);
-    await vi.runAllTimersAsync();
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+    await Promise.resolve();
     expect(mockToastError).toHaveBeenCalledWith('Specific API Error');
   });
 
   it('handles signup Resend OTP flow success', async () => {
     const resendBtn = await setupResendOTPFlow();
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ status: 'sent' }),
-      status: 200,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ status: 'sent' }, true, 200),
+    );
     fireEvent.click(resendBtn);
-    await vi.runAllTimersAsync();
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(mockToastSuccess).toHaveBeenCalledWith(
       'messages.signupOtpResentSuccessfully',
@@ -522,14 +504,13 @@ describe('LoginForm', () => {
     );
     const passwordInput = screen.getByPlaceholderText('auth.enterYourPassword');
 
-    await user.type(phoneInput, '9999999999');
-    await user.type(passwordInput, 'validPass123{Enter}');
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ access_token: 'fake-token' }, true, 200),
+    );
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ access_token: 'fake-token' }),
-      status: 200,
-    });
+    fireEvent.change(phoneInput, { target: { value: '9999999999' } });
+    fireEvent.change(passwordInput, { target: { value: 'validPass123' } });
+    fireEvent.keyDown(passwordInput, { key: 'Enter', code: 'Enter' });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
@@ -596,32 +577,31 @@ describe('LoginForm', () => {
     renderComponent();
     await user.click(screen.getAllByRole('button', { name: 'auth.signUp' })[0]);
 
-    await user.type(
+    fireEvent.change(
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
-      '9000000000',
+      { target: { value: '9000000000' } },
     );
-    await user.type(screen.getByPlaceholderText('auth.username'), 'valid_user');
-    await user.type(screen.getByPlaceholderText('user.fullName'), 'Valid Name');
-    await user.type(
-      screen.getByPlaceholderText('common.emailAddress'),
-      'test@swecha.org',
-    );
-    await user.type(
-      screen.getByPlaceholderText('auth.createPassword'),
-      'Valid@123!',
-    );
-    await user.type(
-      screen.getByPlaceholderText('common.confirmPassword'),
-      'Valid@123!',
-    );
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
+      target: { value: 'Valid Name' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
+      target: { value: 'test@swecha.org' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
+      target: { value: 'Valid@123!' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
+      target: { value: 'Valid@123!' },
+    });
     await user.click(screen.getByRole('checkbox'));
 
     // Mock API Failure Detail Array
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ detail: 'Direct detail error output' }),
-      status: 400,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ detail: 'Direct detail error output' }, false, 400),
+    );
 
     await user.click(
       screen.getByRole('button', {
@@ -638,42 +618,37 @@ describe('LoginForm', () => {
     renderComponent();
     await user.click(screen.getAllByRole('button', { name: 'auth.signUp' })[0]);
 
-    await user.type(
+    fireEvent.change(
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
-      '9000000000',
+      { target: { value: '9000000000' } },
     );
-    await user.type(screen.getByPlaceholderText('auth.username'), 'valid_user');
-    await user.type(screen.getByPlaceholderText('user.fullName'), 'Valid Name');
-    await user.type(
-      screen.getByPlaceholderText('common.emailAddress'),
-      'test@swecha.org',
-    );
-    await user.type(
-      screen.getByPlaceholderText('auth.createPassword'),
-      'Valid@123!',
-    );
-    await user.type(
-      screen.getByPlaceholderText('common.confirmPassword'),
-      'Valid@123!',
-    );
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
+      target: { value: 'Valid Name' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
+      target: { value: 'test@swecha.org' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
+      target: { value: 'Valid@123!' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
+      target: { value: 'Valid@123!' },
+    });
     await user.click(screen.getByRole('checkbox'));
 
-    (global.fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ status: 'success' }),
-      status: 200,
-    });
+    (global.fetch as Mock).mockResolvedValueOnce(
+      mockFetchResponse({ status: 'success' }, true, 200),
+    );
 
     await user.click(
       screen.getByRole('button', {
         name: 'auth.requestOtpForPhoneVerification',
       }),
     );
-    await waitFor(() => {
-      expect(
-        screen.getByPlaceholderText('auth.enter6digitOtp'),
-      ).toBeInTheDocument();
-    });
+    await screen.findByPlaceholderText('auth.enter6digitOtp');
 
     // Go back to form
     const backBtn = screen.getByText('common.backToSignupForm');

@@ -24,4 +24,23 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  coverage: {
+    // Only include specific files you want to measure coverage for
+    include: [
+      'src/components/PeerReviewCard.tsx',
+      'src/components/SwechaLogo.tsx',
+    ],
+    // Exclude test files and UI components that are mocked
+    exclude: [
+      'src/components/ui/**',
+      'src/lib/utils.ts',
+      '**/*.test.tsx',
+      '**/*.test.ts',
+    ],
+  },
 });

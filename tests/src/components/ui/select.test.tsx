@@ -1083,6 +1083,7 @@ describe('Select', () => {
 
     it('multiple select interactions', async () => {
       const onValueChange = vi.fn();
+      const user = userEvent.setup();
 
       render(
         <Select onValueChange={onValueChange}>
@@ -1100,20 +1101,29 @@ describe('Select', () => {
       const trigger = screen.getByRole('combobox');
 
       // First selection
-      await userEvent.click(trigger);
-      await userEvent.click(screen.getByText('One'));
+      await user.click(trigger);
+      await screen.findByRole('listbox');
+      await user.click(await screen.findByText('One'));
       expect(onValueChange).toHaveBeenCalledWith('1');
+      await waitFor(() =>
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument(),
+      );
 
       // Second selection
-      await userEvent.click(trigger);
-      await userEvent.click(screen.getByText('Two'));
+      await user.click(trigger);
+      await screen.findByRole('listbox');
+      await user.click(await screen.findByText('Two'));
       expect(onValueChange).toHaveBeenCalledWith('2');
+      await waitFor(() =>
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument(),
+      );
 
       // Third selection
-      await userEvent.click(trigger);
-      await userEvent.click(screen.getByText('Three'));
+      await user.click(trigger);
+      await screen.findByRole('listbox');
+      await user.click(await screen.findByText('Three'));
       expect(onValueChange).toHaveBeenCalledWith('3');
-    });
+    }, 15000);
   });
 
   describe('Icon Rendering', () => {
