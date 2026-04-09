@@ -148,7 +148,7 @@ describe('InlineEditHistory', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByText('categories.changeType'),
+        within(firstEntry as HTMLElement).queryByText('categories.changeType'),
       ).not.toBeInTheDocument();
     });
 
