@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import MyProfileRedirect from '../src/pages/MyProfileRedirect';
+import MyProfileRedirect from '@/pages/MyProfileRedirect';
 
 const { mockLocalStorage, mockNavigate, mockUseNavigate, mockUseTranslation } =
   vi.hoisted(() => {

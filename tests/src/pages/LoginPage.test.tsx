@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import LoginPage from '../src/pages/LoginPage';
+import LoginPage from '@/pages/LoginPage';
 
 const { mockLogin, mockNavigate, mockUseAuth, mockUseNavigate } = vi.hoisted(
   () => ({

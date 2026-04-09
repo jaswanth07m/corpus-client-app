@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import NotFound from '../src/pages/NotFound';
+import NotFound from '@/pages/NotFound';
 
 const { mockUseLocation, mockUseTranslation } = vi.hoisted(() => ({
   mockUseLocation: vi.fn(),
