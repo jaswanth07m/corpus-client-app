@@ -3,7 +3,7 @@
 
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import SwechaLogo from '../src/components/SwechaLogo';
+import SwechaLogo from '../../../src/components/SwechaLogo';
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({

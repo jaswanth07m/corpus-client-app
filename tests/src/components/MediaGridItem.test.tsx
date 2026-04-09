@@ -9,7 +9,7 @@ import {
   act,
 } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { MediaGridItem } from '../src/components/MediaGridItem';
+import { MediaGridItem } from '../../../src/components/MediaGridItem';
 
 // Mock @/lib/constants
 vi.mock('@/lib/constants', () => ({
@@ -41,18 +41,24 @@ vi.mock('lucide-react', () => ({
 }));
 
 // Mock MediaDetailModal
-vi.mock('../src/components/MediaDetailModal', () => ({
+vi.mock('@/components/MediaDetailModal', () => ({
   MediaDetailModal: ({
     isOpen,
     onClose,
     item,
     mediaType,
+    isOwnProfile,
+    previewUrl,
+    token,
   }: {
     isOpen: boolean;
     onClose: () => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     item: any;
     mediaType: string;
+    isOwnProfile?: boolean;
+    previewUrl?: string;
+    token?: string;
   }) =>
     isOpen ? (
       <div
@@ -60,6 +66,9 @@ vi.mock('../src/components/MediaDetailModal', () => ({
         onClick={onClose}
         role="dialog"
         aria-modal="true"
+        data-is-own-profile={isOwnProfile}
+        data-preview-url={previewUrl}
+        data-token={token}
       >
         <p>Modal for {item.title}</p>
         <p>Media type: {mediaType}</p>
@@ -702,8 +711,10 @@ describe('MediaGridItem', () => {
     });
 
     it('should handle unknown media type with default case', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const unknownMediaType = 'unknown' as any;
       const { container } = render(
-        <MediaGridItem {...defaultProps} mediaType="unknown" as any />,
+        <MediaGridItem {...defaultProps} mediaType={unknownMediaType} />,
       );
 
       // Should still render without crashing (default case returns null for icon)

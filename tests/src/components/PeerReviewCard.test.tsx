@@ -9,7 +9,7 @@ import {
   act,
 } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import PeerReviewCard from '../src/components/PeerReviewCard';
+import PeerReviewCard from '../../../src/components/PeerReviewCard';
 
 // Mock localStorage for test environment
 const localStorageMock = {
@@ -84,6 +84,7 @@ vi.mock('lucide-react', () => ({
   Video: () => <svg data-testid="video-icon" />,
   Mic: () => <svg data-testid="mic-icon" />,
   Music: () => <svg data-testid="music-icon" />,
+  Check: () => <svg data-testid="check-icon" />,
 }));
 
 // Mock react-router-dom Link
@@ -101,8 +102,9 @@ vi.mock('react-router-dom', async () => {
 
 // Mock UI components with proper callback handling
 const mockSelectCallbacks = new Map<string, (value: string) => void>();
+let mockSelectIdCounter = 0;
 
-vi.mock('../src/components/ui/input', () => ({
+vi.mock('@/components/ui/input', () => ({
   Input: ({
     className,
     ...props
@@ -111,63 +113,68 @@ vi.mock('../src/components/ui/input', () => ({
   ),
 }));
 
-vi.mock('../src/components/ui/select', async () => {
-  const actual = await vi.importActual('../src/components/ui/select');
-  return {
-    ...actual,
-    Select: ({
-      children,
-      onValueChange,
-      value,
-    }: {
-      children: React.ReactNode;
-      onValueChange?: (value: string) => void;
-      value?: string;
-    }) => {
-      const id = `select-${Math.random().toString(36).substr(2, 9)}`;
-      if (onValueChange) {
-        mockSelectCallbacks.set(id, onValueChange);
-      }
-      return (
-        <div
-          data-testid="select-component"
-          data-value={value}
-          data-select-id={id}
-        >
-          {children}
-        </div>
-      );
-    },
-    SelectTrigger: ({
-      children,
-      className,
-    }: {
-      children: React.ReactNode;
-      className?: string;
-    }) => (
-      <div className={className} data-testid="select-trigger">
+vi.mock('@/components/ui/select', () => ({
+  Select: ({
+    children,
+    onValueChange,
+    value,
+  }: {
+    children: React.ReactNode;
+    onValueChange?: (value: string) => void;
+    value?: string;
+  }) => {
+    const id = `select-${mockSelectIdCounter++}`;
+    if (onValueChange) {
+      mockSelectCallbacks.set(id, onValueChange);
+    }
+    return (
+      <div
+        data-testid="select-component"
+        data-value={value}
+        data-select-id={id}
+      >
         {children}
       </div>
-    ),
-    SelectContent: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="select-content">{children}</div>
-    ),
-    SelectItem: ({
-      children,
-      value,
-    }: {
-      children: React.ReactNode;
-      value: string;
-    }) => (
-      <div data-testid="select-item" data-value={value} role="option">
-        {children}
-      </div>
-    ),
-    SelectValue: ({ placeholder }: { placeholder?: string }) => (
-      <span data-testid="select-value">{placeholder}</span>
-    ),
-  };
-});
+    );
+  },
+  SelectTrigger: ({
+    children,
+    className,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <div className={className} data-testid="select-trigger">
+      {children}
+    </div>
+  ),
+  SelectContent: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="select-content">{children}</div>
+  ),
+  SelectItem: ({
+    children,
+    value,
+  }: {
+    children: React.ReactNode;
+    value: string;
+  }) => (
+    <div data-testid="select-item" data-value={value} role="option">
+      {children}
+    </div>
+  ),
+  SelectValue: ({ placeholder }: { placeholder?: string }) => (
+    <span data-testid="select-value">{placeholder}</span>
+  ),
+  SelectGroup: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  SelectLabel: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  SelectSeparator: () => <hr />,
+  SelectScrollUpButton: () => null,
+  SelectScrollDownButton: () => null,
+}));
 
 // Helper function to trigger select value change in tests
 function triggerSelectChange(selectIndex: number, value: string) {
@@ -198,6 +205,8 @@ describe('PeerReviewCard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSelectCallbacks.clear();
+    mockSelectIdCounter = 0;
     localStorage.clear();
     localStorage.setItem('token', 'test-token');
   });
