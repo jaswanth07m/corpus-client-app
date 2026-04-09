@@ -20,4 +20,12 @@ export default defineConfig({
       reportsDirectory: './coverage',
     },
   },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  coverage: {
+    provider: 'istanbul',
+  },
 });
