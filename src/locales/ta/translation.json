@@ -1,0 +1,736 @@
+{
+  "common": {
+    "6": {
+      "digits": "/6 இலக்கங்கள்"
+    },
+    "10": {
+      "digits": "/10 இலக்கங்கள்"
+    },
+    "91": "+91",
+    "proofread": {
+      "ocr": {
+        "text": "OCR உரையைச் சரிபார்க்கவும்"
+      }
+    },
+    "showCompleteText": "முழு உரையைக்காட்டு",
+    "hideCompleteText": "முழு உரையை மறை",
+    "submitPage": "பக்கத்தைச் சமர்ப்பி",
+    "savePage": "பக்கத்தைச் சேமி",
+    "loading": "ஏற்றப்படுகிறது...",
+    "error": "பிழை",
+    "success": "வெற்றி",
+    "cancel": "ரத்துசெய்",
+    "save": "சேமி",
+    "delete": "நீக்கு",
+    "edit": "திருத்து",
+    "submit": "சமர்ப்பி",
+    "confirm": "உறுதிப்படுத்து",
+    "back": "பின்னால்",
+    "next": "அடுத்து",
+    "previous": "முந்தைய",
+    "close": "மூடு",
+    "search": "தேடு",
+    "filter": "வடிகட்டி",
+    "sort": "வரிசைப்படுத்து",
+    "yes": "ஆம்",
+    "no": "இல்லை",
+    "ok": "சரி",
+    "previousSlide": "முந்தைய ஸ்லைடு",
+    "nextSlide": "அடுத்த ஸ்லைடு",
+    "goToPreviousPage": "முந்தைய பக்கத்திற்குச் செல்",
+    "goToNextPage": "அடுத்த பக்கத்திற்குச் செல்",
+    "morePages": "கூடுதல் பக்கங்கள்",
+    "toggle": {
+      "sidebar": "பக்கப்பட்டியை மாற்றவும்"
+    },
+    "selectALocation": "ஓர் இடத்தைத் தேர்ந்தெடுக்கவும்",
+    "confirmLocation": "இடத்தை உறுதிப்படுத்தவும்",
+    "selectMediaType": "ஊடக வகையைத் தேர்ந்தெடுக்கவும்",
+    "to": {
+      "choose": "தேர்ந்தெடுக்க"
+    },
+    "documentUpload": "ஆவணப் பதிவேற்றம் *",
+    "uploadDocumentFilesPdfDocxTxt": "ஆவணக் கோப்புகளைப் பதிவேற்றவும் (PDF, DOCX, TXT)",
+    "selectedFile": "தேர்ந்தெடுக்கப்பட்ட கோப்பு:",
+    "content": "உள்ளடக்கம் *",
+    "yourBrowserDoesNotSupportTheAudioElement": "உங்கள் உலாவி ஆடியோ உறுப்பை ஆதரிக்கவில்லை.",
+    "uploadAudioFilesSingleFile": "ஆடியோ கோப்புகளைப் பதிவேற்றவும் (ஒற்றைக் கோப்பு)",
+    "switch": {
+      "to": "மாறவும்"
+    },
+    "yourBrowserDoesNotSupportTheVideoElement": "உங்கள் உலாவி வீடியோ உறுப்பை ஆதரிக்கவில்லை.",
+    "uploadVideoFilesSingleFile": "வீடியோ கோப்புகளைப் பதிவேற்றவும் (ஒற்றைக் கோப்பு)",
+    "selectedFiles": "தேர்ந்தெடுக்கப்பட்ட கோப்புகள்:",
+    "uploadImageFilesSingleFile": "படக் கோப்புகளைப் பதிவேற்றவும் (ஒற்றைக் கோப்பு)",
+    "technologyForSociety": "சமூகத்திற்கான தொழில்நுட்பம்",
+    "userIdNotFoundPleaseTryLoggingInAgain": "பயனர் ஐடி காணப்படவில்லை. மீண்டும் உள்நுழைய முயற்சிக்கவும்.",
+    "geolocationNotSupported": "புவிஇருப்பிடம் ஆதரிக்கப்படவில்லை",
+    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "குறைந்தது ஒரு வகையைத் தேர்ந்தெடுத்து தலைப்பை வழங்கவும்",
+    "releaseRightsNotFoundCheckForReleaseRights": "வெளியீட்டு உரிமைகள் காணப்படவில்லை. வெளியீட்டு உரிமைகளைச் சரிபார்க்கவும்",
+    "others": "மற்றவை",
+    "notDoneByAuthor": "ஆசிரியரால் செய்யப்படவில்லை",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "உங்களால் உருவாக்கப்பட்ட எந்தவொரு படைப்புகளையும் பதிவேற்றவும் அல்லது உங்கள் குடும்ப உறுப்பினர்கள்/நண்பர்களின் படைப்புகளை அவர்களின் அனுமதியுடன் பதிவேற்றலாம்.",
+    "selectALangauge": "ஒரு மொழியைத் தேர்ந்தெடுக்கவும்",
+    "pleaseSelectAFile": "தயவுசெய்து ஒரு கோப்பைத் தேர்ந்தெடுக்கவும்",
+    "uploadFailedPleaseTryAgain": "பதிவேற்றம் தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.",
+    "searchByUserId": "பயனர் ஐடி மூலம் தேடு...",
+    "searchByTitleDescription": "தலைப்பு, விளக்கம் மூலம் தேடு...",
+    "searchUsers": "பயனர்களைத் தேடு",
+    "peerReview": "சக மதிப்பாய்வு",
+    "noContributionDataAvailable": "பங்களிப்புத் தரவு எதுவும் இல்லை.",
+    "editHistory": "திருத்த வரலாறு",
+    "noEditHistoryFoundForThisRecord": "இந்த ஆவணத்திற்கான திருத்த வரலாறு எதுவும் இல்லை.",
+    "change": {
+      "source": "மூலத்தை மாற்றவும்:",
+      "language": "மொழியை மாற்றவும்"
+    },
+    "field": {
+      "changes": "புல மாற்றங்கள்:"
+    },
+    "old": "பழையது:",
+    "new": "புதியது:",
+    "loginFailedNoAccessTokenReceived": "உள்நுழைவு தோல்வியடைந்தது: அணுகல் டோக்கன் எதுவும் பெறப்படவில்லை",
+    "pleaseEnterAValidEmailAddress": "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்",
+    "swechaTechnologyForSociety": "ஸ்வேச்சா - சமூகத்திற்கான தொழில்நுட்பம்",
+    "sending": "அனுப்பப்படுகிறது...",
+    "verifying": "சரிபார்க்கப்படுகிறது...",
+    "resetHere": "இங்கே மீட்டமைக்கவும்",
+    "logging": {
+      "in": "உள்நுழைகிறது..."
+    },
+    "emailAddress": "மின்னஞ்சல் முகவரி *",
+    "selectGender": "பாலினத்தைத் தேர்ந்தெடுக்கவும்",
+    "date": {
+      "of": {
+        "birth": "பிறந்த தேதி"
+      }
+    },
+    "one": {
+      "uppercase": {
+        "letter": "ஒரு பெரிய எழுத்து"
+      },
+      "lowercase": {
+        "letter": "ஒரு சிறிய எழுத்து"
+      },
+      "number": "ஒரு எண்"
+    },
+    "minimum": {
+      "8": {
+        "characters": "குறைந்தபட்சம் 8 எழுத்துக்கள்"
+      }
+    },
+    "confirmPassword": "கடவுச்சொல்லை உறுதிப்படுத்துக *",
+    "passwordsDoNotMatch": "*கடவுச்சொற்கள் பொருந்தவில்லை",
+    "i": {
+      "agree": {
+        "to": {
+          "the": "நான் இதை ஏற்றுக்கொள்கிறேன்"
+        }
+      }
+    },
+    "terms": {
+      "of": {
+        "service": "சேவை விதிமுறைகள்"
+      }
+    },
+    "privacy": {
+      "policy": "தனியுரிமைக் கொள்கை"
+    },
+    "backToSignupForm": "பதிவுப் படிவத்திற்குத் திரும்பு",
+    "documentPreview": "ஆவண முன்னோட்டம்",
+    "openInNewTab": "புதிய தாவலில் திறக்கவும்",
+    "viewText": "உரையைக் காண்க",
+    "openDocument": "ஆவணத்தைத் திறக்கவும்",
+    "noChangesToSave": "சேமிக்க மாற்றங்கள் இல்லை",
+    "meaningful": {
+      "words": "அர்த்தமுள்ள வார்த்தைகள்"
+    },
+    "release": {
+      "rights": "வெளியீட்டு உரிமைகள்"
+    },
+    "specify": {
+      "creator": "உருவாக்கியவரைக் குறிப்பிடவும்",
+      "source": "மூலத்தைக் குறிப்பிடவும்"
+    },
+    "Reviewed": "✓ மதிப்பாய்வு செய்யப்பட்டது",
+    "media": {
+      "unavailable": "ஊடகம் கிடைக்கவில்லை"
+    },
+    "uploadedMedia": "பதிவேற்றப்பட்ட ஊடகம்",
+    "unsupported": {
+      "media": "ஆதரிக்கப்படாத ஊடகம்"
+    },
+    "showHistory": "வரலாற்றைக் காட்டு",
+    "noHistory": "வரலாறு இல்லை",
+    "source": "மூலம்:",
+    "enter": {
+      "title": "தலைப்பை உள்ளிடவும்",
+      "description": "விளக்கத்தை உள்ளிடவும்",
+      "current": {
+        "place": "தற்போதைய இடத்தைத் தட்டச்சு செய்க"
+      },
+      "profession": "தொழிலை உள்ளிடவும்",
+      "organisation": "நிறுவனத்தை உள்ளிடவும்"
+    },
+    "noUsersFound": "பயனர்கள் யாரும் இல்லை",
+    "from": {
+      "place": "இடத்திலிருந்து"
+    },
+    "places": {
+      "lived": "வாழ்ந்த இடங்கள்"
+    },
+    "authenticationTokenNotFound": "அங்கீகார டோக்கன் காணப்படவில்லை",
+    "current": {
+      "place": "தற்போதைய இடம்"
+    },
+    "noLocationSet": "இடம் அமைக்கப்படவில்லை",
+    "selectLanguage": "மொழியைத் தேர்ந்தெடு",
+    "addLanguage": "மொழியைச் சேர்",
+    "addPlace": "இடத்தைச் சேர்",
+    "addSocialMedia": "சமூக ஊடகத்தைச் சேர்",
+    "fileRemoved": "கோப்பு நீக்கப்பட்டது",
+    "textUploadFailed": "உரைப் பதிவேற்றம் தோல்வியடைந்தது",
+    "uploadContent": "உள்ளடக்கத்தைப் பதிவேற்று",
+    "title": "தலைப்பு *",
+    "description": "விளக்கம் *",
+    "selectCategories": "வகைகளைத் தேர்ந்தெடு *",
+    "editLocation": "இடத்தைத் திருத்து",
+    "pick": {
+      "from": {
+        "map": "வரைபடத்திலிருந்து தேர்வு செய்"
+      }
+    },
+    "SelectALanguage": "-- ஒரு மொழியைத் தேர்ந்தெடுக்கவும் --",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "மன்னிக்கவும்! உங்களால் உருவாக்கப்பட்ட படைப்புகளைப் பதிவேற்றவும் அல்லது உங்கள் குடும்ப உறுப்பினர்கள்/நண்பர்களின் படைப்புகளை அவர்களின் அனுமதியுடன் பதிவேற்றலாம்.",
+    "selectReleaseRights": "வெளியீட்டு உரிமைகளைத் தேர்ந்தெடுக்கவும்",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "இதை நான் இணையத்திலிருந்து பதிவிறக்கம் செய்தேன் மற்றும்/அல்லது இது இலவசமாகப் பகிரப்படுமா என்று எனக்குத் தெரியவில்லை.",
+    "creator": "உருவாக்கியவர் *",
+    "oopsPageNotFound": "அச்சச்சோ! பக்கம் கிடைக்கவில்லை",
+    "backToLogin": "உள்நுழைவிற்குத் திரும்பு",
+    "confirmNewPassword": "புதிய கடவுச்சொல்லை உறுதிப்படுத்துக",
+    "resetPassword": "கடவுச்சொல்லை மீட்டமை",
+    "backToInitiate": "மீண்டும் தொடங்கவும்",
+    "uploadFiles": "கோப்புகளைப் பதிவேற்றவும்",
+    "click": {
+      "to": {
+        "get": {
+          "started": "தொடங்க கிளிக் செய்யவும்"
+        }
+      }
+    },
+    "contributeToOpenDataAndHelpBuildTheFuture": "திறந்த தரவுகளில் பங்களித்து எதிர்காலத்தை உருவாக்க உதவுங்கள்",
+    "docDigitization": {
+      "tool": "ஆவண மின்மயமாக்கல் கருவி"
+    },
+    "reviewAndCorrectOcrTextFromDocuments": "ஆவணங்களிலிருந்து OCR உரையை மதிப்பாய்வு செய்து சரிசெய்யவும்",
+    "showHints": "குறிப்புகளைக் காட்டு",
+    "reviewCommunityContributions": "சமூக பங்களிப்புகளை மதிப்பாய்வு செய்யவும்",
+    "refreshFeed": "ஊட்டத்தைப் புதுப்பிக்கவும்",
+    "noResultsFoundFor": "தேடலுக்கு முடிவுகள் எதுவும் இல்லை \"",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "பயனர் இன்னும் ஏற்றப்பட்ட பதிவுகளில் இல்லாமல் இருக்கலாம். தேடலை நீக்கிவிட்டு, கூடுதல் பதிவுகளைப் பார்க்க கீழே இழுக்கவும்.",
+    "processing": "செயலாக்கம் நடைபெறுகிறது...",
+    "noFollowersFound": "பின்தொடர்பவர்கள் இல்லை",
+    "noUsersBeingFollowed": "யாரையும் பின்தொடரவில்லை",
+    "on": {
+      "page": "பக்கத்தில்"
+    },
+    "Previous": "← முந்தைய",
+    "editSegmentText": "பகுதி உரையைத் திருத்து...",
+    "noSegmentsFoundForThisPage": "இந்தப் பக்கத்தில் பகுதிகள் எதுவும் இல்லை.",
+    "update": {
+      "reading": {
+        "order": "வாசிப்பு வரிசையைப் புதுப்பிக்கவா?"
+      },
+      "order": "வரிசையைப் புதுப்பி"
+    },
+    "overall": {
+      "progress": "ஒட்டுமொத்த முன்னேற்றம்"
+    },
+    "previousPage": "முந்தைய பக்கம்",
+    "nextPage": "அடுத்த பக்கம்"
+  },
+  "ui": {
+    "failed": {
+      "to": {
+        "get": {
+          "user": {
+            "information": {
+              "please": {
+                "try": {
+                  "logging": {
+                    "in": {
+                      "again": "பயனர் தகவலைப் பெறுவதில் தோல்வி. மீண்டும் உள்நுழைய முயற்சிக்கவும்."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fetch": {
+          "categories": "வகைகளை எடுப்பதில் தோல்வி"
+        }
+      }
+    },
+    "choose": {
+      "how": {
+        "youd": {
+          "like": {
+            "to": {
+              "contribute": "நீங்கள் எவ்வாறு பங்களிக்க விரும்புகிறீர்கள் என்பதைத் தேர்ந்தெடுக்கவும்"
+            }
+          }
+        }
+      }
+    },
+    "enter": {
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": "உங்கள் உள்ளடக்கத்திற்கு ஒரு தலைப்பை உள்ளிடவும்"
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": "உங்கள் உள்ளடக்கத்தை உருவாக்கியவர் பெயரை உள்ளிடவும்"
+            }
+          }
+        }
+      },
+      "your": {
+        "text": {
+          "content": {
+            "here": "உங்கள் உரை உள்ளடக்கத்தை இங்கே உள்ளிடவும்..."
+          }
+        }
+      }
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": "விரிவான விளக்கத்தை வழங்கவும் (குறைந்தபட்சம் 32 எழுத்துக்கள்)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": "இந்தப் படைப்பு என்னால் உருவாக்கப்பட்டது, எவரும் இதை இலவசமாகப் பயன்படுத்தலாம்."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "too": {
+      "many": {
+        "attempts": {
+          "please": {
+            "wait": {
+              "before": {
+                "trying": {
+                  "again": "அதிகப்படியான முயற்சிகள். மீண்டும் முயற்சிக்கும் முன் காத்திருக்கவும்."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "please": {
+      "agree": {
+        "to": {
+          "the": {
+            "terms": {
+              "and": {
+                "conditions": "விதிமுறைகள் மற்றும் நிபந்தனைகளை ஏற்கவும்"
+              }
+            }
+          }
+        }
+      }
+    },
+    "place": {
+      "should": {
+        "have": {
+          "characters": {
+            "is": {
+              "allowed": "*இடத்தில் எழுத்துக்கள் இருக்க வேண்டும் ( , அனுமதிக்கப்படுகிறது)"
+            }
+          }
+        }
+      }
+    },
+    "one": {
+      "special": {
+        "character": "ஒரு சிறப்பு எழுத்து"
+      }
+    },
+    "tap": {
+      "any": {
+        "colored": {
+          "section": "வண்ணப் பகுதியை அழுத்தவும்"
+        }
+      }
+    },
+    "language": {
+      "proficiencies": "மொழித் திறன்கள்"
+    },
+    "start": {
+      "typing": {
+        "to": {
+          "get": {
+            "hints": "*குறிப்புகளைப் பெற தட்டச்சு செய்யத் தொடங்கவும்"
+          }
+        }
+      }
+    },
+    "ocr": {
+      "text": {
+        "will": {
+          "appear": {
+            "here": "OCR உரை இங்கே தோன்றும்."
+          }
+        }
+      }
+    }
+  },
+  "messages": {
+    "networkErrorPleaseTryAgain": "பிணையப் பிழை. மீண்டும் முயற்சிக்கவும்.",
+    "contentUploadedSuccessfullyRedirectingToLanding": "உள்ளடக்கம் வெற்றிகரமாகப் பதிவேற்றப்பட்டது! முகப்புப் பக்கத்திற்குச் செல்கிறது...",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "பிணையப் பிழை. இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+    "loadingContributionsDashboard": "பங்களிப்புத் தகவல் பலகை ஏற்றப்படுகிறது...",
+    "otpSentSuccessfully": "OTP வெற்றிகரமாக அனுப்பப்பட்டது!",
+    "loginSuccessful": "உள்நுழைவு வெற்றி!",
+    "signupOtpSentSuccessfully": "பதிவு OTP வெற்றிகரமாக அனுப்பப்பட்டது!",
+    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "கணக்கு உருவாக்கப்பட்டு வெற்றிகரமாகச் சரிபார்க்கப்பட்டது! உள்நுழையவும்.",
+    "signupOtpResentSuccessfully": "பதிவு OTP மீண்டும் அனுப்பப்பட்டது!",
+    "loading": "ஏற்றப்படுகிறது...",
+    "errorLoadingContributions": "பங்களிப்புகளை ஏற்றுவதில் பிழை:",
+    "profileUpdatedSuccessfully": "சுயவிவரம் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டது!",
+    "loadingProfile": "சுயவிவரம் ஏற்றப்படுகிறது...",
+    "profilePictureUpdatedSuccessfully": "சுயவிவரப் படம் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டது!",
+    "loadingPointsData": "புள்ளிகள் தரவு ஏற்றப்படுகிறது...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "இந்தப் பகுதிகளின் வாசிப்பு வரிசையைப் புதுப்பிக்க விரும்புகிறீர்களா? இது எல்லைப் பெட்டி வரிசையையும் புதுப்பிக்கும்."
+  },
+  "user": {
+    "requestingLocationAccess": "இருப்பிட அணுகல் கோரப்படுகிறது...",
+    "locationAccessGranted": "இருப்பிட அணுகல் வழங்கப்பட்டது!",
+    "locationSetManually": "இடம் கைமுறையாக அமைக்கப்பட்டது!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "இடம் தேவை. இருப்பிட அணுகலை இயக்கவும் அல்லது கைமுறையாக உள்ளிடவும்.",
+    "verifyingLocation": "இடம் சரிபார்க்கப்படுகிறது...",
+    "locationCapturedAwaitingVerification": "இடம் பெறப்பட்டது, சரிபார்ப்பிற்காகக் காத்திருக்கிறது...",
+    "locationRequired": "இடம் தேவை",
+    "useCurrentLocation": "தற்போதைய இடத்தைப் பயன்படுத்து",
+    "useMyCurrentLocation": "எனது தற்போதைய இடத்தைப் பயன்படுத்து",
+    "pleaseEnterYourName": "உங்கள் பெயரை உள்ளிடவும்",
+    "fullName": "முழுப் பெயர் *",
+    "nameShouldHaveCharactersOnly": "*பெயரில் எழுத்துக்கள் மட்டுமே இருக்க வேண்டும்",
+    "placeCityState": "இடம் (நகரம், மாநிலம்)",
+    "enterFullName": "முழுப் பெயரை உள்ளிடவும்",
+    "shortBio": "சுய குறிப்பு",
+    "profession": "தொழில்",
+    "organisation": "நிறுவனம்"
+  },
+  "validation": {
+    "pleaseEnterValidLatitudeAndLongitudeValues": "சரியான அட்சரேகை மற்றும் தீர்க்கரேகை மதிப்புகளை உள்ளிடவும்",
+    "latitudeMustBeBetween90And90": "அட்சரேகை -90 மற்றும் 90 க்கு இடையில் இருக்க வேண்டும்",
+    "longitudeMustBeBetween180And180": "தீர்க்கரேகை -180 மற்றும் 180 க்கு இடையில் இருக்க வேண்டும்",
+    "pleaseEnterTextContent": "உரை உள்ளடக்கத்தை உள்ளிடவும்"
+  },
+  "categories": {
+    "chooseACategoryToContributeContent": "பங்களிக்க ஒரு வகையைத் தேர்ந்தெடுக்கவும்",
+    "changeType": "வகையை மாற்று:",
+    "unsupportedMediaType": "ஆதரிக்கப்படாத ஊடக வகை",
+    "sourceLabel": "மூல அடையாளம்",
+    "type": "வகை:"
+  },
+  "media": {
+    "failedToSwitchCamera": "கேமராவை மாற்றுவதில் தோல்வி",
+    "audioRecordingStarted": "ஒலிப்பதிவு தொடங்கியது",
+    "videoRecordingStarted": "காணொளிப் பதிவு தொடங்கியது",
+    "recordingPaused": "பதிவு இடைநிறுத்தப்பட்டது",
+    "failedToPauseRecording": "பதிவை இடைநிறுத்த முடியவில்லை",
+    "recordingResumed": "பதிவு மீண்டும் தொடங்கியது",
+    "failedToResumeRecording": "பதிவை மீண்டும் தொடங்க முடியவில்லை",
+    "recordingStopped": "பதிவு நிறுத்தப்பட்டது",
+    "failedToStopRecording": "பதிவை நிறுத்த முடியவில்லை",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "புகைப்படம் எடுக்க முடியவில்லை. கேமரா அனுமதிகளைச் சரிபார்க்கவும்.",
+    "videoUnavailable": "காணொளி கிடைக்கவில்லை",
+    "loadVideo": "காணொளியை ஏற்று",
+    "audioUnavailable": "ஒலி கிடைக்கவில்லை",
+    "loadAudio": "ஒலியை ஏற்று",
+    "documentUnavailable": "ஆவணம் கிடைக்கவில்லை",
+    "loadDocument": "ஆவணத்தை ஏற்று",
+    "fileSize": "கோப்பு அளவு",
+    "imageUnavailable": "படம் கிடைக்கவில்லை",
+    "audioRecording": "ஒலிப்பதிவு *",
+    "startRecording": "ஒலிப்பதிவைத் தொடங்கு",
+    "stopRecording": "ஒலிப்பதிவை நிறுத்து",
+    "recordingCompleted": "ஒலிப்பதிவு முடிந்தது (",
+    "recordAgain": "மீண்டும் பதிவு செய்",
+    "videoRecording": "காணொளிப் பதிவு *",
+    "startVideoRecording": "காணொளிப் பதிவைத் தொடங்கு",
+    "photoCapture": "புகைப்படம் எடுத்தல் *",
+    "startCamera": "கேமராவைத் திற",
+    "capturePhoto": "புகைப்படம் எடு",
+    "stopCamera": "கேமராவை நிறுத்து",
+    "photoCaptured": "புகைப்படம் எடுக்கப்பட்டது:",
+    "capturedPhoto": "எடுக்கப்பட்ட புகைப்படம்",
+    "audioTrack": "ஆடியோ தடம்",
+    "pleaseEnterAValidImageUrl": "சரியான பட URL ஐ உள்ளிடவும்",
+    "imageUrl": "பட URL",
+    "enterRecordId": "பதிவு ஐடியை உள்ளிடவும்",
+    "recordControls": "பதிவு கட்டுப்பாடுகள்"
+  },
+  "stats": {
+    "contributionsYet": "இன்னும் பங்களிப்புகள் இல்லை.",
+    "pointsActivity": "புள்ளிகள் செயல்பாடு",
+    "contributions": "பங்களிப்புகள்...",
+    "contributionsFound": "பங்களிப்புகள் கண்டறியப்பட்டன."
+  },
+  "auth": {
+    "pleaseEnterAValid10digitPhoneNumber": "சரியான 10 இலக்கத் தொலைபேசி எண்ணை உள்ளிடவும்",
+    "pleaseEnterAValid6digitOtp": "சரியான 6 இலக்க OTP ஐ உள்ளிடவும்",
+    "invalidOtpPleaseCheckAndTryAgain": "தவறான OTP. சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+    "otpVerificationFailedPleaseTryAgain": "OTP சரிபார்ப்பு தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP காலாவதியாகிவிட்டது அல்லது தவறானது. புதியதைக் கோரவும்.",
+    "pleaseEnterAValidPhoneNumberAndPassword": "சரியான தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடவும்",
+    "pleaseEnterAValidUsername": "சரியான பயனர் பெயரை உள்ளிடவும்",
+    "passwordMustBeAtLeast6CharactersLong": "கடவுச்சொல் குறைந்தது 6 எழுத்துக்கள் இருக்க வேண்டும்",
+    "welcomeBack": "நல்வரவு",
+    "createAccount": "கணக்கை உருவாக்கு",
+    "signInToContinueYourJourney": "உங்கள் பயணத்தைத் தொடர உள்நுழையவும்",
+    "joinOurCommunityToday": "இன்றே எமது சமூகத்தில் இணையுங்கள்",
+    "login": "உள்நுழை",
+    "signUp": "பதிவு செய்",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP பெற உங்கள் பதிவு செய்யப்பட்ட தொலைபேசி எண்ணை உள்ளிடவும்",
+    "enter10digitPhoneNumber": "10 இலக்கத் தொலைபேசி எண்ணை உள்ளிடவும்",
+    "phoneNumberIsInvalid": "*தொலைபேசி எண் தவறானது",
+    "otpSentTo91": "+91 எண்ணிற்கு OTP அனுப்பப்பட்டது",
+    "enter6digitOtp": "6 இலக்க OTP ஐ உள்ளிடவும்",
+    "enterYourPassword": "உங்கள் கடவுச்சொல்லை உள்ளிடவும்",
+    "forgotPassword": "கடவுச்சொல் மறந்துவிட்டதா?",
+    "username": "பயனர் பெயர்*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*பயனர் பெயரில் எழுத்துக்கள், அடிக்கோடுகள், எண்களை மட்டுமே பயன்படுத்த வேண்டும்",
+    "emailIsInvalid": "*மின்னஞ்சல் தவறானது",
+    "selectGender": "பாலினத்தைத் தேர்ந்தெடுக்கவும்",
+    "male": "ஆண்",
+    "female": "பெண்",
+    "other": "மற்றவை",
+    "dateOfBirth": "பிறந்த தேதி",
+    "createPassword": "கடவுச்சொல்லை உருவாக்கவும் *",
+    "passwordStrength": "கடவுச்சொல் வலிமை:",
+    "passwordShouldContain": "கடவுச்சொல் கொண்டிருக்க வேண்டியவை:",
+    "sendingOtp": "OTP அனுப்பப்படுகிறது...",
+    "requestOtpForPhoneVerification": "தொலைபேசி சரிபார்ப்பிற்கு OTP ஐக் கோரவும்",
+    "securedBy": "பாதுகாக்கப்பட்டது",
+    "enterUsername": "பயனர் பெயரை உள்ளிடவும்",
+    "gender": "பாலினம்",
+    "phoneNumber": "தொலைபேசி எண்",
+    "enterYourPhoneNumber": "உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்",
+    "sendOtp": "OTP அனுப்பு",
+    "otpCode": "OTP குறியீடு",
+    "enterOtp": "OTP ஐ உள்ளிடவும்",
+    "newPassword": "புதிய கடவுச்சொல்",
+    "enterNewPassword": "புதிய கடவுச்சொல்லை உள்ளிடவும்",
+    "passwordMustBeAtLeast8CharactersAndContain": "கடவுச்சொல் குறைந்தது 8 எழுத்துக்கள் மற்றும் பின்வருவனவற்றைக் கொண்டிருக்க வேண்டும்:",
+    "email": "மின்னஞ்சல்",
+    "password": "கடவுச்சொல்",
+    "resetPassword": "கடவுச்சொல்லை மீட்டமை",
+    "loginTitle": "Corpus இல் உள்நுழையவும்",
+    "loginButton": "உள்நுழை",
+    "noAccount": "கணக்கு இல்லையா?",
+    "hasAccount": "ஏற்கனவே கணக்கு இருக்கிறதா?",
+    "signup": "பதிவு செய்",
+    "verifyOtp": "OTP சரிபார்",
+    "resendOtp": "OTP மீண்டும் அனுப்பு",
+    "resendIn": "மீண்டும் அனுப்ப இன்னும்",
+    "back": "பின்னால்",
+    "preferPasswordLogin": "கடவுச்சொல் மூலம் உள்நுழைய விரும்புகிறீர்களா?",
+    "loginWithPassword": "கடவுச்சொல் மூலம் உள்நுழைக",
+    "loginWithOtp": "OTP மூலம் உள்நுழைக",
+    "enterPassword": "கடவுச்சொல்லை உள்ளிடவும்"
+  },
+  "nav": {
+    "preferPasswordLogin": "கடவுச்சொல் உள்நுழைவை விரும்புகிறீர்களா?",
+    "loginWithPassword": "கடவுச்சொல் மூலம் உள்நுழைக",
+    "failedToLoadProfileData": "சுயவிவரத் தரவை ஏற்றுவதில் தோல்வி",
+    "tellUsAboutYourself": "உங்களைப் பற்றி எங்களிடம் கூறுங்கள்",
+    "socialMediaProfiles": "சமூக ஊடக சுயவிவரங்கள்",
+    "profileUrl": "சுயவிவர URL",
+    "returnToHome": "முகப்பிற்குத் திரும்பு",
+    "searchUsers": "பயனர்களைத் தேடு...",
+    "updateProfilePicture": "சுயவிவரப் படத்தைப் புதுப்பி",
+    "enterAValidImageUrlForYourProfilePicture": "சுயவிவரப் படத்திற்குச் சரியான பட URL ஐ உள்ளிடவும்",
+    "home": "முகப்பு",
+    "profile": "சுயவிவரம்",
+    "settings": "அமைப்புகள்",
+    "logout": "வெளியேறு",
+    "login": "உள்நுழை"
+  },
+  "profile": {
+    "setLocation": "இடத்தை அமை",
+    "followers": "பின்தொடர்பவர்கள்",
+    "following": "பின்தொடர்பவை",
+    "viewYourProfileInfo": "உங்கள் சுயவிவரத் தகவலைப் பார்க்கவும்",
+    "viewProfileInfo": "சுயவிவரத் தகவலைப் பார்க்கவும்",
+    "info": "தகவல்",
+    "follow": "பின்தொடர்",
+    "unfollow": "பின் தொடர்வதை நிறுத்து",
+    "noFollowers": "பின்தொடர்பவர்கள் யாரும் இல்லை",
+    "noFollowing": "யாரையும் பின்தொடரவில்லை",
+    "viewProfile": "சுயவிவரத்தைப் பார்",
+    "editProfile": "சுயவிவரத்தைத் திருத்து",
+    "updateProfilePicture": "சுயவிவரப் படத்தைப் புதுப்பி",
+    "enterProfilePictureUrl": "சுயவிவரப் பட URL ஐ உள்ளிடவும்",
+    "shortBio": "சுய குறிப்பு",
+    "loading": "சுயவிவரம் ஏற்றப்படுகிறது...",
+    "error": "சுயவிவரத்தை ஏற்றுவதில் பிழை",
+    "userNotFound": "பயனர் காணப்படவில்லை",
+    "authenticationFailed": "அங்கீகாரம் தோல்வியடைந்தது. மீண்டும் உள்நுழையவும்.",
+    "edit": "திருத்து",
+    "remove": "நீக்கு"
+  },
+  "tour": {
+    "upload": {
+      "title": "கோப்புகளைப் பதிவேற்றவும்",
+      "description": "ஊடகக் கோப்புகளைப் பதிவேற்றி பங்களிக்கத் தொடங்க இங்கே கிளிக் செய்யவும்."
+    },
+    "media": {
+      "title": "ஊடக வகையைத் தேர்ந்தெடுக்கவும்",
+      "description": "நீங்கள் பங்களிக்க விரும்பும் உள்ளடக்க வகையைத் தேர்ந்தெடுக்கவும்."
+    },
+    "stats": {
+      "title": "உங்கள் பங்களிப்புகள்",
+      "description": "இங்கே உங்கள் புள்ளிகளையும் தளத்திற்கான ஒட்டுமொத்த பங்களிப்புகளையும் பார்க்கலாம்."
+    },
+    "home": {
+      "title": "முகப்பு",
+      "description": "எந்த நேரத்திலும் இந்தத் தகவல் பலகைக்குத் திரும்பலாம்."
+    },
+    "tools": {
+      "title": "கருவிகள்",
+      "description": "குறிப்பு மற்றும் சரிபார்ப்புக் கருவிகளை அணுகவும்."
+    },
+    "peerReviewTool": {
+      "title": "சக மதிப்பாய்வு",
+      "description": "அனைத்து வகையான பங்களிப்புகளையும் மதிப்பாய்வு செய்வதற்கான கருவி."
+    },
+    "imageReview": {
+      "title": "படக் குறிப்பு",
+      "description": "படப் பங்களிப்புகளைக் குறிக்கவும் மதிப்பாய்வு செய்யவும் உதவும் கருவி."
+    },
+    "audioReview": {
+      "title": "ஆடியோ கருவி",
+      "description": "ஒலிப்பதிவுகளை மதிப்பாய்வு செய்வதற்கான சிறப்புக் கருவி."
+    },
+    "videoReview": {
+      "title": "காணொளிக் கருவி",
+      "description": "காணொளி உள்ளடக்கத்தை மதிப்பாய்வு செய்வதற்கான இடைமுகம்."
+    },
+    "docDigitization": {
+      "title": "ஆவண மின்மயமாக்கல்",
+      "description": "உரைப் பங்களிப்புகளை மின்மயமாக்கி தரத்தை மேம்படுத்த உதவவும்."
+    },
+    "futureTools": {
+      "title": "வரவிருக்கும் அம்சங்கள்",
+      "description": "Ask Your Corpus, கதை உருவாக்கி, ஏஜென்ட் பணிப்பாய்வுகள் இன்னும் பல விரைவில்!"
+    },
+    "profile": {
+      "title": "சுயவிவரம்",
+      "description": "உங்கள் புள்ளிவிவரங்களைப் பார்த்து அமைப்புகளை இங்கே நிர்வகிங்கள்."
+    },
+    "language": {
+      "title": "மொழி",
+      "description": "விண்ணப்பத்தின் மொழியை இங்கே மாற்றவும்."
+    },
+    "heatmap": {
+      "title": "செயல்பாட்டு வரைபடம்",
+      "description": "உங்கள் தினசரி பங்களிப்புகளைக் கண்காணித்து முன்னேற்றத்தைப் பார்க்கவும்."
+    },
+    "dashboard": {
+      "title": "பங்களிப்புத் தகவல் பலகை",
+      "description": "ஊடக வகைகளின்படி உங்கள் பங்களிப்புகளைப் பார்க்கவும்."
+    }
+  },
+  "tools": {
+    "docDigitization": "ஆவண மின்மயமாக்கல்",
+    "docDigitizationDescription": "ஆவணங்களிலிருந்து OCR உரையை மதிப்பாய்வு செய்து சரிசெய்யவும்",
+    "askYourCorpus": "Ask Your Corpus",
+    "askYourCorpusDescription": "ஆவண வினாக்களுக்கான அறிவார்ந்த பதில் தளம்",
+    "peerReview": "சக மதிப்பாய்வு",
+    "peerReviewDescription": "மற்ற பயனர்களின் பங்களிப்புகளை மதிப்பாய்வு செய்து கருத்துத் தெரிவிக்கவும்",
+    "imageAnnotation": "படக் குறிப்பு",
+    "imageAnnotationDescription": "படங்களில் உள்ள பொருட்கள் மற்றும் மாதிரிகளைக் குறிக்கவும்",
+    "audioTool": "ஆடியோ கருவி",
+    "audioToolDescription": "ஒலிப்பதிவுகளை மதிப்பாய்வு செய்து குறிப்புகளைச் சேர்க்கவும்",
+    "videoTool": "காணொளிக் கருவி",
+    "videoToolDescription": "காணொளி உள்ளடக்கத்தை மதிப்பாய்வு செய்து குறிப்புகளைச் சேர்க்கவும்",
+    "transcription": "எழுத்தாக்கம்",
+    "transcriptionDescription": "ஆடியோ மற்றும் வீடியோ உள்ளடக்கத்தை உரையாக மாற்றவும்",
+    "textExtraction": "உரை பிரித்தெடுத்தல்",
+    "textExtractionDescription": "படங்கள் மற்றும் ஆவணங்களிலிருந்து உரையைப் பிரித்தெடுக்கவும்",
+    "audioProofreading": "ஆடியோ சரிபார்ப்பு",
+    "audioProofreadingDescription": "எழுத்தாக்கம் செய்யப்பட்ட ஆடியோவைச் சரிசெய்யவும்",
+    "storyGenerator": "கதை உருவாக்கி",
+    "storyGeneratorDescription": "சேகரிக்கப்பட்ட தரவுகளிலிருந்து கதைகளை உருவாக்கவும்",
+    "agentWorkflows": "ஏஜென்ட் பணிப்பாய்வுகள்",
+    "agentWorkflowsDescription": "தானியங்கி AI ஏஜென்ட் செயல்முறைகளை நிர்வகிக்கவும்",
+    "metadataIndex": "மெட்டாடேட்டா குறியீடு",
+    "metadataIndexDescription": "மேம்பட்ட மெட்டாடேட்டா தேடல் வசதி",
+    "heading": "கருவிகள்",
+    "planned": "திட்டமிடப்பட்டது",
+    "comingSoonDescription": "தரவு உள்ளீட்டு தொகுதி மாற்றியமைக்கப்படுகிறது."
+  },
+  "proofreading": {
+    "getNextRecord": "அடுத்த பதிவைப் பெறு",
+    "page": "பக்கம்",
+    "pages": "பக்கங்கள்",
+    "loadingPdf": "PDF ஏற்றப்படுகிறது...",
+    "fetchingRecord": "பதிவு பெறப்படுகிறது...",
+    "pleaseGetRecord": "தொடங்க ஒரு பதிவைப் பெறவும்.",
+    "noRecordLoaded": "பதிவு எதுவும் ஏற்றப்படவில்லை",
+    "noUrlFound": "URL எதுவும் இல்லை",
+    "submitPage": "பக்கத்தைச் சமர்ப்பி",
+    "submitting": "சமர்ப்பிக்கப்படுகிறது...",
+    "pageSubmitted": "பக்கம் வெற்றிகரமாகச் சமர்ப்பிக்கப்பட்டது!",
+    "submissionError": "சமர்ப்பிப்பதில் பிழை",
+    "cannotSubmit": "சமர்ப்பிக்க முடியாது: பதிவு எதுவும் ஏற்றப்படவில்லை.",
+    "ocrTextPlaceholder": "OCR உரை இங்கே தோன்றும்.",
+    "submitPageAlert": "பக்கம் {page} வெற்றிகரமாகச் சமர்ப்பிக்கப்பட்டது!"
+  },
+  "languages": {
+    "telugu": "தெலுங்கு",
+    "english": "ஆங்கிலம்",
+    "hindi": "இந்தி",
+    "kannada": "கன்னடம்",
+    "tamil": "தமிழ்",
+    "bengali": "வங்காளம்",
+    "malayalam": "மலையாளம்"
+  }
+}
