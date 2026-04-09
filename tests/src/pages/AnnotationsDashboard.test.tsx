@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import AnnotationsDashboard from '../src/pages/AnnotationsDashboard';
+import AnnotationsDashboard from '../../../src/pages/AnnotationsDashboard';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 

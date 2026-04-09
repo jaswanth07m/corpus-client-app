@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import PeerReview from '../src/pages/PeerReview';
+import PeerReview from '../../../src/pages/PeerReview';
 import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 
@@ -121,9 +121,9 @@ describe('PeerReview', () => {
   describe('Translation keys', () => {
     it('should use correct translation key for title (common.peerReview)', () => {
       useTranslationMock.mockReturnValue({
-        t: vi.fn((key: string, defaultValue: string) => {
+        t: vi.fn((key: string, defaultValue?: string) => {
           if (key === 'common.peerReview') return 'Peer Review';
-          return defaultValue;
+          return defaultValue || key;
         }),
         i18n: {
           language: 'en',
@@ -137,10 +137,10 @@ describe('PeerReview', () => {
 
     it('should use correct translation key for description (common.reviewCommunityContributions)', () => {
       useTranslationMock.mockReturnValue({
-        t: vi.fn((key: string, defaultValue: string) => {
+        t: vi.fn((key: string, defaultValue?: string) => {
           if (key === 'common.reviewCommunityContributions')
             return 'Review Community Contributions';
-          return defaultValue;
+          return defaultValue || key;
         }),
         i18n: {
           language: 'en',
@@ -377,7 +377,7 @@ describe('PeerReview', () => {
   describe('Edge cases', () => {
     it('should handle empty translation keys gracefully', () => {
       useTranslationMock.mockReturnValue({
-        t: vi.fn((key: string, defaultValue: string) => ''),
+        t: vi.fn((key: string, defaultValue?: string) => ''),
         i18n: {
           language: 'en',
           changeLanguage: vi.fn(),
