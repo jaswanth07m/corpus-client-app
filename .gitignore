@@ -55,3 +55,6 @@ coverage/
 .tests/
 test-results/
 .vitest/
+
+# Snapshot files (optional - you can commit snapshots if you want)
+**/__snapshots__/*
