@@ -19,7 +19,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-import ImageReviewPage from '../src/pages/ImageReviewPage';
+import ImageReviewPage from '@/pages/ImageReviewPage';
 
 describe('ImageReviewPage', () => {
   beforeEach(() => {

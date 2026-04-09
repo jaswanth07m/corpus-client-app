@@ -50,7 +50,7 @@ Object.defineProperty(window, 'localStorage', {
   value: mockLocalStorage,
 });
 
-import LandingPage from '../src/pages/LandingPage';
+import LandingPage from '@/pages/LandingPage';
 
 describe('LandingPage', () => {
   beforeEach(() => {

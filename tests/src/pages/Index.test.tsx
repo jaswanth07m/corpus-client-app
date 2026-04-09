@@ -33,7 +33,7 @@ vi.mock('react-router-dom', () => ({
   useNavigate: vi.fn(),
 }));
 
-import Index from '../src/pages/Index';
+import Index from '@/pages/Index';
 import { useNavigate } from 'react-router-dom';
 
 describe('Index', () => {
