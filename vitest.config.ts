@@ -43,4 +43,9 @@ export default defineConfig({
       '**/*.test.ts',
     ],
   },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
 });
