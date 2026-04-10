@@ -15,9 +15,13 @@ export default defineConfig({
     globals: true,
     css: true,
     coverage: {
-      provider: 'v8',
+      include: ['src/components/MediaDetailModal.tsx'],
       reporter: ['text', 'html', 'cobertura'],
-      reportsDirectory: './coverage',
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
   },
   resolve: {

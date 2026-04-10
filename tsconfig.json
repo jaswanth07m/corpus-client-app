@@ -15,6 +15,7 @@
     "skipLibCheck": true,
     "allowJs": true,
     "noUnusedLocals": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   }
 }
