@@ -15,37 +15,16 @@ export default defineConfig({
     globals: true,
     css: true,
     coverage: {
-      include: ['src/components/MediaDetailModal.tsx'],
+      provider: 'v8',
       reporter: ['text', 'html', 'cobertura'],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  coverage: {
-    // Only include specific files you want to measure coverage for
-    include: [
-      'src/components/PeerReviewCard.tsx',
-      'src/components/SwechaLogo.tsx',
-    ],
-    // Exclude test files and UI components that are mocked
-    exclude: [
-      'src/components/ui/**',
-      'src/lib/utils.ts',
-      '**/*.test.tsx',
-      '**/*.test.ts',
-    ],
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/main.tsx',
+        'src/i18n-types.ts',
+        'src/vite-env.d.ts',
+        '**/*.test.{ts,tsx}',
+        '**/node_modules/**',
+      ],
     },
   },
 });
