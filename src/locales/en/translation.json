@@ -743,6 +743,10 @@
   "languages": {
     "telugu": "Telugu",
     "english": "English",
-    "hindi": "Hindi"
+    "hindi": "Hindi",
+    "kannada": "Kannada",
+    "tamil": "Tamil",
+    "bengali": "Bengali",
+    "malayalam": "Malayalam"
   }
 }

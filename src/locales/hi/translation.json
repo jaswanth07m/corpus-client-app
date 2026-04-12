@@ -232,29 +232,22 @@
     "noFollowersFound": "कोई फ़ॉलोअर नहीं मिला",
     "noUsersBeingFollowed": "कोई उपयोगकर्ता फ़ॉलो नहीं किए जा रहे",
     "on": {
-      "page": ""
+      "page": "पेज पर"
     },
-    "Previous": "",
-    "editSegmentText": "",
-    "noSegmentsFoundForThisPage": "",
+    "Previous": "← पिछला",
+    "editSegmentText": "सेगमेंट टेक्स्ट संपादित करें...",
+    "noSegmentsFoundForThisPage": "इस पेज के लिए कोई सेगमेंट नहीं मिला।",
     "update": {
       "reading": {
-        "order": ""
+        "order": "रीडिंग ऑर्डर अपडेट करें?"
       },
-      "order": ""
+      "order": "ऑर्डर अपडेट करें"
     },
-    "preferencesSavedSuccessfully": "",
-    "user": {
-      "preferences": ""
+    "overall": {
+      "progress": "कुल प्रगति"
     },
-    "default": {
-      "language": ""
-    },
-    "savePreferences": "",
-    "uploadDocumentFilesPdfDocxTxtMax5Files": "",
-    "uploadAudioFilesMax5Files": "",
-    "uploadVideoFilesMax5Files": "",
-    "uploadImageFilesMax5Files": ""
+    "previousPage": "पिछला पेज",
+    "nextPage": "अगला पेज"
   },
   "ui": {
     "failed": {
@@ -447,9 +440,7 @@
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "",
-    "somethingWentWrong": "",
-    "tryAgain": ""
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।"
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -520,8 +511,8 @@
     "audioTrack": "ऑडियो ट्रैक",
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
     "imageUrl": "छवि URL",
-    "enterRecordId": "",
-    "recordControls": ""
+    "enterRecordId": "रिकॉर्ड आईडी दर्ज करें",
+    "recordControls": "रिकॉर्ड नियंत्रण"
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",
@@ -557,7 +548,7 @@
     "selectGender": "लिंग चुनें",
     "male": "पुरुष",
     "female": "महिला",
-    "other": "",
+    "other": "अन्य",
     "dateOfBirth": "जन्म तिथि",
     "createPassword": "पासवर्ड बनाएं *",
     "passwordStrength": "पासवर्ड मजबूती:",
@@ -743,6 +734,10 @@
   "languages": {
     "telugu": "तेलुगु",
     "english": "अंग्रेजी",
-    "hindi": "हिंदी"
+    "hindi": "हिंदी",
+    "kannada": "कन्नड़",
+    "tamil": "तमिल",
+    "bengali": "बंगाली",
+    "malayalam": "मलयालम"
   }
 }

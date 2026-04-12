@@ -6,12 +6,20 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import enTranslation from '@/locales/en/translation.json';
 import teTranslation from '@/locales/te/translation.json';
 import hiTranslation from '@/locales/hi/translation.json';
+import knTranslation from '@/locales/kn/translation.json';
+import taTranslation from '@/locales/ta/translation.json';
+import bnTranslation from '@/locales/bn/translation.json';
+import mlTranslation from '@/locales/ml/translation.json';
 
 // Supported languages
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', native: 'English' },
   { code: 'te', name: 'Telugu', native: 'తెలుగు' },
   { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
+  { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ' },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
+  { code: 'bn', name: 'Bengali', native: 'বাংলা' },
+  { code: 'ml', name: 'Malayalam', native: 'മലയാളം' },
 ] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]['code'];
@@ -33,6 +41,18 @@ i18n
       },
       hi: {
         translation: hiTranslation,
+      },
+      kn: {
+        translation: knTranslation,
+      },
+      ta: {
+        translation: taTranslation,
+      },
+      bn: {
+        translation: bnTranslation,
+      },
+      ml: {
+        translation: mlTranslation,
       },
     },
 

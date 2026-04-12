@@ -35,8 +35,8 @@
     "yes": "అవును",
     "no": "కాదు",
     "ok": "సరే",
-    "previousSlide": "",
-    "nextSlide": "",
+    "previousSlide": "మునుపటి",
+    "nextSlide": "తదుపరి",
     "goToPreviousPage": "మునుపటి పేజీకి వెళ్ళు",
     "goToNextPage": "తర్వాతి పేజీకి వెళ్ళు",
     "morePages": "మరిన్ని పేజీలు",
@@ -232,29 +232,22 @@
     "noFollowersFound": "ఫాలోవర్‌లు కనుగొనబడలేదు",
     "noUsersBeingFollowed": "ఫాలో అవుతున్న యూజర్‌లు లేరు",
     "on": {
-      "page": ""
+      "page": "పేజీలో"
     },
-    "Previous": "",
-    "editSegmentText": "",
-    "noSegmentsFoundForThisPage": "",
+    "Previous": "← మునుపటి",
+    "editSegmentText": "సెగ్మెంట్ టెక్స్ట్‌ను సవరించండి...",
+    "noSegmentsFoundForThisPage": "ఈ పేజీ కోసం సెగ్మెంట్‌లు కనుగొనబడలేదు.",
     "update": {
       "reading": {
-        "order": ""
+        "order": "రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలా?"
       },
-      "order": ""
+      "order": "ఆర్డర్‌ని అప్‌డేట్ చేయి"
     },
-    "preferencesSavedSuccessfully": "",
-    "user": {
-      "preferences": ""
+    "overall": {
+      "progress": "మొత్తం పురోగతి"
     },
-    "default": {
-      "language": ""
-    },
-    "savePreferences": "",
-    "uploadDocumentFilesPdfDocxTxtMax5Files": "",
-    "uploadAudioFilesMax5Files": "",
-    "uploadVideoFilesMax5Files": "",
-    "uploadImageFilesMax5Files": ""
+    "previousPage": "మునుపటి పేజీ",
+    "nextPage": "తదుపరి పేజీ"
   },
   "ui": {
     "failed": {
@@ -447,9 +440,7 @@
     "loadingProfile": "ప్రొఫైల్ లోడ్ అవుతోంది...",
     "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
     "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "",
-    "somethingWentWrong": "",
-    "tryAgain": ""
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది."
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -520,8 +511,8 @@
     "audioTrack": "ఆడియో ట్రాక్",
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
     "imageUrl": "ఇమేజ్ URL",
-    "enterRecordId": "",
-    "recordControls": ""
+    "enterRecordId": "రికార్డ్ IDని నమోదు చేయండి",
+    "recordControls": "రికార్డ్ నియంత్రణలు"
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
@@ -557,7 +548,7 @@
     "selectGender": "లింగం ఎంచుకోండి",
     "male": "పురుషుడు",
     "female": "మహిళ",
-    "other": "",
+    "other": "ఇతర",
     "dateOfBirth": "పుట్టిన తేదీ",
     "createPassword": "పాస్‌వర్డ్ సృష్టించండి *",
     "passwordStrength": "పాస్‌వర్డ్ బలం:",
@@ -743,6 +734,10 @@
   "languages": {
     "telugu": "తెలుగు",
     "english": "ఇంగ్లీష్",
-    "hindi": "హిందీ"
+    "hindi": "హిందీ",
+    "kannada": "కన్నడ",
+    "tamil": "తమిళం",
+    "bengali": "బెంగాలీ",
+    "malayalam": "మలయాళం"
   }
 }
