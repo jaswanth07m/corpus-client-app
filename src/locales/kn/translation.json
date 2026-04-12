@@ -1,0 +1,736 @@
+{
+  "common": {
+    "6": {
+      "digits": "/6 ಅಂಕಿಗಳು"
+    },
+    "10": {
+      "digits": "/10 ಅಂಕಿಗಳು"
+    },
+    "91": "+91",
+    "proofread": {
+      "ocr": {
+        "text": "OCR ಪಠ್ಯವನ್ನು ಸರಿಪಡಿಸಿ"
+      }
+    },
+    "showCompleteText": "ಪೂರ್ಣ ಪಠ್ಯವನ್ನು ತೋರಿಸಿ",
+    "hideCompleteText": "ಪೂರ್ಣ ಪಠ್ಯವನ್ನು ಮರೆಮಾಡಿ",
+    "submitPage": "ಪುಟವನ್ನು ಸಲ್ಲಿಸಿ",
+    "savePage": "ಪುಟವನ್ನು ಉಳಿಸಿ",
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "error": "ದೋಷ",
+    "success": "ಯಶಸ್ವಿ",
+    "cancel": "ರದ್ದುಮಾಡಿ",
+    "save": "ಉಳಿಸಿ",
+    "delete": "ಅಳಿಸಿ",
+    "edit": "ಸಂಪಾದಿಸಿ",
+    "submit": "ಸಲ್ಲಿಸಿ",
+    "confirm": "ದೃಢೀಕರಿಸಿ",
+    "back": "ಹಿಂದಕ್ಕೆ",
+    "next": "ಮುಂದೆ",
+    "previous": "ಹಿಂದಿನ",
+    "close": "ಮುಚ್ಚಿ",
+    "search": "ಹುಡುಕಿ",
+    "filter": "ಫಿಲ್ಟರ್",
+    "sort": "ವಿಂಗಡಿಸಿ",
+    "yes": "ಹೌದು",
+    "no": "ಇಲ್ಲ",
+    "ok": "ಸರಿ",
+    "previousSlide": "ಹಿಂದಿನ ಸ್ಲೈಡ್",
+    "nextSlide": "ಮುಂದಿನ ಸ್ಲೈಡ್",
+    "goToPreviousPage": "ಹಿಂದಿನ ಪುಟಕ್ಕೆ ಹೋಗಿ",
+    "goToNextPage": "ಮುಂದಿನ ಪುಟಕ್ಕೆ ಹೋಗಿ",
+    "morePages": "ಹೆಚ್ಚಿನ ಪುಟಗಳು",
+    "toggle": {
+      "sidebar": "ಸೈಡ್‌ಬಾರ್ ಟಾಗಲ್ ಮಾಡಿ"
+    },
+    "selectALocation": "ಸ್ಥಳವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "confirmLocation": "ಸ್ಥಳವನ್ನು ದೃಢೀಕರಿಸಿ",
+    "selectMediaType": "ಮೀಡಿಯಾ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "to": {
+      "choose": "ಆಯ್ಕೆ ಮಾಡಲು"
+    },
+    "documentUpload": "ದಸ್ತಾವೇಜು ಅಪ್‌ಲೋಡ್ *",
+    "uploadDocumentFilesPdfDocxTxt": "ದಸ್ತಾವೇಜು ಫೈಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (PDF, DOCX, TXT)",
+    "selectedFile": "ಆಯ್ಕೆಮಾಡಿದ ಫೈಲ್:",
+    "content": "ವಿಷಯ *",
+    "yourBrowserDoesNotSupportTheAudioElement": "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಆಡಿಯೋ ಅಂಶವನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ.",
+    "uploadAudioFilesSingleFile": "ಆಡಿಯೋ ಫೈಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (ಏಕ ಫೈಲ್)",
+    "switch": {
+      "to": "ಬದಲಿಸಿ"
+    },
+    "yourBrowserDoesNotSupportTheVideoElement": "ನಿಮ್ಮ ಬ್ರೌಸರ್ ವಿಡಿಯೋ ಅಂಶವನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ.",
+    "uploadVideoFilesSingleFile": "ವಿಡಿಯೋ ಫೈಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (ಏಕ ಫೈಲ್)",
+    "selectedFiles": "ಆಯ್ಕೆಮಾಡಿದ ಫೈಲ್‌ಗಳು:",
+    "uploadImageFilesSingleFile": "ಚಿತ್ರ ಫೈಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (ಏಕ ಫೈಲ್)",
+    "technologyForSociety": "ಸಮಾಜಕ್ಕಾಗಿ ತಂತ್ರಜ್ಞಾನ",
+    "userIdNotFoundPleaseTryLoggingInAgain": "ಬಳಕೆದಾರ ID ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಲಾಗಿನ್ ಆಗಲು ಪ್ರಯತ್ನಿಸಿ.",
+    "geolocationNotSupported": "ಜಿಯೋಲೋಕೇಶನ್ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ",
+    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಂದು ವರ್ಗವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ ಮತ್ತು ಶೀರ್ಷಿಕೆಯನ್ನು ನೀಡಿ",
+    "releaseRightsNotFoundCheckForReleaseRights": "ಬಿಡುಗಡೆ ಹಕ್ಕುಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ಬಿಡುಗಡೆ ಹಕ್ಕುಗಳಿಗಾಗಿ ಪರಿಶೀಲಿಸಿ",
+    "others": "ಇತರೆ",
+    "notDoneByAuthor": "ಕರ್ತೃವಿನಿಂದ ಮಾಡಲ್ಪಟ್ಟಿಲ್ಲ",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "ನೀವು ರಚಿಸಿದ ಯಾವುದೇ ಕೆಲಸಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಅಥವಾ ನಿಮ್ಮ ಕುಟುಂಬದ ಸದಸ್ಯರು/ಸ್ನೇಹಿತರ ಕೆಲಸಗಳನ್ನು ಅವರ ಅನುಮತಿಯೊಂದಿಗೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು.",
+    "selectALangauge": "ಭಾಷೆಯನ್ನ ಆಯ್ಕೆ ಮಾಡಿ",
+    "pleaseSelectAFile": "ದಯವಿಟ್ಟು ಒಂದು ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ",
+    "uploadFailedPleaseTryAgain": "ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "searchByUserId": "ಬಳಕೆದಾರ ID ಮೂಲಕ ಹುಡುಕಿ...",
+    "searchByTitleDescription": "ಶೀರ್ಷಿಕೆ, ವಿವರಣೆಯ ಮೂಲಕ ಹುಡುಕಿ...",
+    "searchUsers": "ಬಳಕೆದಾರರನ್ನು ಹುಡುಕಿ",
+    "peerReview": "ಪೀರ್ ರಿವ್ಯೂ",
+    "noContributionDataAvailable": "ಯಾವುದೇ ಕೊಡುಗೆ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ.",
+    "editHistory": "ಸಂಪಾದನೆ ಇತಿಹಾಸ",
+    "noEditHistoryFoundForThisRecord": "ಈ ದಾಖಲೆಗಾಗಿ ಯಾವುದೇ ಸಂಪಾದನೆ ಇತಿಹಾಸ ಕಂಡುಬಂದಿಲ್ಲ.",
+    "change": {
+      "source": "ಮೂಲವನ್ನು ಬದಲಿಸಿ:",
+      "language": "ಭಾಷೆಯನ್ನು ಬದಲಿಸಿ"
+    },
+    "field": {
+      "changes": "ಕ್ಷೇತ್ರ ಬದಲಾವಣೆಗಳು:"
+    },
+    "old": "ಹಳೆಯದು:",
+    "new": "ಹೊಸತು:",
+    "loginFailedNoAccessTokenReceived": "ಲಾಗಿನ್ ವಿಫಲವಾಗಿದೆ: ಯಾವುದೇ ಪ್ರವೇಶ ಟೋಕನ್ ಸ್ವೀಕರಿಸಲಾಗಿಲ್ಲ",
+    "pleaseEnterAValidEmailAddress": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ",
+    "swechaTechnologyForSociety": "ಸ್ವೇಚ್ಛಾ - ಸಮಾಜಕ್ಕಾಗಿ ತಂತ್ರಜ್ಞಾನ",
+    "sending": "ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...",
+    "verifying": "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
+    "resetHere": "ಇಲ್ಲಿ ಮರುಹೊಂದಿಸಿ",
+    "logging": {
+      "in": "ಲಾಗಿನ್ ಆಗುತ್ತಿದೆ..."
+    },
+    "emailAddress": "ಇಮೇಲ್ ವಿಳಾಸ *",
+    "selectGender": "ಲಿಂಗವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "date": {
+      "of": {
+        "birth": "ಹುಟ್ಟಿದ ದಿನಾಂಕ"
+      }
+    },
+    "one": {
+      "uppercase": {
+        "letter": "ಒಂದು ದೊಡ್ಡ ಅಕ್ಷರ"
+      },
+      "lowercase": {
+        "letter": "ಒಂದು ಸಣ್ಣ ಅಕ್ಷರ"
+      },
+      "number": "ಒಂದು ಸಂಖ್ಯೆ"
+    },
+    "minimum": {
+      "8": {
+        "characters": "ಕನಿಷ್ಠ 8 ಅಕ್ಷರಗಳು"
+      }
+    },
+    "confirmPassword": "ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ *",
+    "passwordsDoNotMatch": "*ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ",
+    "i": {
+      "agree": {
+        "to": {
+          "the": "ನಾನು ಇದನ್ನು ಒಪ್ಪುತ್ತೇನೆ"
+        }
+      }
+    },
+    "terms": {
+      "of": {
+        "service": "ಸೇವಾ ನಿಯಮಗಳು"
+      }
+    },
+    "privacy": {
+      "policy": "ಗೌಪ್ಯತಾ ನೀತಿ"
+    },
+    "backToSignupForm": "ಸೈನ್ ಅಪ್ ಫಾರ್ಮ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+    "documentPreview": "ದಸ್ತಾವೇಜು ಮುನ್ನೋಟ",
+    "openInNewTab": "ಹೊಸ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ತೆರೆಯಿರಿ",
+    "viewText": "ಪಠ್ಯವನ್ನು ವೀಕ್ಷಿಸಿ",
+    "openDocument": "ದಸ್ತಾವೇಜು ತೆರೆಯಿರಿ",
+    "noChangesToSave": "ಉಳಿಸಲು ಯಾವುದೇ ಬದಲಾವಣೆಗಳಿಲ್ಲ",
+    "meaningful": {
+      "words": "ಅರ್ಥಪೂರ್ಣ ಪದಗಳು"
+    },
+    "release": {
+      "rights": "ಬಿಡುಗಡೆ ಹಕ್ಕುಗಳು"
+    },
+    "specify": {
+      "creator": "ರಚನೆಕಾರರನ್ನು ನಿರ್ದಿಷ್ಟಪಡಿಸಿ",
+      "source": "ಮೂಲವನ್ನು ನಿರ್ದಿಷ್ಟಪಡಿಸಿ"
+    },
+    "Reviewed": "✓ ವಿಮರ್ಶಿಸಲಾಗಿದೆ",
+    "media": {
+      "unavailable": "ಮೀಡಿಯಾ ಲಭ್ಯವಿಲ್ಲ"
+    },
+    "uploadedMedia": "ಅಪ್‌ಲೋಡ್ ಮಾಡಿದ ಮೀಡಿಯಾ",
+    "unsupported": {
+      "media": "ಬೆಂಬಲವಿಲ್ಲದ ಮೀಡಿಯಾ"
+    },
+    "showHistory": "ಇತಿಹಾಸವನ್ನು ತೋರಿಸಿ",
+    "noHistory": "ಇತಿಹಾಸವಿಲ್ಲ",
+    "source": "ಮೂಲ:",
+    "enter": {
+      "title": "ಶೀರ್ಷಿಕೆಯನ್ನು ನಮೂದಿಸಿ",
+      "description": "ವಿವರಣೆಯನ್ನು ನಮೂದಿಸಿ",
+      "current": {
+        "place": "ಪ್ರಸ್ತುತ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ"
+      },
+      "profession": "ವೃತ್ತಿಯನ್ನು ನಮೂದಿಸಿ",
+      "organisation": "ಸಂಸ್ಥೆಯನ್ನು ನಮೂದಿಸಿ"
+    },
+    "noUsersFound": "ಯಾವುದೇ ಬಳಕೆದಾರರು ಕಂಡುಬಂದಿಲ್ಲ",
+    "from": {
+      "place": "ಸ್ಥಳದಿಂದ"
+    },
+    "places": {
+      "lived": "ವಾಸವಾಗಿದ್ದ ಸ್ಥಳಗಳು"
+    },
+    "authenticationTokenNotFound": "ದೃಢೀಕರಣ ಟೋಕನ್ ಕಂಡುಬಂದಿಲ್ಲ",
+    "current": {
+      "place": "ಪ್ರಸ್ತುತ ಸ್ಥಳ"
+    },
+    "noLocationSet": "ಯಾವುದೇ ಸ್ಥಳವನ್ನು ಹೊಂದಿಸಲಾಗಿಲ್ಲ",
+    "selectLanguage": "ಭಾಷೆಯನ್ನು ಆರಿಸಿ",
+    "addLanguage": "ಭಾಷೆಯನ್ನು ಸೇರಿಸಿ",
+    "addPlace": "ಸ್ಥಳವನ್ನು ಸೇರಿಸಿ",
+    "addSocialMedia": "ಸೋಷಿಯಲ್ ಮೀಡಿಯಾ ಸೇರಿಸಿ",
+    "fileRemoved": "ಫೈಲ್ ಅನ್ನು ತೆಗೆದುಹಾಕಲಾಗಿದೆ",
+    "textUploadFailed": "ಪಠ್ಯ ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ",
+    "uploadContent": "ವಿಷಯವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    "title": "ಶೀರ್ಷಿಕೆ *",
+    "description": "ವಿವರಣೆ *",
+    "selectCategories": "ವರ್ಗಗಳನ್ನು ಆರಿಸಿ *",
+    "editLocation": "ಸ್ಥಾನವನ್ನು ಸಂಪಾದಿಸಿ",
+    "pick": {
+      "from": {
+        "map": "ನಕ್ಷೆಯಿಂದ ಆರಿಸಿ"
+      }
+    },
+    "SelectALanguage": "-- ಭಾಷೆಯನ್ನ ಆಯ್ಕೆ ಮಾಡಿ --",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "ಕ್ಷಮಿಸಿ! ನೀವು ರಚಿಸಿದ ಯಾವುದೇ ಕೆಲಸಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಅಥವಾ ನಿಮ್ಮ ಕುಟುಂಬದ ಸದಸ್ಯರು/ಸ್ನೇಹಿತರ ಕೆಲಸಗಳನ್ನು ಅವರ ಅನುಮತಿಯೊಂದಿಗೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು.",
+    "selectReleaseRights": "ಬಿಡುಗಡೆ ಹಕ್ಕುಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "ನಾನು ಇದನ್ನು ಅಂತರ್ಜಾಲದಿಂದ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ್ದೇನೆ ಮತ್ತು/ಅಥವಾ ಇದನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ಉಚಿತವೇ ಎಂದು ನನಗೆ ತಿಳಿದಿಲ್ಲ.",
+    "creator": "ರಚನೆಕಾರರು *",
+    "oopsPageNotFound": "ಅಯ್ಯೋ! ಪುಟ ಕಂಡುಬಂದಿಲ್ಲ",
+    "backToLogin": "ಲಾಗಿನ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+    "confirmNewPassword": "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
+    "resetPassword": "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ",
+    "backToInitiate": "ಪ್ರಾರಂಭಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+    "uploadFiles": "ಫೈಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    "click": {
+      "to": {
+        "get": {
+          "started": "ಪ್ರಾರಂಭಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ"
+        }
+      }
+    },
+    "contributeToOpenDataAndHelpBuildTheFuture": "ಮುಕ್ತ ಡೇಟಾಗೆ ಕೊಡುಗೆ ನೀಡಿ ಮತ್ತು ಭವಿಷ್ಯವನ್ನು ನಿರ್ಮಿಸಲು ಸಹಾಯ ಮಾಡಿ",
+    "docDigitization": {
+      "tool": "ದಸ್ತಾವೇಜು ಡಿಜಿಟಲೀಕರಣ ಸಾಧನ"
+    },
+    "reviewAndCorrectOcrTextFromDocuments": "ದಸ್ತಾವೇಜುಗಳಿಂದ OCR ಪಠ್ಯವನ್ನು ವಿಮರ್ಶಿಸಿ ಮತ್ತು ಸರಿಪಡಿಸಿ",
+    "showHints": "ಸುಳಿವುಗಳನ್ನು ತೋರಿಸಿ",
+    "reviewCommunityContributions": "ಸಮುದಾಯದ ಕೊಡುಗೆಗಳನ್ನು ವಿಮರ್ಶಿಸಿ",
+    "refreshFeed": "ಫೀಡ್ ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+    "noResultsFoundFor": "ಇದಕ್ಕಾಗಿ ಯಾವುದೇ ಫಲಿತಾಂಶಗಳು ಕಂಡುಬಂದಿಲ್ಲ \"",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "ಬಳಕೆದಾರರು ಇನ್ನೂ ಲೋಡ್ ಮಾಡಲಾದ ದಾಖಲೆಗಳಲ್ಲಿ ಇರಲಾರರು. ಹುಡುಕಾಟವನ್ನು ಅಳಿಸಿಹಾಕಿ ಮತ್ತು ಹೆಚ್ಚಿನ ದಾಖಲೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸ್ಕ್ರಾಲ್ ಮಾಡಿ.",
+    "processing": "ಸಂಸ್ಕರಿಸಲಾಗುತ್ತಿದೆ...",
+    "noFollowersFound": "ಯಾವುದೇ ಫಾಲೋವರ್ಸ್ ಕಂಡುಬಂದಿಲ್ಲ",
+    "noUsersBeingFollowed": "ಯಾವುದೇ ಬಳಕೆದಾರರನ್ನು ಫಾಲೋ ಮಾಡುತ್ತಿಲ್ಲ",
+    "on": {
+      "page": "ಪುಟದಲ್ಲಿ"
+    },
+    "Previous": "← ಹಿಂದಿನ",
+    "editSegmentText": "ಭಾಗದ ಪಠ್ಯವನ್ನು ಸಂಪಾದಿಸಿ...",
+    "noSegmentsFoundForThisPage": "ಈ ಪುಟಕ್ಕಾಗಿ ಯಾವುದೇ ಭಾಗಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
+    "update": {
+      "reading": {
+        "order": "ಓದುವ ಕ್ರಮವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಬೇಕೆ?"
+      },
+      "order": "ಕ್ರಮವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಿ"
+    },
+    "overall": {
+      "progress": "ಒಟ್ಟಾರೆ ಪ್ರಗತಿ"
+    },
+    "previousPage": "ಹಿಂದಿನ ಪುಟ",
+    "nextPage": "ಮುಂದಿನ ಪುಟ"
+  },
+  "ui": {
+    "failed": {
+      "to": {
+        "get": {
+          "user": {
+            "information": {
+              "please": {
+                "try": {
+                  "logging": {
+                    "in": {
+                      "again": "ಬಳಕೆದಾರರ ಮಾಹಿತಿಯನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಲಾಗಿನ್ ಆಗಲು ಪ್ರಯತ್ನಿಸಿ."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fetch": {
+          "categories": "ವರ್ಗಗಳನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ"
+        }
+      }
+    },
+    "choose": {
+      "how": {
+        "youd": {
+          "like": {
+            "to": {
+              "contribute": "ನೀವು ಹೇಗೆ ಕೊಡುಗೆ ನೀಡಲು ಬಯಸುತ್ತೀರಿ ಎಂಬುದನ್ನು ಆರಿಸಿ"
+            }
+          }
+        }
+      }
+    },
+    "enter": {
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": "ನಿಮ್ಮ ವಿಷಯಕ್ಕಾಗಿ ಶೀರ್ಷಿಕೆಯನ್ನು ನಮೂದಿಸಿ"
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": "ನಿಮ್ಮ ವಿಷಯಕ್ಕೆ ರಚನೆಕಾರರನ್ನು ನಮೂದಿಸಿ"
+            }
+          }
+        }
+      },
+      "your": {
+        "text": {
+          "content": {
+            "here": "ನಿಮ್ಮ ಪಠ್ಯ ವಿಷಯವನ್ನು ಇಲ್ಲಿ ನಮೂದಿಸಿ..."
+          }
+        }
+      }
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": "ವಿವರವಾದ ವಿವರಣೆಯನ್ನು ನೀಡಿ (ಕನಿಷ್ಠ 32 ಅಕ್ಷರಗಳು)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": "ಈ ಕೆಲಸವು ನನ್ನಿಂದ ರಚಿಸಲ್ಪಟ್ಟಿದೆ ಮತ್ತು ಯಾರಾದರೂ ಇದನ್ನು ಉಚಿತವಾಗಿ ಬಳಸಬಹುದು."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "too": {
+      "many": {
+        "attempts": {
+          "please": {
+            "wait": {
+              "before": {
+                "trying": {
+                  "again": "ಹೆಚ್ಚಿನ ಪ್ರಯತ್ನಗಳು. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುವ ಮುನ್ನ ಕಾಯಿರಿ."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "please": {
+      "agree": {
+        "to": {
+          "the": {
+            "terms": {
+              "and": {
+                "conditions": "ದಯವಿಟ್ಟು ನಿಯಮಗಳು ಮತ್ತು ನಿಬಂಧನೆಗಳನ್ನು ಒಪ್ಪಿಕೊಳ್ಳಿ"
+              }
+            }
+          }
+        }
+      }
+    },
+    "place": {
+      "should": {
+        "have": {
+          "characters": {
+            "is": {
+              "allowed": "*ಸ್ಥಳವು ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರಬೇಕು ( , ಅನುಮತಿಸಲಾಗಿದೆ)"
+            }
+          }
+        }
+      }
+    },
+    "one": {
+      "special": {
+        "character": "ಒಂದು ವಿಶೇಷ ಅಕ್ಷರ"
+      }
+    },
+    "tap": {
+      "any": {
+        "colored": {
+          "section": "ಯಾವುದೇ ಬಣ್ಣದ ವಿಭಾಗವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ"
+        }
+      }
+    },
+    "language": {
+      "proficiencies": "ಭಾಷಾ ಪ್ರಾವೀಣ್ಯತೆಗಳು"
+    },
+    "start": {
+      "typing": {
+        "to": {
+          "get": {
+            "hints": "*ಸುಳಿವುಗಳನ್ನು ಪಡೆಯಲು ಟೈಪ್ ಮಾಡಲು ಪ್ರಾರಂಭಿಸಿ"
+          }
+        }
+      }
+    },
+    "ocr": {
+      "text": {
+        "will": {
+          "appear": {
+            "here": "OCR ಪಠ್ಯ ಇಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ."
+          }
+        }
+      }
+    }
+  },
+  "messages": {
+    "networkErrorPleaseTryAgain": "ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "contentUploadedSuccessfullyRedirectingToLanding": "ವಿಷಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ! ಲ್ಯಾಂಡಿಂಗ್ ಪುಟಕ್ಕೆ ಮರುನಿರ್ದೇಶಿಸಲಾಗುತ್ತಿದೆ...",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "loadingContributionsDashboard": "ಕೊಡುಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "otpSentSuccessfully": "OTP ಯಶಸ್ವಿಯಾಗಿ ಕಳುಹಿಸಲಾಗಿದೆ!",
+    "loginSuccessful": "ಲಾಗಿನ್ ಯಶಸ್ವಿಯಾಗಿದೆ!",
+    "signupOtpSentSuccessfully": "ಸೈನ್ ಅಪ್ OTP ಯಶಸ್ವಿಯಾಗಿ ಕಳುಹಿಸಲಾಗಿದೆ!",
+    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "ಖಾತೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ ಮತ್ತು ದೃಢೀಕರಿಸಲಾಗಿದೆ! ದಯವಿಟ್ಟು ಲಾಗಿನ್ ಆಗಿ.",
+    "signupOtpResentSuccessfully": "ಸೈನ್ ಅಪ್ OTP ಯಶಸ್ವಿಯಾಗಿ ಮರುಕಳುಹಿಸಲಾಗಿದೆ!",
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "errorLoadingContributions": "ಕೊಡುಗೆಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ:",
+    "profileUpdatedSuccessfully": "ಪ್ರೊಫೈಲ್ ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಡೇಟ್ ಆಗಿದೆ!",
+    "loadingProfile": "ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "profilePictureUpdatedSuccessfully": "ಪ್ರೊಫೈಲ್ ಚಿತ್ರವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ!",
+    "loadingPointsData": "ಪಾಯಿಂಟ್ಸ್ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "ಈ ಭಾಗಗಳ ಓದುವ ಕ್ರಮವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಲು ನೀವು ಖಚಿತವಾಗಿರುವಿರಾ? ಇದು ಬೌಂಡಿಂಗ್ ಬಾಕ್ಸ್ ಅನುಕ್ರಮವನ್ನು ಸಹ ಅಪ್‌ಡೇಟ್ ಮಾಡುತ್ತದೆ."
+  },
+  "user": {
+    "requestingLocationAccess": "ಸ್ಥಳ ಪ್ರವೇಶವನ್ನು ಕೋರಲಾಗುತ್ತಿದೆ...",
+    "locationAccessGranted": "ಸ್ಥಳ ಪ್ರವೇಶವನ್ನು ನೀಡಲಾಗಿದೆ!",
+    "locationSetManually": "ಸ್ಥಳವನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ಹೊಂದಿಸಲಾಗಿದೆ!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "ಸ್ಥಳವು ಅಗತ್ಯವಿದೆ. ದಯವಿಟ್ಟು ಸ್ಥಳ ಪ್ರವೇಶವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ ಅಥವಾ ಹಸ್ತಚಾಲಿತವಾಗಿ ನಮೂದಿಸಿ.",
+    "verifyingLocation": "ಸ್ಥಳವನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
+    "locationCapturedAwaitingVerification": "ಸ್ಥಳವನ್ನು ಸೆರೆಹಿಡಿಯಲಾಗಿದೆ, ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ...",
+    "locationRequired": "ಸ್ಥಳವು ಅಗತ್ಯವಿದೆ",
+    "useCurrentLocation": "ಪ್ರಸ್ತುತ ಸ್ಥಳವನ್ನು ಬಳಸಿ",
+    "useMyCurrentLocation": "ನನ್ನ ಪ್ರಸ್ತುತ ಸ್ಥಳವನ್ನು ಬಳಸಿ",
+    "pleaseEnterYourName": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+    "fullName": "ಪೂರ್ಣ ಹೆಸರು *",
+    "nameShouldHaveCharactersOnly": "*ಹೆಸರು ಅಕ್ಷರಗಳನ್ನು ಮಾತ್ರ ಹೊಂದಿರಬೇಕು",
+    "placeCityState": "ಸ್ಥಳ (ನಗರ, ರಾಜ್ಯ)",
+    "enterFullName": "ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+    "shortBio": "ಸಣ್ಣ ಪರಿಚಯ",
+    "profession": "ವೃತ್ತಿ",
+    "organisation": "ಸಂಸ್ಥೆ"
+  },
+  "validation": {
+    "pleaseEnterValidLatitudeAndLongitudeValues": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಅಕ್ಷಾಂಶ ಮತ್ತು ರೇಖಾಂಶ ಮೌಲ್ಯಗಳನ್ನು ನಮೂದಿಸಿ",
+    "latitudeMustBeBetween90And90": "ಅಕ್ಷಾಂಶವು -90 ಮತ್ತು 90 ರ ನಡುವೆ ಇರಬೇಕು",
+    "longitudeMustBeBetween180And180": "ರೇಖಾಂಶವು -180 ಮತ್ತು 180 ರ ನಡುವೆ ಇರಬೇಕು",
+    "pleaseEnterTextContent": "ದಯವಿಟ್ಟು ಪಠ್ಯ ಪಠ್ಯ ವಿಷಯವನ್ನು ನಮೂದಿಸಿ"
+  },
+  "categories": {
+    "chooseACategoryToContributeContent": "ವಿಷಯ ಕೊಡುಗೆ ನೀಡಲು ವರ್ಗವನ್ನು ಆರಿಸಿ",
+    "changeType": "ಪ್ರಕಾರವನ್ನು ಬದಲಿಸಿ:",
+    "unsupportedMediaType": "ಬೆಂಬಲವಿಲ್ಲದ ಮೀಡಿಯಾ ಪ್ರಕಾರ",
+    "sourceLabel": "ಮೂಲ ಲೇಬಲ್",
+    "type": "ಪ್ರಕಾರ:"
+  },
+  "media": {
+    "failedToSwitchCamera": "ಕ್ಯಾಮೆರಾವನ್ನು ಬದಲಿಸಲು ವಿಫಲವಾಗಿದೆ",
+    "audioRecordingStarted": "ಆಡಿಯೋ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭವಾಗಿದೆ",
+    "videoRecordingStarted": "ವಿಡಿಯೋ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭವಾಗಿದೆ",
+    "recordingPaused": "ರೆಕಾರ್ಡಿಂಗ್ ಅನ್ನು ವಿರಾಮಗೊಳಿಸಲಾಗಿದೆ",
+    "failedToPauseRecording": "ರೆಕಾರ್ಡಿಂಗ್ ವಿರಾಮಗೊಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
+    "recordingResumed": "ರೆಕಾರ್ಡಿಂಗ್ ಅನ್ನು ಪುನರಾರಂಭಿಸಲಾಗಿದೆ",
+    "failedToResumeRecording": "ರೆಕಾರ್ಡಿಂಗ್ ಪುನರಾರಂಭಿಸಲು ವಿಫಲವಾಗಿದೆ",
+    "recordingStopped": "ರೆಕಾರ್ಡಿಂಗ್ ಅನ್ನು ನಿಲ್ಲಿಸಲಾಗಿದೆ",
+    "failedToStopRecording": "ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲಿಸಲು ವಿಫಲವಾಗಿದೆ",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "ಫೋಟೋ ಸೆರೆಹಿಡಿಯಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಕ್ಯಾಮೆರಾ ಅನುಮತಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
+    "videoUnavailable": "ವಿಡಿಯೋ ಲಭ್ಯವಿಲ್ಲ",
+    "loadVideo": "ವಿಡಿಯೋ ಲೋಡ್ ಮಾಡಿ",
+    "audioUnavailable": "ಆಡಿಯೋ ಲಭ್ಯವಿಲ್ಲ",
+    "loadAudio": "ಆಡಿಯೋ ಲೋಡ್ ಮಾಡಿ",
+    "documentUnavailable": "ದಸ್ತಾವೇಜು ಲಭ್ಯವಿಲ್ಲ",
+    "loadDocument": "ದಸ್ತಾವೇಜು ಲೋಡ್ ಮಾಡಿ",
+    "fileSize": "ಫೈಲ್ ಗಾತ್ರ",
+    "imageUnavailable": "ಚಿತ್ರ ಲಭ್ಯವಿಲ್ಲ",
+    "audioRecording": "ಆಡಿಯೋ ರೆಕಾರ್ಡಿಂಗ್ *",
+    "startRecording": "ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ",
+    "stopRecording": "ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲಿಸಿ",
+    "recordingCompleted": "ರೆಕಾರ್ಡಿಂಗ್ ಪೂರ್ಣಗೊಂಡಿದೆ (",
+    "recordAgain": "ಮತ್ತೆ ರೆಕಾರ್ಡ್ ಮಾಡಿ",
+    "videoRecording": "ವಿಡಿಯೋ ರೆಕಾರ್ಡಿಂಗ್ *",
+    "startVideoRecording": "ವಿಡಿಯೋ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ",
+    "photoCapture": "ಫೋಟೋ ಕ್ಯಾಪ್ಚರ್ *",
+    "startCamera": "ಕ್ಯಾಮೆರಾ ಪ್ರಾರಂಭಿಸಿ",
+    "capturePhoto": "ಫೋಟೋ ತೆಗೆಯಿರಿ",
+    "stopCamera": "ಕ್ಯಾಮೆರಾ ನಿಲ್ಲಿಸಿ",
+    "photoCaptured": "ಫೋಟೋ ಸೆರೆಹಿಡಿಯಲಾಗಿದೆ:",
+    "capturedPhoto": "ಸೆರೆಹಿಡಿದ ಫೋಟೋ",
+    "audioTrack": "ಆಡಿಯೋ ಟ್ರ್ಯಾಕ್",
+    "pleaseEnterAValidImageUrl": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಚಿತ್ರ URL ಅನ್ನು ನಮೂದಿಸಿ",
+    "imageUrl": "ಚಿತ್ರ URL",
+    "enterRecordId": "ದಾಖಲೆ ID ನಮೂದಿಸಿ",
+    "recordControls": "ದಾಖಲೆ ನಿಯಂತ್ರಣಗಳು"
+  },
+  "stats": {
+    "contributionsYet": "ಇನ್ನೂ ಯಾವುದೇ ಕೊಡುಗೆಗಳಿಲ್ಲ.",
+    "pointsActivity": "ಪಾಯಿಂಟ್ಸ್ ಚಟುವಟಿಕೆ",
+    "contributions": "ಕೊಡುಗೆಗಳು...",
+    "contributionsFound": "ಕೊಡುಗೆಗಳು ಕಂಡುಬಂದಿವೆ."
+  },
+  "auth": {
+    "pleaseEnterAValid10digitPhoneNumber": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ 10-ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+    "pleaseEnterAValid6digitOtp": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ 6-ಅಂಕಿಯ OTP ನಮೂದಿಸಿ",
+    "invalidOtpPleaseCheckAndTryAgain": "ಅಮಾನ್ಯವಾದ OTP. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "otpVerificationFailedPleaseTryAgain": "OTP ದೃಢೀಕರಣ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP ಅವಧಿ ಮೀರಿದೆ ಅಥವಾ ಅಮಾನ್ಯವಾಗಿದೆ. ದಯವಿಟ್ಟು ಹೊಸದಕ್ಕಾಗಿ ವಿನಂತಿಸಿ.",
+    "pleaseEnterAValidPhoneNumberAndPassword": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಫೋನ್ ಸಂಖ್ಯೆ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ಅನ್ನು ನಮೂದಿಸಿ",
+    "pleaseEnterAValidUsername": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಬಳಕೆದಾರ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+    "passwordMustBeAtLeast6CharactersLong": "ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳಿರಬೇಕು",
+    "welcomeBack": "ಸುಸ್ವಾಗತ",
+    "createAccount": "ಖಾತೆಯನ್ನು ರಚಿಸಿ",
+    "signInToContinueYourJourney": "ನಿಮ್ಮ ಪ್ರಯಾಣವನ್ನು ಮುಂದುವರಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "joinOurCommunityToday": "ಇಂದೇ ನಮ್ಮ ಸಮುದಾಯಕ್ಕೆ ಸೇರಿ",
+    "login": "ಲಾಗಿನ್",
+    "signUp": "ಸೈನ್ ಅಪ್",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP ಪಡೆಯಲು ನಿಮ್ಮ ನೋಂದಾಯಿತ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+    "enter10digitPhoneNumber": "10-ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+    "phoneNumberIsInvalid": "*ಫೋನ್ ಸಂಖ್ಯೆ ಅಮಾನ್ಯವಾಗಿದೆ",
+    "otpSentTo91": "+91 ಗೆ OTP ಕಳುಹಿಸಲಾಗಿದೆ",
+    "enter6digitOtp": "6-ಅಂಕಿಯ OTP ಅನ್ನು ನಮೂದಿಸಿ",
+    "enterYourPassword": "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಅನ್ನು ನಮೂದಿಸಿ",
+    "forgotPassword": "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?",
+    "username": "ಬಳಕೆದಾರ ಹೆಸರು*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*ಬಳಕೆದಾರ ಹೆಸರು ಅಕ್ಷರಗಳು, ಅಂಡರ್‌ಸ್ಕೋರ್ ಮತ್ತು ಅಂಕಿಗಳನ್ನು ಮಾತ್ರ ಹೊಂದಿರಬೇಕು",
+    "emailIsInvalid": "*ಇಮೇಲ್ ಅಮಾನ್ಯವಾಗಿದೆ",
+    "selectGender": "ಲಿಂಗವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "male": "ಪುರುಷ",
+    "female": "ಮಹಿಳೆ",
+    "other": "ಇತರೆ",
+    "dateOfBirth": "ಹುಟ್ಟಿದ ದಿನಾಂಕ",
+    "createPassword": "ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ *",
+    "passwordStrength": "ಪಾಸ್‌ವರ್ಡ್ ಬಲ:",
+    "passwordShouldContain": "ಪಾಸ್‌ವರ್ಡ್ ಇದನ್ನು ಹೊಂದಿರಬೇಕು :",
+    "sendingOtp": "OTP ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...",
+    "requestOtpForPhoneVerification": "ಫೋನ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ OTP ವಿನಂತಿಸಿ",
+    "securedBy": "ಇವರಿಂದ ಸುರಕ್ಷಿತಗೊಂಡಿದೆ",
+    "enterUsername": "ಬಳಕೆದಾರ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+    "gender": "ಲಿಂಗ",
+    "phoneNumber": "ಫೋನ್ ಸಂಖ್ಯೆ",
+    "enterYourPhoneNumber": "ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+    "sendOtp": "OTP ಕಳುಹಿಸಿ",
+    "otpCode": "OTP ಕೋಡ್",
+    "enterOtp": "OTP ನಮೂದಿಸಿ",
+    "newPassword": "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್",
+    "enterNewPassword": "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
+    "passwordMustBeAtLeast8CharactersAndContain": "ಪಾಸ್‌ವರ್ಡ್ ಕನಿಷ್ಠ 8 ಅಕ್ಷರಗಳಿರಬೇಕು ಮತ್ತು ಇವುಗಳನ್ನು ಹೊಂದಿರಬೇಕು:",
+    "email": "ಇಮೇಲ್",
+    "password": "ಪಾಸ್‌ವರ್ಡ್",
+    "resetPassword": "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ",
+    "loginTitle": "Corpus ಗೆ ಲಾಗಿನ್ ಮಾಡಿ",
+    "loginButton": "ಲಾಗಿನ್",
+    "noAccount": "ಖಾತೆ ಇಲ್ಲವೇ?",
+    "hasAccount": "ಈಗಾಗಲೇ ಖಾತೆಯನ್ನು ಹೊಂದಿರುವಿರಾ?",
+    "signup": "ಸೈನ್ ಅಪ್",
+    "verifyOtp": "OTP ದೃಢೀಕರಿಸಿ",
+    "resendOtp": "OTP ಮರುಕಳುಹಿಸಿ",
+    "resendIn": "ನಲ್ಲಿ ಮರುಕಳುಹಿಸಿ",
+    "back": "ಹಿಂದಕ್ಕೆ",
+    "preferPasswordLogin": "ಪಾಸ್‌ವರ್ಡ್ ಲಾಗಿನ್ ಆಯ್ಕೆ ಮಾಡಲು ಬಯಸುವಿರಾ?",
+    "loginWithPassword": "ಪಾಸ್‌ವರ್ಡ್‌ನೊಂದಿಗೆ ಲಾಗಿನ್ ಮಾಡಿ",
+    "loginWithOtp": "OTP ಯೊಂದಿಗೆ ಲಾಗಿನ್ ಮಾಡಿ",
+    "enterPassword": "ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ"
+  },
+  "nav": {
+    "preferPasswordLogin": "ಪಾಸ್‌ವರ್ಡ್ ಲಾಗಿನ್ ಬಯಸುವಿರಾ?",
+    "loginWithPassword": "ಪಾಸ್‌ವರ್ಡ್‌ನೊಂದಿಗೆ ಲಾಗಿನ್ ಮಾಡಿ",
+    "failedToLoadProfileData": "ಪ್ರೊಫೈಲ್ ಡೇಟಾ ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
+    "tellUsAboutYourself": "ನಿಮ್ಮ ಬಗ್ಗೆ ನಮಗೆ ತಿಳಿಸಿ",
+    "socialMediaProfiles": "ಸೋಷಿಯಲ್ ಮೀಡಿಯಾ ಪ್ರೊಫೈಲ್‌ಗಳು",
+    "profileUrl": "ಪ್ರೊಫೈಲ್ URL",
+    "returnToHome": "ಹೋಮ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+    "searchUsers": "ಬಳಕೆದಾರರನ್ನು ಹುಡುಕಿ...",
+    "updateProfilePicture": "ಪ್ರೊಫೈಲ್ ಚಿತ್ರವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಿ",
+    "enterAValidImageUrlForYourProfilePicture": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಚಿತ್ರಕ್ಕಾಗಿ ಮಾನ್ಯವಾದ ಚಿತ್ರ URL ಅನ್ನು ನಮೂದಿಸಿ",
+    "home": "ಹೋಮ್",
+    "profile": "ಪ್ರೊಫೈಲ್",
+    "settings": "ಸೆಟ್ಟಿಂಗ್ಸ್",
+    "logout": "ಲಾಗೌಟ್",
+    "login": "ಲಾಗಿನ್"
+  },
+  "profile": {
+    "setLocation": "ಸ್ಥಳವನ್ನು ಹೊಂದಿಸಿ",
+    "followers": "ಫಾಲೋವರ್ಸ್",
+    "following": "ಫಾಲೋ ಮಾಡುತ್ತಿರುವುದು",
+    "viewYourProfileInfo": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿಯನ್ನು ವೀಕ್ಷಿಸಿ",
+    "viewProfileInfo": "ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿಯನ್ನು ವೀಕ್ಷಿಸಿ",
+    "info": "ಮಾಹಿತಿ",
+    "follow": "ಫಾಲೋ ಮಾಡಿ",
+    "unfollow": "ಅನ್‌ಫಾಲೋ ಮಾಡಿ",
+    "noFollowers": "ಇನ್ನೂ ಯಾವುದೇ ಫಾಲೋವರ್ಸ್ ಇಲ್ಲ",
+    "noFollowing": "ಯಾರನ್ನೂ ಫಾಲೋ ಮಾಡುತ್ತಿಲ್ಲ",
+    "viewProfile": "ಪ್ರೊಫೈಲ್ ವೀಕ್ಷಿಸಿ",
+    "editProfile": "ಪ್ರೊಫೈಲ್ ಸಂಪಾದಿಸಿ",
+    "updateProfilePicture": "ಪ್ರೊಫೈಲ್ ಚಿತ್ರವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಿ",
+    "enterProfilePictureUrl": "ಪ್ರೊಫೈಲ್ ಚಿತ್ರ URL ಅನ್ನು ನಮೂದಿಸಿ",
+    "shortBio": "ಸಣ್ಣ ಪರಿಚಯ",
+    "loading": "ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "error": "ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ",
+    "userNotFound": "ಬಳಕೆದಾರ ಕಂಡುಬಂದಿಲ್ಲ",
+    "authenticationFailed": "ದೃಢೀಕರಣ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಲಾಗಿನ್ ಮಾಡಿ.",
+    "edit": "ಸಂಪಾದಿಸಿ",
+    "remove": "ತೆಗೆದುಹಾಕಿ"
+  },
+  "tour": {
+    "upload": {
+      "title": "ಫೈಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+      "description": "ಮೀಡಿಯಾ ಫೈಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಮತ್ತು ಕೊಡುಗೆ ನೀಡಲು ಪ್ರಾರಂಭಿಸಲು ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ."
+    },
+    "media": {
+      "title": "ಮೀಡಿಯಾ ಪ್ರಕಾರ ಆಯ್ಕೆಮಾಡಿ",
+      "description": "ನೀವು ಕೊಡುಗೆ ನೀಡಲು ಬಯಸುವ ವಿಷಯದ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ."
+    },
+    "stats": {
+      "title": "ನಿಮ್ಮ ಕೊಡುಗೆಗಳು",
+      "description": "ಇಲ್ಲಿ ನೀವು ನಿಮ್ಮ ಪಾಯಿಂಟ್ಸ್ ಮತ್ತು ವೇದಿಕೆಗೆ ನೀಡಿದ ಒಟ್ಟಾರೆ ಕೊಡುಗೆಗಳನ್ನು ನೋಡಬಹುದು."
+    },
+    "home": {
+      "title": "ಹೋಮ್",
+      "description": "ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಈ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ."
+    },
+    "tools": {
+      "title": "ಉಪಕರಣಗಳು",
+      "description": "ಅನೋಟೇಶನ್ ಮತ್ತು ಪ್ರೂಫ್ ರೀಡಿಂಗ್ ಉಪಕರಣಗಳನ್ನು ಪ್ರವೇಶಿಸಿ."
+    },
+    "peerReviewTool": {
+      "title": "ಪೀರ್ ರಿವ್ಯೂ",
+      "description": "ಸಮುದಾಯದ ಎಲ್ಲಾ ರೀತಿಯ ಕೊಡುಗೆಗಳನ್ನು ವಿಮರ್ಶಿಸಲು ಜಾಗತಿಕ ಉಪಕರಣ."
+    },
+    "imageReview": {
+      "title": "ಚಿತ್ರ ಅನೋಟೇಶನ್",
+      "description": "ಚಿತ್ರದ ಕೊಡುಗೆಗಳನ್ನು ಅನೋಟೇಟ್ ಮಾಡಲು ಮತ್ತು ವಿಮರ್ಶಿಸಲು ಉಪಕರಣ."
+    },
+    "audioReview": {
+      "title": "ಆಡಿಯೋ ಉಪಕರಣ",
+      "description": "ಆಡಿಯೋ ರೆಕಾರ್ಡಿಂಗ್‌ಗಳನ್ನು ವಿಮರ್ಶಿಸಲು ವಿಶೇಷ ಉಪಕರಣ."
+    },
+    "videoReview": {
+      "title": "ವಿಡಿಯೋ ಉಪಕರಣ",
+      "description": "ವಿಡಿಯೋ ವಿಷಯವನ್ನು ವಿಮರ್ಶಿಸಲು ಮೀಸಲಾದ ಇಂಟರ್ಫೇಸ್."
+    },
+    "docDigitization": {
+      "title": "ದಸ್ತಾವೇಜು ಡಿಜಿಟಲೀಕರಣ",
+      "description": "ಪಠ್ಯ ಕೊಡುಗೆಗಳನ್ನು ಡಿಜಿಟಲೀಕರಣಗೊಳಿಸಿ ಡೇಟಾ ಗುಣಮಟ್ಟವನ್ನು ಸುಧಾರಿಸಲು ಸಹಾಯ ಮಾಡಿ."
+    },
+    "futureTools": {
+      "title": "ಮುಂಬರುವ ವೈಶಿಷ್ಟ್ಯಗಳು",
+      "description": "Ask Your Corpus, ಸ್ಟೋರಿ ಜನರೇಟರ್, ಏಜೆಂಟ್ ವರ್ಕ್‌ಫ್ಲೋಗಳು ಮತ್ತು ಹೆಚ್ಚಿನವುಗಳಿಗಾಗಿ ಕಾಯಿರಿ!"
+    },
+    "profile": {
+      "title": "ಪ್ರೊಫೈಲ್",
+      "description": "ಇಲ್ಲಿ ನಿಮ್ಮ ಅಂಕಿಅಂಶಗಳನ್ನು ನೋಡಿ ಮತ್ತು ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ."
+    },
+    "language": {
+      "title": "ಭಾಷೆ",
+      "description": "ಅಪ್ಲಿಕೇಶನ್ ಭಾಷೆಯನ್ನು ಇಲ್ಲಿ ಬದಲಿಸಿ."
+    },
+    "heatmap": {
+      "title": "ಚಟುವಟಿಕೆ ಹೀಟ್ ಮ್ಯಾಪ್",
+      "description": "ಸಮಯದ ಮೇಲೆ ನಿಮ್ಮ ದೈನಂದಿನ ಕೊಡುಗೆಗಳು ಮತ್ತು ಸ್ಟ್ರೀಕ್ ಅನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ."
+    },
+    "dashboard": {
+      "title": "ಕೊಡುಗೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+      "description": "ಮೀಡಿಯಾ ಪ್ರಕಾರದ ಮೂಲಕ ನಿಮ್ಮ ಕೊಡುಗೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ."
+    }
+  },
+  "tools": {
+    "docDigitization": "ದಸ್ತಾವೇಜು ಡಿಜಿಟಲೀಕರಣ",
+    "docDigitizationDescription": "ದಸ್ತಾವೇಜುಗಳಿಂದ OCR ಪಠ್ಯವನ್ನು ವಿಮರ್ಶಿಸಿ ಮತ್ತು ಸರಿಪಡಿಸಿ",
+    "askYourCorpus": "Ask Your Corpus",
+    "askYourCorpusDescription": "ಬುದ್ಧಿವಂತ ದಸ್ತಾವೇಜು ಹುಡುಕಾಟಕ್ಕಾಗಿ ರಿಟ್ರೈವಲ್-ಆಗ್ಮೆಂಟೆಡ್ ಜನರೇಷನ್",
+    "peerReview": "ಪೀರ್ ರಿವ್ಯೂ",
+    "peerReviewDescription": "ಇತರ ಬಳಕೆದಾರರ ಕೊಡುಗೆಗಳನ್ನು ವಿಮರ್ಶಿಸಿ ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಿ",
+    "imageAnnotation": "ಚಿತ್ರ ಅನೋಟೇಶನ್",
+    "imageAnnotationDescription": "ಚಿತ್ರಗಳಲ್ಲಿ ವಸ್ತುಗಳು, ಪ್ರದೇಶಗಳು ಮತ್ತು ಮಾದರಿಗಳನ್ನು ಅನೋಟೇಟ್ ಮಾಡಿ",
+    "audioTool": "ಆಡಿಯೋ ಉಪಕರಣ",
+    "audioToolDescription": "ಆಡಿಯೋ ರೆಕಾರ್ಡಿಂಗ್‌ಗಳನ್ನು ವಿಮರ್ಶಿಸಿ ಮತ್ತು ಅನೋಟೇಟ್ ಮಾಡಿ",
+    "videoTool": "ವಿಡಿಯೋ ಉಪಕರಣ",
+    "videoToolDescription": "ವಿಡಿಯೋ ವಿಷಯಗಳನ್ನು ವಿಮರ್ಶಿಸಿ ಮತ್ತು ಅನೋಟೇಟ್ ಮಾಡಿ",
+    "transcription": "ಲಿಪ್ಯಂತರ",
+    "transcriptionDescription": "ಆಡಿಯೋ ಮತ್ತು ವಿಡಿಯೋ ವಿಷಯವನ್ನು ಪಠ್ಯಕ್ಕೆ ಪರಿವರ್ತಿಸಿ",
+    "textExtraction": "ಪಠ್ಯ ಹೊರತೆಗೆಯುವಿಕೆ",
+    "textExtractionDescription": "ಚಿತ್ರಗಳು ಮತ್ತು ದಸ್ತಾವೇಜುಗಳಿಂದ ಪಠ್ಯವನ್ನು ಹೊರತೆಗೆಯಿರಿ",
+    "audioProofreading": "ಆಡಿಯೋ ಪ್ರೂಫ್ ರೀಡಿಂಗ್",
+    "audioProofreadingDescription": "ಲಿಪ್ಯಂತರಗೊಂಡ ಆಡಿಯೋ ವಿಷಯವನ್ನು ಆಲಿಸಿ ಮತ್ತು ಸರಿಪಡಿಸಿ",
+    "storyGenerator": "ಸ್ಟೋರಿ ಜನರೇಟರ್",
+    "storyGeneratorDescription": "ಸಂಗ್ರಹಿಸಿದ ಡೇಟಾದಿಂದ ಶೀರ್ಷಿಕೆ ಕಥೆಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ರಚಿಸಿ",
+    "agentWorkflows": "ಏಜೆಂಟ್ ವರ್ಕ್‌ಫ್ಲೋಗಳು",
+    "agentWorkflowsDescription": "ಸ್ವಯಂಚಾಲಿತ AI ಏಜೆಂಟ್ ಪ್ರಕ್ರಿಯೆಗಳನ್ನು ವಿನ್ಯಾಸಗೊಳಿಸಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ",
+    "metadataIndex": "ಮೆಟಾಡೇಟಾ ಇಂಡೆಕ್ಸ್",
+    "metadataIndexDescription": "ಸಮುದಾಯ ಮೆಟಾಡೇಟಾಕ್ಕಾಗಿ ಸುಧಾರಿತ ಇಂಡೆಕ್ಸಿಂಗ್ ಮತ್ತು ಹುಡುಕಾಟ",
+    "heading": "ಉಪಕರಣಗಳು",
+    "planned": "ಯೋಜಿತ",
+    "comingSoonDescription": "ಡೇಟಾಸೆಟ್ ಇಂಜೆಕ್ಷನ್ ಮಾಡ್ಯೂಲ್ ಮಾಪನಾಂಕ ನಿರ್ಣಯದಲ್ಲಿದೆ."
+  },
+  "proofreading": {
+    "getNextRecord": "ಮುಂದಿನ ದಾಖಲೆಯನ್ನು ಪಡೆಯಿರಿ",
+    "page": "ಪುಟ",
+    "pages": "ಪುಟಗಳು",
+    "loadingPdf": "PDF ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "fetchingRecord": "ದಾಖಲೆಯನ್ನು ಪಡೆಯಲಾಗುತ್ತಿದೆ...",
+    "pleaseGetRecord": "ಪ್ರಾರಂಭಿಸಲು ದಯವಿಟ್ಟು ಒಂದು ದಾಖಲೆಯನ್ನು ಪಡೆಯಿರಿ.",
+    "noRecordLoaded": "ಯಾವುದೇ ದಾಖಲೆ ಲೋಡ್ ಆಗಿಲ್ಲ",
+    "noUrlFound": "ಯಾವುದೇ URL ಕಂಡುಬಂದಿಲ್ಲ",
+    "submitPage": "ಪುಟವನ್ನು ಸಲ್ಲಿಸಿ",
+    "submitting": "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+    "pageSubmitted": "ಪುಟವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!",
+    "submissionError": "ಸಲ್ಲಿಸುವಲ್ಲಿ ದೋಷ",
+    "cannotSubmit": "ಸಲ್ಲಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ: ಪ್ರಸ್ತುತ ಯಾವುದೇ ದಾಖಲೆ ಲೋಡ್ ಆಗಿಲ್ಲ.",
+    "ocrTextPlaceholder": "OCR ಪಠ್ಯ ಇಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ.",
+    "submitPageAlert": "ಪುಟ {page} ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!"
+  },
+  "languages": {
+    "telugu": "ತೆಲುಗು",
+    "english": "ಇಂಗ್ಲಿಷ್",
+    "hindi": "ಹಿಂದಿ",
+    "kannada": "ಕನ್ನಡ",
+    "tamil": "ತಮಿಳು",
+    "bengali": "ಬೆಂಗಾಲಿ",
+    "malayalam": "ಮಲಯಾಳಂ"
+  }
+}

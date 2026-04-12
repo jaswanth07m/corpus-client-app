@@ -1,0 +1,736 @@
+{
+  "common": {
+    "6": {
+      "digits": "/6 ডিজিট"
+    },
+    "10": {
+      "digits": "/10 ডিজিট"
+    },
+    "91": "+91",
+    "proofread": {
+      "ocr": {
+        "text": "OCR টেক্সট প্রুফরিড করুন"
+      }
+    },
+    "showCompleteText": "সম্পূর্ণ টেক্সট দেখান",
+    "hideCompleteText": "সম্পূর্ণ টেক্সট লুকান",
+    "submitPage": "পৃষ্ঠা জমা দিন",
+    "savePage": "পৃষ্ঠা সংরক্ষণ করুন",
+    "loading": "লোড হচ্ছে...",
+    "error": "ত্রুটি",
+    "success": "সফল",
+    "cancel": "বাতিল করুন",
+    "save": "সংরক্ষণ করুন",
+    "delete": "মুছে ফেলুন",
+    "edit": "সম্পাদনা করুন",
+    "submit": "জমা দিন",
+    "confirm": "নিশ্চিত করুন",
+    "back": "ফিরে যান",
+    "next": "পরবর্তী",
+    "previous": "পূর্ববর্তী",
+    "close": "বন্ধ করুন",
+    "search": "অনুসন্ধান করুন",
+    "filter": "ফিল্টার",
+    "sort": "সাজান",
+    "yes": "হ্যাঁ",
+    "no": "না",
+    "ok": "ঠিক আছে",
+    "previousSlide": "পূর্ববর্তী স্লাইড",
+    "nextSlide": "পরবর্তী স্লাইড",
+    "goToPreviousPage": "পূর্ববর্তী পৃষ্ঠায় যান",
+    "goToNextPage": "পরবর্তী পৃষ্ঠায় যান",
+    "morePages": "আরও পৃষ্ঠা",
+    "toggle": {
+      "sidebar": "সাইডবার টগল করুন"
+    },
+    "selectALocation": "একটি স্থান নির্বাচন করুন",
+    "confirmLocation": "স্থান নিশ্চিত করুন",
+    "selectMediaType": "মিডিয়া টাইপ নির্বাচন করুন",
+    "to": {
+      "choose": "বেছে নিতে"
+    },
+    "documentUpload": "ডকুমেন্ট আপলোড *",
+    "uploadDocumentFilesPdfDocxTxt": "ডকুমেন্ট ফাইল আপলোড করুন (PDF, DOCX, TXT)",
+    "selectedFile": "নির্বাচিত ফাইল:",
+    "content": "বিষয়বস্তু *",
+    "yourBrowserDoesNotSupportTheAudioElement": "আপনার ব্রাউজার অডিও এলিমেন্ট সমর্থন করে না।",
+    "uploadAudioFilesSingleFile": "অডিও ফাইল আপলোড করুন (একটি ফাইল)",
+    "switch": {
+      "to": "পরিবর্তন করুন"
+    },
+    "yourBrowserDoesNotSupportTheVideoElement": "আপনার ব্রাউজার ভিডিও এলিমেন্ট সমর্থন করে না।",
+    "uploadVideoFilesSingleFile": "ভিডিও ফাইল আপলোড করুন (একটি ফাইল)",
+    "selectedFiles": "নির্বাচিত ফাইলসমূহ:",
+    "uploadImageFilesSingleFile": "ছবি ফাইল আপলোড করুন (একটি ফাইল)",
+    "technologyForSociety": "সমাজের জন্য প্রযুক্তি",
+    "userIdNotFoundPleaseTryLoggingInAgain": "ইউজার আইডি পাওয়া যায়নি। দয়া করে আবার লগইন করার চেষ্টা করুন।",
+    "geolocationNotSupported": "জিওলোকেশন সমর্থিত নয়",
+    "pleaseSelectAtLeastOneCategoryAndProvideATitle": "দয়া করে অন্তত একটি বিভাগ নির্বাচন করুন এবং একটি শিরোনাম দিন",
+    "releaseRightsNotFoundCheckForReleaseRights": "রিলিজ রাইটস পাওয়া যায়নি। রিলিজ রাইটস যাচাই করুন",
+    "others": "অন্যান্য",
+    "notDoneByAuthor": "লেখকের দ্বারা করা হয়নি",
+    "uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "আপনার তৈরি করা যে কোনো কাজ আপলোড করুন অথবা আপনি আপনার পরিবারের সদস্য/বন্ধুদের অনুমতি নিয়ে তাদের কাজ আপলোড করতে পারেন।",
+    "selectALangauge": "একটি ভাষা নির্বাচন করুন",
+    "pleaseSelectAFile": "দয়া করে একটি ফাইল নির্বাচন করুন",
+    "uploadFailedPleaseTryAgain": "আপলোড ব্যর্থ হয়েছে। দয়া করে আবার চেষ্টা করুন।",
+    "searchByUserId": "ইউজার আইডি দিয়ে খুঁজুন...",
+    "searchByTitleDescription": "শিরোনাম, বর্ণনা দিয়ে খুঁজুন...",
+    "searchUsers": "ইউজার খুঁজুন",
+    "peerReview": "পিয়ার রিভিউ",
+    "noContributionDataAvailable": "কোনো অবদানের তথ্য নেই।",
+    "editHistory": "সম্পাদনার ইতিহাস",
+    "noEditHistoryFoundForThisRecord": "এই রেকর্ডের জন্য কোনো সম্পাদনার ইতিহাস পাওয়া যায়নি।",
+    "change": {
+      "source": "উৎস পরিবর্তন করুন:",
+      "language": "ভাষা পরিবর্তন করুন"
+    },
+    "field": {
+      "changes": "ফিল্ডের পরিবর্তনসমূহ:"
+    },
+    "old": "পুরানো:",
+    "new": "নতুন:",
+    "loginFailedNoAccessTokenReceived": "লগইন ব্যর্থ হয়েছে: কোনো এক্সেস টোকেন পাওয়া যায়নি",
+    "pleaseEnterAValidEmailAddress": "একটি সঠিক ইমেল ঠিকানা লিখুন",
+    "swechaTechnologyForSociety": "স্বেচ্ছা - সমাজের জন্য প্রযুক্তি",
+    "sending": "পাঠানো হচ্ছে...",
+    "verifying": "যাচাই করা হচ্ছে...",
+    "resetHere": "এখানে রিসেট করুন",
+    "logging": {
+      "in": "লগইন করা হচ্ছে..."
+    },
+    "emailAddress": "ইমেল ঠিকানা *",
+    "selectGender": "লিঙ্গ নির্বাচন করুন",
+    "date": {
+      "of": {
+        "birth": "জন্ম তারিখ"
+      }
+    },
+    "one": {
+      "uppercase": {
+        "letter": "একটি বড় হাতের অক্ষর"
+      },
+      "lowercase": {
+        "letter": "একটি ছোট হাতের অক্ষর"
+      },
+      "number": "একটি সংখ্যা"
+    },
+    "minimum": {
+      "8": {
+        "characters": "নূন্যতম ৮টি অক্ষর"
+      }
+    },
+    "confirmPassword": "পাসওয়ার্ড নিশ্চিত করুন *",
+    "passwordsDoNotMatch": "*পাসওয়ার্ড মিলছে না",
+    "i": {
+      "agree": {
+        "to": {
+          "the": "আমি এতে সম্মত"
+        }
+      }
+    },
+    "terms": {
+      "of": {
+        "service": "পরিষেবার শর্তাবলী"
+      }
+    },
+    "privacy": {
+      "policy": "গোপনীয়তা নীতি"
+    },
+    "backToSignupForm": "সাইনআপ ফর্মে ফিরে যান",
+    "documentPreview": "ডকুমেন্ট প্রিভিউ",
+    "openInNewTab": "নতুন ট্যাবে খুলুন",
+    "viewText": "টেক্সট দেখুন",
+    "openDocument": "ডকুমেন্ট খুলুন",
+    "noChangesToSave": "সংরক্ষণের জন্য কোনো পরিবর্তন নেই",
+    "meaningful": {
+      "words": "অর্থপূর্ণ শব্দ"
+    },
+    "release": {
+      "rights": "রিলিজ রাইটস"
+    },
+    "specify": {
+      "creator": "সৃষ্টিকর্তার নাম উল্লেখ করুন",
+      "source": "উৎস উল্লেখ করুন"
+    },
+    "Reviewed": "✓ পর্যালোচিত",
+    "media": {
+      "unavailable": "মিডিয়া উপলব্ধ নয়"
+    },
+    "uploadedMedia": "আপলোড করা মিডিয়া",
+    "unsupported": {
+      "media": "অসমর্থিত মিডিয়া"
+    },
+    "showHistory": "ইতিহাস দেখান",
+    "noHistory": "কোনো ইতিহাস নেই",
+    "source": "উৎস:",
+    "enter": {
+      "title": "শিরোনাম লিখুন",
+      "description": "বর্ণনা লিখুন",
+      "current": {
+        "place": "বর্তমান স্থান লিখুন"
+      },
+      "profession": "পেশা লিখুন",
+      "organisation": "প্রতিষ্ঠানের নাম লিখুন"
+    },
+    "noUsersFound": "কোনো ইউজার পাওয়া যায়নি",
+    "from": {
+      "place": "স্থান থেকে"
+    },
+    "places": {
+      "lived": "বসবাস করা স্থানসমূহ"
+    },
+    "authenticationTokenNotFound": "অথেন্টিকেশন টোকেন পাওয়া যায়নি",
+    "current": {
+      "place": "বর্তমান স্থান"
+    },
+    "noLocationSet": "কোনো স্থান নির্ধারণ করা নেই",
+    "selectLanguage": "ভাষা নির্বাচন করুন",
+    "addLanguage": "ভাষা যোগ করুন",
+    "addPlace": "স্থান যোগ করুন",
+    "addSocialMedia": "সোশ্যাল মিডিয়া যোগ করুন",
+    "fileRemoved": "ফাইল সরানো হয়েছে",
+    "textUploadFailed": "টেক্সট আপলোড ব্যর্থ হয়েছে",
+    "uploadContent": "বিষয়বস্তু আপলোড করুন",
+    "title": "শিরোনাম *",
+    "description": "বর্ণনা *",
+    "selectCategories": "বিভাগ নির্বাচন করুন *",
+    "editLocation": "স্থান সম্পাদনা করুন",
+    "pick": {
+      "from": {
+        "map": "ম্যাপ থেকে বেছে নিন"
+      }
+    },
+    "SelectALanguage": "-- ভাষা নির্বাচন করুন --",
+    "sorryPleaseUploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission": "দুঃখিত! আপনার তৈরি করা কাজ আপলোড করুন অথবা আপনি আপনার পরিবারের সদস্য/বন্ধুদের অনুমতি নিয়ে তাদের কাজ আপলোড করতে পারেন।",
+    "selectReleaseRights": "রিলিজ রাইটস নির্বাচন করুন",
+    "iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare": "আমি এটি ইন্টারনেট থেকে ডাউনলোড করেছি এবং/অথবা আমি জানি না এটি শেয়ার করা কি বৈধ।",
+    "creator": "সৃষ্টিকর্তা *",
+    "oopsPageNotFound": "উফ! পৃষ্ঠাটি পাওয়া যায়নি",
+    "backToLogin": "লগইন-এ ফিরে যান",
+    "confirmNewPassword": "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+    "resetPassword": "পাসওয়ার্ড রিসেট করুন",
+    "backToInitiate": "শুরুতে ফিরে যান",
+    "uploadFiles": "ফাইল আপলোড করুন",
+    "click": {
+      "to": {
+        "get": {
+          "started": "শুরু করতে ক্লিক করুন"
+        }
+      }
+    },
+    "contributeToOpenDataAndHelpBuildTheFuture": "ওপেন ডেটাতে অবদান রাখুন এবং ভবিষ্যৎ নির্মাণে সাহায্য করুন",
+    "docDigitization": {
+      "tool": "ডকুমেন্ট ডিজিটাইজেশন টুল"
+    },
+    "reviewAndCorrectOcrTextFromDocuments": "ডকুমেন্ট থেকে OCR টেক্সট পর্যালোচনা ও সংশোধন করুন",
+    "showHints": "ইঙ্গিত দেখান",
+    "reviewCommunityContributions": "কমিউনিটি অবদান পর্যালোচনা করুন",
+    "refreshFeed": "ফিড রিফ্রেশ করুন",
+    "noResultsFoundFor": "এর জন্য কোনো ফলাফল পাওয়া যায়নি \"",
+    "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "ইউজার সম্ভবত এখনও তালিকায় নেই। অনুসন্ধান মুছে ফেলে আরও দেখার জন্য স্ক্রোল করুন।",
+    "processing": "প্রক্রিয়াকরণ চলছে...",
+    "noFollowersFound": "কোনো ফলোয়ার পাওয়া যায়নি",
+    "noUsersBeingFollowed": "কাউকে ফলো করা হচ্ছে না",
+    "on": {
+      "page": "পৃষ্ঠায়"
+    },
+    "Previous": "← পূর্ববর্তী",
+    "editSegmentText": "সেগমেন্ট টেক্সট সম্পাদনা করুন...",
+    "noSegmentsFoundForThisPage": "এই পৃষ্ঠার জন্য কোনো সেগমেন্ট পাওয়া যায়নি।",
+    "update": {
+      "reading": {
+        "order": "পড়ার ক্রম আপডেট করবেন?"
+      },
+      "order": "ক্রম আপডেট করুন"
+    },
+    "overall": {
+      "progress": "সামগ্রিক অগ্রগতি"
+    },
+    "previousPage": "পূর্ববর্তী পৃষ্ঠা",
+    "nextPage": "পরবর্তী পৃষ্ঠা"
+  },
+  "ui": {
+    "failed": {
+      "to": {
+        "get": {
+          "user": {
+            "information": {
+              "please": {
+                "try": {
+                  "logging": {
+                    "in": {
+                      "again": "ইউজারের তথ্য পেতে ব্যর্থ। দয়া করে আবার লগইন করার চেষ্টা করুন।"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fetch": {
+          "categories": "বিভাগসমূহ আনতে ব্যর্থ"
+        }
+      }
+    },
+    "choose": {
+      "how": {
+        "youd": {
+          "like": {
+            "to": {
+              "contribute": "আপনি কীভাবে অবদান রাখতে চান তা চয়ন করুন"
+            }
+          }
+        }
+      }
+    },
+    "enter": {
+      "a": {
+        "title": {
+          "for": {
+            "your": {
+              "content": "আপনার বিষয়বস্তুর জন্য একটি শিরোনাম লিখুন"
+            }
+          }
+        },
+        "creator": {
+          "for": {
+            "your": {
+              "content": "আপনার বিষয়বস্তুর সৃষ্টিকর্তার নাম লিখুন"
+            }
+          }
+        }
+      },
+      "your": {
+        "text": {
+          "content": {
+            "here": "আপনার টেক্সট এখানে লিখুন..."
+          }
+        }
+      }
+    },
+    "provide": {
+      "a": {
+        "detailed": {
+          "description": {
+            "minimum": {
+              "32": {
+                "characters": "বিস্তারিত বর্ণনা দিন (ন্যূনতম ৩২টি অক্ষর)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "this": {
+      "work": {
+        "is": {
+          "created": {
+            "by": {
+              "me": {
+                "and": {
+                  "anyone": {
+                    "is": {
+                      "free": {
+                        "to": {
+                          "use": {
+                            "it": "এই কাজটি আমার তৈরি এবং যে কেউ এটি বিনামূল্যে ব্যবহার করতে পারে।"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "too": {
+      "many": {
+        "attempts": {
+          "please": {
+            "wait": {
+              "before": {
+                "trying": {
+                  "again": "অত্যধিক চেষ্টা। দয়া করে আবার চেষ্টা করার আগে কিছুক্ষণ অপেক্ষা করুন।"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "please": {
+      "agree": {
+        "to": {
+          "the": {
+            "terms": {
+              "and": {
+                "conditions": "দয়া করে শর্তাবলীতে সম্মত হন"
+              }
+            }
+          }
+        }
+      }
+    },
+    "place": {
+      "should": {
+        "have": {
+          "characters": {
+            "is": {
+              "allowed": "*স্থান অবশ্যই অক্ষরে হতে হবে ( , অনুমোদিত)"
+            }
+          }
+        }
+      }
+    },
+    "one": {
+      "special": {
+        "character": "একটি বিশেষ অক্ষর"
+      }
+    },
+    "tap": {
+      "any": {
+        "colored": {
+          "section": "রঙিন অংশে ট্যাপ করুন"
+        }
+      }
+    },
+    "language": {
+      "proficiencies": "ভাষা দক্ষতা"
+    },
+    "start": {
+      "typing": {
+        "to": {
+          "get": {
+            "hints": "*ইঙ্গিত পেতে টাইপ করা শুরু করুন"
+          }
+        }
+      }
+    },
+    "ocr": {
+      "text": {
+        "will": {
+          "appear": {
+            "here": "OCR টেক্সট এখানে দেখা যাবে।"
+          }
+        }
+      }
+    }
+  },
+  "messages": {
+    "networkErrorPleaseTryAgain": "নেটওয়ার্ক ত্রুটি। দয়া করে আবার চেষ্টা করুন।",
+    "contentUploadedSuccessfullyRedirectingToLanding": "বিষয়বস্তু সফলভাবে আপলোড হয়েছে! হোমপেজে ফিরিয়ে নেওয়া হচ্ছে...",
+    "networkErrorPleaseCheckYourConnectionAndTryAgain": "নেটওয়ার্ক ত্রুটি। আপনার কানেকশন চেক করুন এবং আবার চেষ্টা করুন।",
+    "loadingContributionsDashboard": "অবদানের ড্যাশবোর্ড লোড হচ্ছে...",
+    "otpSentSuccessfully": "OTP সফলভাবে পাঠানো হয়েছে!",
+    "loginSuccessful": "লগইন সফল!",
+    "signupOtpSentSuccessfully": "সাইনআপ OTP সফলভাবে পাঠানো হয়েছে!",
+    "accountCreatedAndVerifiedSuccessfullyPleaseLogin": "অ্যাকাউন্ট তৈরি এবং যাচাই সফল হয়েছে! দয়া করে লগইন করুন।",
+    "signupOtpResentSuccessfully": "সাইনআপ OTP পুনরায় পাঠানো হয়েছে!",
+    "loading": "লোড হচ্ছে...",
+    "errorLoadingContributions": "অবদান লোড করতে ত্রুটি:",
+    "profileUpdatedSuccessfully": "প্রোফাইল সফলভাবে আপডেট করা হয়েছে!",
+    "loadingProfile": "প্রোফাইল লোড হচ্ছে...",
+    "profilePictureUpdatedSuccessfully": "প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!",
+    "loadingPointsData": "পয়েন্টের তথ্য লোড হচ্ছে...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "আপনি কি এই অংশগুলোর পড়ার ক্রম আপডেট করতে চান? এটি বাউন্ডিং বক্সের ক্রমও আপডেট করবে।"
+  },
+  "user": {
+    "requestingLocationAccess": "স্থানের অনুমতি চাওয়া হচ্ছে...",
+    "locationAccessGranted": "স্থানের অনুমতি দেওয়া হয়েছে!",
+    "locationSetManually": "স্থান ম্যানুয়ালি সেট করা হয়েছে!",
+    "locationIsRequiredPleaseEnableLocationAccessOrEnterManually": "স্থান প্রয়োজন। দয়া করে লোকেশন এক্সেস চালু করুন অথবা ম্যানুয়ালি লিখুন।",
+    "verifyingLocation": "স্থান যাচাই করা হচ্ছে...",
+    "locationCapturedAwaitingVerification": "স্থান চিহ্নিত করা হয়েছে, যাচাইয়ের জন্য অপেক্ষা করুন...",
+    "locationRequired": "স্থান আবশ্যক",
+    "useCurrentLocation": "বর্তমান স্থান ব্যবহার করুন",
+    "useMyCurrentLocation": "আমার বর্তমান স্থান ব্যবহার করুন",
+    "pleaseEnterYourName": "দয়া করে আপনার নাম লিখুন",
+    "fullName": "পুরো নাম *",
+    "nameShouldHaveCharactersOnly": "*নামে শুধুমাত্র অক্ষর থাকতে হবে",
+    "placeCityState": "স্থান (শহর, রাজ্য)",
+    "enterFullName": "পুরো নাম লিখুন",
+    "shortBio": "সংক্ষিপ্ত পরিচিতি",
+    "profession": "পেশা",
+    "organisation": "প্রতিষ্ঠান"
+  },
+  "validation": {
+    "pleaseEnterValidLatitudeAndLongitudeValues": "সঠিক ল্যাটিটিউড এবং লঙ্গিটিউড মান লিখুন",
+    "latitudeMustBeBetween90And90": "ল্যাটিটিউড -৯০ এবং ৯০ এর মধ্যে হতে হবে",
+    "longitudeMustBeBetween180And180": "লঙ্গিটিউড -১৮০ এবং ১৮০ এর মধ্যে হতে হবে",
+    "pleaseEnterTextContent": "দয়া করে টেক্সট লিখুন"
+  },
+  "categories": {
+    "chooseACategoryToContributeContent": "অবদান রাখতে একটি বিভাগ বেছে নিন",
+    "changeType": "ধরণ পরিবর্তন করুন:",
+    "unsupportedMediaType": "অসমর্থিত মিডিয়া ধরণ",
+    "sourceLabel": "উৎসের লেবেল",
+    "type": "ধরণ:"
+  },
+  "media": {
+    "failedToSwitchCamera": "ক্যামেরা পরিবর্তন করতে ব্যর্থ",
+    "audioRecordingStarted": "অডিও রেকর্ডিং শুরু হয়েছে",
+    "videoRecordingStarted": "ভিডিও রেকর্ডিং শুরু হয়েছে",
+    "recordingPaused": "রেকর্ডিং থামানো হয়েছে",
+    "failedToPauseRecording": "রেকর্ডিং থামাতে ব্যর্থ",
+    "recordingResumed": "রেকর্ডিং পুনরায় শুরু হয়েছে",
+    "failedToResumeRecording": "রেকর্ডিং পুনরায় শুরু করতে ব্যর্থ",
+    "recordingStopped": "রেকর্ডিং বন্ধ করা হয়েছে",
+    "failedToStopRecording": "রেকর্ডিং বন্ধ করতে ব্যর্থ",
+    "failedToCapturePhotoPleaseCheckCameraPermissions": "ছবি তুলতে ব্যর্থ। ক্যামেরার অনুমতি চেক করুন।",
+    "videoUnavailable": "ভিডিও অনুপলব্ধ",
+    "loadVideo": "ভিডিও লোড করুন",
+    "audioUnavailable": "অডিও অনুপলব্ধ",
+    "loadAudio": "অডিও লোড করুন",
+    "documentUnavailable": "ডকুমেন্ট অনুপলব্ধ",
+    "loadDocument": "ডকুমেন্ট লোড করুন",
+    "fileSize": "ফাইলের আকার",
+    "imageUnavailable": "ছবি অনুপলব্ধ",
+    "audioRecording": "অডিও রেকর্ডিং *",
+    "startRecording": "রেকর্ডিং শুরু করুন",
+    "stopRecording": "রেকর্ডিং বন্ধ করুন",
+    "recordingCompleted": "রেকর্ডিং সম্পন্ন (",
+    "recordAgain": "আবার রেকর্ড করুন",
+    "videoRecording": "ভিডিও রেকর্ডিং *",
+    "startVideoRecording": "ভিডিও রেকর্ডিং শুরু করুন",
+    "photoCapture": "ছবি তোলা *",
+    "startCamera": "ক্যামেরা চালু করুন",
+    "capturePhoto": "ছবি তুলুন",
+    "stopCamera": "ক্যামেরা বন্ধ করুন",
+    "photoCaptured": "ছবি তোলা হয়েছে:",
+    "capturedPhoto": "তোলা ছবি",
+    "audioTrack": "অডিও ট্র্যাক",
+    "pleaseEnterAValidImageUrl": "সঠিক ছবির URL লিখুন",
+    "imageUrl": "ছবির URL",
+    "enterRecordId": "রেকর্ড আইডি লিখুন",
+    "recordControls": "রেকর্ড কন্ট্রোল"
+  },
+  "stats": {
+    "contributionsYet": "এখনও কোনো অবদান নেই।",
+    "pointsActivity": "পয়েন্ট কার্যক্রম",
+    "contributions": "অবদানসমূহ...",
+    "contributionsFound": "অবদান পাওয়া গেছে।"
+  },
+  "auth": {
+    "pleaseEnterAValid10digitPhoneNumber": "দয়া করে সঠিক ১০ সংখ্যার ফোন নম্বর লিখুন",
+    "pleaseEnterAValid6digitOtp": "দয়া করে সঠিক ৬ সংখ্যার OTP লিখুন",
+    "invalidOtpPleaseCheckAndTryAgain": "ভুল OTP। দয়া করে চেক করুন এবং আবার চেষ্টা করুন।",
+    "otpVerificationFailedPleaseTryAgain": "OTP যাচাই ব্যর্থ হয়েছে। দয়া করে আবার চেষ্টা করুন।",
+    "otpHasExpiredOrIsInvalidPleaseRequestANewOne": "OTP-এর মেয়াদ শেষ হয়েছে অথবা এটি ভুল। দয়া করে নতুন একটির জন্য অনুরোধ করুন।",
+    "pleaseEnterAValidPhoneNumberAndPassword": "দয়া করে সঠিক ফোন নম্বর এবং পাসওয়ার্ড লিখুন",
+    "pleaseEnterAValidUsername": "দয়া করে সঠিক ইউজারনেম লিখুন",
+    "passwordMustBeAtLeast6CharactersLong": "পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে",
+    "welcomeBack": "স্বাগতম",
+    "createAccount": "অ্যাকাউন্ট তৈরি করুন",
+    "signInToContinueYourJourney": "আপনার যাত্রা চালিয়ে যেতে লগইন করুন",
+    "joinOurCommunityToday": "আজই আমাদের কমিউনিটিতে যোগ দিন",
+    "login": "লগইন",
+    "signUp": "সাইন আপ",
+    "enterYourRegisteredPhoneNumberToReceiveOtp": "OTP পেতে আপনার নিবন্ধিত ফোন নম্বর লিখুন",
+    "enter10digitPhoneNumber": "১০ সংখ্যার ফোন নম্বর লিখুন",
+    "phoneNumberIsInvalid": "*ফোন নম্বর সঠিক নয়",
+    "otpSentTo91": "+91 নম্বরে OTP পাঠানো হয়েছে",
+    "enter6digitOtp": "৬ সংখ্যার OTP লিখুন",
+    "enterYourPassword": "আপনার পাসওয়ার্ড লিখুন",
+    "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+    "username": "ইউজারনেম*",
+    "usernameShouldConsistOfCharactersUnderscoresDigitsOnly": "*ইউজারনেমে শুধুমাত্র অক্ষর, আন্ডারস্কোর ও সংখ্যা থাকতে হবে",
+    "emailIsInvalid": "*ইমেল সঠিক নয়",
+    "selectGender": "লিঙ্গ নির্বাচন করুন",
+    "male": "পুরুষ",
+    "female": "মহিলা",
+    "other": "অন্যান্য",
+    "dateOfBirth": "জন্ম তারিখ",
+    "createPassword": "পাসওয়ার্ড তৈরি করুন *",
+    "passwordStrength": "পাসওয়ার্ডের শক্তিমত্তা:",
+    "passwordShouldContain": "পাসওয়ার্ডে থাকতে হবে :",
+    "sendingOtp": "OTP পাঠানো হচ্ছে...",
+    "requestOtpForPhoneVerification": "ফোন যাচাইয়ের জন্য OTP অনুরোধ করুন",
+    "securedBy": "দ্বারা সুরক্ষিত",
+    "enterUsername": "ইউজারনেম লিখুন",
+    "gender": "লিঙ্গ",
+    "phoneNumber": "ফোন নম্বর",
+    "enterYourPhoneNumber": "আপনার ফোন নম্বর লিখুন",
+    "sendOtp": "OTP পাঠান",
+    "otpCode": "OTP কোড",
+    "enterOtp": "OTP লিখুন",
+    "newPassword": "নতুন পাসওয়ার্ড",
+    "enterNewPassword": "নতুন পাসওয়ার্ড লিখুন",
+    "passwordMustBeAtLeast8CharactersAndContain": "পাসওয়ার্ড অন্তত ৮ অক্ষরের হতে হবে এবং থাকতে হবে:",
+    "email": "ইমেল",
+    "password": "পাসওয়ার্ড",
+    "resetPassword": "পাসওয়ার্ড রিসেট করুন",
+    "loginTitle": "Corpus-এ লগইন করুন",
+    "loginButton": "লগইন",
+    "noAccount": "অ্যাকাউন্ট নেই?",
+    "hasAccount": "ইতিমধ্যেই অ্যাকাউন্ট আছে?",
+    "signup": "সাইন আপ",
+    "verifyOtp": "OTP যাচাই করুন",
+    "resendOtp": "OTP পুনরায় পাঠান",
+    "resendIn": "মধ্যে পুনরায় পাঠান",
+    "back": "ফিরে যান",
+    "preferPasswordLogin": "পাসওয়ার্ড দিয়ে লগইন করতে চান?",
+    "loginWithPassword": "পাসওয়ার্ড দিয়ে লগইন করুন",
+    "loginWithOtp": "OTP দিয়ে লগইন করুন",
+    "enterPassword": "পাসওয়ার্ড লিখুন"
+  },
+  "nav": {
+    "preferPasswordLogin": "পাসওয়ার্ড দিয়ে লগইন করতে চান?",
+    "loginWithPassword": "পাসওয়ার্ড দিয়ে লগইন করুন",
+    "failedToLoadProfileData": "প্রোফাইলের তথ্য লোড করতে ব্যর্থ",
+    "tellUsAboutYourself": "আপনার সম্পর্কে আমাদের বলুন",
+    "socialMediaProfiles": "সোশ্যাল মিডিয়া প্রোফাইল",
+    "profileUrl": "প্রোফাইল URL",
+    "returnToHome": "হোমপেজে ফিরে যান",
+    "searchUsers": "ইউজার খুঁজুন...",
+    "updateProfilePicture": "প্রোফাইল ছবি আপডেট করুন",
+    "enterAValidImageUrlForYourProfilePicture": "আপনার প্রোফাইল ছবির জন্য একটি সঠিক ইমেল URL দিন",
+    "home": "হোম",
+    "profile": "প্রোফাইল",
+    "settings": "সেটিংস",
+    "logout": "লগআউট",
+    "login": "লগইন"
+  },
+  "profile": {
+    "setLocation": "স্থান নির্ধারণ করুন",
+    "followers": "ফলোয়ার",
+    "following": "ফলো করা হচ্ছে",
+    "viewYourProfileInfo": "আপনার প্রোফাইলের তথ্য দেখুন",
+    "viewProfileInfo": "প্রোফাইলের তথ্য দেখুন",
+    "info": "তথ্য",
+    "follow": "ফলো করুন",
+    "unfollow": "আনফলো করুন",
+    "noFollowers": "এখনও কোনো ফলোয়ার নেই",
+    "noFollowing": "কাউকেও ফলো করা হচ্ছে না",
+    "viewProfile": "প্রোফাইল দেখুন",
+    "editProfile": "প্রোফাইল সম্পাদনা করুন",
+    "updateProfilePicture": "প্রোফাইল ছবি আপডেট করুন",
+    "enterProfilePictureUrl": "প্রোফাইল ছবির URL লিখুন",
+    "shortBio": "সংক্ষিপ্ত পরিচিতি",
+    "loading": "প্রোফাইল লোড হচ্ছে...",
+    "error": "প্রোফাইল লোড করতে ত্রুটি",
+    "userNotFound": "ইউজার পাওয়া যায়নি",
+    "authenticationFailed": "অথেন্টিকেশন ব্যর্থ। দয়া করে আবার লগইন করুন।",
+    "edit": "সম্পাদনা",
+    "remove": "সরান"
+  },
+  "tour": {
+    "upload": {
+      "title": "ফাইল আপলোড করুন",
+      "description": "মিডিয়া ফাইল আপলোড করতে এবং অবদান শুরু করতে এখানে ক্লিক করুন।"
+    },
+    "media": {
+      "title": "মিডিয়া টাইপ নির্বাচন করুন",
+      "description": "আপনি কোন ধরণের বিষয়বস্তু অবদান রাখতে চান তা চয়ন করুন।"
+    },
+    "stats": {
+      "title": "আপনার অবদান",
+      "description": "এখানে আপনি আপনার পয়েন্ট এবং প্ল্যাটফর্মে আপনার সামগ্রিক অবদান দেখতে পাবেন।"
+    },
+    "home": {
+      "title": "হোম",
+      "description": "যেকোনো সময় এই ড্যাশবোর্ডে ফিরে আসুন।"
+    },
+    "tools": {
+      "title": "সরঞ্জাম",
+      "description": "অ্যানোটেশন এবং প্রুফরিডিং সরঞ্জামগুলি ব্যবহার করুন।"
+    },
+    "peerReviewTool": {
+      "title": "পিয়ার রিভিউ",
+      "description": "কমিউনিটি অবদান পর্যালোচনা করার জন্য গ্লোবাল টুল।"
+    },
+    "imageReview": {
+      "title": "ছবি অ্যানোটেশন",
+      "description": "ছবির অবদান অ্যানোটেশন এবং পর্যালোচনা করার সরঞ্জাম।"
+    },
+    "audioReview": {
+      "title": "অডিও টুল",
+      "description": "অডিও রেকর্ডিং পর্যালোচনা করার জন্য বিশেষ সরঞ্জাম।"
+    },
+    "videoReview": {
+      "title": "ভিডিও টুল",
+      "description": "ভিডিও বিষয়বস্তু পর্যালোচনার জন্য উৎসর্গীকৃত ইন্টারফেস।"
+    },
+    "docDigitization": {
+      "title": "ডকুমেন্ট ডিজিটাইজেশন",
+      "description": "টেক্সট অবদান ডিজিটাইজ করে তথ্যের মান উন্নত করতে সহায়তা করুন।"
+    },
+    "futureTools": {
+      "title": "আসন্ন ফিচারসমূহ",
+      "description": "অ্যাস্ক ইওর কর্পাস, স্টোরি জেনারেটর, এজেন্ট ওয়ার্কফ্লো এবং আরও অনেক কিছুর জন্য অপেক্ষা করুন!"
+    },
+    "profile": {
+      "title": "প্রোফাইল",
+      "description": "এখানে আপনার পরিসংখ্যান দেখুন এবং সেটিংস পরিচালনা করুন।"
+    },
+    "language": {
+      "title": "ভাষা",
+      "description": "এখানে অ্যাপ্লিকেশনের ভাষা পরিবর্তন করুন।"
+    },
+    "heatmap": {
+      "title": "অ্যাক্টিভিটি হিটম্যাপ",
+      "description": "আপনার দৈনন্দিন অবদান এবং ধারাবাহিকতা ট্র্যাক করুন।"
+    },
+    "dashboard": {
+      "title": "অবদান ড্যাশবোর্ড",
+      "description": "মিডিয়া টাইপ অনুযায়ী আপনার অবদান দেখুন।"
+    }
+  },
+  "tools": {
+    "docDigitization": "ডকুমেন্ট ডিজিটাইজেশন",
+    "docDigitizationDescription": "ডকুমেন্ট থেকে OCR টেক্সট পর্যালোচনা ও সংশোধন করুন",
+    "askYourCorpus": "অ্যাস্ক ইওর কর্পাস",
+    "askYourCorpusDescription": "বুদ্ধিমান ডকুমেন্ট অনুসন্ধানের জন্য জেনারেটিভ এআই প্রযুক্তি",
+    "peerReview": "পিয়ার রিভিউ",
+    "peerReviewDescription": "অন্যান্য ইউজারদের অবদান পর্যালোচনা করুন এবং প্রতিক্রিয়া দিন",
+    "imageAnnotation": "ছবি অ্যানোটেশন",
+    "imageAnnotationDescription": "ছবিতে বস্তু, অঞ্চল এবং প্যাটার্ন চিহ্নিত করুন",
+    "audioTool": "অডিও টুল",
+    "audioToolDescription": "অডিও রেকর্ডিং পর্যালোচনা ও অ্যানোটেশন করুন",
+    "videoTool": "ভিডিও টুল",
+    "videoToolDescription": "ভিডিও বিষয়বস্তু পর্যালোচনা ও অ্যানোটেশন করুন",
+    "transcription": "ট্রান্সক্রিপশন",
+    "transcriptionDescription": "অডিও এবং ভিডিও বিষয়বস্তুকে টেক্সটে রূপান্তর করুন",
+    "textExtraction": "টেক্সট এক্সট্রাকশন",
+    "textExtractionDescription": "ছবি এবং ডকুমেন্ট থেকে টেক্সট বের করুন",
+    "audioProofreading": "অডিও প্রুফরিডিং",
+    "audioProofreadingDescription": "ট্রান্সক্রাইব করা অডিও শুনুন এবং সংশোধন করুন",
+    "storyGenerator": "স্টোরি জেনারেটর",
+    "storyGeneratorDescription": "সংগৃহীত তথ্য থেকে স্বয়ংক্রিয়ভাবে আকর্ষণীয় গল্প তৈরি করুন",
+    "agentWorkflows": "এজেন্ট ওয়ার্কফ্লো",
+    "agentWorkflowsDescription": "স্বয়ংক্রিয় এআই এজেন্ট প্রক্রিয়া ডিজাইন ও পরিচালনা করুন",
+    "metadataIndex": "মেটাডেটা ইনডেক্স",
+    "metadataIndexDescription": "কমিউনিটি মেটাডেটার জন্য উন্নত ইনডেক্সিং এবং অনুসন্ধান",
+    "heading": "সরঞ্জাম",
+    "planned": "পরিকল্পিত",
+    "comingSoonDescription": "ডেটাসেট ইনজেশন মডিউল ক্রমাঙ্কন করা হচ্ছে।"
+  },
+  "proofreading": {
+    "getNextRecord": "পরবর্তী রেকর্ড নিন",
+    "page": "পৃষ্ঠা",
+    "pages": "পৃষ্ঠাসমূহ",
+    "loadingPdf": "PDF লোড হচ্ছে...",
+    "fetchingRecord": "রেকর্ড আনা হচ্ছে...",
+    "pleaseGetRecord": "শুরু করতে একটি রেকর্ড নিন।",
+    "noRecordLoaded": "কোনো রেকর্ড লোড করা হয়নি",
+    "noUrlFound": "কোনো URL পাওয়া যায়নি",
+    "submitPage": "পৃষ্ঠা জমা দিন",
+    "submitting": "জমা দেওয়া হচ্ছে...",
+    "pageSubmitted": "পৃষ্ঠা সফলভাবে জমা দেওয়া হয়েছে!",
+    "submissionError": "জমা দিতে ত্রুটি",
+    "cannotSubmit": "জমা দেওয়া সম্ভব নয়: বর্তমানে কোনো রেকর্ড লোড করা নেই।",
+    "ocrTextPlaceholder": "OCR টেক্সট এখানে দেখা যাবে।",
+    "submitPageAlert": "পৃষ্ঠা {page} সফলভাবে জমা দেওয়া হয়েছে!"
+  },
+  "languages": {
+    "telugu": "তেলুগু",
+    "english": "ইংরেজি",
+    "hindi": "হিন্দি",
+    "kannada": "কন্নড়",
+    "tamil": "তামিল",
+    "bengali": "বাংলা",
+    "malayalam": "মালয়ালম"
+  }
+}
