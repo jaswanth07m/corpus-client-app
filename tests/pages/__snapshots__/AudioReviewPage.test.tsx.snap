@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AudioReviewPage > should match snapshot 1`] = `
+<div>
+  <div
+    data-testid="review-page-base"
+  >
+    <h1
+      data-testid="page-title"
+    >
+      Audio Tool
+    </h1>
+    <p
+      data-testid="page-description"
+    >
+      Review and annotate audio recordings.
+    </p>
+    <div
+      data-testid="media-types"
+    >
+      <span
+        data-testid="media-type-audio"
+      >
+        audio
+      </span>
+    </div>
+  </div>
+</div>
+`;

@@ -335,8 +335,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    if (!isValidUserName) {
+    if (!isValidUserName(signupData.username)) {
       toast.error(t('auth.pleaseEnterAValidUsername'));
+      return;
     }
 
     if (!signupData.name.trim()) {
@@ -520,10 +521,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             data.error ||
             'Failed to resend signup OTP',
         );
+        setCanResend(true);
       }
     } catch (error) {
       console.error('Network Error:', error);
       toast.error('Network error. Please check your connection and try again.');
+      setCanResend(true);
     }
     setLoading(false);
   };

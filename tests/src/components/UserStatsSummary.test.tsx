@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import UserStatsSummary from '../src/components/UserStatsSummary';
+import UserStatsSummary from '@/components/UserStatsSummary';
 import { useAuth } from '@/hooks/useAuth';
 
 vi.mock('@/hooks/useAuth', () => ({
