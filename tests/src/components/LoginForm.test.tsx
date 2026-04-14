@@ -139,16 +139,17 @@ describe('LoginForm', () => {
 
   it('login missing fields returns error toast early', async () => {
     renderComponent();
-    const phoneInput = screen.getByPlaceholderText(
-      'auth.enter10digitPhoneNumber',
-    );
     const passwordInput = screen.getByPlaceholderText('auth.enterYourPassword');
 
-    // Test early exit by hitting Enter since the button is disabled natively
+    // Enter should run schema validation and show inline errors.
     fireEvent.keyDown(passwordInput, { key: 'Enter', code: 'Enter' });
-    expect(mockToastError).toHaveBeenCalledWith(
-      'auth.pleaseEnterAValidPhoneNumberAndPassword',
-    );
+    await waitFor(() => {
+      expect(
+        screen.getByText('auth.pleaseEnterAValid10digitPhoneNumber'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('auth.enterYourPassword')).toBeInTheDocument();
+    });
+    expect(mockToastError).not.toHaveBeenCalled();
   });
 
   it('handles API errors during password login', async () => {
@@ -208,73 +209,48 @@ describe('LoginForm', () => {
     const signupBtns = screen.getAllByRole('button', { name: 'auth.signUp' });
     await user.click(signupBtns[0]);
 
-    // The button is disabled by React state. We call the React onClick prop directly
-    // to test each internal validation branch of handleSignupSendOTP.
-    // We get it from __reactProps$ to ensure we have the freshest closure after state updates.
-    const getHandler = () => {
-      const submitOtpBtn = screen.getByRole('button', {
-        name: 'auth.requestOtpForPhoneVerification',
-      });
-      const key = Object.keys(submitOtpBtn).find((k) =>
-        k.startsWith('__reactProps$'),
-      );
-      return key
-        ? (submitOtpBtn as Record<string, { onClick: () => void }>)[key].onClick
-        : null;
-    };
-
-    // empty phone
-    getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith(
-      'Please enter a valid 10-digit phone number',
+    fireEvent.change(
+      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
+      {
+        target: { value: '123' },
+      },
     );
-    mockToastError.mockClear();
-
-    // Set a valid phone
-    const phoneInput = screen.getByPlaceholderText(
-      'auth.enter10digitPhoneNumber',
-    );
-    fireEvent.change(phoneInput, { target: { value: '9000000000' } });
-    getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith(
-      'auth.pleaseEnterAValidUsername',
-    );
-    mockToastError.mockClear();
-
-    // Set a valid username
-    const usernameInput = screen.getByPlaceholderText('auth.username');
-    fireEvent.change(usernameInput, { target: { value: 'valid_user' } });
-    getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith('user.pleaseEnterYourName');
-    mockToastError.mockClear();
-
-    const nameInput = screen.getByPlaceholderText('user.fullName');
-    fireEvent.change(nameInput, { target: { value: 'Valid Name' } });
-    getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith(
-      'common.pleaseEnterAValidEmailAddress',
-    );
-    mockToastError.mockClear();
-
-    const emailInput = screen.getByPlaceholderText('common.emailAddress');
-    fireEvent.change(emailInput, { target: { value: 'test@swecha.org' } });
-    getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith(
-      'auth.passwordMustBeAtLeast6CharactersLong',
-    );
-    mockToastError.mockClear();
-
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'a' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
+      target: { value: '123' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
+      target: { value: 'abc' },
+    });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
-      target: { value: 'Valid@123!' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
-      target: { value: 'Valid@123!' },
+      target: { value: '123' },
     });
 
-    getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith(
-      'ui.please.agree.to.the.terms.and.conditions',
-    );
+    await waitFor(() => {
+      expect(
+        screen.getByText('auth.pleaseEnterAValid10digitPhoneNumber'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('auth.pleaseEnterAValidUsername'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('user.nameShouldHaveCharactersOnly'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('common.pleaseEnterAValidEmailAddress'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('auth.passwordMustBeAtLeast6CharactersLong'),
+      ).toBeInTheDocument();
+    });
+
+    const submitOtpBtn = screen.getByRole('button', {
+      name: 'auth.requestOtpForPhoneVerification',
+    });
+    expect(submitOtpBtn).toBeDisabled();
+    expect(mockToastError).not.toHaveBeenCalled();
   });
 
   it('tests signup password strength validation logic', async () => {
@@ -284,25 +260,20 @@ describe('LoginForm', () => {
     await user.click(signupBtns[0]);
 
     const passwordInput = screen.getByPlaceholderText('auth.createPassword');
+    await user.click(passwordInput);
+    expect(screen.getByText('auth.passwordStrength')).toBeInTheDocument();
+    expect(screen.getByText('Enter Password')).toBeInTheDocument();
 
     await user.type(passwordInput, 'weak');
-    fireEvent.blur(passwordInput);
-    expect(passwordInput).toHaveClass('border-rose-800');
+    expect(screen.getByText('Weak')).toBeInTheDocument();
 
     await user.clear(passwordInput);
     await user.type(passwordInput, 'Medium123');
-    fireEvent.blur(passwordInput);
-    expect(passwordInput).toHaveClass('border-yellow-500');
+    expect(screen.getByText('Medium')).toBeInTheDocument();
 
     await user.clear(passwordInput);
     await user.type(passwordInput, 'StrongPassword123!');
-    fireEvent.blur(passwordInput);
-    expect(passwordInput).toHaveClass('border-green-500');
-
-    const confirmInput = screen.getByPlaceholderText('common.confirmPassword');
-    await user.type(confirmInput, 'Different!23');
-    fireEvent.blur(confirmInput);
-    expect(confirmInput).toHaveClass('border-rose-800');
+    expect(screen.getByText('Strong')).toBeInTheDocument();
   });
 
   it('submits a valid signup flow and resolves OTP sending API, then tests verification branch failures', async () => {
