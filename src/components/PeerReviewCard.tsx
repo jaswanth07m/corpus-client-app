@@ -33,6 +33,7 @@ interface PeerReviewCardProps {
   release_rights: string;
   dataUrl: string;
   language?: string;
+  category?: string;
 }
 
 interface HistoryEntry {
@@ -88,10 +89,14 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   release_rights,
   dataUrl,
   language: propLanguage,
+  category,
 }) => {
   const { t } = useTranslation();
   const [changed, setChanged] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [categoryName, setCategoryName] = useState<string | undefined>(
+    category,
+  );
 
   const [newTitle, setNewTitle] = useState<string>('');
   const [newDescription, setNewDescription] = useState<string>('');
@@ -120,6 +125,48 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
     setRelRights(release_rights ?? '');
     setSourceLabel('');
   }, [title, description, release_rights, propLanguage]);
+
+  // Fetch category name if category is an ID
+  useEffect(() => {
+    const fetchCategoryName = async () => {
+      if (category && !category.includes(' ')) {
+        // Assuming IDs don't contain spaces, but names do
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${BACKEND_URL}/categories/`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const categories = await response.json();
+            const foundCategory = categories.find(
+              (cat: { id: string; title: string }) => cat.id === category,
+            );
+            if (foundCategory) {
+              setCategoryName(foundCategory.title);
+            } else {
+              setCategoryName(category); // Fallback to original value
+            }
+          } else {
+            setCategoryName(category); // Fallback to original value
+          }
+        } catch (error) {
+          setCategoryName(category); // Fallback to original value
+        }
+      } else {
+        setCategoryName(category); // If it already looks like a name, use it as is
+      }
+    };
+
+    if (category) {
+      fetchCategoryName();
+    } else {
+      setCategoryName(undefined);
+    }
+  }, [category]);
 
   const countMeaningfulWords = (s: string) =>
     s.split(' ').filter((w) => w.trim().length > 2).length;
@@ -205,12 +252,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       // This should trigger a re-render with the new values
       setChanged(false);
       setEditMode(false);
-
-      // Optionally show success feedback to the user
-      console.log(record_id);
-      console.log('Review submitted successfully:', requestBody);
     } catch (error) {
-      console.error('Submission error:', error);
       setSubmitError(
         error instanceof Error ? error.message : 'An unknown error occurred',
       );
@@ -331,6 +373,11 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             <p className="text-sm font-bold text-slate-900">
               {username || user_id}
             </p>
+            {categoryName && (
+              <span className="px-2.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 shadow-sm">
+                {categoryName}
+              </span>
+            )}
           </div>
         </div>
 

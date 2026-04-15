@@ -97,6 +97,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
     "next-themes": "^0.3.0",
+    "package.json": "^2.0.1",
     "pdfjs-dist": "^5.4.449",
     "posthog-js": "^1.257.0",
     "react": "^18.3.1",
