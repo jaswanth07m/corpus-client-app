@@ -219,7 +219,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
         </div>
 
         <div className="flex items-center gap-1 text-xs text-gray-500">
-          <span>{t('heatmap.less')}</span>
+          <span>{t('tour.heatmap.less')}</span>
           <div className="flex items-center gap-[2px]">
             <span className="heatmap-legend-swatch heatmap-level-0" />
             <span className="heatmap-legend-swatch heatmap-level-1" />
@@ -227,7 +227,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
             <span className="heatmap-legend-swatch heatmap-level-3" />
             <span className="heatmap-legend-swatch heatmap-level-4" />
           </div>
-          <span>{t('heatmap.more')}</span>
+          <span>{t('tour.heatmap.more')}</span>
         </div>
       </div>
 

@@ -48,8 +48,8 @@ describe('PointsHeatmap', () => {
 
   it('shows Less and More legend labels', () => {
     render(<PointsHeatmap dailyData={[]} />);
-    expect(screen.getByText('heatmap.less')).toBeInTheDocument();
-    expect(screen.getByText('heatmap.more')).toBeInTheDocument();
+    expect(screen.getByText('tour.heatmap.less')).toBeInTheDocument();
+    expect(screen.getByText('tour.heatmap.more')).toBeInTheDocument();
   });
 
   it('renders the points activity heading via translation key', () => {
