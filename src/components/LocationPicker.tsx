@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import '@/styles/leaflet.css';
 import L from 'leaflet';
 import { Button } from '@/components/ui/button';
 import { MapPin, Navigation, Check, Loader2, X } from 'lucide-react';
@@ -14,10 +14,9 @@ interface LeafletIconPrototype {
 delete (L.Icon.Default.prototype as LeafletIconPrototype)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconRetinaUrl: '/images/leaflet/marker-icon-2x.png',
+  iconUrl: '/images/leaflet/marker-icon.png',
+  shadowUrl: '/images/leaflet/marker-shadow.png',
 });
 
 interface LocationPickerProps {

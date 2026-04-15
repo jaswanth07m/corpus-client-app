@@ -19,6 +19,3 @@ npm run knip
 # Run type check and build
 npm run build
 
-# Run rolldown build to ensure compatibility
-npm run build:rd
-
