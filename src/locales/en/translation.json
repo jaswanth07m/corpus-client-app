@@ -1015,7 +1015,10 @@
     },
     "heatmap": {
       "title": "Activity Heatmap",
-      "description": "Track your daily contributions and streaks over time."
+      "description": "Track your daily contributions and streaks over time.",
+      "less": "Less",
+      "more": "More",
+      "activityOnDate": "{{count}} points on {{date}}"
     },
     "dashboard": {
       "title": "Contributions Dashboard",

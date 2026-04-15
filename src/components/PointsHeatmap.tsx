@@ -19,39 +19,6 @@ interface HeatmapValue {
   count: number;
 }
 
-const MONTH_LABELS_EN = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
-
-const MONTH_LABELS_TE = [
-  'జన',
-  'ఫిబ',
-  'మార్',
-  'ఏప్రి',
-  'మే',
-  'జూన్',
-  'జూలై',
-  'ఆగ',
-  'సెప్',
-  'అక్టో',
-  'నవం',
-  'డిసెం',
-];
-
-const WEEKDAY_LABELS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const WEEKDAY_LABELS_TE = ['ఆది', 'సోమ', 'మంగళ', 'బుధ', 'గురు', 'శుక్ర', 'శని'];
-
 const getLevel = (count: number) => {
   if (count >= 20) return 4;
   if (count >= 10) return 3;
@@ -69,18 +36,15 @@ const toDateKey = (date: Date) => {
 
 const normalizeDateKey = (date: string) => date.slice(0, 10);
 
-const getLocalizedDateFormatter = (locale: string) =>
-  new Intl.DateTimeFormat(locale, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-const getLocalizedNumberFormatter = (locale: string) =>
-  new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
-
-const getLabel = (translated: string, key: string, fallback: string) =>
-  translated === key ? fallback : translated;
+const LOCALE_MAP: Record<string, string> = {
+  en: 'en-US',
+  hi: 'hi-IN',
+  te: 'te-IN',
+  kn: 'kn-IN',
+  ta: 'ta-IN',
+  bn: 'bn-IN',
+  ml: 'ml-IN',
+};
 
 const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
   const { t, i18n } = useTranslation();
@@ -89,25 +53,40 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
   const [pinnedDate, setPinnedDate] = useState<string | null>(null);
 
   const language = i18n?.language ?? 'en';
-  const locale = language.startsWith('te')
-    ? 'te-IN'
-    : language.startsWith('hi')
-      ? 'hi-IN'
-      : 'en-US';
+  const locale = LOCALE_MAP[language] ?? 'en-US';
 
-  const monthLabels = locale.startsWith('te')
-    ? MONTH_LABELS_TE
-    : MONTH_LABELS_EN;
-  const weekdayLabels = locale.startsWith('te')
-    ? WEEKDAY_LABELS_TE
-    : WEEKDAY_LABELS_EN;
+  const monthLabels = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { month: 'short' });
+    const baseDate = new Date(2024, 0, 1);
+    return Array.from({ length: 12 }, (_, i) => {
+      const date = new Date(baseDate);
+      date.setMonth(i);
+      return formatter.format(date);
+    });
+  }, [locale]);
+
+  const weekdayLabels = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+    const baseDate = new Date(2024, 0, 7);
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(baseDate);
+      date.setDate(date.getDate() + i);
+      return formatter.format(date);
+    });
+  }, [locale]);
 
   const dateFormatter = useMemo(
-    () => getLocalizedDateFormatter(locale),
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
     [locale],
   );
+
   const numberFormatter = useMemo(
-    () => getLocalizedNumberFormatter(locale),
+    () => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }),
     [locale],
   );
 
@@ -148,11 +127,13 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
   const buildTooltipContent = (value: HeatmapValue) => {
     const pointsLabel = numberFormatter.format(value.count);
     const dateLabel = dateFormatter.format(new Date(`${value.date}T00:00:00`));
-    return t('heatmap.activityOnDate', {
-      count: pointsLabel,
-      date: dateLabel,
-      defaultValue: `${pointsLabel} points on ${dateLabel}`,
-    });
+    const translated = t('heatmap.activityOnDate');
+    if (translated === 'heatmap.activityOnDate') {
+      return `${pointsLabel} points on ${dateLabel}`;
+    }
+    return translated
+      .replace('{{count}}', pointsLabel)
+      .replace('{{date}}', dateLabel);
   };
 
   const openTooltip = (
@@ -173,10 +154,15 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
 
   const handleMouseOver = (
     event: React.MouseEvent<SVGRectElement>,
-    value: HeatmapValue | null,
+    value: { date: string | number | Date; count?: number } | null,
   ) => {
-    if (!value || (pinnedDate && pinnedDate !== value.date)) return;
-    openTooltip(event, value);
+    if (!value || typeof value.date !== 'string') return;
+    if (pinnedDate && pinnedDate !== value.date) return;
+    const heatmapValue: HeatmapValue = {
+      date: value.date,
+      count: value.count ?? 0,
+    };
+    openTooltip(event, heatmapValue);
   };
 
   const handleMouseLeave = () => {
@@ -186,9 +172,9 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
 
   const handleClick = (
     event: React.MouseEvent<SVGRectElement>,
-    value: HeatmapValue | null,
+    value: { date: string | number | Date; count?: number } | null,
   ) => {
-    if (!value) return;
+    if (!value || typeof value.date !== 'string') return;
 
     if (pinnedDate === value.date) {
       setPinnedDate(null);
@@ -196,8 +182,12 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
       return;
     }
 
+    const heatmapValue: HeatmapValue = {
+      date: value.date,
+      count: value.count ?? 0,
+    };
     setPinnedDate(value.date);
-    openTooltip(event, value);
+    openTooltip(event, heatmapValue);
   };
 
   useEffect(() => {
@@ -229,9 +219,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
         </div>
 
         <div className="flex items-center gap-1 text-xs text-gray-500">
-          <span>
-            {getLabel(t('heatmap.less', 'Less'), 'heatmap.less', 'Less')}
-          </span>
+          <span>{t('heatmap.less')}</span>
           <div className="flex items-center gap-[2px]">
             <span className="heatmap-legend-swatch heatmap-level-0" />
             <span className="heatmap-legend-swatch heatmap-level-1" />
@@ -239,16 +227,16 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
             <span className="heatmap-legend-swatch heatmap-level-3" />
             <span className="heatmap-legend-swatch heatmap-level-4" />
           </div>
-          <span>
-            {getLabel(t('heatmap.more', 'More'), 'heatmap.more', 'More')}
-          </span>
+          <span>{t('heatmap.more')}</span>
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-1">
-        <div className="corpus-points-heatmap__chart inline-block grid-flow-col min-w-[640px]">
+      <div className="w-full overflow-x-auto">
+        <div className="corpus-points-heatmap__chart min-w-full">
           <CalendarHeatmap
-            values={values}
+            values={
+              values as { date: string | number | Date; count?: number }[]
+            }
             startDate={startDate}
             endDate={endDate}
             showWeekdayLabels

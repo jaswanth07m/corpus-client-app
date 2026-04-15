@@ -81,11 +81,11 @@
 }
 
 .corpus-points-heatmap__chart {
-  min-width: 640px;
+  width: 100%;
+  min-width: 0;
 }
 
-@media (min-width: 768px) {
-  .corpus-points-heatmap__chart {
-    min-width: 0;
-  }
+.corpus-points-heatmap__chart svg {
+  width: 100%;
+  height: auto;
 }

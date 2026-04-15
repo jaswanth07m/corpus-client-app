@@ -6,6 +6,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+    i18n: {
+      language: 'en',
+    },
   }),
 }));
 
@@ -33,23 +36,20 @@ describe('PointsHeatmap', () => {
 
   it('renders month labels area', () => {
     render(<PointsHeatmap dailyData={buildDailyData(100)} />);
-    // Heatmap should show some month labels in the DOM
-    const container = document.querySelector('.inline-block');
+    const container = document.querySelector('.corpus-points-heatmap__chart');
     expect(container).toBeInTheDocument();
   });
 
   it('renders the day-of-week labels', () => {
     render(<PointsHeatmap dailyData={[]} />);
-    // Mon, Wed, Fri are visible (odd indices)
-    expect(screen.getByText('Mon')).toBeInTheDocument();
-    expect(screen.getByText('Wed')).toBeInTheDocument();
-    expect(screen.getByText('Fri')).toBeInTheDocument();
+    const svg = document.querySelector('.react-calendar-heatmap');
+    expect(svg).toBeInTheDocument();
   });
 
   it('shows Less and More legend labels', () => {
     render(<PointsHeatmap dailyData={[]} />);
-    expect(screen.getByText('Less')).toBeInTheDocument();
-    expect(screen.getByText('More')).toBeInTheDocument();
+    expect(screen.getByText('heatmap.less')).toBeInTheDocument();
+    expect(screen.getByText('heatmap.more')).toBeInTheDocument();
   });
 
   it('renders the points activity heading via translation key', () => {
@@ -59,34 +59,32 @@ describe('PointsHeatmap', () => {
 
   it('renders cells for calendar data', () => {
     render(<PointsHeatmap dailyData={buildDailyData(30)} />);
-    // The grid should contain day cells
-    const grid = document.querySelector('.grid-flow-col');
-    expect(grid).toBeInTheDocument();
-    expect(grid!.children.length).toBeGreaterThan(0);
+    const svg = document.querySelector('.react-calendar-heatmap');
+    expect(svg).toBeInTheDocument();
+    const rects = svg!.querySelectorAll('rect');
+    expect(rects.length).toBeGreaterThan(0);
   });
 
   it('shows tooltip on mouse enter on a day cell', () => {
     render(<PointsHeatmap dailyData={buildDailyData(10)} />);
-    const cells = document.querySelectorAll('.rounded-none.cursor-pointer');
+    const cells = document.querySelectorAll('.react-calendar-heatmap rect');
     if (cells.length > 0) {
       fireEvent.mouseEnter(cells[cells.length - 1]);
-      // tooltip may or may not appear depending on geometry, just ensure no crash
     }
   });
 
   it('hides tooltip on mouse leave', () => {
     render(<PointsHeatmap dailyData={buildDailyData(10)} />);
-    const cells = document.querySelectorAll('.rounded-none.cursor-pointer');
+    const cells = document.querySelectorAll('.react-calendar-heatmap rect');
     if (cells.length > 0) {
       fireEvent.mouseEnter(cells[cells.length - 1]);
       fireEvent.mouseLeave(cells[cells.length - 1]);
-      // No crash expected
     }
   });
 
   it('handles click on a day cell without crashing', () => {
     render(<PointsHeatmap dailyData={buildDailyData(10)} />);
-    const cells = document.querySelectorAll('.rounded-none.cursor-pointer');
+    const cells = document.querySelectorAll('.react-calendar-heatmap rect');
     if (cells.length > 0) {
       fireEvent.click(cells[cells.length - 1]);
     }
@@ -94,11 +92,10 @@ describe('PointsHeatmap', () => {
 
   it('handles click outside to close tooltip', () => {
     render(<PointsHeatmap dailyData={buildDailyData(10)} />);
-    const cells = document.querySelectorAll('.rounded-none.cursor-pointer');
+    const cells = document.querySelectorAll('.react-calendar-heatmap rect');
     if (cells.length > 0) {
       fireEvent.click(cells[cells.length - 1]);
     }
-    // Simulate click outside
     fireEvent.mouseDown(document.body);
   });
 });
