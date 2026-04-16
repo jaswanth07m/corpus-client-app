@@ -25,6 +25,7 @@ import {
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+
 import { BACKEND_URL } from '@/lib/constants';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
