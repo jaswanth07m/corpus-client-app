@@ -193,7 +193,7 @@ describe('useAuth', () => {
         if (url.includes('/profile')) return Promise.resolve({ data: {} });
       });
 
-      renderHook(() => useAuth(), { wrapper });
+      const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
         await new Promise((r) => setTimeout(r, 0));
