@@ -9,7 +9,6 @@ import {
 } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import axios from 'axios';
-import posthog from 'posthog-js';
 import { AuthProvider, useAuth } from '../../../src/hooks/useAuth';
 
 const { mockAxiosInstance, localStorageMock, interceptorsStore } = vi.hoisted(
@@ -56,14 +55,6 @@ vi.stubGlobal('localStorage', localStorageMock);
 vi.mock('axios', () => ({
   default: {
     create: vi.fn(() => mockAxiosInstance),
-  },
-}));
-
-vi.mock('posthog-js', () => ({
-  default: {
-    identify: vi.fn(),
-    capture: vi.fn(),
-    reset: vi.fn(),
   },
 }));
 
@@ -167,7 +158,6 @@ describe('useAuth', () => {
         timeline: undefined,
       });
       expect(result.current.token).toBe('valid-token');
-      expect(posthog.identify).toHaveBeenCalledWith('user-123');
     });
 
     it('falls back to profileData properties when basicData properties are missing', async () => {
@@ -192,7 +182,7 @@ describe('useAuth', () => {
       expect(result.current.user?.username).toBe('ProfileUsername');
     });
 
-    it('properly identifies posthog with user_id instead of id if available', async () => {
+    it('properly identifies user_id over id if available', async () => {
       localStorage.setItem('token', 'valid-token');
 
       mockAxiosInstance.get.mockImplementation((url: string) => {
@@ -203,13 +193,13 @@ describe('useAuth', () => {
         if (url.includes('/profile')) return Promise.resolve({ data: {} });
       });
 
-      renderHook(() => useAuth(), { wrapper });
+      const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
         await new Promise((r) => setTimeout(r, 0));
       });
 
-      expect(posthog.identify).toHaveBeenCalledWith('real-user-id');
+      expect(result.current.user?.user_id).toBe('real-user-id');
     });
 
     it('handles initialization correctly if detailed profile request fails, keeping basic user data', async () => {
@@ -288,9 +278,6 @@ describe('useAuth', () => {
       expect(localStorage.getItem('token')).toBe('new-token');
       const localStorageUser = JSON.parse(localStorage.getItem('user')!);
       expect(localStorageUser.id).toBe('logged-in-1');
-
-      expect(posthog.identify).toHaveBeenCalledWith('logged-in-1');
-      expect(posthog.capture).toHaveBeenCalledWith('user_logged_in');
     });
 
     it('handles unexpected errors dynamically during login process', async () => {
@@ -313,7 +300,7 @@ describe('useAuth', () => {
   });
 
   describe('logout', () => {
-    it('wipes everything clean inside state tracking, hooks and posthog limits', async () => {
+    it('wipes everything clean on logout', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       act(() => {
@@ -323,7 +310,6 @@ describe('useAuth', () => {
       expect(result.current.token).toBeNull();
       expect(result.current.user).toBeNull();
       expect(localStorage.length).toBe(0);
-      expect(posthog.reset).toHaveBeenCalled();
     });
   });
 
