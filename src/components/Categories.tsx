@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
+import posthog from 'posthog-js';
 import SwechaLogo from './SwechaLogo';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
@@ -707,14 +708,17 @@ const Categories: React.FC<CategoriesProps> = ({
             t('messages.contentUploadedSuccessfullyRedirectingToLanding'),
           );
           resetUploadState();
+          posthog.capture('upload_success');
           // Redirect to landing page after successful upload
           setTimeout(() => {
             window.location.href = '/';
           }, 1500);
         } else {
+          posthog.capture('upload_finalization_failed');
           partialResetUploadState();
         }
       } else {
+        posthog.capture('upload_error');
         toast.error(t('common.uploadFailedPleaseTryAgain'));
         partialResetUploadState();
       }
@@ -724,6 +728,8 @@ const Categories: React.FC<CategoriesProps> = ({
         t('messages.networkErrorPleaseCheckYourConnectionAndTryAgain'),
       );
       partialResetUploadState();
+      posthog.capture('upload_error');
+      posthog.captureException(error);
     }
 
     setIsUploading(false);

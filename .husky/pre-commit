@@ -19,3 +19,5 @@ npm run knip
 # Run type check and build
 npm run build
 
+# Run rollup build to ensure compatibility
+npm run build:rd

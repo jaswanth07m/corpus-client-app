@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
+import posthog from 'posthog-js';
 import { BACKEND_URL } from '@/lib/constants';
 
 interface UserProfile {
@@ -141,6 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Token is valid, set user data
         setToken(savedToken);
         setUser(userData);
+        posthog.identify(userData.user_id || userData.id);
       } catch (error) {
         // Token is invalid, clear storage
         console.error('Auth validation failed', error);
@@ -165,6 +167,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(fullUserData);
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(fullUserData));
+      posthog.identify(fullUserData.user_id || fullUserData.id);
+      posthog.capture('user_logged_in');
     } catch (error) {
       console.error('Error during login:', error);
       // Handle error appropriately
@@ -175,6 +179,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(null);
     setUser(null);
     localStorage.clear();
+    posthog.reset();
   };
 
   const refetchUser = async () => {

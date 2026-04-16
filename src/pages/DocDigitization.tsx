@@ -3,7 +3,7 @@ import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { Document, Page } from 'react-pdf';
+import { Document, Page, pdfjs } from 'react-pdf';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -23,15 +23,11 @@ import {
   DropResult,
 } from '@hello-pangea/dnd';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
-import '@/styles/AnnotationLayer.css';
-import '@/styles/TextLayer.css';
-import * as pdfjs from 'pdfjs-dist';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import { BACKEND_URL } from '@/lib/constants';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 // Type definitions for segment-based OCR
 type Segment = {
