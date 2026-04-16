@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -7,7 +9,6 @@ import {
   MessageSquare,
   Eye,
   EyeOff,
-  Sparkles,
   RefreshCw,
   User,
   Mail,
@@ -21,6 +22,15 @@ import { BACKEND_URL } from '@/lib/constants';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import {
+  createOtpLoginSchema,
+  createPasswordLoginSchema,
+  createSignupSchema,
+  getSignupPasswordStrength,
+  type OtpLoginFormValues,
+  type PasswordLoginFormValues,
+  type SignupFormValues,
+} from '@/schemas/loginForm';
 
 interface LoginFormProps {
   onLoginSuccess: (token: string, user: unknown) => void;
@@ -28,16 +38,10 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const { t } = useTranslation();
-  //validation states
-  const [validatePhone, setValidatePhone] = useState('border-gray-200');
-  const [errorPhoneDisplay, setErrorPhoneDisplay] = useState('hidden');
-  const [validateUserName, setValidateUserName] = useState('border-gray-200');
-  const [errorUserNameDisplay, setErrorUserNameDisplay] = useState('hidden');
-  const [validateName, setValidateName] = useState('border-gray-200');
-  const [errorNameDisplay, setErrorNameDisplay] = useState('hidden');
-  const [validateEmail, setValidateEmail] = useState('border-gray-200');
-  const [errorEmailDisplay, setErrorEmailDisplay] = useState('hidden');
-  const [maxDate, setMaxDate] = useState(() => {
+  const otpLoginSchema = useMemo(() => createOtpLoginSchema(t), [t]);
+  const passwordLoginSchema = useMemo(() => createPasswordLoginSchema(t), [t]);
+  const signupSchema = useMemo(() => createSignupSchema(t), [t]);
+  const [maxDate] = useState(() => {
     const today = new Date();
     const thirteenYearsAgo = new Date(
       today.getFullYear() - 13,
@@ -46,7 +50,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     );
     return thirteenYearsAgo.toISOString().split('T')[0];
   });
-  const [minDate, setMinDate] = useState(() => {
+  const [minDate] = useState(() => {
     const today = new Date();
     const hundredYearsAgo = new Date(
       today.getFullYear() - 100,
@@ -55,49 +59,60 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     );
     return hundredYearsAgo.toISOString().split('T')[0];
   });
-  const [validatePlace, setValidatePlace] = useState('border-gray-200');
-  const [errorPlaceDisplay, setErrorPlaceDisplay] = useState('hidden');
-  const [validatePassword, setValidatePassword] = useState('border-gray-200');
-  const [errorPasswordDisplay, setErrorPasswordDisplay] = useState('hidden');
-  const [
-    errorPasswordRequirementsDisplay,
-    setErrorPasswordRequirementsDisplay,
-  ] = useState('hidden');
-  const [formValidationErrors, setFormValidationErrors] = useState(false);
-
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [loginMethod, setLoginMethod] = useState<'otp' | 'password'>(
     'password',
   );
-  const [phoneDigits, setPhoneDigits] = useState('');
-  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
-
-  // Signup form fields
-  const [signupData, setSignupData] = useState({
-    username: '',
-    name: '',
-    email: '',
-    gender: '',
-    date_of_birth: '',
-    current_place: '',
-    password: '',
-    confirmPassword: '',
-    has_given_consent: false,
-  });
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSignupOtpInput, setShowSignupOtpInput] = useState(false);
   const [signupOtp, setSignupOtp] = useState('');
+  const [showPasswordRequirements, setShowPasswordRequirements] =
+    useState(false);
+
+  const otpLoginForm = useForm<OtpLoginFormValues>({
+    resolver: zodResolver(otpLoginSchema),
+    mode: 'onChange',
+    defaultValues: {
+      phone: '',
+    },
+  });
+
+  const passwordLoginForm = useForm<PasswordLoginFormValues>({
+    resolver: zodResolver(passwordLoginSchema),
+    mode: 'onChange',
+    defaultValues: {
+      phone: '',
+      password: '',
+    },
+  });
+
+  const signupForm = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    mode: 'onChange',
+    defaultValues: {
+      phone: '',
+      username: '',
+      name: '',
+      email: '',
+      gender: '',
+      date_of_birth: '',
+      current_place: '',
+      password: '',
+      confirmPassword: '',
+      has_given_consent: false,
+    },
+  });
 
   // Timer for resend OTP
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (resendTimer > 0) {
       interval = setInterval(() => {
         setResendTimer((prev) => {
@@ -113,39 +128,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   }, [resendTimer]);
 
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    // Keep only the first 10 digits
     return digits.slice(0, 10);
   };
 
-  const getFullPhoneNumber = () => {
-    return phoneDigits;
-  };
-
-  const isValidPhoneNumber = () => {
-    return phoneDigits.length === 10 && parseInt(phoneDigits[0]) > 5;
-  };
-
-  const isValidEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const isValidUserName = (name: string) => {
-    const newNameRegex = /^[A-Za-z0-9_]{3,50}$/;
-    return newNameRegex.test(name.trim());
-  };
-
-  const handleSendOTP = async () => {
-    if (!isValidPhoneNumber()) {
-      toast.error(t('auth.pleaseEnterAValid10digitPhoneNumber'));
-      return;
-    }
-
+  const handleSendOTP = async (values: OtpLoginFormValues) => {
     setLoading(true);
     try {
-      console.log('Sending OTP to:', getFullPhoneNumber());
+      console.log('Sending OTP to:', values.phone);
 
       const response = await fetch(`${BACKEND_URL}/auth/login/send-otp`, {
         method: 'POST',
@@ -153,7 +143,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: getFullPhoneNumber(),
+          phone: values.phone,
         }),
       });
 
@@ -190,7 +180,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
     setLoading(true);
     try {
-      console.log('Verifying OTP:', otp, 'for phone:', getFullPhoneNumber());
+      const phone = otpLoginForm.getValues('phone');
+      console.log('Verifying OTP:', otp, 'for phone:', phone);
 
       const response = await fetch(`${BACKEND_URL}/auth/login/verify-otp`, {
         method: 'POST',
@@ -198,7 +189,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: getFullPhoneNumber(),
+          phone,
           otp_code: otp.trim(),
           has_given_consent: true,
         }),
@@ -213,10 +204,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         // Check if we have access_token in the response
         if (data.access_token) {
           toast.success(t('messages.loginSuccessful'));
-          // Create user object from response data
           const user = {
             user_id: data.user_id,
-            phone: data.phone || getFullPhoneNumber(),
+            phone: data.phone || phone,
             roles: data.roles || [],
           };
           onLoginSuccess(data.access_token, user);
@@ -229,23 +219,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
         // Handle specific error cases based on response
         if (data.detail && Array.isArray(data.detail)) {
-          // Handle validation errors (422)
           const errorMessages = data.detail
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .map((err: any) => err.msg)
+            .map((err: { msg: string }) => err.msg)
             .join(', ');
           toast.error(`Validation error: ${errorMessages}`);
         } else if (data.detail && typeof data.detail === 'string') {
-          // Handle string detail messages
           toast.error(data.detail);
         } else if (data.message) {
-          // Handle general message errors
           toast.error(data.message);
         } else if (data.error) {
-          // Handle general error messages
           toast.error(data.error);
         } else {
-          // Handle HTTP status codes
           switch (response.status) {
             case 400:
               toast.error(t('auth.invalidOtpPleaseCheckAndTryAgain'));
@@ -279,19 +263,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     if (!canResend || loading) return;
 
     setCanResend(false);
-    setOtp(''); // Clear current OTP
-    await handleSendOTP();
+    setOtp('');
+    await handleSendOTP(otpLoginForm.getValues());
   };
 
-  const handlePasswordLogin = async () => {
-    if (!isValidPhoneNumber() || !password) {
-      toast.error(t('auth.pleaseEnterAValidPhoneNumberAndPassword'));
-      return;
-    }
-
+  const handlePasswordLogin = async (values: PasswordLoginFormValues) => {
     setLoading(true);
     try {
-      console.log('Password login for:', getFullPhoneNumber());
+      console.log('Password login for:', values.phone);
 
       const response = await fetch(`${BACKEND_URL}/auth/login`, {
         method: 'POST',
@@ -299,8 +278,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: `+91${getFullPhoneNumber()}`,
-          password: password,
+          phone: `+91${values.phone}`,
+          password: values.password,
         }),
       });
 
@@ -310,10 +289,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
       if (response.ok && data.access_token) {
         toast.success('Login successful!');
-        onLoginSuccess(
-          data.access_token,
-          data.user || { phone: getFullPhoneNumber() },
-        );
+        onLoginSuccess(data.access_token, data.user || { phone: values.phone });
       } else {
         console.error('Login Error:', data);
         toast.error(
@@ -327,53 +303,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setLoading(false);
   };
 
-  const handleSignupSendOTP = async () => {
-    // Validation
-
-    if (!isValidPhoneNumber()) {
-      toast.error('Please enter a valid 10-digit phone number');
-      return;
-    }
-
-    if (!isValidUserName(signupData.username)) {
-      toast.error(t('auth.pleaseEnterAValidUsername'));
-      return;
-    }
-
-    if (!signupData.name.trim()) {
-      toast.error(t('user.pleaseEnterYourName'));
-      return;
-    }
-
-    if (!isValidEmail(signupData.email)) {
-      toast.error(t('common.pleaseEnterAValidEmailAddress'));
-      return;
-    }
-
-    if (!signupData.password || signupData.password.length < 6) {
-      toast.error(t('auth.passwordMustBeAtLeast6CharactersLong'));
-      return;
-    }
-
-    if (!signupData.has_given_consent) {
-      toast.error(t('ui.please.agree.to.the.terms.and.conditions'));
-      return;
-    }
-
+  const handleSignupSendOTP = async (values: SignupFormValues) => {
     setLoading(true);
     try {
-      console.log('Creating account for:', getFullPhoneNumber());
+      console.log('Creating account for:', values.phone);
 
       const requestBody = {
-        phone: getFullPhoneNumber(),
-        username: signupData.username.trim().toLowerCase(),
-        name: signupData.name.trim(),
-        email: signupData.email.trim(),
-        gender: signupData.gender || undefined,
-        date_of_birth: signupData.date_of_birth || undefined,
-        current_place: signupData.current_place.trim() || undefined,
-        password: signupData.password,
-        role_ids: [2], // Default role ID as per schema
+        phone: values.phone,
+        username: values.username.trim().toLowerCase(),
+        name: values.name.trim(),
+        email: values.email.trim(),
+        gender: values.gender || undefined,
+        date_of_birth: values.date_of_birth || undefined,
+        current_place: values.current_place?.trim() || undefined,
+        password: values.password,
+        role_ids: [2],
       };
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/send-otp`, {
@@ -420,30 +364,32 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         'Verifying Signup OTP:',
         signupOtp,
         'for phone:',
-        getFullPhoneNumber(),
+        signupForm.getValues('phone'),
       );
 
+      const signupValues = signupForm.getValues();
       const requestBody = {
-        phone: getFullPhoneNumber(),
+        phone: signupValues.phone,
         otp_code: signupOtp.trim(),
-        username: signupData.username.trim().toLowerCase(),
-        name: signupData.name.trim(),
-        email: signupData.email.trim(),
-        gender: signupData.gender || undefined,
-        date_of_birth: signupData.date_of_birth || undefined,
-        current_place: signupData.current_place.trim() || undefined,
-        password: signupData.password,
-        confirm_password: signupData.confirmPassword,
-        role_ids: [2], // Default role ID as per schema
-        has_given_consent: signupData.has_given_consent,
+        username: signupValues.username.trim().toLowerCase(),
+        name: signupValues.name.trim(),
+        email: signupValues.email.trim(),
+        gender: signupValues.gender || undefined,
+        date_of_birth: signupValues.date_of_birth || undefined,
+        current_place: signupValues.current_place?.trim() || undefined,
+        password: signupValues.password,
+        confirm_password: signupValues.confirmPassword,
+        role_ids: [2],
+        has_given_consent: signupValues.has_given_consent,
       };
 
-      // Remove undefined values
-      Object.keys(requestBody).forEach((key) => {
-        if (requestBody[key] === undefined) {
-          delete requestBody[key];
-        }
-      });
+      (Object.keys(requestBody) as Array<keyof typeof requestBody>).forEach(
+        (key) => {
+          if (requestBody[key] === undefined) {
+            delete requestBody[key];
+          }
+        },
+      );
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/verify-otp`, {
         method: 'POST',
@@ -466,8 +412,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         console.error('Signup Verify OTP Error:', data);
         if (data.detail && Array.isArray(data.detail)) {
           const errorMessages = data.detail
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .map((err: any) => err.msg)
+            .map((err: { msg: string }) => err.msg)
             .join(', ');
           toast.error(`Validation error: ${errorMessages}`);
         } else if (data.detail && typeof data.detail === 'string') {
@@ -494,7 +439,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setSignupOtp(''); // Clear current OTP
     setLoading(true);
     try {
-      console.log('Resending Signup OTP to:', getFullPhoneNumber());
+      const phone = signupForm.getValues('phone');
+      console.log('Resending Signup OTP to:', phone);
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/resend-otp`, {
         method: 'POST',
@@ -502,7 +448,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: getFullPhoneNumber(),
+          phone,
         }),
       });
 
@@ -541,34 +487,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setSignupOtp(value);
   };
 
-  const handleSignupInputChange = (field: string, value: string | boolean) => {
-    setSignupData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
   const resetForm = () => {
-    setPhoneDigits('');
-    setPassword('');
+    otpLoginForm.reset();
+    passwordLoginForm.reset();
+    signupForm.reset();
     setOtp('');
     setShowOtpInput(false);
     setResendTimer(0);
     setCanResend(false);
-    setSignupData({
-      username: '',
-      name: '',
-      email: '',
-      gender: '',
-      date_of_birth: '',
-      current_place: '',
-      password: '',
-      confirmPassword: '',
-      has_given_consent: false,
-    });
     setShowSignupOtpInput(false);
     setSignupOtp('');
+    setShowPasswordRequirements(false);
   };
+
+  const signupPassword = signupForm.watch('password');
+  const signupPhone = signupForm.watch('phone');
+  const otpLoginPhone = otpLoginForm.watch('phone');
+  const passwordStrength = getSignupPasswordStrength(signupPassword);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50 via-white to-blue-50 relative overflow-hidden">
@@ -625,6 +560,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 setMode('login');
                 resetForm();
               }}
+              type="button"
             >
               <LogIn className="h-4 w-4 mr-2" />
               {t('auth.login')}
@@ -640,6 +576,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 setMode('signup');
                 resetForm();
               }}
+              type="button"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               {t('auth.signUp')}
@@ -667,31 +604,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="tel"
                       placeholder={t('auth.enter10digitPhoneNumber')}
-                      value={phoneDigits}
+                      value={otpLoginPhone}
                       onChange={(e) =>
-                        setPhoneDigits(formatPhoneNumber(e.target.value))
+                        otpLoginForm.setValue(
+                          'phone',
+                          formatPhoneNumber(e.target.value),
+                          {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          },
+                        )
                       }
-                      onFocus={() => {
-                        setValidatePhone('border-gray-500');
-                        setErrorPhoneDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        if (parseInt(phoneDigits[0]) <= 5) {
-                          setValidatePhone('border-rose-800');
-                          setErrorPhoneDisplay('block');
-                        }
-                      }}
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-emerald-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
-                      {phoneDigits.length}
+                      {otpLoginPhone.length}
                       {t('common.10.digits')}
                     </div>
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
-                    >
-                      {t('auth.phoneNumberIsInvalid')}
-                    </div>
+                    {otpLoginForm.formState.errors.phone && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {otpLoginForm.formState.errors.phone.message}
+                      </div>
+                    )}
                   </div>
 
                   {/* Login with Password */}
@@ -700,16 +634,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <button
                       className="font-bold text-emerald-600 hover:text-emerald-700 transition-colors duration-200"
                       onClick={() => {
+                        passwordLoginForm.setValue('phone', otpLoginPhone, {
+                          shouldDirty: true,
+                        });
                         setLoginMethod('password');
                       }}
+                      type="button"
                     >
                       {t('nav.loginWithPassword')}
                     </button>
                   </div>
 
                   <Button
-                    onClick={handleSendOTP}
-                    disabled={loading || !isValidPhoneNumber()}
+                    onClick={() =>
+                      void otpLoginForm.handleSubmit(handleSendOTP)()
+                    }
+                    disabled={loading || !otpLoginForm.formState.isValid}
+                    type="button"
                     className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
@@ -731,7 +672,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <p className="text-sm text-green-700 flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
                       {t('auth.otpSentTo91')}
-                      {phoneDigits}
+                      {otpLoginPhone}
                     </p>
                   </div>
 
@@ -772,6 +713,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         variant="ghost"
                         onClick={handleResendOTP}
                         disabled={!canResend || loading}
+                        type="button"
                         className="flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 rounded-xl h-12 transition-all duration-300"
                       >
                         <RefreshCw className="h-4 w-4" />
@@ -788,6 +730,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                           setResendTimer(0);
                           setCanResend(false);
                         }}
+                        type="button"
                         className="text-gray-600 hover:bg-gray-50 rounded-xl h-12 transition-all duration-300"
                       >
                         Back
@@ -801,7 +744,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               {loginMethod === 'password' && (
                 <div
                   onKeyDown={(e) => {
-                    if (e.key == 'Enter') handlePasswordLogin();
+                    if (e.key === 'Enter') {
+                      void passwordLoginForm.handleSubmit(
+                        handlePasswordLogin,
+                      )();
+                    }
                   }}
                   className="space-y-5 animate-fade-in-up"
                 >
@@ -813,49 +760,46 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="tel"
                       placeholder={t('auth.enter10digitPhoneNumber')}
-                      value={phoneDigits}
+                      value={passwordLoginForm.watch('phone')}
                       onChange={(e) =>
-                        setPhoneDigits(formatPhoneNumber(e.target.value))
+                        passwordLoginForm.setValue(
+                          'phone',
+                          formatPhoneNumber(e.target.value),
+                          {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          },
+                        )
                       }
-                      onFocus={() => {
-                        setValidatePhone('border-gray-500');
-                        setErrorPhoneDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        if (parseInt(phoneDigits[0]) <= 5) {
-                          setValidatePhone('border-rose-800');
-                          setErrorPhoneDisplay('block');
-                        }
-                      }}
                       className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
-                      {phoneDigits.length}
+                      {passwordLoginForm.watch('phone').length}
                       {t('common.10.digits')}
                     </div>
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
-                    >
-                      {t('auth.phoneNumberIsInvalid')}
-                    </div>
+                    {passwordLoginForm.formState.errors.phone && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {passwordLoginForm.formState.errors.phone.message}
+                      </div>
+                    )}
                   </div>
 
                   <div className="relative">
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder={t('auth.enterYourPassword')}
-                      value={password}
-                      // onKeyDown={(e) => {
-                      //   if(e.key == 'Enter'){
-                      //     handlePasswordLogin();
-                      //   }
-                      // }}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={passwordLoginForm.watch('password')}
+                      onChange={(e) =>
+                        passwordLoginForm.setValue('password', e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
                       className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <button
-                      type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      type="button"
                       className="absolute right-4 top-4 h-6 w-6 text-purple-500 hover:text-purple-700 transition-colors duration-200"
                     >
                       {showPassword ? (
@@ -865,6 +809,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       )}
                     </button>
                   </div>
+                  {passwordLoginForm.formState.errors.password && (
+                    <div className="text-xs text-red-500 -mt-3 ml-1 font-medium">
+                      {passwordLoginForm.formState.errors.password.message}
+                    </div>
+                  )}
 
                   {/* forgot password ? Login with OTP */}
                   <div className="font-medium text-gray-800">
@@ -881,20 +830,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <button
                       className="font-bold text-purple-500 hover:text-purple-700 transition-colors duration-200"
                       onClick={() => {
+                        otpLoginForm.setValue(
+                          'phone',
+                          passwordLoginForm.getValues('phone'),
+                          {
+                            shouldDirty: true,
+                          },
+                        );
                         setLoginMethod('otp');
                         setShowOtpInput(false);
                         setOtp('');
                         setResendTimer(0);
                         setCanResend(false);
                       }}
+                      type="button"
                     >
                       Login with OTP
                     </button>
                   </div> */}
 
                   <Button
-                    onClick={handlePasswordLogin}
-                    disabled={loading || !isValidPhoneNumber() || !password}
+                    onClick={() =>
+                      void passwordLoginForm.handleSubmit(handlePasswordLogin)()
+                    }
+                    disabled={loading || !passwordLoginForm.formState.isValid}
+                    type="button"
                     className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
@@ -925,34 +885,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="tel"
                       placeholder={t('auth.enter10digitPhoneNumber')}
-                      value={phoneDigits}
+                      value={signupPhone}
                       onChange={(e) =>
-                        setPhoneDigits(formatPhoneNumber(e.target.value))
+                        signupForm.setValue(
+                          'phone',
+                          formatPhoneNumber(e.target.value),
+                          {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          },
+                        )
                       }
-                      onFocus={() => {
-                        setValidatePhone('border-gray-500');
-                        setErrorPhoneDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        if (parseInt(phoneDigits[0]) <= 5) {
-                          setValidatePhone('border-rose-800');
-                          setErrorPhoneDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-20 h-14 border-2 ${validatePhone} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                      className="pl-20 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <div className="text-xs text-gray-500 mt-1 ml-1">
-                      {phoneDigits.length}
+                      {signupPhone.length}
                       {t('common.10.digits')}
                     </div>
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
-                    >
-                      {t('auth.phoneNumberIsInvalid')}
-                    </div>
+                    {signupForm.formState.errors.phone && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {signupForm.formState.errors.phone.message}
+                      </div>
+                    )}
                   </div>
 
                   {/*UserName*/}
@@ -961,37 +915,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="text"
                       placeholder={t('auth.username')}
-                      value={signupData.username}
+                      value={signupForm.watch('username')}
                       onChange={(e) =>
-                        handleSignupInputChange('username', e.target.value)
+                        signupForm.setValue('username', e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }
-                      onFocus={() => {
-                        setValidateUserName('border-gray-500');
-                        setErrorUserNameDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const newNameRegex = /^[A-Za-z0-9_]{3,50}$/;
-                        const nameValue = e.target.value.trim();
-
-                        if (!newNameRegex.test(nameValue)) {
-                          setValidateUserName('border-rose-800');
-                          setErrorUserNameDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setValidateUserName('');
-                          setErrorUserNameDisplay('hidden');
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validateUserName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                      className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorUserNameDisplay}`}
-                    >
-                      {t(
-                        'auth.usernameShouldConsistOfCharactersUnderscoresDigitsOnly',
-                      )}
-                    </div>
+                    {signupForm.formState.errors.username && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {signupForm.formState.errors.username.message}
+                      </div>
+                    )}
                   </div>
 
                   {/* Name */}
@@ -1000,31 +937,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="text"
                       placeholder={t('user.fullName')}
-                      value={signupData.name}
+                      value={signupForm.watch('name')}
                       onChange={(e) =>
-                        handleSignupInputChange('name', e.target.value)
+                        signupForm.setValue('name', e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }
-                      onFocus={() => {
-                        setValidateName('border-gray-500');
-                        setErrorNameDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const nameRegex = /^[A-Za-z\s]+$/;
-                        if (!nameRegex.test(signupData.name.trim())) {
-                          setValidateName('border-rose-800');
-                          setErrorNameDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validateName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                      className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorNameDisplay}`}
-                    >
-                      {t('user.nameShouldHaveCharactersOnly')}
-                    </div>
+                    {signupForm.formState.errors.name && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {signupForm.formState.errors.name.message}
+                      </div>
+                    )}
                   </div>
 
                   {/* Email */}
@@ -1033,39 +959,30 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="email"
                       placeholder={t('common.emailAddress')}
-                      value={signupData.email}
+                      value={signupForm.watch('email')}
                       onChange={(e) =>
-                        handleSignupInputChange('email', e.target.value)
+                        signupForm.setValue('email', e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }
-                      onFocus={() => {
-                        setValidateEmail('border-gray-500');
-                        setErrorEmailDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const emailRegex = /^[^+\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (!emailRegex.test(signupData.email.trim())) {
-                          setValidateEmail('border-rose-800');
-                          setErrorEmailDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validateEmail} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                      className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`}
-                    >
-                      {t('auth.emailIsInvalid')}
-                    </div>
+                    {signupForm.formState.errors.email && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {signupForm.formState.errors.email.message}
+                      </div>
+                    )}
                   </div>
 
                   {/* Gender */}
                   <div className="relative">
                     <select
-                      value={signupData.gender}
+                      value={signupForm.watch('gender')}
                       onChange={(e) =>
-                        handleSignupInputChange('gender', e.target.value)
+                        signupForm.setValue('gender', e.target.value, {
+                          shouldDirty: true,
+                        })
                       }
                       className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
                       aria-label={t('auth.selectGender')}
@@ -1088,9 +1005,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       placeholder={t('common.date.of.birth')}
                       min={minDate}
                       max={maxDate}
-                      value={signupData.date_of_birth}
+                      value={signupForm.watch('date_of_birth')}
                       onChange={(e) =>
-                        handleSignupInputChange('date_of_birth', e.target.value)
+                        signupForm.setValue('date_of_birth', e.target.value, {
+                          shouldDirty: true,
+                        })
                       }
                       className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 mt-1"
                     />
@@ -1102,35 +1021,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type="text"
                       placeholder={t('user.placeCityState')}
-                      value={signupData.current_place}
+                      value={signupForm.watch('current_place') ?? ''}
                       onChange={(e) =>
-                        handleSignupInputChange('current_place', e.target.value)
+                        signupForm.setValue('current_place', e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }
-                      onFocus={() => {
-                        setValidatePlace('border-gray-500');
-                        setErrorPlaceDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const currentPlaceRegex = /^[A-Za-z\s,]+$/;
-                        if (
-                          !currentPlaceRegex.test(
-                            signupData.current_place.trim(),
-                          )
-                        ) {
-                          setValidatePlace('border-rose-800');
-                          setErrorPlaceDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validatePlace} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                      className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`}
-                    >
-                      {t('ui.place.should.have.characters.is.allowed')}
-                    </div>
+                    {signupForm.formState.errors.current_place && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {signupForm.formState.errors.current_place.message}
+                      </div>
+                    )}
                   </div>
 
                   {/* Password */}
@@ -1138,43 +1042,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type={showSignupPassword ? 'text' : 'password'}
                       placeholder={t('auth.createPassword')}
-                      value={signupData.password}
+                      value={signupPassword}
                       onChange={(e) =>
-                        handleSignupInputChange('password', e.target.value)
+                        signupForm.setValue('password', e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }
                       onFocus={() => {
-                        setErrorPasswordRequirementsDisplay('block');
+                        setShowPasswordRequirements(true);
                       }}
-                      onBlur={(e) => {
-                        const isPasswordValid =
-                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                            signupData.password,
-                          );
-                        const isPasswordMedium =
-                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
-                            signupData.password,
-                          );
-
-                        if (
-                          signupData.password.length >= 8 &&
-                          isPasswordValid
-                        ) {
-                          setValidatePassword('border-green-500');
-                          setFormValidationErrors(false);
-                        } else if (
-                          signupData.password.length >= 6 &&
-                          isPasswordMedium
-                        ) {
-                          setValidatePassword('border-yellow-500');
-                          setFormValidationErrors(false);
-                        } else {
-                          setValidatePassword('border-rose-800');
-                          setErrorPasswordDisplay('block');
-                          setFormValidationErrors(true);
-                        }
-                        setErrorPasswordRequirementsDisplay('hidden');
-                      }}
-                      className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                      onBlur={() => setShowPasswordRequirements(false)}
+                      className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <button
                       type="button"
@@ -1187,50 +1066,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         <Eye className="h-5 w-5" />
                       )}
                     </button>
-                    <div className={`mt-3 ${errorPasswordRequirementsDisplay}`}>
+                    {signupForm.formState.errors.password && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {signupForm.formState.errors.password.message}
+                      </div>
+                    )}
+                    <div
+                      className={`mt-3 ${showPasswordRequirements ? 'block' : 'hidden'}`}
+                    >
                       <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
                         <div
-                          className={`h-full transition-all duration-300 ${
-                            !signupData.password
-                              ? 'w-0'
-                              : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                                    signupData.password,
-                                  )
-                                ? 'w-full bg-green-500'
-                                : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
-                                      signupData.password,
-                                    )
-                                  ? 'w-2/3 bg-yellow-500'
-                                  : 'w-1/3 bg-red-500'
-                          }`}
+                          className={`h-full transition-all duration-300 ${passwordStrength.barClass}`}
                         />
                       </div>
                       <div className="text-xs text-gray-500">
                         {t('auth.passwordStrength')}{' '}
-                        <span
-                          className={
-                            !signupData.password
-                              ? 'text-gray-500'
-                              : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                                    signupData.password,
-                                  )
-                                ? 'text-green-500'
-                                : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
-                                      signupData.password,
-                                    )
-                                  ? 'text-yellow-500'
-                                  : 'text-red-500'
-                          }
-                        >
-                          {!signupData.password
+                        <span className={passwordStrength.colorClass}>
+                          {passwordStrength.label === 'empty'
                             ? 'Enter Password'
-                            : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(
-                                  signupData.password,
-                                )
+                            : passwordStrength.label === 'strong'
                               ? 'Strong'
-                              : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(
-                                    signupData.password,
-                                  )
+                              : passwordStrength.label === 'medium'
                                 ? 'Medium'
                                 : 'Weak'}
                         </span>
@@ -1239,46 +1095,44 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                           {t('auth.passwordShouldContain')}
                           <ul className="mb-2 text-xs">
                             <li
-                              className={`flex items-center ${/[A-Z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                              className={`flex items-center ${/[A-Z]/.test(signupPassword) ? 'text-green-500' : 'text-gray-500'}`}
                             >
                               <span className="mr-2">
-                                {/[A-Z]/.test(signupData.password) ? '✓' : '○'}
+                                {/[A-Z]/.test(signupPassword) ? '✓' : '○'}
                               </span>
                               {t('common.one.uppercase.letter')}
                             </li>
                             <li
-                              className={`flex items-center ${/[a-z]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                              className={`flex items-center ${/[a-z]/.test(signupPassword) ? 'text-green-500' : 'text-gray-500'}`}
                             >
                               <span className="mr-2">
-                                {/[a-z]/.test(signupData.password) ? '✓' : '○'}
+                                {/[a-z]/.test(signupPassword) ? '✓' : '○'}
                               </span>
                               {t('common.one.lowercase.letter')}
                             </li>
                             <li
-                              className={`flex items-center ${/\d/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                              className={`flex items-center ${/\d/.test(signupPassword) ? 'text-green-500' : 'text-gray-500'}`}
                             >
                               <span className="mr-2">
-                                {/\d/.test(signupData.password) ? '✓' : '○'}
+                                {/\d/.test(signupPassword) ? '✓' : '○'}
                               </span>
                               {t('common.one.number')}
                             </li>
                             <li
-                              className={`flex items-center ${/[!@#$%^&*(),.?":{}|<>]/.test(signupData.password) ? 'text-green-500' : 'text-gray-500'}`}
+                              className={`flex items-center ${/[!@#$%^&*(),.?":{}|<>]/.test(signupPassword) ? 'text-green-500' : 'text-gray-500'}`}
                             >
                               <span className="mr-2">
-                                {/[!@#$%^&*(),.?":{}|<>]/.test(
-                                  signupData.password,
-                                )
+                                {/[!@#$%^&*(),.?":{}|<>]/.test(signupPassword)
                                   ? '✓'
                                   : '○'}
                               </span>
                               {t('ui.one.special.character')}
                             </li>
                             <li
-                              className={`flex items-center ${signupData.password.length >= 8 ? 'text-green-500' : 'text-gray-500'}`}
+                              className={`flex items-center ${signupPassword.length >= 8 ? 'text-green-500' : 'text-gray-500'}`}
                             >
                               <span className="mr-2">
-                                {signupData.password.length >= 8 ? '✓' : '○'}
+                                {signupPassword.length >= 8 ? '✓' : '○'}
                               </span>
                               {t('common.minimum.8.characters')}
                             </li>
@@ -1293,29 +1147,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <Input
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder={t('common.confirmPassword')}
-                      value={signupData.confirmPassword}
+                      value={signupForm.watch('confirmPassword')}
                       onChange={(e) =>
-                        handleSignupInputChange(
-                          'confirmPassword',
-                          e.target.value,
-                        )
+                        signupForm.setValue('confirmPassword', e.target.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
                       }
-                      onFocus={() => {
-                        setValidatePassword('border-gray-500');
-                        setErrorPasswordDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        if (
-                          signupData.password !== signupData.confirmPassword
-                        ) {
-                          setValidatePassword('border-rose-800');
-                          setErrorPasswordDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pr-12 h-14 border-2 ${validatePassword} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                      className="pr-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300"
                     />
                     <button
                       type="button"
@@ -1330,11 +1169,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         <Eye className="h-5 w-5" />
                       )}
                     </button>
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPasswordDisplay}`}
-                    >
-                      {t('common.passwordsDoNotMatch')}
-                    </div>
+                    {signupForm.formState.errors.confirmPassword && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {signupForm.formState.errors.confirmPassword.message}
+                      </div>
+                    )}
                   </div>
 
                   {/* Consent Checkbox */}
@@ -1342,11 +1181,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <input
                       type="checkbox"
                       id="consent"
-                      checked={signupData.has_given_consent}
+                      checked={signupForm.watch('has_given_consent')}
                       onChange={(e) =>
-                        handleSignupInputChange(
+                        signupForm.setValue(
                           'has_given_consent',
-                          e.target.checked,
+                          e.target.checked as true,
+                          {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          },
                         )
                       }
                       className="mt-1 w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
@@ -1375,20 +1218,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       </a>
                     </label>
                   </div>
+                  {signupForm.formState.errors.has_given_consent && (
+                    <div className="text-xs text-red-500 -mt-3 ml-1 font-medium">
+                      {signupForm.formState.errors.has_given_consent.message}
+                    </div>
+                  )}
 
                   {/* Sign Up Button */}
                   <Button
-                    onClick={handleSignupSendOTP}
-                    disabled={
-                      loading ||
-                      !isValidPhoneNumber() ||
-                      !signupData.name.trim() ||
-                      !isValidEmail(signupData.email) ||
-                      !signupData.password ||
-                      signupData.password !== signupData.confirmPassword ||
-                      !signupData.has_given_consent ||
-                      formValidationErrors
+                    onClick={() =>
+                      void signupForm.handleSubmit(handleSignupSendOTP)()
                     }
+                    disabled={loading || !signupForm.formState.isValid}
+                    type="button"
                     className="w-full h-14 gradient-purple text-white hover:opacity-90 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
@@ -1409,7 +1251,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   <div className="bg-green-50 p-4 rounded-xl border border-green-200">
                     <p className="text-sm text-green-700 flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
-                      OTP sent to +91{phoneDigits}
+                      OTP sent to +91{signupPhone}
                     </p>
                   </div>
 
@@ -1450,6 +1292,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         variant="ghost"
                         onClick={handleSignupResendOTP}
                         disabled={!canResend || loading}
+                        type="button"
                         className="flex items-center gap-2 text-purple-600 hover:bg-purple-50 rounded-xl h-12 transition-all duration-300"
                       >
                         <RefreshCw className="h-4 w-4" />
@@ -1466,6 +1309,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                           setResendTimer(0);
                           setCanResend(false);
                         }}
+                        type="button"
                         className="text-gray-600 hover:bg-gray-50 rounded-xl h-12 transition-all duration-300"
                       >
                         {t('common.backToSignupForm')}
