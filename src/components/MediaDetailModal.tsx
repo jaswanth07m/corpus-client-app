@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Loader2,
   X,
@@ -47,12 +46,22 @@ const languages = [
   'urdu',
 ];
 
+const releaseOptions = [
+  { key: 'creator', value: 'This work is created by Author' },
+  {
+    key: 'downloaded',
+    value:
+      "Author downloaded this from the internet and/or Author don't know if it is free to share",
+  },
+  { key: 'others', value: 'Not Done By Author' },
+];
+
 interface Coordinates {
   latitude: number;
   longitude: number;
 }
 
-interface ContributionItem {
+export interface ContributionItem {
   id: string;
   size: number;
   category_id?: string; // Keep for backward compatibility
@@ -62,12 +71,26 @@ interface ContributionItem {
   description: string;
   duration?: number;
   timestamp?: string;
+  // Alternative timestamp field names from different API responses
+  created_at?: string;
+  createdAt?: string;
+  date?: string;
+  uploaded_at?: string;
   location?: Coordinates;
   release_rights: string;
   creator: string;
   language: string;
   file_hash: string;
   snr_frequency: number;
+  user_id?: string;
+  user_name?: string;
+  username?: string;
+  // Alternative file size field names from different API responses
+  file_size?: number;
+  fileSize?: number;
+  bytes?: number;
+  // Media type from API
+  media_type?: string;
 }
 
 interface MediaDetailModalProps {
@@ -89,7 +112,6 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   onClose,
   isOwnProfile,
 }) => {
-  const { t } = useTranslation();
   const [showHistory, setShowHistory] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -123,7 +145,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     s.split(' ').filter((w) => w.trim().length > 2).length;
 
   // Function to fetch media URL on demand
-  const fetchMediaUrl = async () => {
+  const fetchMediaUrl = useCallback(async () => {
     if (!isOpen || mediaUrl) return; // Don't fetch if modal is closed or already have URL
 
     setLoading(true);
@@ -154,7 +176,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [isOpen, mediaUrl, item.id, token]);
 
   // Fetch media URL only when needed for audio, document, and video types
   useEffect(() => {
@@ -167,7 +189,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
     ) {
       fetchMediaUrl();
     }
-  }, [isOpen, previewUrl, mediaType, item.id, token]);
+  }, [isOpen, previewUrl, mediaType, item.id, token, fetchMediaUrl]);
 
   if (!isOpen) return null;
 
@@ -218,9 +240,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-xs text-gray-500">
-                    {t('media.videoUnavailable')}
-                  </p>
+                  <p className="text-xs text-gray-500">Video unavailable</p>
                 </div>
               </div>
             )}
@@ -253,7 +273,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   onClick={fetchMediaUrl}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  {t('media.loadVideo')}
+                  Load Video
                 </button>
               </div>
             )}
@@ -283,9 +303,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                     d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
                   />
                 </svg>
-                <p className="text-xs text-gray-500">
-                  {t('media.audioUnavailable')}
-                </p>
+                <p className="text-xs text-gray-500">Audio unavailable</p>
               </div>
             )}
             {!loading && !error && mediaUrl && (
@@ -337,7 +355,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   onClick={fetchMediaUrl}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  {t('media.loadAudio')}
+                  Load Audio
                 </button>
               </div>
             )}
@@ -368,123 +386,41 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-xs text-gray-500">
-                    {t('media.documentUnavailable')}
-                  </p>
+                  <p className="text-xs text-gray-500">Document unavailable</p>
                 </div>
               </div>
             )}
             {!loading && !error && mediaUrl && (
               <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
-                {/* Check document type and render appropriate preview */}
-                {mediaUrl && (
-                  <div className="w-full h-full flex flex-col items-center">
-                    {mediaUrl.toLowerCase().endsWith('.pdf') ? (
-                      <iframe
-                        src={mediaUrl}
-                        className="w-full h-full border-0"
-                        title={t('common.documentPreview')}
-                      />
-                    ) : mediaUrl.toLowerCase().endsWith('.docx') ||
-                      mediaUrl.toLowerCase().endsWith('.doc') ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
-                        <div className="mb-2">
-                          <svg
-                            className="w-16 h-16 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-700 mb-4">
-                          {item.title || 'Word Document'}
-                        </p>
-                        <p className="text-gray-500 mb-6 text-center max-w-md">
-                          {item.description || 'Microsoft Word Document'}
-                        </p>
-                        <a
-                          href={mediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
-                        >
-                          {t('common.openInNewTab')}
-                        </a>
-                      </div>
-                    ) : mediaUrl.toLowerCase().endsWith('.txt') ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
-                        <div className="mb-2">
-                          <svg
-                            className="w-16 h-16 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-700 mb-4">
-                          {item.title || 'Text File'}
-                        </p>
-                        <p className="text-gray-500 mb-6 text-center max-w-md">
-                          {item.description || 'Plain Text Document'}
-                        </p>
-                        <a
-                          href={mediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
-                        >
-                          View Text
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-white border-0 p-4">
-                        <div className="mb-2">
-                          <svg
-                            className="w-16 h-16 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-700 mb-4">
-                          {item.title || 'Document'}
-                        </p>
-                        <p className="text-gray-500 mb-6 text-center max-w-md">
-                          {item.description || 'Document File'}
-                        </p>
-                        <a
-                          href={mediaUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
-                        >
-                          {t('common.openDocument')}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="mb-4">
+                  <svg
+                    className="w-16 h-16 text-blue-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-lg font-semibold text-gray-700 mb-4">
+                  {item.title || 'Document'}
+                </p>
+                <p className="text-gray-500 mb-6 text-center max-w-md">
+                  {item.description || 'Click below to open the document'}
+                </p>
+                <a
+                  href={mediaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                >
+                  Open Document
+                </a>
               </div>
             )}
             {!loading && !error && !mediaUrl && (
@@ -511,7 +447,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   onClick={fetchMediaUrl}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  {t('media.loadDocument')}
+                  Load Document
                 </button>
               </div>
             )}
@@ -546,7 +482,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                {t('common.viewText')}
+                View Text
               </a>
             </div>
           </div>
@@ -556,9 +492,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
         return (
           <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
             <div className="text-center p-4">
-              <p className="text-xs text-gray-500">
-                {t('categories.unsupportedMediaType')}
-              </p>
+              <p className="text-xs text-gray-500">Unsupported media type</p>
             </div>
           </div>
         );
@@ -674,7 +608,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           item.creator === editItem.creator &&
                           (!isOwnProfile || sourceLabel === '') // Only check sourceLabel if on other's profile
                         ) {
-                          toast.info(t('common.noChangesToSave'));
+                          toast.info('No changes to save');
                           return;
                         }
 
@@ -856,7 +790,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       )}
                       <p className="text-xs text-gray-500 mt-1">
                         {countMeaningfulWords(editItem.description || '')}{' '}
-                        {t('common.meaningful.words')}
+                        meaningful words
                       </p>
                     </div>
                   </>
@@ -952,7 +886,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   </svg>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-700">
-                      {t('media.fileSize')}
+                      File Size
                     </p>
                     <p className="text-sm text-gray-600">
                       {item.size ? formatSizeMB(item.size) : 'Not available'}
@@ -1040,19 +974,11 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="creator">
-                            {t(
-                              'ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it',
-                            )}
-                          </SelectItem>
-                          <SelectItem value="others">
-                            {t('common.notDoneByAuthor')}
-                          </SelectItem>
-                          <SelectItem value="downloaded">
-                            {t(
-                              'common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare',
-                            )}
-                          </SelectItem>
+                          {releaseOptions.map((opt) => (
+                            <SelectItem key={opt.key} value={opt.key}>
+                              {opt.value}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1073,20 +999,20 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                                 })
                               }
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder={t('common.specify.creator')}
+                              placeholder="Specify creator"
                             />
                           </div>
                         ) : (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {t('categories.sourceLabel')}
+                              Source Label
                             </label>
                             <input
                               type="text"
                               value={sourceLabel}
                               onChange={(e) => setSourceLabel(e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder={t('common.specify.source')}
+                              placeholder="Specify source"
                             />
                           </div>
                         )}
@@ -1111,7 +1037,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                       </svg>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-700">
-                          {t('common.release.rights')}
+                          Release Rights
                         </p>
                         <p className="text-sm text-gray-600">
                           {item.release_rights || 'Not specified'}
@@ -1155,7 +1081,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                 {item.reviewed && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
-                      {t('common.Reviewed')}
+                      ✓ Reviewed
                     </span>
                   </div>
                 )}
@@ -1171,6 +1097,254 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+// RecordDetailView component for displaying record details standalone
+export const RecordDetailView: React.FC<{
+  item: ContributionItem;
+  token?: string;
+}> = ({ item, token = '' }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-4 space-y-6 pb-24">
+      {/* Title and Description */}
+      <div>
+        <h3 className="text-xl font-bold text-gray-900 mb-3">
+          {item.title || 'Untitled'}
+        </h3>
+        <p className="text-gray-600 leading-relaxed">
+          {item.description || 'No description available'}
+        </p>
+      </div>
+
+      {/* Metadata Section */}
+      <div className="space-y-4 bg-gray-50 rounded-xl p-4">
+        <h4 className="font-semibold text-gray-900">Information</h4>
+
+        {/* Timestamp */}
+        <div className="flex items-start gap-3">
+          <Clock size={18} className="text-gray-400 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Timestamp</p>
+            <p className="text-sm text-gray-600">
+              {(() => {
+                // Check for multiple possible timestamp field names
+                const timestamp =
+                  item.timestamp ||
+                  item.created_at ||
+                  item.createdAt ||
+                  item.date ||
+                  item.uploaded_at;
+                if (timestamp) {
+                  try {
+                    return new Date(timestamp).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    });
+                  } catch (e) {
+                    return String(timestamp);
+                  }
+                }
+                return 'Not available';
+              })()}
+            </p>
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.414A1 1 0 0112.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Location</p>
+            <p className="text-sm text-gray-600">
+              {item.location &&
+              typeof item.location.latitude === 'number' &&
+              typeof item.location.longitude === 'number'
+                ? `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`
+                : 'Not available'}
+            </p>
+          </div>
+        </div>
+
+        {/* File Size */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">File Size</p>
+            <p className="text-sm text-gray-600">
+              {(() => {
+                // Check for multiple possible file size field names
+                const size =
+                  item.size || item.file_size || item.fileSize || item.bytes;
+                if (size !== undefined && size !== null) {
+                  return formatSizeMB(size);
+                }
+                return 'Not available';
+              })()}
+            </p>
+          </div>
+        </div>
+
+        {/* Language */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Language</p>
+            <p className="text-sm text-gray-600">
+              {item.language || 'Not specified'}
+            </p>
+          </div>
+        </div>
+
+        {/* Release Rights */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700">Release Rights</p>
+            <p className="text-sm text-gray-600">
+              {item.release_rights || 'Not specified'}
+            </p>
+          </div>
+        </div>
+
+        {/* Creator */}
+        {item.creator && (
+          <div className="flex items-start gap-3">
+            <svg
+              className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-700">Creator</p>
+              <p className="text-sm text-gray-600">{item.creator}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Categories */}
+        <div className="flex items-start gap-3">
+          <svg
+            className="w-[18px] h-[18px] text-gray-400 mt-0.5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+            />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-700 mb-2">Categories</p>
+            <CategoryTags
+              categoryIds={
+                item.category_ids ||
+                (item.category_id ? [item.category_id] : [])
+              }
+              token={token}
+            />
+          </div>
+        </div>
+
+        {/* Reviewed Badge */}
+        {item.reviewed && (
+          <div className="pt-2">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">
+              ✓ Reviewed
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// MediaPreviewView component for displaying media preview standalone
+export const MediaPreviewView: React.FC<{
+  item: ContributionItem;
+  previewUrl?: string | null;
+}> = ({ item, previewUrl }) => {
+  return (
+    <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
+      {previewUrl ? (
+        <div className="w-full h-full flex items-center justify-center p-4">
+          <p className="text-gray-600">Preview: {item.title || 'Media Item'}</p>
+        </div>
+      ) : (
+        <div className="text-center p-4">
+          <p className="text-gray-500">No preview available</p>
+        </div>
+      )}
     </div>
   );
 };

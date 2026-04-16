@@ -12,6 +12,7 @@ import AnnotationsDashboard from './pages/AnnotationsDashboard';
 import Profile from './pages/Profile';
 import MyProfileRedirect from './pages/MyProfileRedirect';
 import PeerReview from './pages/PeerReview';
+import RecordDetails from './pages/RecordDetails'; // Import RecordDetails component
 import ImageReviewPage from './pages/ImageReviewPage';
 import AudioReviewPage from './pages/AudioReviewPage';
 import VideoReviewPage from './pages/VideoReviewPage';
@@ -104,6 +105,18 @@ const App = () => (
                     <PeerReview />
                   </RequireAuth>
                 }
+              />
+              <Route
+                path="/records/:recordId"
+                element={
+                  <RequireAuth>
+                    <RecordDetails />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/shared/:recordId"
+                element={<RecordDetails isSharedView={true} />}
               />
             </Route>
 
