@@ -520,10 +520,49 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
           {/* Details Card */}
           <div>
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="px-6 pt-5 pb-2">
+              <div className="px-6 pt-5 pb-2 flex items-center justify-between">
                 <span className="inline-block px-3 py-1.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg shadow-sm">
-                  Details
+                  {t('common.details', 'Details')}
                 </span>
+
+                {!isEditing && isOwnProfile && (
+                  <button
+                    onClick={handleEdit}
+                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 rounded-lg shadow-sm transition-all flex items-center gap-2"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    {t('common.edit')}
+                  </button>
+                )}
+
+                {isEditing && (
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleCancel}
+                      disabled={isSaving}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-300 transition-colors disabled:opacity-50"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 rounded-lg shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {t('common.saving')}
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          {t('common.save')}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="p-6 pt-2 space-y-5">
                 {/* Title & Description */}
@@ -707,48 +746,6 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     </div>
                   </div>
                 )}
-
-                {/* Action Buttons */}
-                <div className="pt-3 flex justify-end gap-3">
-                  {isEditing ? (
-                    <>
-                      <button
-                        onClick={handleCancel}
-                        disabled={isSaving}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        {isSaving ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            {t('common.saving')}
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4" />
-                            Save
-                          </>
-                        )}
-                      </button>
-                    </>
-                  ) : (
-                    isOwnProfile && (
-                      <button
-                        onClick={handleEdit}
-                        className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 rounded-lg shadow-sm transition-all flex items-center gap-2"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        Edit
-                      </button>
-                    )
-                  )}
-                </div>
               </div>
             </div>
           </div>
