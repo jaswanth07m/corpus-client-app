@@ -254,26 +254,35 @@ describe('LoginForm', () => {
   });
 
   it('tests signup password strength validation logic', async () => {
-    const user = userEvent.setup();
     renderComponent();
     const signupBtns = screen.getAllByRole('button', { name: 'auth.signUp' });
-    await user.click(signupBtns[0]);
+    fireEvent.click(signupBtns[0]);
 
     const passwordInput = screen.getByPlaceholderText('auth.createPassword');
-    await user.click(passwordInput);
-    expect(screen.getByText('auth.passwordStrength')).toBeInTheDocument();
-    expect(screen.getByText('Enter Password')).toBeInTheDocument();
+    fireEvent.focus(passwordInput);
+    await waitFor(() => {
+      expect(screen.getByText('auth.passwordStrength')).toBeInTheDocument();
+      expect(screen.getByText('Enter Password')).toBeInTheDocument();
+    });
 
-    await user.type(passwordInput, 'weak');
-    expect(screen.getByText('Weak')).toBeInTheDocument();
+    fireEvent.change(passwordInput, { target: { value: 'weak' } });
+    await waitFor(() => {
+      expect(screen.getByText('Weak')).toBeInTheDocument();
+    });
 
-    await user.clear(passwordInput);
-    await user.type(passwordInput, 'Medium123');
-    expect(screen.getByText('Medium')).toBeInTheDocument();
+    fireEvent.change(passwordInput, { target: { value: '' } });
+    fireEvent.change(passwordInput, { target: { value: 'Medium123' } });
+    await waitFor(() => {
+      expect(screen.getByText('Medium')).toBeInTheDocument();
+    });
 
-    await user.clear(passwordInput);
-    await user.type(passwordInput, 'StrongPassword123!');
-    expect(screen.getByText('Strong')).toBeInTheDocument();
+    fireEvent.change(passwordInput, { target: { value: '' } });
+    fireEvent.change(passwordInput, {
+      target: { value: 'StrongPassword123!' },
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Strong')).toBeInTheDocument();
+    });
   });
 
   it('submits a valid signup flow and resolves OTP sending API, then tests verification branch failures', async () => {

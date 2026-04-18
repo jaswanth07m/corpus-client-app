@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   User,
   Loader2,
@@ -15,6 +16,8 @@ import {
   Check,
   X,
   Music,
+  Pencil,
+  Save,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -25,6 +28,7 @@ import CategoryTags from '@/components/CategoryTags';
 const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
   isSharedView = false,
 }) => {
+  const { t } = useTranslation();
   const { recordId } = useParams<{ recordId: string }>();
   const [record, setRecord] = useState<ContributionItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +38,33 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [autoLoadAttempted, setAutoLoadAttempted] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    language: '',
+    release_rights: '',
+    category_ids: [] as string[],
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const isUuid = (value: string) =>
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(
+      value,
+    );
+
+  const normalizeCategoryIds = (categoryIds: string[]) =>
+    categoryIds
+      .map((id) => {
+        const normalized = id.trim().startsWith('urn:uuid:')
+          ? id.trim().slice('urn:uuid:'.length)
+          : id.trim();
+        return isUuid(normalized) ? normalized : null;
+      })
+      .filter((id): id is string => Boolean(id));
 
   useEffect(() => {
     const fetchRecordDetails = async () => {
@@ -64,8 +95,26 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
         const data = await response.json();
         setRecord(data);
 
-        const currentUserId = localStorage.getItem('user_id');
-        setIsOwnProfile(currentUserId === data.user_id);
+        // Determine current user ID from various possible localStorage keys
+        const rawUser = localStorage.getItem('user');
+        const parsedUser = rawUser ? JSON.parse(rawUser) : {};
+
+        const currentUserId =
+          localStorage.getItem('user_id') ||
+          localStorage.getItem('id') ||
+          parsedUser?.id ||
+          parsedUser?.user_id ||
+          parsedUser?.sub;
+
+        const isOwner =
+          String(currentUserId).trim() === String(data.user_id).trim();
+
+        // Debug logs (temporary)
+        console.log('currentUserId:', currentUserId);
+        console.log('data.user_id:', data.user_id);
+        console.log('isOwnProfile result:', isOwner);
+
+        setIsOwnProfile(isOwner);
 
         if (
           data.media_type &&
@@ -166,7 +215,147 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast.success('Link copied successfully');
+    toast.success(t('messages.linkCopiedSuccessfully'));
+  };
+
+  const handleEdit = () => {
+    if (!record) return;
+    setFormData({
+      title: record.title || '',
+      description: record.description || '',
+      language: record.language || '',
+      release_rights: record.release_rights || '',
+      category_ids: normalizeCategoryIds(
+        record.category_ids || (record.category_id ? [record.category_id] : []),
+      ),
+    });
+    setSaveError(null);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setSaveError(null);
+    // Reset form data to original values
+    if (record) {
+      setFormData({
+        title: record.title || '',
+        description: record.description || '',
+        language: record.language || '',
+        release_rights: record.release_rights || '',
+        category_ids: normalizeCategoryIds(
+          record.category_ids ||
+            (record.category_id ? [record.category_id] : []),
+        ),
+      });
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCategoryChange = (categoryIds: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      category_ids: normalizeCategoryIds(categoryIds),
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!record || !token || !recordId) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const categoryIds = normalizeCategoryIds(formData.category_ids);
+
+      console.log('Sending to API:', {
+        title: formData.title,
+        description: formData.description,
+        language: formData.language,
+        release_rights: formData.release_rights,
+        category_ids: categoryIds,
+      });
+
+      const response = await fetch(`${BACKEND_URL}/records/${recordId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          language: formData.language,
+          release_rights: formData.release_rights,
+          category_ids: categoryIds,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to update record';
+        try {
+          const errorData = await response.json();
+          if (typeof errorData === 'string') {
+            errorMessage = errorData;
+          } else if (typeof errorData?.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else if (Array.isArray(errorData?.detail)) {
+            // FastAPI validation errors come as an array
+            errorMessage = errorData.detail
+              .map((e: unknown) => {
+                if (
+                  typeof e === 'object' &&
+                  e !== null &&
+                  'msg' in e &&
+                  typeof (e as { msg?: unknown }).msg === 'string'
+                ) {
+                  return (e as { msg: string }).msg;
+                }
+                return JSON.stringify(e);
+              })
+              .join(', ');
+          } else if (typeof errorData?.message === 'string') {
+            errorMessage = errorData.message;
+          } else {
+            errorMessage = JSON.stringify(errorData);
+          }
+        } catch {
+          errorMessage = `HTTP error: ${response.status}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const updatedRecord = await response.json();
+      console.log('API response:', updatedRecord);
+      setRecord((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          ...updatedRecord,
+          title: formData.title,
+          description: formData.description,
+          language: formData.language,
+          release_rights: formData.release_rights,
+          category_ids: categoryIds,
+        };
+      });
+      toast.success(t('messages.recordUpdatedSuccessfully'));
+      setIsEditing(false);
+      setSaveError(null);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : JSON.stringify(error);
+      setSaveError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (loading) {
@@ -184,9 +373,12 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4 font-medium">Error: {error}</p>
+          <p className="text-red-600 mb-4 font-medium">
+            {t('messages.error')}
+            {error}
+          </p>
           <Link to="/" className="text-blue-600 hover:underline">
-            Go back home
+            {t('common.goBackHome')}
           </Link>
         </div>
       </div>
@@ -197,7 +389,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Record not found</p>
+          <p className="text-gray-600 mb-4">{t('common.recordNotFound')}</p>
           <Link to="/" className="text-blue-600 hover:underline">
             Go back home
           </Link>
@@ -255,7 +447,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                   >
                     <Download className="w-5 h-5" />
-                    View Document
+                    {t('common.viewDocument')}
                   </a>
                 </div>
               ) : (
@@ -336,17 +528,40 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
               <div className="p-6 pt-2 space-y-5">
                 {/* Title & Description */}
                 <div className="border-b border-gray-100 pb-5">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                    {record.title || 'Untitled'}
-                  </h2>
-                  <p className="text-gray-600 leading-relaxed">
-                    {record.description || 'No description available'}
-                  </p>
+                  {isEditing ? (
+                    <>
+                      <input
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        className="w-full text-2xl font-bold text-gray-900 mb-3 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="Enter title..."
+                      />
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-gray-600 leading-relaxed"
+                        placeholder="Enter description..."
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                        {record.title || 'Untitled'}
+                      </h2>
+                      <p className="text-gray-600 leading-relaxed">
+                        {record.description || 'No description available'}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Metadata Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Timestamp */}
+                  {/* Timestamp - always read-only */}
                   <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors group">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                       <Clock className="w-5 h-5 text-blue-600" />
@@ -361,7 +576,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     </div>
                   </div>
 
-                  {/* Location */}
+                  {/* Location - always read-only */}
                   <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors group">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                       <MapPin className="w-5 h-5 text-blue-600" />
@@ -380,7 +595,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     </div>
                   </div>
 
-                  {/* File Size */}
+                  {/* File Size - always read-only */}
                   <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors group">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                       <FileText className="w-5 h-5 text-blue-600" />
@@ -395,33 +610,55 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     </div>
                   </div>
 
-                  {/* Language */}
+                  {/* Language - editable in edit mode */}
                   <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors group">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                       <Globe className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
                         Language
                       </p>
-                      <p className="text-sm font-semibold text-gray-800">
-                        {record.language || 'Not specified'}
-                      </p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="language"
+                          value={formData.language}
+                          onChange={handleInputChange}
+                          className="w-full px-2 py-1 text-sm font-semibold text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                          placeholder={t('common.enter.language')}
+                        />
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-800">
+                          {record.language || 'Not specified'}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Release Rights */}
+                  {/* Release Rights - editable in edit mode */}
                   <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors group">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                       <Shield className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
                         Rights
                       </p>
-                      <p className="text-sm font-semibold text-gray-800">
-                        {record.release_rights || 'Not specified'}
-                      </p>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="release_rights"
+                          value={formData.release_rights}
+                          onChange={handleInputChange}
+                          className="w-full px-2 py-1 text-sm font-semibold text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                          placeholder={t('common.enter.rights')}
+                        />
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-800">
+                          {record.release_rights || 'Not specified'}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -434,13 +671,22 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                       Categories
                     </p>
                   </div>
-                  <CategoryTags
-                    categoryIds={
-                      record.category_ids ||
-                      (record.category_id ? [record.category_id] : [])
-                    }
-                    token={token}
-                  />
+                  {isEditing ? (
+                    <CategoryTags
+                      categoryIds={formData.category_ids}
+                      token={token}
+                      editable={true}
+                      onCategoryIdsChange={handleCategoryChange}
+                    />
+                  ) : (
+                    <CategoryTags
+                      categoryIds={
+                        record.category_ids ||
+                        (record.category_id ? [record.category_id] : [])
+                      }
+                      token={token}
+                    />
+                  )}
                 </div>
 
                 {/* Reviewed Badge */}
@@ -448,10 +694,61 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                   <div className="pt-3">
                     <span className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
                       <Check className="w-4 h-4 mr-1.5" />
-                      Reviewed & Verified
+                      {t('common.reviewedVerified')}
                     </span>
                   </div>
                 )}
+
+                {/* Save Error */}
+                {saveError && isEditing && (
+                  <div className="pt-3">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                      {saveError}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="pt-3 flex justify-end gap-3">
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={handleCancel}
+                        disabled={isSaving}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {t('common.saving')}
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Save
+                          </>
+                        )}
+                      </button>
+                    </>
+                  ) : (
+                    isOwnProfile && (
+                      <button
+                        onClick={handleEdit}
+                        className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 rounded-lg shadow-sm transition-all flex items-center gap-2"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Edit
+                      </button>
+                    )
+                  )}
+                </div>
               </div>
             </div>
           </div>

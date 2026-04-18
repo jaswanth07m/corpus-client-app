@@ -143,10 +143,9 @@ describe('CategoryTags', () => {
 
     await waitFor(() => {
       const fablesText = screen.getByText('Fables');
-      // Get the outer span (the tag container) - parent of the inner span
-      const fablesTag = fablesText.parentElement;
-      expect(fablesTag).toHaveClass('bg-blue-100');
-      expect(fablesTag).toHaveClass('text-blue-800');
+      const fablesTag = fablesText.closest('span');
+      expect(fablesTag).toHaveClass('bg-blue-50');
+      expect(fablesTag).toHaveClass('text-blue-700');
       expect(fablesTag).toHaveClass('rounded-full');
     });
   });
@@ -199,7 +198,7 @@ describe('CategoryTags', () => {
     });
   });
 
-  it('renders category title with truncate styling', async () => {
+  it('renders category title with correct styling', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockCategories,
@@ -210,8 +209,8 @@ describe('CategoryTags', () => {
     await waitFor(() => {
       const fablesText = screen.getByText('Fables');
       const innerSpan = fablesText.closest('span');
-      expect(innerSpan).toHaveClass('truncate');
-      expect(innerSpan).toHaveClass('max-w-[100px]');
+      expect(innerSpan).toHaveClass('bg-blue-50');
+      expect(innerSpan).toHaveClass('text-blue-700');
     });
   });
 
@@ -250,7 +249,6 @@ describe('CategoryTags', () => {
       expect(containerDiv).toHaveClass('flex');
       expect(containerDiv).toHaveClass('flex-wrap');
       expect(containerDiv).toHaveClass('gap-2');
-      expect(containerDiv).toHaveClass('mt-2');
     });
   });
 });

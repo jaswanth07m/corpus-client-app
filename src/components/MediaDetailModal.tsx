@@ -1392,11 +1392,14 @@ export const MediaPreviewView: React.FC<{
     <div className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center">
       {previewUrl ? (
         <div className="w-full h-full flex items-center justify-center p-4">
-          <p className="text-gray-600">Preview: {item.title || 'Media Item'}</p>
+          <p className="text-gray-600">
+            {t('common.preview')}
+            {item.title || 'Media Item'}
+          </p>
         </div>
       ) : (
         <div className="text-center p-4">
-          <p className="text-gray-500">No preview available</p>
+          <p className="text-gray-500">{t('common.noPreviewAvailable')}</p>
         </div>
       )}
     </div>
