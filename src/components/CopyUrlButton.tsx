@@ -50,12 +50,12 @@ const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({
     const success = await copyToClipboard(url);
     if (success) {
       setCopied(true);
-      toast.success(t('ui.url.copied.to.clipboard'), {
+      toast.success('URL copied to clipboard', {
         description: `Record ID: ${recordId}`,
       });
       setTimeout(() => setCopied(false), 2000);
     } else {
-      toast.error(t('common.failed.to.copy.url'));
+      toast.error('Failed to copy URL');
     }
   };
 
@@ -66,7 +66,7 @@ const CopyUrlButton: React.FC<CopyUrlButtonProps> = ({
       size="sm"
       onClick={handleCopy}
       className={`flex items-center gap-1.5 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors p-2 ${className}`}
-      title={t('media.copyRecordUrl')}
+      title="Copy record URL"
     >
       {copied ? (
         <Check size={18} className="text-emerald-500" />

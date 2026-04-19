@@ -711,7 +711,7 @@ const PeerReview: React.FC = () => {
                   <div className="flex items-center gap-2 py-2">
                     <div className="w-2 h-2 bg-slate-300 rounded-full animate-pulse"></div>
                     <span className="text-xs text-slate-500">
-                      {t('messages.loadingCategories')}
+                      Loading categories...
                     </span>
                   </div>
                 )}
@@ -804,16 +804,16 @@ const PeerReview: React.FC = () => {
           ) : filteredRecords.length === 0 && selectedCategory ? (
             <div className="text-center py-12">
               <p className="text-slate-600 text-lg mb-4">
-                {t('common.noRecordsFoundInThisCategory')}
+                No records found in this category
               </p>
               <p className="text-slate-500 text-sm mb-6">
-                {t('common.trySelectingADifferentCategoryOrClearingTheFilter')}
+                Try selecting a different category or clearing the filter.
               </p>
               <button
                 onClick={() => setSelectedCategory(null)}
                 className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
               >
-                {t('common.clearFilter')}
+                Clear Filter
               </button>
             </div>
           ) : (
