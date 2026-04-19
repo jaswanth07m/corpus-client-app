@@ -45,6 +45,7 @@
     },
     "selectALocation": "Select a Location",
     "confirmLocation": "Confirm Location",
+    "details": "Details",
     "selectMediaType": "Select Media Type",
     "to": {
       "choose": "to choose"
@@ -166,6 +167,8 @@
     "enter": {
       "title": "Enter title",
       "description": "Enter description",
+      "language": "Enter language",
+      "rights": "Enter rights",
       "current": {
         "place": "Enter current place"
       },
@@ -247,7 +250,24 @@
       "progress": "Overall Progress"
     },
     "previousPage": "Previous Page",
-    "nextPage": "Next Page"
+    "nextPage": "Next Page",
+    "goBackHome": "Go back home",
+    "recordNotFound": "Record not found",
+    "viewDocument": "View Document",
+    "reviewedVerified": "Reviewed & Verified",
+    "noRecordsFoundInThisCategory": "No records found in this category",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "Try selecting a different category or clearing the filter.",
+    "clearFilter": "Clear Filter",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": "Failed to copy URL"
+        }
+      }
+    },
+    "preview": "Preview:",
+    "noPreviewAvailable": "No preview available",
+    "reviewedAndVerified": "Reviewed and verified"
   },
   "ui": {
     "failed": {
@@ -417,6 +437,13 @@
           }
         }
       }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": "URL copied to clipboard"
+        }
+      }
     }
   },
   "messages": {
@@ -435,7 +462,12 @@
     "loadingProfile": "Loading profile...",
     "profilePictureUpdatedSuccessfully": "Profile picture updated successfully!",
     "loadingPointsData": "Loading points data...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence.",
+    "linkCopiedSuccessfully": "Link copied successfully",
+    "recordUpdatedSuccessfully": "Record updated successfully!",
+    "error": "Error:",
+    "loadingCategories": "Loading categories...",
+    "saving": "Saving..."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -505,7 +537,8 @@
     "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
     "imageUrl": "Image URL",
     "enterRecordId": "Enter Record ID",
-    "recordControls": "Record Controls"
+    "recordControls": "Record Controls",
+    "copyRecordUrl": "Copy record URL"
   },
   "stats": {
     "contributionsYet": "contributions yet.",

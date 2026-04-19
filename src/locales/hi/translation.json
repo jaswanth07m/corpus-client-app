@@ -45,6 +45,7 @@
     },
     "selectALocation": "एक स्थान चुनें",
     "confirmLocation": "स्थान की पुष्टि करें",
+    "details": "विवरण",
     "selectMediaType": "मीडिया प्रकार चुनें",
     "to": {
       "choose": "चुनने के लिए"
@@ -166,6 +167,8 @@
     "enter": {
       "title": "शीर्षक दर्ज करें",
       "description": "विवरण दर्ज करें",
+      "language": "भाषा दर्ज करें",
+      "rights": "अधिकार दर्ज करें",
       "current": {
         "place": "वर्तमान स्थान दर्ज करें"
       },
@@ -247,7 +250,24 @@
       "progress": "कुल प्रगति"
     },
     "previousPage": "पिछला पेज",
-    "nextPage": "अगला पेज"
+    "nextPage": "अगला पेज",
+    "goBackHome": "",
+    "recordNotFound": "",
+    "viewDocument": "",
+    "reviewedVerified": "",
+    "noRecordsFoundInThisCategory": "",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "",
+    "clearFilter": "",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": ""
+        }
+      }
+    },
+    "preview": "",
+    "noPreviewAvailable": "",
+    "reviewedAndVerified": "समीक्षित और सत्यापित"
   },
   "ui": {
     "failed": {
@@ -417,6 +437,13 @@
           }
         }
       }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": ""
+        }
+      }
     }
   },
   "messages": {
@@ -435,7 +462,12 @@
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।"
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।",
+    "linkCopiedSuccessfully": "",
+    "recordUpdatedSuccessfully": "रिकॉर्ड सफलतापूर्वक अपडेट किया गया!",
+    "error": "",
+    "loadingCategories": "",
+    "saving": "सहेजा जा रहा है..."
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -505,7 +537,8 @@
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
     "imageUrl": "छवि URL",
     "enterRecordId": "रिकॉर्ड आईडी दर्ज करें",
-    "recordControls": "रिकॉर्ड नियंत्रण"
+    "recordControls": "रिकॉर्ड नियंत्रण",
+    "copyRecordUrl": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",

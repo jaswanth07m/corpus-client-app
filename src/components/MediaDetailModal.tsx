@@ -140,6 +140,20 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   const [descError, setDescError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const getCategoryIds = (record: ContributionItem) =>
+    record.category_ids || (record.category_id ? [record.category_id] : []);
+
+  const areCategoryIdsEqual = (first: string[], second: string[]) => {
+    if (first.length !== second.length) {
+      return false;
+    }
+
+    const sortedFirst = [...first].sort();
+    const sortedSecond = [...second].sort();
+
+    return sortedFirst.every((id, index) => id === sortedSecond[index]);
+  };
+
   // Function to count meaningful words
   const countMeaningfulWords = (s: string) =>
     s.split(' ').filter((w) => w.trim().length > 2).length;
@@ -599,6 +613,16 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           return; // Don't submit if there are validation errors
                         }
 
+                        const originalCategoryIds = getCategoryIds(item);
+                        const editedCategoryIds = getCategoryIds(editItem);
+
+                        if (editedCategoryIds.length === 0) {
+                          setSubmitError(
+                            'Please select at least one category.',
+                          );
+                          return;
+                        }
+
                         // Check if there are actual changes to save
                         if (
                           item.title === editItem.title &&
@@ -606,6 +630,10 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           item.language === editItem.language &&
                           item.release_rights === editItem.release_rights &&
                           item.creator === editItem.creator &&
+                          areCategoryIdsEqual(
+                            originalCategoryIds,
+                            editedCategoryIds,
+                          ) &&
                           (!isOwnProfile || sourceLabel === '') // Only check sourceLabel if on other's profile
                         ) {
                           toast.info('No changes to save');
@@ -626,6 +654,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                                 description: editItem.description,
                                 language: editItem.language,
                                 release_rights: editItem.release_rights,
+                                category_ids: editedCategoryIds,
                                 ...(editItem.release_rights === 'others' &&
                                 isOwnProfile &&
                                 editItem.creator
@@ -654,6 +683,8 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                           item.language = editItem.language;
                           item.release_rights = editItem.release_rights;
                           item.creator = editItem.creator;
+                          item.category_ids = editedCategoryIds;
+                          item.category_id = editedCategoryIds[0];
 
                           setIsEditing(false);
                         } catch (error) {
@@ -670,7 +701,10 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                     <button
                       onClick={() => {
                         // Cancel editing and revert changes
-                        setEditItem({ ...item });
+                        setEditItem({
+                          ...item,
+                          category_ids: getCategoryIds(item),
+                        });
                         setSourceLabel(''); // Reset source label
                         setTitleError(null); // Reset validation errors
                         setDescError(null);
@@ -686,6 +720,10 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   <>
                     <button
                       onClick={() => {
+                        setEditItem({
+                          ...item,
+                          category_ids: getCategoryIds(item),
+                        });
                         setIsEditing(true);
                         // Initialize validation states
                         setTitleError(null);
@@ -949,6 +987,25 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Categories
+                      </label>
+                      <CategoryTags
+                        categoryIds={getCategoryIds(editItem)}
+                        token={token}
+                        editable
+                        onCategoryIdsChange={(categoryIds) => {
+                          setSubmitError(null);
+                          setEditItem((prev) => ({
+                            ...prev,
+                            category_ids: categoryIds,
+                            category_id: categoryIds[0],
+                          }));
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Release Rights
                       </label>
                       <Select
@@ -1066,10 +1123,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                         </p>
                         <div className="mt-1">
                           <CategoryTags
-                            categoryIds={
-                              item.category_ids ||
-                              (item.category_id ? [item.category_id] : [])
-                            }
+                            categoryIds={getCategoryIds(item)}
                             token={token}
                           />
                         </div>

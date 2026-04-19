@@ -45,6 +45,7 @@
     },
     "selectALocation": "స్థానాన్ని ఎంచుకోండి",
     "confirmLocation": "స్థానాన్ని నిర్ధారించండి",
+    "details": "వివరాలు",
     "selectMediaType": "మీడియా రకం ఎంచుకోండి",
     "to": {
       "choose": "ఎంచుకోవడానికి"
@@ -166,6 +167,8 @@
     "enter": {
       "title": "శీర్షికను నమోదు చేయండి",
       "description": "వివరణను నమోదు చేయండి",
+      "language": "భాషను నమోదు చేయండి",
+      "rights": "హక్కులను నమోదు చేయండి",
       "current": {
         "place": "ప్రస్తుత స్థలాన్ని నమోదు చేయండి"
       },
@@ -247,7 +250,24 @@
       "progress": "మొత్తం పురోగతి"
     },
     "previousPage": "మునుపటి పేజీ",
-    "nextPage": "తదుపరి పేజీ"
+    "nextPage": "తదుపరి పేజీ",
+    "goBackHome": "",
+    "recordNotFound": "",
+    "viewDocument": "",
+    "reviewedVerified": "",
+    "noRecordsFoundInThisCategory": "",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "",
+    "clearFilter": "",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": ""
+        }
+      }
+    },
+    "preview": "",
+    "noPreviewAvailable": "",
+    "reviewedAndVerified": "సమీక్షించబడింది మరియు నిర్ధారించబడింది"
   },
   "ui": {
     "failed": {
@@ -417,6 +437,13 @@
           }
         }
       }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": ""
+        }
+      }
     }
   },
   "messages": {
@@ -435,7 +462,12 @@
     "loadingProfile": "ప్రొఫైల్ లోడ్ అవుతోంది...",
     "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
     "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది.",
+    "linkCopiedSuccessfully": "",
+    "recordUpdatedSuccessfully": "రికార్డు విజయవంతంగా అప్‌డేట్ అయింది!",
+    "error": "",
+    "loadingCategories": "",
+    "saving": "సేవ్ చేస్తోంది..."
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -505,7 +537,8 @@
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
     "imageUrl": "ఇమేజ్ URL",
     "enterRecordId": "రికార్డ్ IDని నమోదు చేయండి",
-    "recordControls": "రికార్డ్ నియంత్రణలు"
+    "recordControls": "రికార్డ్ నియంత్రణలు",
+    "copyRecordUrl": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
