@@ -266,7 +266,8 @@
       }
     },
     "preview": "Preview:",
-    "noPreviewAvailable": "No preview available"
+    "noPreviewAvailable": "No preview available",
+    "reviewedAndVerified": "Reviewed and verified"
   },
   "ui": {
     "failed": {

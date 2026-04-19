@@ -378,7 +378,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
             {error}
           </p>
           <Link to="/" className="text-blue-600 hover:underline">
-            {t('common.goBackHome')}
+            Go back home
           </Link>
         </div>
       </div>
@@ -389,7 +389,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">{t('common.recordNotFound')}</p>
+          <p className="text-gray-600 mb-4">Record not found</p>
           <Link to="/" className="text-blue-600 hover:underline">
             Go back home
           </Link>
@@ -447,7 +447,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                   >
                     <Download className="w-5 h-5" />
-                    {t('common.viewDocument')}
+                    View document
                   </a>
                 </div>
               ) : (
@@ -522,7 +522,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="px-6 pt-5 pb-2 flex items-center justify-between">
                 <span className="inline-block px-3 py-1.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg shadow-sm">
-                  {t('common.details', 'Details')}
+                  Details
                 </span>
 
                 {!isEditing && isOwnProfile && (
@@ -531,7 +531,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 rounded-lg shadow-sm transition-all flex items-center gap-2"
                   >
                     <Pencil className="w-4 h-4" />
-                    {t('common.edit')}
+                    Edit
                   </button>
                 )}
 
@@ -542,7 +542,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                       disabled={isSaving}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-300 transition-colors disabled:opacity-50"
                     >
-                      {t('common.cancel')}
+                      Cancel
                     </button>
                     <button
                       onClick={handleSave}
@@ -552,12 +552,12 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                       {isSaving ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          {t('common.saving')}
+                          Saving
                         </>
                       ) : (
                         <>
                           <Save className="w-4 h-4" />
-                          {t('common.save')}
+                          Save
                         </>
                       )}
                     </button>
@@ -665,7 +665,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                           value={formData.language}
                           onChange={handleInputChange}
                           className="w-full px-2 py-1 text-sm font-semibold text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          placeholder={t('common.enter.language')}
+                          placeholder="Enter language..."
                         />
                       ) : (
                         <p className="text-sm font-semibold text-gray-800">
@@ -691,7 +691,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                           value={formData.release_rights}
                           onChange={handleInputChange}
                           className="w-full px-2 py-1 text-sm font-semibold text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          placeholder={t('common.enter.rights')}
+                          placeholder="Enter rights..."
                         />
                       ) : (
                         <p className="text-sm font-semibold text-gray-800">
@@ -733,7 +733,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                   <div className="pt-3">
                     <span className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
                       <Check className="w-4 h-4 mr-1.5" />
-                      {t('common.reviewedVerified')}
+                      {t('common.reviewedAndVerified')}
                     </span>
                   </div>
                 )}
