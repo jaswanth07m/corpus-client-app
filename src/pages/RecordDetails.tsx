@@ -258,6 +258,11 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleCategoryChange = (categoryIds: string[]) => {
     setFormData((prev) => ({
       ...prev,
@@ -659,14 +664,44 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                         Language
                       </p>
                       {isEditing ? (
-                        <input
-                          type="text"
+                        <select
                           name="language"
-                          value={formData.language}
-                          onChange={handleInputChange}
+                          value={formData.language || ''}
+                          onChange={handleSelectChange}
                           className="w-full px-2 py-1 text-sm font-semibold text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          placeholder="Enter language..."
-                        />
+                        >
+                          <option value="">
+                            {t('common.SelectALanguage')}
+                          </option>
+                          {[
+                            'assamese',
+                            'bengali',
+                            'bodo',
+                            'dogri',
+                            'gujarati',
+                            'hindi',
+                            'kannada',
+                            'kashmiri',
+                            'konkani',
+                            'maithili',
+                            'malayalam',
+                            'marathi',
+                            'meitei',
+                            'nepali',
+                            'odia',
+                            'punjabi',
+                            'sanskrit',
+                            'santali',
+                            'sindhi',
+                            'tamil',
+                            'telugu',
+                            'urdu',
+                          ].map((lang) => (
+                            <option key={lang} value={lang}>
+                              {lang}
+                            </option>
+                          ))}
+                        </select>
                       ) : (
                         <p className="text-sm font-semibold text-gray-800">
                           {record.language || 'Not specified'}
@@ -685,14 +720,27 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                         Rights
                       </p>
                       {isEditing ? (
-                        <input
-                          type="text"
+                        <select
                           name="release_rights"
-                          value={formData.release_rights}
-                          onChange={handleInputChange}
+                          value={formData.release_rights || ''}
+                          onChange={handleSelectChange}
                           className="w-full px-2 py-1 text-sm font-semibold text-gray-800 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          placeholder="Enter rights..."
-                        />
+                        >
+                          <option value="">
+                            {t('common.selectReleaseRights')}
+                          </option>
+                          <option value="creator">
+                            {t(
+                              'ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it',
+                            )}
+                          </option>
+                          <option value="others">{t('common.others')}</option>
+                          <option value="downloaded">
+                            {t(
+                              'common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare',
+                            )}
+                          </option>
+                        </select>
                       ) : (
                         <p className="text-sm font-semibold text-gray-800">
                           {record.release_rights || 'Not specified'}

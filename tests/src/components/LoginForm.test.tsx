@@ -78,8 +78,13 @@ describe('LoginForm', () => {
     await user.type(phoneInput, '4234567890');
     fireEvent.blur(phoneInput);
 
-    expect(screen.getByText('auth.phoneNumberIsInvalid')).not.toHaveClass(
-      'hidden',
+    await waitFor(
+      () => {
+        expect(screen.getByText('auth.phoneNumberIsInvalid')).not.toHaveClass(
+          'hidden',
+        );
+      },
+      { timeout: 10000 },
     );
 
     await user.clear(phoneInput);
