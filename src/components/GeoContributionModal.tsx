@@ -11,35 +11,16 @@ import {
 import 'leaflet/dist/leaflet.css';
 import { useContributionGeo } from '@/hooks/useContributionGeo';
 import type { FlatContribution } from '@/types/geo';
-
-const MEDIA_TYPE_COLORS: Record<string, string> = {
-  audio: '#1D9E75',
-  video: '#378ADD',
-  text: '#534AB7',
-  image: '#BA7517',
-  document: '#D85A30',
-};
-
-const MEDIA_TYPE_LABELS: Record<string, string> = {
-  audio: 'Audio',
-  video: 'Video',
-  text: 'Text',
-  image: 'Image',
-  document: 'Document',
-};
+import {
+  MEDIA_TYPE_COLORS,
+  MEDIA_TYPE_LABELS,
+  formatContributionDate,
+} from '@/lib/geoUtils';
 
 interface GeoContributionModalProps {
   userIdentifier: string;
   open: boolean;
   onClose: () => void;
-}
-
-function formatDate(timestamp: string): string {
-  return new Date(timestamp).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 /**
@@ -83,7 +64,7 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
             </p>
             <p className="mt-2 text-sm font-medium text-slate-600 capitalize">
               {MEDIA_TYPE_LABELS[contribution.media_type]} ·{' '}
-              {formatDate(contribution.timestamp)}
+              {formatContributionDate(contribution.timestamp)}
             </p>
           </div>
         </Popup>
