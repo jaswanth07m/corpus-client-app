@@ -350,8 +350,8 @@
     "saving": "",
     "preview": "",
     "noPreviewAvailable": "",
-    "searchPlaceOrAddress": "",
-    "searching": "",
+    "searchPlaceOrAddress": "स्थान या पता खोजें",
+    "searching": "खोज रहे हैं...",
     "failed": {
       "to": {
         "copy": {
@@ -376,7 +376,15 @@
           "intern": ""
         }
       }
-    }
+    },
+    "reviewedAndVerified": "समीक्षित और सत्यापित",
+    "viewContributionsOnMap": "मानचित्र पर योगदान देखें",
+    "couldNotLoadContributions": "योगदान लोड नहीं हो सके.",
+    "noGeotaggedContributionsYet": "अभी तक कोई जियोटैग योगदान नहीं हैं.",
+    "closeMap": "मानचित्र बंद करें",
+    "retry": "पुनः प्रयास करें",
+    "preview": "",
+    "noPreviewAvailable": ""
   },
   "ui": {
     "failed": {
@@ -719,7 +727,12 @@
     "uploadingNewResume": "",
     "profileCompletedSuccessfully": "",
     "uploadingResume": "",
-    "loadingCategories": ""
+    "loadingCategories": "",
+    "linkCopiedSuccessfully": "",
+    "recordUpdatedSuccessfully": "रिकॉर्ड सफलतापूर्वक अपडेट किया गया!",
+    "error": "",
+    "saving": "सहेजा जा रहा है...",
+    "loadingMap": "मानचित्र लोड हो रहा है..."
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -804,7 +817,8 @@
     "contributionsYet": "अभी तक योगदान नहीं।",
     "pointsActivity": "पॉइंट्स गतिविधि",
     "contributions": "योगदान...",
-    "contributionsFound": "योगदान मिले।"
+    "contributionsFound": "योगदान मिले।",
+    "myContributionsOnTheMap": "मानचित्र पर मेरे योगदान"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "कृपया एक मान्य 10 अंकों वाला फोन नंबर दर्ज करें",

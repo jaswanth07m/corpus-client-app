@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -8,6 +8,7 @@ import {
   Loader2,
   Globe,
   HelpCircle,
+  Map,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
@@ -30,6 +31,10 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { isProfileComplete } from '@/lib/profileUtils';
+
+const GeoContributionModal = lazy(
+  () => import('../components/GeoContributionModal'),
+);
 
 const languages = [
   'assamese',
@@ -172,7 +177,7 @@ interface EditHistoryEntry {
 function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user: authUser } = useAuth();
   const { startTour } = useWelcomeTour();
 
   const handleLogout = () => {
@@ -232,6 +237,9 @@ function Profile() {
     useState<boolean>(false);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
 
+  // State for geo contribution modal
+  const [showGeoModal, setShowGeoModal] = useState<boolean>(false);
+
   // Effect to hide bottom navigation when any modal is open
   useEffect(() => {
     if (
@@ -239,7 +247,8 @@ function Profile() {
       showFollowersModal ||
       showFollowingModal ||
       showProfileInfo ||
-      showProfilePictureModal
+      showProfilePictureModal ||
+      showGeoModal
     ) {
       document.body.classList.add('modal-open');
     } else {
@@ -256,6 +265,7 @@ function Profile() {
     showFollowingModal,
     showProfileInfo,
     showProfilePictureModal,
+    showGeoModal,
   ]);
 
   const getAuthToken = useCallback(() => {
@@ -574,11 +584,8 @@ function Profile() {
 
       if (response.ok) {
         setIsFollowing(true);
-        // Update the followers count by incrementing it (since target user now has one more follower)
         setFollowersCount((prev) => prev + 1);
-        // Refetch profile to update counts
-        fetchOtherUserProfile(targetUsername);
-        // Refetch followers and following data to keep them updated
+        fetchUserProfile(targetUsername);
         fetchFollowers(targetUsername);
         fetchFollowing(targetUsername);
       } else {
@@ -614,11 +621,8 @@ function Profile() {
 
       if (response.ok) {
         setIsFollowing(false);
-        // Update the followers count by decrementing it (since target user now has one less follower)
         setFollowersCount((prev) => Math.max(0, prev - 1));
-        // Refetch profile to update counts
-        fetchOtherUserProfile(targetUsername);
-        // Refetch followers and following data to keep them updated
+        fetchUserProfile(targetUsername);
         fetchFollowers(targetUsername);
         fetchFollowing(targetUsername);
       } else {
@@ -893,6 +897,8 @@ function Profile() {
   // Determine if viewing own profile
   const isOwnProfile =
     username && currentUsername ? currentUsername === username : false;
+  const geoContributionUserIdentifier =
+    targetUserIdentifier || username || currentUserId || '';
 
   console.log(profile);
 
@@ -904,6 +910,14 @@ function Profile() {
           {/* Profile Info Section - Mobile Responsive Layout */}
           <div className="p-4 relative">
             <div className="flex gap-2 absolute right-0 sm:right-5">
+              <button
+                onClick={() => setShowGeoModal(true)}
+                disabled={!geoContributionUserIdentifier}
+                className="flex flex-col items-center gap-1 p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                title={t('common.viewContributionsOnMap')}
+              >
+                <Map className="w-4 h-4 text-black" />
+              </button>
               <LanguageSwitcher />
               <button
                 onClick={startTour}
@@ -1261,6 +1275,14 @@ function Profile() {
           </div>
         </div>
       )}
+
+      <Suspense fallback={null}>
+        <GeoContributionModal
+          userIdentifier={geoContributionUserIdentifier}
+          open={showGeoModal}
+          onClose={() => setShowGeoModal(false)}
+        />
+      </Suspense>
     </div>
   );
 }

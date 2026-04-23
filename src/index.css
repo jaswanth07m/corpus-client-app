@@ -979,3 +979,22 @@ body {
 .animate-border-pulse {
   animation: border-pulse 2s ease-in-out infinite;
 }
+
+/* Geo Contribution Map styles */
+.geo-map-container {
+  cursor: grab !important;
+}
+.geo-map-container.leaflet-dragging,
+.geo-map-container.leaflet-dragging .leaflet-interactive {
+  cursor: grabbing !important;
+}
+
+/* Geo Contribution Popup styling */
+.geo-popup .leaflet-popup-content-wrapper {
+  border-radius: 0.75rem;
+  padding: 0;
+  overflow: hidden;
+}
+.geo-popup .leaflet-popup-content {
+  margin: 0;
+}

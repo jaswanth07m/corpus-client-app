@@ -247,7 +247,14 @@
       "progress": "മൊത്തത്തിലുള്ള പുരോഗതി"
     },
     "previousPage": "മുമ്പത്തെ പേജ്",
-    "nextPage": "അടുത്ത പേജ്"
+    "nextPage": "അടുത്ത പേജ്",
+    "viewContributionsOnMap": "മാപ്പിൽ സംഭാവനകൾ കാണുക",
+    "couldNotLoadContributions": "സംഭാവനകൾ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല.",
+    "noGeotaggedContributionsYet": "ഇതുവരെ ജിയോടാഗ് ചെയ്ത സംഭാവനകളൊന്നുമില്ല.",
+    "closeMap": "മാപ്പ് അടയ്ക്കുക",
+    "retry": "വീണ്ടും ശ്രമിക്കുക",
+    "searchPlaceOrAddress": "സ്ഥലം അല്ലെങ്കിൽ വിലാസം തിരയുക",
+    "searching": "തിരയുന്നു..."
   },
   "ui": {
     "failed": {
@@ -435,7 +442,8 @@
     "loadingProfile": "പ്രൊഫൈൽ ലോഡ് ചെയ്യുന്നു...",
     "profilePictureUpdatedSuccessfully": "പ്രൊഫൈൽ ചിത്രം വിജയകരമായി പുതുക്കി!",
     "loadingPointsData": "പോയിന്റ് ഡാറ്റ ലോഡ് ചെയ്യുന്നു...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "ഈ സെഗ്‌മെന്റുകളുടെ വായനാ ക്രമം അപ്‌ഡേറ്റ് ചെയ്യണമെന്ന് നിങ്ങൾക്ക് ഉറപ്പാണോ? ഇത് ബൗണ്ടിംഗ് ബോക്സ് ക്രമത്തെയും മാറ്റുന്നതാണ്."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "ഈ സെഗ്‌മെന്റുകളുടെ വായനാ ക്രമം അപ്‌ഡേറ്റ് ചെയ്യണമെന്ന് നിങ്ങൾക്ക് ഉറപ്പാണോ? ഇത് ബൗണ്ടിംഗ് ബോക്സ് ക്രമത്തെയും മാറ്റുന്നതാണ്.",
+    "loadingMap": "മാപ്പ് ലോഡ് ചെയ്യുന്നു..."
   },
   "user": {
     "requestingLocationAccess": "ലൊക്കേഷൻ അനുമതി ചോദിക്കുന്നു...",
@@ -511,7 +519,8 @@
     "contributionsYet": "ഇതുവരെ സംഭാവനകളൊന്നുമില്ല.",
     "pointsActivity": "പോയിന്റ് ആക്റ്റിവിറ്റി",
     "contributions": "സംഭാവനകൾ...",
-    "contributionsFound": "സംഭാവനകൾ കണ്ടെത്തി."
+    "contributionsFound": "സംഭാവനകൾ കണ്ടെത്തി.",
+    "myContributionsOnTheMap": "മാപ്പിൽ എന്റെ സംഭാവനകൾ"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "ദയവായി സാധുവായ 10 അക്ക ഫോൺ നമ്പർ നൽകുക",
