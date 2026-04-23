@@ -74,7 +74,7 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-[350px] items-center justify-center rounded-2xl bg-slate-100">
+      <div className="flex h-[520px] items-center justify-center rounded-2xl bg-slate-100">
         <span className="text-sm text-slate-500">
           {t('messages.loadingMap')}
         </span>
@@ -88,7 +88,7 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
         ? error.message
         : t('common.couldNotLoadContributions');
     return (
-      <div className="flex h-[350px] flex-col items-center justify-center gap-3 rounded-2xl bg-slate-100 px-6 text-center">
+      <div className="flex h-[520px] flex-col items-center justify-center gap-3 rounded-2xl bg-slate-100 px-6 text-center">
         <AlertCircle className="h-8 w-8 text-red-400" />
         <p className="text-sm font-medium text-slate-700">{message}</p>
         <button
@@ -105,7 +105,7 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex h-[350px] flex-col items-center justify-center gap-2 rounded-2xl bg-slate-100">
+      <div className="flex h-[520px] flex-col items-center justify-center gap-2 rounded-2xl bg-slate-100">
         <MapPin className="h-8 w-8 text-slate-400" />
         <p className="text-sm text-slate-500">
           {t('common.noGeotaggedContributionsYet')}
@@ -123,7 +123,7 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
         scrollWheelZoom={true}
         doubleClickZoom={true}
         touchZoom={true}
-        className="h-[350px] w-full geo-map-container"
+        className="h-[520px] w-full geo-map-container"
         style={{ cursor: 'grab' }}
       >
         <MapResizer />
@@ -199,7 +199,7 @@ function GeoContributionModal({
       `}</style>
 
       <div
-        className="w-full max-w-[700px] max-h-[90vh] overflow-auto rounded-2xl bg-white p-4 shadow-2xl"
+        className="w-full max-w-[95vw] sm:max-w-[900px] max-h-[95vh] overflow-auto rounded-2xl bg-white p-4 shadow-2xl"
         style={{ animation: 'geoSlideIn 180ms ease-out' }}
         onClick={(e) => e.stopPropagation()}
       >
