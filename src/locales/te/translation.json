@@ -170,7 +170,10 @@
         "place": "ప్రస్తుత స్థలాన్ని నమోదు చేయండి"
       },
       "profession": "వృత్తిని నమోదు చేయండి",
-      "organisation": "సంస్థను నమోదు చేయండి"
+      "organisation": "సంస్థను నమోదు చేయండి",
+      "roll": {
+        "number": ""
+      }
     },
     "noUsersFound": "యూజర్‌లు కనుగొనబడలేదు",
     "from": {
@@ -247,7 +250,104 @@
       "progress": "మొత్తం పురోగతి"
     },
     "previousPage": "మునుపటి పేజీ",
-    "nextPage": "తదుపరి పేజీ"
+    "nextPage": "తదుపరి పేజీ",
+    "noOptionFound": "",
+    "pleaseUploadAPdfFile": "",
+    "fileSizeMustBeLessThan5mb": "",
+    "authenticationRequiredForUpload": "",
+    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "",
+    "failedToViewResume": "",
+    "selectType": "",
+    "selectDistrict": "",
+    "permanentPostalAddress": "",
+    "enterPermanentPostalAddress": "",
+    "college": {
+      "institution": "",
+      "roll": {
+        "number": ""
+      }
+    },
+    "selectCollege": "",
+    "cantFindYourInstitutionSelectOtherNotInList": "",
+    "selectCategory": "",
+    "specific": {
+      "stream": ""
+    },
+    "selectStream": "",
+    "selectYear": "",
+    "task": {
+      "registered": {
+        "id": ""
+      },
+      "id": ""
+    },
+    "device": {
+      "internet": ""
+    },
+    "has": {
+      "laptop": ""
+    },
+    "laptop": {
+      "os": "",
+      "ram": ""
+    },
+    "selectOs": "",
+    "selectRam": "",
+    "mobile": {
+      "os": "",
+      "ram": ""
+    },
+    "internet": {
+      "speed": ""
+    },
+    "selectSpeed": "",
+    "daily": {
+      "data": {
+        "limit": ""
+      }
+    },
+    "selectLimit": "",
+    "list": {
+      "your": {
+        "ai": {
+          "courses": ""
+        }
+      }
+    },
+    "language": {
+      "proficiency": ""
+    },
+    "selectYourProficiencyLevelForEachLanguage": "",
+    "rural": {
+      "area": {
+        "access": ""
+      }
+    },
+    "completed": {
+      "ai": {
+        "courses": ""
+      }
+    },
+    "gender": "",
+    "academic": {
+      "details": ""
+    },
+    "roll": {
+      "number": ""
+    },
+    "whatIsYourPermanentPostalAddress": "",
+    "enterYourCompletePermanentAddress": "",
+    "uploadResumePdfOnlyMax5mb": "",
+    "do": {
+      "you": {
+        "have": {
+          "a": {
+            "laptop": ""
+          }
+        }
+      }
+    },
+    "saving": ""
   },
   "ui": {
     "failed": {
@@ -305,6 +405,11 @@
           "content": {
             "here": "మీ టెక్స్ట్ కంటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
           }
+        }
+      },
+      "task": {
+        "id": {
+          "optional": ""
         }
       }
     },
@@ -372,6 +477,36 @@
             }
           }
         }
+      },
+      "list": {
+        "all": {
+          "ai": {
+            "courses": {
+              "you": {
+                "have": {
+                  "completed": ""
+                }
+              }
+            }
+          }
+        }
+      },
+      "fill": {
+        "in": {
+          "the": {
+            "remaining": {
+              "details": {
+                "to": {
+                  "complete": {
+                    "your": {
+                      "registration": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "place": {
@@ -417,6 +552,102 @@
           }
         }
       }
+    },
+    "do": {
+      "you": {
+        "have": {
+          "access": {
+            "to": {
+              "any": {
+                "rural": {
+                  "areas": {
+                    "nearby": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "education": {
+      "institution": ""
+    },
+    "have": {
+      "you": {
+        "completed": {
+          "any": {
+            "ai": {
+              "courses": ""
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "of": {
+        "ai": {
+          "courses": {
+            "completed": ""
+          }
+        }
+      }
+    },
+    "resume": {
+      "pdf": {
+        "only": {
+          "max": {
+            "5mb": ""
+          }
+        }
+      }
+    },
+    "internship": {
+      "language": {
+        "proficiency": ""
+      }
+    },
+    "task": {
+      "registered": {
+        "id": {
+          "optional": ""
+        }
+      }
+    },
+    "eg": {
+      "nearby": {
+        "villages": {
+          "shamirpet": {
+            "medchal": {
+              "etc": ""
+            }
+          }
+        }
+      }
+    },
+    "laptop": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "mobile": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "internet": {
+      "connection": {
+        "speed": {
+          "mbps": ""
+        }
+      }
+    },
+    "daily": {
+      "data": {
+        "limit": {
+          "quota": ""
+        }
+      }
     }
   },
   "messages": {
@@ -435,7 +666,11 @@
     "loadingProfile": "ప్రొఫైల్ లోడ్ అవుతోంది...",
     "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
     "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది.",
+    "resumeUploadedSuccessfully": "",
+    "uploadingNewResume": "",
+    "profileCompletedSuccessfully": "",
+    "uploadingResume": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -454,7 +689,11 @@
     "enterFullName": "పూర్తి పేరు నమోదు చేయండి",
     "shortBio": "చిన్న పరిచయం",
     "profession": "వృత్తి",
-    "organisation": "సంస్థ"
+    "organisation": "సంస్థ",
+    "workLocation": "",
+    "cityState": "",
+    "locationDetails": "",
+    "chooseYourWorkLocationForTheInternship": ""
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "దయచేసి సరైన అక్షాంశం మరియు రేఖాంశం విలువలను నమోదు చేయండి",
@@ -467,7 +706,9 @@
     "changeType": "రకాన్ని మార్చు:",
     "unsupportedMediaType": "సమర్థించని మీడియా రకం",
     "sourceLabel": "మూలం లేబుల్",
-    "type": "రకం:"
+    "type": "రకం:",
+    "organisationType": "",
+    "educationCategory": ""
   },
   "media": {
     "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",
@@ -505,7 +746,8 @@
     "pleaseEnterAValidImageUrl": "దయచేసి సరైన ఇమేజ్ URL నమోదు చేయండి",
     "imageUrl": "ఇమేజ్ URL",
     "enterRecordId": "రికార్డ్ IDని నమోదు చేయండి",
-    "recordControls": "రికార్డ్ నియంత్రణలు"
+    "recordControls": "రికార్డ్ నియంత్రణలు",
+    "resumeRecordId": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
@@ -574,7 +816,8 @@
     "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారా?",
     "loginWithPassword": "పాస్‌వర్డ్‌తో లాగిన్ చేయండి",
     "loginWithOtp": "OTPతో లాగిన్ చేయండి",
-    "enterPassword": "పాస్‌వర్డ్ నమోదు చేయండి"
+    "enterPassword": "పాస్‌వర్డ్ నమోదు చేయండి",
+    "emailIsRequired": ""
   },
   "nav": {
     "preferPasswordLogin": "పాస్‌వర్డ్ లాగిన్ ఇష్టపడతారు?",
@@ -591,7 +834,13 @@
     "profile": "ప్రొఫైల్",
     "settings": "సెట్టింగ్‌లు",
     "logout": "లాగౌట్",
-    "login": "లాగిన్"
+    "login": "లాగిన్",
+    "internshipProfile": "",
+    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "",
+    "profileIncompletePleaseCompleteIt": "",
+    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "",
+    "completeProfile": "",
+    "completeYourProfile": ""
   },
   "profile": {
     "setLocation": "స్థానాన్ని సెట్ చేయండి",
@@ -732,5 +981,8 @@
     "tamil": "తమిళం",
     "bengali": "బెంగాలీ",
     "malayalam": "మలయాళం"
+  },
+  "time": {
+    "currentYearOfStudy": ""
   }
 }

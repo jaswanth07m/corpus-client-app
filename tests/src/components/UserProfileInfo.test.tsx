@@ -8,84 +8,97 @@ vi.mock('@/lib/constants', () => ({
   BACKEND_URL: 'http://localhost:3000',
 }));
 
-// Mock react-i18next
+// Mock react-i18next with a stable t function to avoid infinite loops in useEffect
+const mockT = (key: string) => {
+  const translations: Record<string, string> = {
+    'common.authenticationTokenNotFound': 'Authentication token not found',
+    'nav.failedToLoadProfileData': 'Failed to load profile data',
+    'messages.loadingProfile': 'Loading profile...',
+    'common.noChangesToSave': 'No changes to save',
+    'messages.profileUpdatedSuccessfully': 'Profile updated successfully',
+    'auth.username': 'Username',
+    'auth.enterUsername': 'Enter username',
+    'user.fullName': 'Full Name',
+    'user.enterFullName': 'Enter full name',
+    'auth.gender': 'Gender',
+    'common.selectGender': 'Select gender',
+    'auth.male': 'Male',
+    'auth.female': 'Female',
+    'auth.other': 'Other',
+    'auth.dateOfBirth': 'Date of Birth',
+    'user.shortBio': 'Short Bio',
+    'nav.tellUsAboutYourself': 'Tell us about yourself',
+    'common.current.place': 'Current Place',
+    'common.enter.current.place': 'Enter current place',
+    'common.from.place': 'From Place',
+    'common.edit': 'Edit',
+    'profile.setLocation': 'Set Location',
+    'common.remove': 'Remove',
+    'user.profession': 'Profession',
+    'common.enter.profession': 'Enter profession',
+    'user.organisation': 'Organisation',
+    'common.enter.organisation': 'Enter organisation',
+    'ui.language.proficiencies': 'Language Proficiencies',
+    'common.selectLanguage': 'Select language',
+    'common.addLanguage': 'Add Language',
+    'common.addPlace': 'Add Place',
+    'nav.socialMediaProfiles': 'Social Media Profiles',
+    'nav.profileUrl': 'Profile URL',
+    'common.addSocialMedia': 'Add Social Media',
+    'common.date.of.birth': 'Date of Birth',
+  };
+  return translations[key] || key;
+};
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => {
-      const translations: Record<string, string> = {
-        'common.authenticationTokenNotFound': 'Authentication token not found',
-        'nav.failedToLoadProfileData': 'Failed to load profile data',
-        'messages.loadingProfile': 'Loading profile...',
-        'common.noChangesToSave': 'No changes to save',
-        'messages.profileUpdatedSuccessfully': 'Profile updated successfully',
-        'auth.username': 'Username',
-        'auth.enterUsername': 'Enter username',
-        'user.fullName': 'Full Name',
-        'user.enterFullName': 'Enter full name',
-        'auth.gender': 'Gender',
-        'common.selectGender': 'Select gender',
-        'auth.male': 'Male',
-        'auth.female': 'Female',
-        'auth.other': 'Other',
-        'auth.dateOfBirth': 'Date of Birth',
-        'user.shortBio': 'Short Bio',
-        'nav.tellUsAboutYourself': 'Tell us about yourself',
-        'common.current.place': 'Current Place',
-        'common.enter.current.place': 'Enter current place',
-        'common.from.place': 'From Place',
-        'common.edit': 'Edit',
-        'profile.setLocation': 'Set Location',
-        'common.remove': 'Remove',
-        'user.profession': 'Profession',
-        'common.enter.profession': 'Enter profession',
-        'user.organisation': 'Organisation',
-        'common.enter.organisation': 'Enter organisation',
-        'ui.language.proficiencies': 'Language Proficiencies',
-        'common.selectLanguage': 'Select language',
-        'common.addLanguage': 'Add Language',
-        'common.addPlace': 'Add Place',
-        'nav.socialMediaProfiles': 'Social Media Profiles',
-        'nav.profileUrl': 'Profile URL',
-        'common.addSocialMedia': 'Add Social Media',
-        'common.date.of.birth': 'Date of Birth',
-      };
-      return translations[key] || key;
-    },
+    t: mockT,
   }),
 }));
 
 // Mock UI components with proper data-testid attributes
+const mockLocalStorage = localStorage as any;
+
 vi.mock('@/components/ui/button', () => ({
-  Button: ({
-    children,
-    onClick,
-    type,
-    disabled,
-    variant,
-    size,
-    className,
-    'data-testid': dataTestId,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-    type?: 'button' | 'submit';
-    disabled?: boolean;
-    variant?: string;
-    size?: string;
-    className?: string;
-    'data-testid'?: string;
-  }) => (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      data-variant={variant}
-      data-size={size}
-      className={className}
-      data-testid={dataTestId}
-    >
-      {children}
-    </button>
+  Button: React.forwardRef<
+    HTMLButtonElement,
+    {
+      children: React.ReactNode;
+      onClick?: () => void;
+      type?: 'button' | 'submit';
+      disabled?: boolean;
+      variant?: string;
+      size?: string;
+      className?: string;
+      'data-testid'?: string;
+    }
+  >(
+    (
+      {
+        children,
+        onClick,
+        type,
+        disabled,
+        variant,
+        size,
+        className,
+        'data-testid': dataTestId,
+      },
+      ref,
+    ) => (
+      <button
+        ref={ref}
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        data-variant={variant}
+        data-size={size}
+        className={className}
+        data-testid={dataTestId}
+      >
+        {children}
+      </button>
+    ),
   ),
 }));
 
@@ -166,6 +179,42 @@ vi.mock('@/components/ui/textarea', () => ({
   ),
 }));
 
+vi.mock('@/components/ui/SearchableSelect', () => ({
+  SearchableSelect: ({
+    id,
+    value,
+    onChange,
+    options,
+    placeholder,
+  }: {
+    id: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: any[];
+    placeholder?: string;
+  }) => (
+    <select
+      id={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      data-testid={id || 'searchable-select'}
+    >
+      <option value="" disabled>
+        {placeholder}
+      </option>
+      {options.map((opt) => {
+        const val = typeof opt === 'string' ? opt : opt.value;
+        const label = typeof opt === 'string' ? opt : opt.label;
+        return (
+          <option key={val} value={val}>
+            {label}
+          </option>
+        );
+      })}
+    </select>
+  ),
+}));
+
 vi.mock('@/components/ui/select', () => ({
   Select: ({
     value,
@@ -186,29 +235,17 @@ vi.mock('@/components/ui/select', () => ({
       {children}
     </select>
   ),
-  SelectTrigger: ({
-    children,
-    'data-testid': dataTestId,
-    onClick,
-  }: {
-    children: React.ReactNode;
-    'data-testid'?: string;
-    onClick?: () => void;
-  }) => (
-    <div data-testid={dataTestId || 'select-trigger'} onClick={onClick}>
-      {children}
-    </div>
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
   ),
   SelectValue: ({ placeholder }: { placeholder: string }) => (
-    <span data-testid="select-value">{placeholder}</span>
+    <option value="" disabled>
+      {placeholder}
+    </option>
   ),
-  SelectContent: ({
-    children,
-    'data-testid': dataTestId,
-  }: {
-    children: React.ReactNode;
-    'data-testid'?: string;
-  }) => <div data-testid={dataTestId || 'select-content'}>{children}</div>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   SelectItem: ({
     children,
     value,
@@ -277,18 +314,6 @@ vi.mock('sonner', () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock localStorage
-const mockLocalStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-
-Object.defineProperty(window, 'localStorage', {
-  value: mockLocalStorage,
-});
-
 // Import after mocks are set up
 import UserProfileInfo from '../../../src/components/UserProfileInfo';
 import { toast } from 'sonner';
@@ -344,11 +369,37 @@ describe('UserProfileInfo', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLocalStorage.getItem.mockReturnValue('mock-token');
+    localStorage.setItem('token', 'mock-token');
+
+    // Default mock implementation to handle multiple calls during mount
+    mockFetch.mockImplementation((url) => {
+      if (typeof url === 'string' && url.includes('/auth/me')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockCurrentUser,
+        });
+      }
+      if (
+        typeof url === 'string' &&
+        url.includes(`/users/${mockProps.userId}`)
+      ) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockProfile,
+        });
+      }
+      // Fallback for location or other calls
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({}),
+      });
+    });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
+    localStorage.clear();
   });
 
   describe('Initial Rendering & Loading States', () => {
@@ -438,16 +489,13 @@ describe('UserProfileInfo', () => {
 
       const { container } = render(<UserProfileInfo {...mockProps} />);
 
-      await waitFor(
-        () => {
-          // Check for the avatar div - it should have the first letter of the name
-          const avatarElement = container.querySelector(
-            '[class*="rounded-full"]',
-          );
-          expect(avatarElement).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        // Check for the avatar div - it should have the first letter of the name
+        const avatarElement = container.querySelector(
+          '[class*="rounded-full"]',
+        );
+        expect(avatarElement).toBeInTheDocument();
+      });
     });
 
     it('displays user name and username', async () => {
@@ -514,14 +562,11 @@ describe('UserProfileInfo', () => {
       render(<UserProfileInfo {...mockProps} />);
 
       // Just verify the component renders without error
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByText('Loading profile...'),
-          ).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Loading profile...'),
+        ).not.toBeInTheDocument();
+      });
     });
 
     it('displays language names', async () => {
@@ -827,11 +872,7 @@ describe('UserProfileInfo', () => {
       });
 
       // Find gender select (first select element) and verify it exists
-      const selects = await screen.findAllByTestId(
-        'select',
-        {},
-        { timeout: 2000 },
-      );
+      const selects = await screen.findAllByTestId('select', {});
       const genderSelect = selects[0];
       expect(genderSelect).toBeInTheDocument();
 
@@ -887,22 +928,15 @@ describe('UserProfileInfo', () => {
       });
 
       // Find and click the Edit button for location
-      const editButtons = await screen.findAllByText(
-        'Edit',
-        {},
-        { timeout: 2000 },
-      );
+      const editButtons = await screen.findAllByText('Edit', {});
       if (editButtons.length > 0) {
         fireEvent.click(editButtons[0]);
       }
 
       // Location picker should appear
-      await waitFor(
-        () => {
-          expect(screen.queryByTestId('location-picker')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByTestId('location-picker')).toBeInTheDocument();
+      });
     });
 
     it('adds new place to places lived', async () => {
@@ -948,11 +982,7 @@ describe('UserProfileInfo', () => {
       });
 
       // Find and click Edit button for places lived (second Edit button)
-      const editButtons = await screen.findAllByText(
-        'Edit',
-        {},
-        { timeout: 2000 },
-      );
+      const editButtons = await screen.findAllByText('Edit', {});
       // The second Edit button is for places_lived
       if (editButtons.length > 1) {
         fireEvent.click(editButtons[1]);
@@ -961,12 +991,9 @@ describe('UserProfileInfo', () => {
       }
 
       // Location picker should appear
-      await waitFor(
-        () => {
-          expect(screen.queryByTestId('location-picker')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByTestId('location-picker')).toBeInTheDocument();
+      });
     });
 
     it('removes place from places lived', async () => {
@@ -988,23 +1015,16 @@ describe('UserProfileInfo', () => {
       });
 
       // Find and click Remove button for places lived
-      const removeButtons = await screen.findAllByText(
-        'Remove',
-        {},
-        { timeout: 2000 },
-      );
+      const removeButtons = await screen.findAllByText('Remove', {});
       // Click the Remove button for places_lived
       if (removeButtons.length > 0) {
         fireEvent.click(removeButtons[0]);
       }
 
       // Just verify the component is still rendered
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Add Place')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Add Place')).toBeInTheDocument();
+      });
     });
 
     it('uses location picker to update from_place', async () => {
@@ -1026,12 +1046,9 @@ describe('UserProfileInfo', () => {
       });
 
       // Just verify we can enter edit mode and the component renders
-      await waitFor(
-        () => {
-          expect(screen.queryByTestId('username')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByTestId('username')).toBeInTheDocument();
+      });
     });
 
     it('uses location picker to add new place to places_lived', async () => {
@@ -1057,12 +1074,9 @@ describe('UserProfileInfo', () => {
       fireEvent.click(addPlaceButton);
 
       // Location picker modal should appear - check for the Select Location button
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).toBeInTheDocument();
+      });
     });
 
     it('uses location picker to update existing place in places_lived', async () => {
@@ -1092,12 +1106,9 @@ describe('UserProfileInfo', () => {
       }
 
       // Location picker should appear
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).toBeInTheDocument();
+      });
     });
 
     it('triggers onLocationSelect callback when selecting location for from_place', async () => {
@@ -1133,12 +1144,9 @@ describe('UserProfileInfo', () => {
       fireEvent.click(selectButton);
 
       // Verify location picker closes after selection
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
 
     it('triggers onLocationSelect callback when adding new place', async () => {
@@ -1172,12 +1180,9 @@ describe('UserProfileInfo', () => {
       fireEvent.click(selectButton);
 
       // Verify location picker closes after selection
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
 
     it('executes handleChange for from_place when location is selected', async () => {
@@ -1235,12 +1240,9 @@ describe('UserProfileInfo', () => {
       fireEvent.click(selectButton);
 
       // Verify the callback executed (location picker closes)
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
 
     it('executes handleChange for places_lived when adding new place', async () => {
@@ -1275,12 +1277,9 @@ describe('UserProfileInfo', () => {
       fireEvent.click(selectButton);
 
       // Verify callback executed
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -1342,12 +1341,9 @@ describe('UserProfileInfo', () => {
       }
 
       // Verify location picker closed
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
 
     it('executes onLocationSelect callback for updating existing place (currentLocationIndex < places.length)', async () => {
@@ -1377,12 +1373,9 @@ describe('UserProfileInfo', () => {
       }
 
       // Wait for location picker
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).toBeInTheDocument();
+      });
 
       // Directly call the stored callback
       const callbacks = (global as any).__mockLocationPickerCallbacks;
@@ -1391,12 +1384,9 @@ describe('UserProfileInfo', () => {
       }
 
       // Verify location picker closed
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
 
     it('executes onLocationSelect callback for adding new place (currentLocationIndex >= places.length)', async () => {
@@ -1422,12 +1412,9 @@ describe('UserProfileInfo', () => {
       fireEvent.click(addPlaceButton);
 
       // Wait for location picker
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).toBeInTheDocument();
+      });
 
       // Directly call the stored callback
       const callbacks = (global as any).__mockLocationPickerCallbacks;
@@ -1436,12 +1423,9 @@ describe('UserProfileInfo', () => {
       }
 
       // Verify location picker closed
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
 
     it('executes onClose callback for location picker', async () => {
@@ -1467,12 +1451,9 @@ describe('UserProfileInfo', () => {
       fireEvent.click(addPlaceButton);
 
       // Wait for location picker
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).toBeInTheDocument();
+      });
 
       // Directly call the stored onClose callback
       const callbacks = (global as any).__mockLocationPickerCallbacks;
@@ -1481,12 +1462,9 @@ describe('UserProfileInfo', () => {
       }
 
       // Verify location picker closed
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).not.toBeInTheDocument();
+      });
     });
 
     it('executes onValueChange callback for social media platform', async () => {
@@ -1543,12 +1521,9 @@ describe('UserProfileInfo', () => {
         fireEvent.click(placesLivedEditButton);
 
         // Verify location picker appears (onClick executed)
-        await waitFor(
-          () => {
-            expect(screen.queryByText('Select Location')).toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          expect(screen.queryByText('Select Location')).toBeInTheDocument();
+        });
       }
     });
 
@@ -1667,12 +1642,9 @@ describe('UserProfileInfo', () => {
       });
 
       // Verify location picker appears
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Select Location')).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(screen.queryByText('Select Location')).toBeInTheDocument();
+      });
     });
 
     it('fully exercises places_lived Remove button onClick callback', async () => {
@@ -1987,11 +1959,7 @@ describe('UserProfileInfo', () => {
       });
 
       // Find and click Remove button for social media
-      const removeButtons = await screen.findAllByText(
-        'Remove',
-        {},
-        { timeout: 2000 },
-      );
+      const removeButtons = await screen.findAllByText('Remove', {});
       // Click a Remove button (for social media - last one)
       if (removeButtons.length > 0) {
         fireEvent.click(removeButtons[removeButtons.length - 1]);
@@ -2539,8 +2507,7 @@ describe('UserProfileInfo', () => {
 
     it('executes lines 600-602: authentication token not found path in handleSubmit', async () => {
       // Mock localStorage to return token for initial load
-      const originalGetItem = mockLocalStorage.getItem;
-      mockLocalStorage.getItem.mockReturnValue('mock-token');
+      localStorage.setItem('token', 'mock-token');
 
       mockFetch.mockImplementation((url, options) => {
         if (url.includes('/auth/me')) {
@@ -2581,7 +2548,7 @@ describe('UserProfileInfo', () => {
       fireEvent.change(nameInput, { target: { value: 'Updated Name' } });
 
       // Set token to null BEFORE save to trigger lines 600-602
-      mockLocalStorage.getItem.mockReturnValue(null);
+      localStorage.removeItem('token');
 
       // Click save - this triggers lines 600-602
       const saveButton = screen.getByText('Save Changes');
@@ -2604,7 +2571,6 @@ describe('UserProfileInfo', () => {
       expect(putCalls.length).toBe(0);
 
       mockFetch.mockClear();
-      mockLocalStorage.getItem = originalGetItem;
     });
 
     it('executes lines 625-628: else branch when originalProfile is null', async () => {
@@ -2814,7 +2780,7 @@ describe('UserProfileInfo', () => {
     });
 
     it('shows error toast when authentication token is not found', async () => {
-      mockLocalStorage.getItem.mockReturnValue(null);
+      localStorage.removeItem('token');
 
       render(<UserProfileInfo {...mockProps} />);
 
@@ -2883,14 +2849,11 @@ describe('UserProfileInfo', () => {
 
       const { container } = render(<UserProfileInfo {...mockProps} />);
 
-      await waitFor(
-        () => {
-          // Check that the component rendered with default state
-          const heading = container.querySelector('h3');
-          expect(heading).toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        // Check that the component rendered with default state
+        const heading = container.querySelector('h3');
+        expect(heading).toBeInTheDocument();
+      });
     });
 
     it('handles empty arrays for collections', async () => {
@@ -2964,14 +2927,11 @@ describe('UserProfileInfo', () => {
       render(<UserProfileInfo {...mockProps} />);
 
       // Wait for loading to complete and component to render
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByText('Loading profile...'),
-          ).not.toBeInTheDocument();
-        },
-        { timeout: 2000 },
-      );
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Loading profile...'),
+        ).not.toBeInTheDocument();
+      });
 
       // The close button is rendered after loading completes
       // We verify that the component rendered successfully
@@ -3042,14 +3002,11 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            expect(
-              container.querySelector('[class*="text-gray-300"]'),
-            ).toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          expect(
+            container.querySelector('[class*="text-gray-300"]'),
+          ).toBeInTheDocument();
+        });
       });
 
       it('renders correct stars for basic proficiency', async () => {
@@ -3079,14 +3036,11 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
 
       it('renders correct stars for intermediate proficiency', async () => {
@@ -3116,14 +3070,11 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
 
       it('renders correct stars for proficient level', async () => {
@@ -3153,14 +3104,11 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
     });
 
@@ -3192,14 +3140,11 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // Check for Instagram-specific SVG path
-            const svgPaths = container.querySelectorAll('svg path');
-            expect(svgPaths.length).toBeGreaterThan(0);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // Check for Instagram-specific SVG path
+          const svgPaths = container.querySelectorAll('svg path');
+          expect(svgPaths.length).toBeGreaterThan(0);
+        });
       });
 
       it('renders x (twitter) icon and calls getIconForPlatform', async () => {
@@ -3227,15 +3172,12 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            const links = container.querySelectorAll(
-              'a[href="https://x.com/test"]',
-            );
-            expect(links.length).toBe(1);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          const links = container.querySelectorAll(
+            'a[href="https://x.com/test"]',
+          );
+          expect(links.length).toBe(1);
+        });
       });
 
       it('renders twitter icon (legacy) and exercises switch case', async () => {
@@ -3265,15 +3207,12 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            const links = container.querySelectorAll(
-              'a[href="https://twitter.com/test"]',
-            );
-            expect(links.length).toBe(1);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          const links = container.querySelectorAll(
+            'a[href="https://twitter.com/test"]',
+          );
+          expect(links.length).toBe(1);
+        });
       });
 
       it('renders linkedin icon and exercises switch case', async () => {
@@ -3303,15 +3242,12 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            const links = container.querySelectorAll(
-              'a[href="https://linkedin.com/in/test"]',
-            );
-            expect(links.length).toBe(1);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          const links = container.querySelectorAll(
+            'a[href="https://linkedin.com/in/test"]',
+          );
+          expect(links.length).toBe(1);
+        });
       });
 
       it('renders facebook icon and exercises switch case', async () => {
@@ -3341,15 +3277,12 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            const links = container.querySelectorAll(
-              'a[href="https://facebook.com/test"]',
-            );
-            expect(links.length).toBe(1);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          const links = container.querySelectorAll(
+            'a[href="https://facebook.com/test"]',
+          );
+          expect(links.length).toBe(1);
+        });
       });
 
       it('renders youtube icon and exercises switch case', async () => {
@@ -3379,15 +3312,12 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            const links = container.querySelectorAll(
-              'a[href="https://youtube.com/test"]',
-            );
-            expect(links.length).toBe(1);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          const links = container.querySelectorAll(
+            'a[href="https://youtube.com/test"]',
+          );
+          expect(links.length).toBe(1);
+        });
       });
 
       it('renders tiktok icon and exercises switch case', async () => {
@@ -3415,15 +3345,12 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            const links = container.querySelectorAll(
-              'a[href="https://tiktok.com/@test"]',
-            );
-            expect(links.length).toBe(1);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          const links = container.querySelectorAll(
+            'a[href="https://tiktok.com/@test"]',
+          );
+          expect(links.length).toBe(1);
+        });
       });
 
       it('renders default globe icon for unknown platform (default case)', async () => {
@@ -3453,18 +3380,15 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            const links = container.querySelectorAll(
-              'a[href="https://unknown.com/test"]',
-            );
-            expect(links.length).toBe(1);
-            // Verify the default case is hit by checking for Globe icon (generic svg)
-            const svgs = container.querySelectorAll('svg');
-            expect(svgs.length).toBeGreaterThan(0);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          const links = container.querySelectorAll(
+            'a[href="https://unknown.com/test"]',
+          );
+          expect(links.length).toBe(1);
+          // Verify the default case is hit by checking for Globe icon (generic svg)
+          const svgs = container.querySelectorAll('svg');
+          expect(svgs.length).toBeGreaterThan(0);
+        });
       });
 
       it('renders all platform icons in sequence to cover all switch cases', async () => {
@@ -3503,17 +3427,14 @@ describe('UserProfileInfo', () => {
 
         const { container } = render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // All 8 platform links should be rendered
-            const links = container.querySelectorAll('a');
-            const socialLinks = Array.from(links).filter((link) =>
-              allPlatforms.some((p) => link.getAttribute('href') === p.url),
-            );
-            expect(socialLinks.length).toBe(8);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // All 8 platform links should be rendered
+          const links = container.querySelectorAll('a');
+          const socialLinks = Array.from(links).filter((link) =>
+            allPlatforms.some((p) => link.getAttribute('href') === p.url),
+          );
+          expect(socialLinks.length).toBe(8);
+        });
       });
     });
 
@@ -3547,15 +3468,12 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // Component should render with location data
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // Component should render with location data
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
 
       it('handles location response with partial city/state/country fields', async () => {
@@ -3584,14 +3502,11 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
     });
 
@@ -3632,14 +3547,11 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // All social media icons should be rendered (8 profiles including twitter)
-            const links = screen.getAllByRole('link');
-            expect(links.length).toBe(8);
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // All social media icons should be rendered (8 profiles including twitter)
+          const links = screen.getAllByRole('link');
+          expect(links.length).toBe(8);
+        });
       });
     });
 
@@ -3656,15 +3568,12 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // Component should still render despite current user fetch failure
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // Component should still render despite current user fetch failure
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
 
       it('handles non-ok response when fetching current user info', async () => {
@@ -3682,15 +3591,12 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // Component should still render despite current user fetch failure
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // Component should still render despite current user fetch failure
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
     });
 
@@ -3710,19 +3616,16 @@ describe('UserProfileInfo', () => {
         // Mock localStorage to return null for token during address fetch
         mockLocalStorage.getItem.mockReturnValueOnce('mock-token'); // for auth/me
         mockLocalStorage.getItem.mockReturnValueOnce('mock-token'); // for users/:id
-        mockLocalStorage.getItem.mockReturnValue(null); // for verify-location
+        localStorage.removeItem('token'); // for verify-location
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // Component should render, address fetch should fail gracefully
-            expect(
-              screen.queryByText('Loading profile...'),
-            ).not.toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // Component should render, address fetch should fail gracefully
+          expect(
+            screen.queryByText('Loading profile...'),
+          ).not.toBeInTheDocument();
+        });
       });
     });
 
@@ -3746,13 +3649,10 @@ describe('UserProfileInfo', () => {
 
         render(<UserProfileInfo {...mockProps} />);
 
-        await waitFor(
-          () => {
-            // Component should render with fallback coordinates
-            expect(screen.queryByText(/26.1445/)).toBeInTheDocument();
-          },
-          { timeout: 2000 },
-        );
+        await waitFor(() => {
+          // Component should render with fallback coordinates
+          expect(screen.queryByText(/26.1445/)).toBeInTheDocument();
+        });
       });
     });
 

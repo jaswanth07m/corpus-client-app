@@ -170,7 +170,10 @@
         "place": "Enter current place"
       },
       "profession": "Enter profession",
-      "organisation": "Enter organisation"
+      "organisation": "Enter organisation",
+      "roll": {
+        "number": "Enter roll number"
+      }
     },
     "noUsersFound": "No users found",
     "from": {
@@ -247,7 +250,104 @@
       "progress": "Overall Progress"
     },
     "previousPage": "Previous Page",
-    "nextPage": "Next Page"
+    "nextPage": "Next Page",
+    "noOptionFound": "No option found.",
+    "pleaseUploadAPdfFile": "Please upload a PDF file",
+    "fileSizeMustBeLessThan5mb": "File size must be less than 5MB",
+    "authenticationRequiredForUpload": "Authentication required for upload",
+    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "Categories 'resume' and/or 'internship' not found. Please contact an admin.",
+    "failedToViewResume": "Failed to view resume",
+    "selectType": "Select type",
+    "selectDistrict": "Select district",
+    "permanentPostalAddress": "Permanent Postal Address",
+    "enterPermanentPostalAddress": "Enter permanent postal address",
+    "college": {
+      "institution": "College / Institution",
+      "roll": {
+        "number": "College Roll Number"
+      }
+    },
+    "selectCollege": "Select college",
+    "cantFindYourInstitutionSelectOtherNotInList": "Can't find your institution? Select \"Other (not in list)\".",
+    "selectCategory": "Select category",
+    "specific": {
+      "stream": "Specific Stream"
+    },
+    "selectStream": "Select stream",
+    "selectYear": "Select year",
+    "task": {
+      "registered": {
+        "id": "TASK Registered ID"
+      },
+      "id": "TASK ID"
+    },
+    "device": {
+      "internet": "Device & Internet"
+    },
+    "has": {
+      "laptop": "Has Laptop?"
+    },
+    "laptop": {
+      "os": "Laptop OS",
+      "ram": "Laptop RAM"
+    },
+    "selectOs": "Select OS",
+    "selectRam": "Select RAM",
+    "mobile": {
+      "os": "Mobile OS",
+      "ram": "Mobile RAM"
+    },
+    "internet": {
+      "speed": "Internet Speed"
+    },
+    "selectSpeed": "Select speed",
+    "daily": {
+      "data": {
+        "limit": "Daily Data Limit"
+      }
+    },
+    "selectLimit": "Select limit",
+    "list": {
+      "your": {
+        "ai": {
+          "courses": "List your AI courses"
+        }
+      }
+    },
+    "language": {
+      "proficiency": "Language Proficiency"
+    },
+    "selectYourProficiencyLevelForEachLanguage": "Select your proficiency level for each language",
+    "rural": {
+      "area": {
+        "access": "Rural Area Access"
+      }
+    },
+    "completed": {
+      "ai": {
+        "courses": "Completed AI Courses"
+      }
+    },
+    "gender": "Gender *",
+    "academic": {
+      "details": "Academic Details"
+    },
+    "roll": {
+      "number": "Roll number"
+    },
+    "whatIsYourPermanentPostalAddress": "What is your permanent postal address?",
+    "enterYourCompletePermanentAddress": "Enter your complete permanent address",
+    "uploadResumePdfOnlyMax5mb": "Upload Resume (PDF only, max 5MB) *",
+    "do": {
+      "you": {
+        "have": {
+          "a": {
+            "laptop": "Do you have a laptop? *"
+          }
+        }
+      }
+    },
+    "saving": "Saving..."
   },
   "ui": {
     "failed": {
@@ -305,6 +405,11 @@
           "content": {
             "here": "Enter your text content here..."
           }
+        }
+      },
+      "task": {
+        "id": {
+          "optional": "Enter TASK ID (optional)"
         }
       }
     },
@@ -372,6 +477,36 @@
             }
           }
         }
+      },
+      "list": {
+        "all": {
+          "ai": {
+            "courses": {
+              "you": {
+                "have": {
+                  "completed": "Please list all AI courses you have completed"
+                }
+              }
+            }
+          }
+        }
+      },
+      "fill": {
+        "in": {
+          "the": {
+            "remaining": {
+              "details": {
+                "to": {
+                  "complete": {
+                    "your": {
+                      "registration": "Please fill in the remaining details to complete your\n              registration."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "place": {
@@ -417,6 +552,102 @@
           }
         }
       }
+    },
+    "do": {
+      "you": {
+        "have": {
+          "access": {
+            "to": {
+              "any": {
+                "rural": {
+                  "areas": {
+                    "nearby": "Do you have access to any rural areas nearby?"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "education": {
+      "institution": "Education & Institution"
+    },
+    "have": {
+      "you": {
+        "completed": {
+          "any": {
+            "ai": {
+              "courses": "Have you completed any AI courses? *"
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "of": {
+        "ai": {
+          "courses": {
+            "completed": "List of AI Courses Completed"
+          }
+        }
+      }
+    },
+    "resume": {
+      "pdf": {
+        "only": {
+          "max": {
+            "5mb": "Resume (PDF only, max 5MB)"
+          }
+        }
+      }
+    },
+    "internship": {
+      "language": {
+        "proficiency": "Internship Language Proficiency"
+      }
+    },
+    "task": {
+      "registered": {
+        "id": {
+          "optional": "TASK Registered ID (optional)"
+        }
+      }
+    },
+    "eg": {
+      "nearby": {
+        "villages": {
+          "shamirpet": {
+            "medchal": {
+              "etc": "e.g., Nearby villages: Shamirpet, Medchal, etc."
+            }
+          }
+        }
+      }
+    },
+    "laptop": {
+      "operating": {
+        "system": "Laptop Operating System"
+      }
+    },
+    "mobile": {
+      "operating": {
+        "system": "Mobile Operating System"
+      }
+    },
+    "internet": {
+      "connection": {
+        "speed": {
+          "mbps": "Internet Connection Speed (Mbps)"
+        }
+      }
+    },
+    "daily": {
+      "data": {
+        "limit": {
+          "quota": "Daily Data Limit / Quota"
+        }
+      }
     }
   },
   "messages": {
@@ -435,7 +666,11 @@
     "loadingProfile": "Loading profile...",
     "profilePictureUpdatedSuccessfully": "Profile picture updated successfully!",
     "loadingPointsData": "Loading points data...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence.",
+    "resumeUploadedSuccessfully": "Resume uploaded successfully",
+    "uploadingNewResume": "Uploading new resume...",
+    "profileCompletedSuccessfully": "Profile completed successfully!",
+    "uploadingResume": "Uploading resume..."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -454,7 +689,11 @@
     "enterFullName": "Enter full name",
     "shortBio": "Short Bio",
     "profession": "Profession",
-    "organisation": "Organisation"
+    "organisation": "Organisation",
+    "workLocation": "Work Location",
+    "cityState": "City, State",
+    "locationDetails": "Location Details",
+    "chooseYourWorkLocationForTheInternship": "Choose your work location for the internship"
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "Please enter valid latitude and longitude values",
@@ -467,7 +706,9 @@
     "changeType": "Change Type:",
     "unsupportedMediaType": "Unsupported media type",
     "sourceLabel": "Source Label",
-    "type": "Type:"
+    "type": "Type:",
+    "organisationType": "Organisation Type",
+    "educationCategory": "Education Category"
   },
   "media": {
     "failedToSwitchCamera": "Failed to switch camera",
@@ -505,7 +746,8 @@
     "pleaseEnterAValidImageUrl": "Please enter a valid image URL",
     "imageUrl": "Image URL",
     "enterRecordId": "Enter Record ID",
-    "recordControls": "Record Controls"
+    "recordControls": "Record Controls",
+    "resumeRecordId": "Resume record ID:"
   },
   "stats": {
     "contributionsYet": "contributions yet.",
@@ -574,7 +816,8 @@
     "preferPasswordLogin": "Prefer Password Login?",
     "loginWithPassword": "Login with Password",
     "loginWithOtp": "Login with OTP",
-    "enterPassword": "Enter Password"
+    "enterPassword": "Enter Password",
+    "emailIsRequired": "Email is required"
   },
   "nav": {
     "preferPasswordLogin": "Prefer Password Login ?",
@@ -591,7 +834,13 @@
     "profile": "Profile",
     "settings": "Settings",
     "logout": "Logout",
-    "login": "Login"
+    "login": "Login",
+    "internshipProfile": "Internship Profile",
+    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "Mention places around your hometown or current location where you have access to rural areas",
+    "profileIncompletePleaseCompleteIt": "Profile incomplete, please complete it.",
+    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "Some features may be limited until you finish your profile.",
+    "completeProfile": "Complete Profile",
+    "completeYourProfile": "Complete Your Profile"
   },
   "profile": {
     "setLocation": "Set Location",
@@ -732,5 +981,8 @@
     "tamil": "Tamil",
     "bengali": "Bengali",
     "malayalam": "Malayalam"
+  },
+  "time": {
+    "currentYearOfStudy": "Current Year of Study"
   }
 }

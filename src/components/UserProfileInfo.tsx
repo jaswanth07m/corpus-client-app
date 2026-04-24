@@ -12,7 +12,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { BACKEND_URL } from '@/lib/constants';
+import {
+  organisationTypes,
+  workLocations,
+  educationCategories,
+  specificStreams,
+  yearList,
+  laptopOS,
+  laptopRAM,
+  mobileOS,
+  mobileRAM,
+  internetSpeeds,
+  dailyDataLimits,
+  internshipLanguages,
+  proficiencyLevels,
+  collegeList,
+} from '@/lib/profileConstants';
 import { toast } from 'sonner';
 import {
   X,
@@ -131,12 +148,17 @@ interface LanguageProficiency {
   proficiency: 'basic' | 'intermediate' | 'proficient';
 }
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface UserProfile {
   id: string;
   username?: string | null;
   name?: string | null;
   email?: string | null;
-  phone?: string | null; // Add phone field
+  phone?: string | null;
   gender?: string | null;
   date_of_birth?: string | null;
   current_place?: string | null;
@@ -150,7 +172,30 @@ interface UserProfile {
   is_active?: boolean | null;
   phone_privacy?: string | null;
   email_privacy?: string | null;
-  profile_picture_path?: string | null; // Add profile picture field
+  profile_picture_path?: string | null;
+  profile_complete?: boolean | null;
+  // Internship fields
+  organisation_type?: string | null;
+  work_location?: string | null;
+  rural_area_access?: string | null;
+  permanent_postal_address?: string | null;
+  college_institution?: string | null;
+  education_category?: string | null;
+  specific_stream?: string | null;
+  current_year_of_study?: string | null;
+  college_roll_number?: string | null;
+  task_registered_id?: string | null;
+  internship_languages?: Record<string, string> | null;
+  resume_record_id?: string | null;
+  has_laptop?: string | null;
+  laptop_os?: string | null;
+  laptop_ram?: string | null;
+  mobile_os?: string | null;
+  mobile_ram?: string | null;
+  internet_speed?: string | null;
+  daily_data_limit?: string | null;
+  has_completed_ai_courses?: string | null;
+  ai_courses_list?: string | null;
 }
 
 interface UserProfileInfoProps {
@@ -383,15 +428,169 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
     phone_privacy: null,
     email_privacy: null,
     profile_picture_path: null,
+    profile_complete: null,
+    organisation_type: null,
+    work_location: null,
+    rural_area_access: null,
+    permanent_postal_address: null,
+    college_institution: null,
+    education_category: null,
+    specific_stream: null,
+    current_year_of_study: null,
+    college_roll_number: null,
+    task_registered_id: null,
+    internship_languages: null,
+    resume_record_id: null,
+    has_laptop: null,
+    laptop_os: null,
+    laptop_ram: null,
+    mobile_os: null,
+    mobile_ram: null,
+    internet_speed: null,
+    daily_data_limit: null,
+    has_completed_ai_courses: null,
+    ai_courses_list: null,
   });
 
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [editing, setEditing] = useState<boolean>(false);
+  const [resumeUploading, setResumeUploading] = useState(false);
+  const [viewingResume, setViewingResume] = useState(false);
   const [currentUserInfo, setCurrentUserInfo] = useState<{
     id: string;
     username: string;
   } | null>(null);
+
+  const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast.error(t('common.pleaseUploadAPdfFile'));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t('common.fileSizeMustBeLessThan5mb'));
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token || !currentUserInfo) {
+      toast.error(t('common.authenticationRequiredForUpload'));
+      return;
+    }
+
+    setResumeUploading(true);
+
+    try {
+      // 1. Fetch categories
+      const catRes = await fetch(`${BACKEND_URL}/categories/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!catRes.ok) throw new Error('Failed to fetch categories');
+      const categories: Category[] = await catRes.json();
+
+      const resumeCat = categories.find(
+        (c) => c.name.toLowerCase() === 'resume',
+      );
+      const internshipCat = categories.find(
+        (c) => c.name.toLowerCase() === 'internship',
+      );
+
+      if (!resumeCat || !internshipCat) {
+        toast.error(
+          t(
+            'common.categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin',
+          ),
+        );
+        setResumeUploading(false);
+        return;
+      }
+
+      const uploadUuid = crypto.randomUUID();
+
+      // 2. Upload chunk
+      const chunkData = new FormData();
+      chunkData.append('chunk', file);
+      chunkData.append('filename', file.name);
+      chunkData.append('chunk_index', '0');
+      chunkData.append('total_chunks', '1');
+      chunkData.append('upload_uuid', uploadUuid);
+
+      const chunkRes = await fetch(`${BACKEND_URL}/records/upload/chunk`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: chunkData,
+      });
+
+      if (!chunkRes.ok) throw new Error('Chunk upload failed');
+
+      // 3. Finalize
+      const finalizeData = new FormData();
+      finalizeData.append('upload_uuid', uploadUuid);
+      finalizeData.append('title', `Resume — ${currentUserInfo.username}`);
+      finalizeData.append(
+        'description',
+        `This is a resume document uploaded by ${currentUserInfo.username} to complete their professional profile during a profile update.`,
+      );
+      finalizeData.append(
+        'category_ids',
+        JSON.stringify([resumeCat.id, internshipCat.id]),
+      );
+      finalizeData.append('user_id', currentUserInfo.id);
+      finalizeData.append('media_type', 'document');
+      finalizeData.append('release_rights', 'creator');
+      finalizeData.append('language', 'english');
+      finalizeData.append('total_chunks', '1');
+      finalizeData.append('filename', file.name);
+
+      const finalizeRes = await fetch(`${BACKEND_URL}/records/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: finalizeData,
+      });
+
+      if (!finalizeRes.ok) {
+        const errData = await finalizeRes.json();
+        throw new Error(errData.detail || 'Finalization failed');
+      }
+
+      const result = await finalizeRes.json();
+      handleChange('resume_record_id', result.uid);
+      toast.success(t('messages.resumeUploadedSuccessfully'));
+    } catch (err: unknown) {
+      console.error('Resume upload error:', err);
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to upload resume',
+      );
+    } finally {
+      setResumeUploading(false);
+    }
+  };
+
+  const handleViewResume = async () => {
+    if (!profile.resume_record_id) return;
+
+    setViewingResume(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(
+        `${BACKEND_URL}/records/${profile.resume_record_id}/record-url`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!res.ok) throw new Error('Failed to get resume URL');
+      const data = await res.json();
+      window.open(data.record_url, '_blank');
+    } catch (err) {
+      console.error('Error viewing resume:', err);
+      toast.error(t('common.failedToViewResume'));
+    } finally {
+      setViewingResume(false);
+    }
+  };
   const [currentUserLoaded, setCurrentUserLoaded] = useState<boolean>(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [currentLocationIndex, setCurrentLocationIndex] = useState<
@@ -483,7 +682,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
     };
 
     fetchProfile();
-  }, [userId]);
+  }, [userId, t]);
 
   // Fetch formatted address when from_place changes
   useEffect(() => {
@@ -1192,6 +1391,381 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                 </div>
               </div>
 
+              {/* Internship Profile Section */}
+              <div className="md:col-span-2 my-2 border-t border-gray-200"></div>
+              <div className="md:col-span-2">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  Internship Profile
+                </h4>
+              </div>
+
+              {/* Organisation Type */}
+              <div>
+                <Label htmlFor="organisation_type">Organisation Type</Label>
+                <SearchableSelect
+                  id="organisation_type"
+                  value={profile.organisation_type || ''}
+                  onChange={(value) => handleChange('organisation_type', value)}
+                  options={organisationTypes}
+                  placeholder={t('common.selectType')}
+                />
+              </div>
+
+              {/* {t('user.workLocation')} */}
+              <div>
+                <Label htmlFor="work_location">Work Location</Label>
+                <SearchableSelect
+                  id="work_location"
+                  value={profile.work_location || ''}
+                  onChange={(value) => handleChange('work_location', value)}
+                  options={workLocations}
+                  placeholder={t('common.selectDistrict')}
+                />
+              </div>
+
+              {/* Rural Area Access */}
+              <div className="md:col-span-2">
+                <Label htmlFor="rural_area_access">
+                  {t('ui.do.you.have.access.to.any.rural.areas.nearby')}
+                </Label>
+                <Textarea
+                  id="rural_area_access"
+                  value={profile.rural_area_access || ''}
+                  onChange={(e) =>
+                    handleChange('rural_area_access', e.target.value)
+                  }
+                  placeholder={t(
+                    'nav.mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas',
+                  )}
+                  maxLength={500}
+                  rows={3}
+                />
+              </div>
+
+              {/* Permanent Postal Address */}
+              <div className="md:col-span-2">
+                <Label htmlFor="permanent_postal_address">
+                  Permanent Postal Address
+                </Label>
+                <Input
+                  id="permanent_postal_address"
+                  value={profile.permanent_postal_address || ''}
+                  onChange={(e) =>
+                    handleChange('permanent_postal_address', e.target.value)
+                  }
+                  placeholder={t('common.enterPermanentPostalAddress')}
+                  maxLength={500}
+                />
+              </div>
+
+              {/* Education & Institution */}
+              <div className="md:col-span-2 my-2 border-t border-gray-200"></div>
+              <div className="md:col-span-2">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  {t('ui.education.institution')}
+                </h4>
+              </div>
+
+              {/* College/Institution */}
+              <div className="md:col-span-2">
+                <Label htmlFor="college_institution">
+                  College / Institution
+                </Label>
+                <SearchableSelect
+                  id="college_institution"
+                  value={profile.college_institution || ''}
+                  onChange={(value) =>
+                    handleChange('college_institution', value)
+                  }
+                  options={collegeList}
+                  placeholder={t('common.selectCollege')}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t('common.cantFindYourInstitutionSelectOtherNotInList')}
+                </p>
+              </div>
+
+              {/* Education Category */}
+              <div>
+                <Label htmlFor="education_category">Education Category</Label>
+                <SearchableSelect
+                  id="education_category"
+                  value={profile.education_category || ''}
+                  onChange={(value) =>
+                    handleChange('education_category', value)
+                  }
+                  options={educationCategories}
+                  placeholder={t('common.selectCategory')}
+                />
+              </div>
+
+              {/* Specific Stream */}
+              <div>
+                <Label htmlFor="specific_stream">Specific Stream</Label>
+                <SearchableSelect
+                  id="specific_stream"
+                  value={profile.specific_stream || ''}
+                  onChange={(value) => handleChange('specific_stream', value)}
+                  options={specificStreams}
+                  placeholder={t('common.selectStream')}
+                />
+              </div>
+
+              {/* Current Year of Study */}
+              <div>
+                <Label htmlFor="current_year_of_study">
+                  Current Year of Study
+                </Label>
+                <SearchableSelect
+                  id="current_year_of_study"
+                  value={profile.current_year_of_study || ''}
+                  onChange={(value) =>
+                    handleChange('current_year_of_study', value)
+                  }
+                  options={yearList}
+                  placeholder={t('common.selectYear')}
+                />
+              </div>
+
+              {/* College Roll Number */}
+              <div>
+                <Label htmlFor="college_roll_number">College Roll Number</Label>
+                <Input
+                  id="college_roll_number"
+                  value={profile.college_roll_number || ''}
+                  onChange={(e) =>
+                    handleChange('college_roll_number', e.target.value)
+                  }
+                  placeholder={t('common.enter.roll.number')}
+                  maxLength={100}
+                />
+              </div>
+
+              {/* TASK Registered ID */}
+              <div>
+                <Label htmlFor="task_registered_id">TASK Registered ID</Label>
+                <Input
+                  id="task_registered_id"
+                  value={profile.task_registered_id || ''}
+                  onChange={(e) =>
+                    handleChange('task_registered_id', e.target.value)
+                  }
+                  placeholder={t('ui.enter.task.id.optional')}
+                  maxLength={100}
+                />
+              </div>
+
+              {/* Device & Internet */}
+              <div className="md:col-span-2 my-2 border-t border-gray-200"></div>
+              <div className="md:col-span-2">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  {t('common.device.internet')}
+                </h4>
+              </div>
+
+              {/* {t('common.has.laptop')} */}
+              <div>
+                <Label htmlFor="has_laptop">Has Laptop?</Label>
+                <SearchableSelect
+                  id="has_laptop"
+                  value={profile.has_laptop || ''}
+                  onChange={(value) => handleChange('has_laptop', value)}
+                  options={[
+                    { value: 'Yes', label: 'Yes' },
+                    { value: 'No', label: 'No' },
+                  ]}
+                  placeholder="Select"
+                />
+              </div>
+
+              {/* {t('common.laptop.os')} */}
+              <div>
+                <Label htmlFor="laptop_os">Laptop OS</Label>
+                <SearchableSelect
+                  id="laptop_os"
+                  value={profile.laptop_os || ''}
+                  onChange={(value) => handleChange('laptop_os', value)}
+                  options={laptopOS}
+                  placeholder={t('common.selectOs')}
+                />
+              </div>
+
+              {/* {t('common.laptop.ram')} */}
+              <div>
+                <Label htmlFor="laptop_ram">Laptop RAM</Label>
+                <SearchableSelect
+                  id="laptop_ram"
+                  value={profile.laptop_ram || ''}
+                  onChange={(value) => handleChange('laptop_ram', value)}
+                  options={laptopRAM}
+                  placeholder={t('common.selectRam')}
+                />
+              </div>
+
+              {/* {t('common.mobile.os')} */}
+              <div>
+                <Label htmlFor="mobile_os">Mobile OS</Label>
+                <SearchableSelect
+                  id="mobile_os"
+                  value={profile.mobile_os || ''}
+                  onChange={(value) => handleChange('mobile_os', value)}
+                  options={mobileOS}
+                  placeholder="Select OS"
+                />
+              </div>
+
+              {/* {t('common.mobile.ram')} */}
+              <div>
+                <Label htmlFor="mobile_ram">Mobile RAM</Label>
+                <SearchableSelect
+                  id="mobile_ram"
+                  value={profile.mobile_ram || ''}
+                  onChange={(value) => handleChange('mobile_ram', value)}
+                  options={mobileRAM}
+                  placeholder="Select RAM"
+                />
+              </div>
+
+              {/* Internet Speed */}
+              <div>
+                <Label htmlFor="internet_speed">Internet Speed</Label>
+                <SearchableSelect
+                  id="internet_speed"
+                  value={profile.internet_speed || ''}
+                  onChange={(value) => handleChange('internet_speed', value)}
+                  options={internetSpeeds}
+                  placeholder={t('common.selectSpeed')}
+                />
+              </div>
+
+              {/* Daily Data Limit */}
+              <div>
+                <Label htmlFor="daily_data_limit">Daily Data Limit</Label>
+                <SearchableSelect
+                  id="daily_data_limit"
+                  value={profile.daily_data_limit || ''}
+                  onChange={(value) => handleChange('daily_data_limit', value)}
+                  options={dailyDataLimits}
+                  placeholder={t('common.selectLimit')}
+                />
+              </div>
+
+              {/* Completed AI Courses */}
+              <div>
+                <Label htmlFor="has_completed_ai_courses">
+                  {t('ui.have.you.completed.any.ai.courses')}
+                </Label>
+                <SearchableSelect
+                  id="has_completed_ai_courses"
+                  value={profile.has_completed_ai_courses || ''}
+                  onChange={(value) =>
+                    handleChange('has_completed_ai_courses', value)
+                  }
+                  options={[
+                    { value: 'Yes', label: 'Yes' },
+                    { value: 'No', label: 'No' },
+                  ]}
+                  placeholder="Select"
+                />
+              </div>
+
+              {profile.has_completed_ai_courses === 'Yes' && (
+                <div className="md:col-span-2">
+                  <Label htmlFor="ai_courses_list">
+                    List of AI Courses Completed
+                  </Label>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t('ui.please.list.all.ai.courses.you.have.completed')}
+                  </p>
+                  <Textarea
+                    id="ai_courses_list"
+                    value={profile.ai_courses_list || ''}
+                    onChange={(e) =>
+                      handleChange('ai_courses_list', e.target.value)
+                    }
+                    placeholder={t('common.list.your.ai.courses')}
+                    rows={3}
+                  />
+                </div>
+              )}
+
+              {/* Resume */}
+              <div className="md:col-span-2">
+                <Label htmlFor="resume">
+                  {t('ui.resume.pdf.only.max.5mb')}
+                </Label>
+                <div className="flex flex-col gap-2 mt-1">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="resume"
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleResumeChange}
+                      disabled={resumeUploading}
+                      className="flex-1"
+                    />
+                    {profile.resume_record_id && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleViewResume}
+                        disabled={viewingResume}
+                      >
+                        {viewingResume ? 'Loading...' : 'View Current'}
+                      </Button>
+                    )}
+                  </div>
+                  {resumeUploading && (
+                    <p className="text-xs text-blue-600 animate-pulse">
+                      {t('messages.uploadingNewResume')}
+                    </p>
+                  )}
+                  {profile.resume_record_id && (
+                    <p className="text-xs text-green-600 font-medium">
+                      {t('media.resumeRecordId')}
+                      {profile.resume_record_id}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Internship Languages */}
+              <div className="md:col-span-2 my-2 border-t border-gray-200"></div>
+              <div className="md:col-span-2">
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                  {t('common.language.proficiency')}
+                </h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  {t('common.selectYourProficiencyLevelForEachLanguage')}
+                </p>
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                {internshipLanguages.map((lang) => (
+                  <div key={lang} className="flex items-center gap-3">
+                    <span className="w-20 text-sm font-medium">{lang}</span>
+                    <select
+                      value={
+                        profile.internship_languages?.[lang] || "Don't know"
+                      }
+                      onChange={(e) => {
+                        const updated = {
+                          ...(profile.internship_languages || {}),
+                          [lang]: e.target.value,
+                        };
+                        handleChange('internship_languages', updated);
+                      }}
+                      className="flex-1 p-2 border rounded-md bg-white text-sm"
+                    >
+                      {proficiencyLevels.map((level) => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+
               {/* Action Buttons */}
               <div className="flex justify-end space-x-3">
                 <Button
@@ -1353,6 +1927,245 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     fromPlaceAddress={fromPlaceAddress}
                     placesLivedAddresses={placesLivedAddresses}
                   />
+                )}
+
+                {/* Internship Profile - Read Only */}
+                {(profile.organisation_type ||
+                  profile.work_location ||
+                  profile.college_institution ||
+                  profile.education_category ||
+                  profile.has_laptop ||
+                  profile.internet_speed) && (
+                  <div className="w-full mt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Briefcase className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                      <p className="text-gray-500 text-sm font-medium">
+                        {t('nav.internshipProfile')}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {profile.organisation_type && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('categories.organisationType')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.organisation_type}
+                          </p>
+                        </div>
+                      )}
+                      {profile.work_location && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">Work Location</p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.work_location}
+                          </p>
+                        </div>
+                      )}
+                      {profile.rural_area_access && (
+                        <div className="p-3 border rounded-lg bg-gray-50 md:col-span-2">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.rural.area.access')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.rural_area_access}
+                          </p>
+                        </div>
+                      )}
+                      {profile.permanent_postal_address && (
+                        <div className="p-3 border rounded-lg bg-gray-50 md:col-span-2">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.permanentPostalAddress')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.permanent_postal_address}
+                          </p>
+                        </div>
+                      )}
+                      {profile.college_institution && (
+                        <div className="p-3 border rounded-lg bg-gray-50 md:col-span-2">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.college.institution')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.college_institution}
+                          </p>
+                        </div>
+                      )}
+                      {profile.education_category && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('categories.educationCategory')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.education_category}
+                          </p>
+                        </div>
+                      )}
+                      {profile.specific_stream && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.specific.stream')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.specific_stream}
+                          </p>
+                        </div>
+                      )}
+                      {profile.current_year_of_study && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('time.currentYearOfStudy')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.current_year_of_study}
+                          </p>
+                        </div>
+                      )}
+                      {profile.college_roll_number && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.college.roll.number')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.college_roll_number}
+                          </p>
+                        </div>
+                      )}
+                      {profile.task_registered_id && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.task.registered.id')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.task_registered_id}
+                          </p>
+                        </div>
+                      )}
+                      {profile.has_laptop && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">Has Laptop</p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.has_laptop}
+                          </p>
+                        </div>
+                      )}
+                      {profile.laptop_os && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">Laptop OS</p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.laptop_os}
+                          </p>
+                        </div>
+                      )}
+                      {profile.laptop_ram && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">Laptop RAM</p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.laptop_ram}
+                          </p>
+                        </div>
+                      )}
+                      {profile.mobile_os && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">Mobile OS</p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.mobile_os}
+                          </p>
+                        </div>
+                      )}
+                      {profile.mobile_ram && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">Mobile RAM</p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.mobile_ram}
+                          </p>
+                        </div>
+                      )}
+                      {profile.internet_speed && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.internet.speed')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.internet_speed}
+                          </p>
+                        </div>
+                      )}
+                      {profile.daily_data_limit && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.daily.data.limit')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.daily_data_limit}
+                          </p>
+                        </div>
+                      )}
+                      {profile.has_completed_ai_courses && (
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.completed.ai.courses')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.has_completed_ai_courses}
+                          </p>
+                        </div>
+                      )}
+                      {profile.ai_courses_list && (
+                        <div className="p-3 border rounded-lg bg-gray-50 md:col-span-2">
+                          <p className="text-gray-500 text-xs">
+                            {t('ui.list.of.ai.courses.completed')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {profile.ai_courses_list}
+                          </p>
+                        </div>
+                      )}
+                      {profile.resume_record_id && (
+                        <div className="p-3 border rounded-lg bg-gray-50 md:col-span-2">
+                          <p className="text-gray-500 text-xs mb-2">Resume</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleViewResume}
+                            disabled={viewingResume}
+                            className="w-full sm:w-auto"
+                          >
+                            {viewingResume ? 'Opening...' : 'View Resume'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Internship Languages */}
+                    {profile.internship_languages &&
+                      Object.keys(profile.internship_languages).length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-gray-500 text-sm font-medium mb-1">
+                            {t('ui.internship.language.proficiency')}
+                          </p>
+                          <div className="space-y-1">
+                            {Object.entries(profile.internship_languages).map(
+                              ([lang, level]) => (
+                                <div key={lang} className="flex gap-2">
+                                  <div className="p-3 border rounded-lg bg-gray-50 flex-1">
+                                    <p className="text-gray-900 font-medium text-sm">
+                                      {lang}
+                                    </p>
+                                  </div>
+                                  <div className="p-3 border rounded-lg bg-gray-50 flex-1 flex items-center">
+                                    <p className="text-gray-700 text-sm">
+                                      {String(level)}
+                                    </p>
+                                  </div>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      )}
+                  </div>
                 )}
               </div>
             </div>

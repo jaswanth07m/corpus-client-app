@@ -15,6 +15,7 @@ import PeerReview from './pages/PeerReview';
 import ImageReviewPage from './pages/ImageReviewPage';
 import AudioReviewPage from './pages/AudioReviewPage';
 import VideoReviewPage from './pages/VideoReviewPage';
+import CompleteProfilePage from './pages/CompleteProfilePage';
 import { AuthProvider } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import RequireAuth from './components/RequireAuth';
@@ -94,6 +95,14 @@ const App = () => (
                 element={
                   <RequireAuth>
                     <Profile />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/complete-profile"
+                element={
+                  <RequireAuth>
+                    <CompleteProfilePage />
                   </RequireAuth>
                 }
               />

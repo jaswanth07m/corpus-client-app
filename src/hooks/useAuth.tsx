@@ -169,9 +169,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('user', JSON.stringify(fullUserData));
       posthog.identify(fullUserData.user_id || fullUserData.id);
       posthog.capture('user_logged_in');
+      return fullUserData;
     } catch (error) {
       console.error('Error during login:', error);
-      // Handle error appropriately
+      throw error;
     }
   };
 

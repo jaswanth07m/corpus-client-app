@@ -252,21 +252,12 @@ describe('LoginForm', () => {
     fireEvent.change(nameInput, { target: { value: 'Valid Name' } });
     getHandler()!();
     expect(mockToastError).toHaveBeenCalledWith(
-      'common.pleaseEnterAValidEmailAddress',
-    );
-    mockToastError.mockClear();
-
-    const emailInput = screen.getByPlaceholderText('common.emailAddress');
-    fireEvent.change(emailInput, { target: { value: 'test@swecha.org' } });
-    getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith(
       'auth.passwordMustBeAtLeast6CharactersLong',
     );
     mockToastError.mockClear();
 
-    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
-      target: { value: 'Valid@123!' },
-    });
+    const passwordInput = screen.getByPlaceholderText('auth.createPassword');
+    fireEvent.change(passwordInput, { target: { value: 'Valid@123!' } });
     fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
       target: { value: 'Valid@123!' },
     });
@@ -321,8 +312,8 @@ describe('LoginForm', () => {
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
-    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },
@@ -392,8 +383,8 @@ describe('LoginForm', () => {
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
-    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },
@@ -490,8 +481,8 @@ describe('LoginForm', () => {
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
-    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },
@@ -575,8 +566,8 @@ describe('LoginForm', () => {
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
-    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+      target: { value: 'valid_user' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },

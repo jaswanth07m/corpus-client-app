@@ -10,9 +10,6 @@ import {
   Sparkles,
   RefreshCw,
   User,
-  Mail,
-  Calendar,
-  MapPin,
   UserPlus,
   LogIn,
 } from 'lucide-react';
@@ -78,14 +75,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [resendTimer, setResendTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
 
-  // Signup form fields
+  // Signup form fields (step 1 only)
   const [signupData, setSignupData] = useState({
     username: '',
     name: '',
-    email: '',
-    gender: '',
-    date_of_birth: '',
-    current_place: '',
     password: '',
     confirmPassword: '',
     has_given_consent: false,
@@ -345,11 +338,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    if (!isValidEmail(signupData.email)) {
-      toast.error(t('common.pleaseEnterAValidEmailAddress'));
-      return;
-    }
-
     if (!signupData.password || signupData.password.length < 6) {
       toast.error(t('auth.passwordMustBeAtLeast6CharactersLong'));
       return;
@@ -368,12 +356,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         phone: getFullPhoneNumber(),
         username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
-        email: signupData.email.trim(),
-        gender: signupData.gender || undefined,
-        date_of_birth: signupData.date_of_birth || undefined,
-        current_place: signupData.current_place.trim() || undefined,
         password: signupData.password,
-        role_ids: [2], // Default role ID as per schema
       };
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/send-otp`, {
@@ -428,22 +411,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         otp_code: signupOtp.trim(),
         username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
-        email: signupData.email.trim(),
-        gender: signupData.gender || undefined,
-        date_of_birth: signupData.date_of_birth || undefined,
-        current_place: signupData.current_place.trim() || undefined,
         password: signupData.password,
         confirm_password: signupData.confirmPassword,
-        role_ids: [2], // Default role ID as per schema
         has_given_consent: signupData.has_given_consent,
       };
-
-      // Remove undefined values
-      Object.keys(requestBody).forEach((key) => {
-        if (requestBody[key] === undefined) {
-          delete requestBody[key];
-        }
-      });
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/verify-otp`, {
         method: 'POST',
@@ -460,8 +431,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         toast.success(
           t('messages.accountCreatedAndVerifiedSuccessfullyPleaseLogin'),
         );
-        setMode('login');
-        resetForm();
+        onLoginSuccess(data.access_token, data);
       } else {
         console.error('Signup Verify OTP Error:', data);
         if (data.detail && Array.isArray(data.detail)) {
@@ -558,10 +528,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setSignupData({
       username: '',
       name: '',
-      email: '',
-      gender: '',
-      date_of_birth: '',
-      current_place: '',
       password: '',
       confirmPassword: '',
       has_given_consent: false,
@@ -1027,112 +993,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     </div>
                   </div>
 
-                  {/* Email */}
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                    <Input
-                      type="email"
-                      placeholder={t('common.emailAddress')}
-                      value={signupData.email}
-                      onChange={(e) =>
-                        handleSignupInputChange('email', e.target.value)
-                      }
-                      onFocus={() => {
-                        setValidateEmail('border-gray-500');
-                        setErrorEmailDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const emailRegex = /^[^+\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (!emailRegex.test(signupData.email.trim())) {
-                          setValidateEmail('border-rose-800');
-                          setErrorEmailDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validateEmail} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                    />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`}
-                    >
-                      {t('auth.emailIsInvalid')}
-                    </div>
-                  </div>
-
-                  {/* Gender */}
-                  <div className="relative">
-                    <select
-                      value={signupData.gender}
-                      onChange={(e) =>
-                        handleSignupInputChange('gender', e.target.value)
-                      }
-                      className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
-                      aria-label={t('auth.selectGender')}
-                    >
-                      <option value="">{t('auth.selectGender')}</option>
-                      <option value="male">{t('auth.male')}</option>
-                      <option value="female">{t('auth.female')}</option>
-                      <option value="other">{t('auth.other')}</option>
-                    </select>
-                  </div>
-
-                  {/* Date of Birth */}
-                  <div className="relative">
-                    <label className="text-sm text-gray-700 mb-1 block">
-                      {t('auth.dateOfBirth')}
-                    </label>
-                    <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
-                    <Input
-                      type="date"
-                      placeholder={t('common.date.of.birth')}
-                      min={minDate}
-                      max={maxDate}
-                      value={signupData.date_of_birth}
-                      onChange={(e) =>
-                        handleSignupInputChange('date_of_birth', e.target.value)
-                      }
-                      className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 mt-1"
-                    />
-                  </div>
-
-                  {/* Place */}
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                    <Input
-                      type="text"
-                      placeholder={t('user.placeCityState')}
-                      value={signupData.current_place}
-                      onChange={(e) =>
-                        handleSignupInputChange('current_place', e.target.value)
-                      }
-                      onFocus={() => {
-                        setValidatePlace('border-gray-500');
-                        setErrorPlaceDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const currentPlaceRegex = /^[A-Za-z\s,]+$/;
-                        if (
-                          !currentPlaceRegex.test(
-                            signupData.current_place.trim(),
-                          )
-                        ) {
-                          setValidatePlace('border-rose-800');
-                          setErrorPlaceDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validatePlace} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                    />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`}
-                    >
-                      {t('ui.place.should.have.characters.is.allowed')}
-                    </div>
-                  </div>
-
                   {/* Password */}
                   <div className="relative">
                     <Input
@@ -1383,7 +1243,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       loading ||
                       !isValidPhoneNumber() ||
                       !signupData.name.trim() ||
-                      !isValidEmail(signupData.email) ||
                       !signupData.password ||
                       signupData.password !== signupData.confirmPassword ||
                       !signupData.has_given_consent ||

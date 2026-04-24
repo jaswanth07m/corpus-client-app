@@ -66,6 +66,7 @@ interface UserProfileData {
   username?: string;
   profile_picture_path?: string | null;
   short_bio?: string | null;
+  profile_complete?: boolean;
   streaks: {
     combined_streak: {
       current: number;
@@ -743,6 +744,7 @@ function Profile() {
             username: userData.username,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
+            profile_complete: userData.profile_complete ?? true,
             streaks: {
               combined_streak: {
                 current: userData.streak_days || 0,
@@ -1030,6 +1032,28 @@ function Profile() {
             </div>
           </div>
         </div>
+
+        {/* Incomplete Profile Alert - Only for own profile */}
+        {isOwnProfile && profile?.profile_complete === false && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl shadow-lg p-4 sm:p-6 mb-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-red-700 font-semibold">
+                  {t('nav.profileIncompletePleaseCompleteIt')}
+                </p>
+                <p className="text-red-600 text-sm mt-1">
+                  {t('nav.someFeaturesMayBeLimitedUntilYouFinishYourProfile')}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/complete-profile')}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-md"
+              >
+                {t('nav.completeProfile')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Bio Section - Visible for all user profiles */}
         {profile?.short_bio && (

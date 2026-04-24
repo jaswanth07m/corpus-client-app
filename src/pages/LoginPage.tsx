@@ -7,14 +7,24 @@ function LoginPage() {
   const { login, token } = useAuth();
   const navigate = useNavigate();
 
-  if (token) {
-    navigate('/', { replace: true });
-  }
+  React.useEffect(() => {
+    if (token) {
+      navigate('/', { replace: true });
+    }
+  }, [token, navigate]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleLoginSuccess = (token: string, user: any) => {
-    login(token, user);
-    navigate('/', { replace: true });
+  const handleLoginSuccess = async (token: string, user: any) => {
+    try {
+      const fullUser = await login(token, user);
+      if (fullUser && fullUser.profile_complete === false) {
+        navigate('/complete-profile', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    } catch {
+      navigate('/', { replace: true });
+    }
   };
 
   return <LoginForm onLoginSuccess={handleLoginSuccess} />;
