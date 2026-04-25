@@ -364,7 +364,11 @@
     "viewDocument": "",
     "noRecordsFoundInThisCategory": "",
     "trySelectingADifferentCategoryOrClearingTheFilter": "",
-    "clearFilter": ""
+    "clearFilter": "",
+    "workstation": {
+      "os": "",
+      "ram": ""
+    }
   },
   "ui": {
     "failed": {
@@ -724,7 +728,8 @@
     "pleaseEnterValidLatitudeAndLongitudeValues": "कृपया मान्य अक्षांश और देशांतर मान दर्ज करें",
     "latitudeMustBeBetween90And90": "अक्षांश -90 और 90 के बीच होना चाहिए",
     "longitudeMustBeBetween180And180": "देशांतर -180 और 180 के बीच होना चाहिए",
-    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें"
+    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें",
+    "authenticationRequired": ""
   },
   "categories": {
     "chooseACategoryToContributeContent": "सामग्री योगदान देने के लिए एक श्रेणी चुनें",

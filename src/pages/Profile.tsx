@@ -29,6 +29,7 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
+import { isProfileComplete } from '@/lib/profileUtils';
 
 const languages = [
   'assamese',
@@ -744,7 +745,7 @@ function Profile() {
             username: userData.username,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
-            profile_complete: userData.profile_complete ?? true,
+            profile_complete: isProfileComplete(userData),
             streaks: {
               combined_streak: {
                 current: userData.streak_days || 0,

@@ -364,7 +364,11 @@
     "viewDocument": "",
     "noRecordsFoundInThisCategory": "",
     "trySelectingADifferentCategoryOrClearingTheFilter": "",
-    "clearFilter": ""
+    "clearFilter": "",
+    "workstation": {
+      "os": "",
+      "ram": ""
+    }
   },
   "ui": {
     "failed": {
@@ -724,7 +728,8 @@
     "pleaseEnterValidLatitudeAndLongitudeValues": "దయచేసి సరైన అక్షాంశం మరియు రేఖాంశం విలువలను నమోదు చేయండి",
     "latitudeMustBeBetween90And90": "అక్షాంశం -90 మరియు 90 మధ్య ఉండాలి",
     "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
-    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి"
+    "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి",
+    "authenticationRequired": ""
   },
   "categories": {
     "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",

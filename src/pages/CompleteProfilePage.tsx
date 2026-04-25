@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,25 +10,62 @@ import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   organisationTypes,
   workLocations,
-  educationCategories,
-  specificStreams,
   yearList,
-  laptopOS,
-  laptopRAM,
+  workstationOS,
+  workstationRAM,
   mobileOS,
   mobileRAM,
   internetSpeeds,
   dailyDataLimits,
-  internshipLanguages,
-  proficiencyLevels,
-  collegeList,
 } from '@/lib/profileConstants';
+import InstitutionSelector from '@/components/InstitutionSelector';
+import LocationPicker from '@/components/LocationPicker';
+import { fetchInstitution } from '@/lib/institutionApi';
+import {
+  Globe,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Facebook,
+  Youtube,
+  Music2,
+} from 'lucide-react';
+
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface PlacesLived {
+  places: { latitude: number; longitude: number }[];
+}
+
+interface SocialMediaProfile {
+  platform: string;
+  url: string;
+}
 
 interface LanguageProficiency {
   language: string;
   proficiency: string;
+}
+
+interface HardwareDetails {
+  workstation_os?: string;
+  workstation_ram?: string;
+  mobile_os?: string;
+  mobile_ram?: string;
+  internet_speed?: string;
+  daily_data_limit?: string;
 }
 
 interface Category {
@@ -36,58 +73,163 @@ interface Category {
   name: string;
 }
 
-interface CurrentUser {
+interface UserProfile {
   id: string;
-  username: string;
-  profile_complete?: boolean;
+  username?: string | null;
+  name?: string | null;
+  email?: string | null;
+  gender?: string | null;
+  date_of_birth?: string | null;
+  current_place?: string | null;
+  short_bio?: string | null;
+  profession?: string | null;
+  organisation?: string | null;
+  places_lived?: PlacesLived | null;
+  from_place?: Coordinates | null;
+  social_media_profiles?: { profiles: SocialMediaProfile[] } | null;
+  language_proficiencies?: { proficiencies: LanguageProficiency[] } | null;
+  phone_privacy?: string | null;
+  email_privacy?: string | null;
+  organisation_type?: string | null;
+  work_location?: string | null;
+  rural_area_access?: string | null;
+  permanent_postal_address?: string | null;
+  institution_id?: string | null;
+  current_year_of_study?: string | null;
+  college_roll_number?: string | null;
+  task_registered_id?: string | null;
+  hardware_details?: HardwareDetails | null;
+  resume_record_id?: string | null;
+  has_completed_ai_courses?: string | null;
+  ai_courses_list?: string | null;
 }
+
+const INTERNSHIP_LANGUAGES = ['Telugu', 'Hindi', 'English', 'Urdu'];
+
+const PROFICIENCY_OPTIONS = [
+  { value: 'basic', label: 'Basic' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'proficient', label: 'Proficient' },
+];
+
+const LANGUAGE_OPTIONS = [
+  { value: 'assamese', label: 'Assamese' },
+  { value: 'bengali', label: 'Bengali' },
+  { value: 'bodo', label: 'Bodo' },
+  { value: 'dogri', label: 'Dogri' },
+  { value: 'gujarati', label: 'Gujarati' },
+  { value: 'hindi', label: 'Hindi' },
+  { value: 'kannada', label: 'Kannada' },
+  { value: 'kashmiri', label: 'Kashmiri' },
+  { value: 'konkani', label: 'Konkani' },
+  { value: 'maithili', label: 'Maithili' },
+  { value: 'malayalam', label: 'Malayalam' },
+  { value: 'marathi', label: 'Marathi' },
+  { value: 'meitei', label: 'Meitei' },
+  { value: 'nepali', label: 'Nepali' },
+  { value: 'odia', label: 'Odia' },
+  { value: 'punjabi', label: 'Punjabi' },
+  { value: 'sanskrit', label: 'Sanskrit' },
+  { value: 'santali', label: 'Santali' },
+  { value: 'sindhi', label: 'Sindhi' },
+  { value: 'tamil', label: 'Tamil' },
+  { value: 'telugu', label: 'Telugu' },
+  { value: 'urdu', label: 'Urdu' },
+];
+
+const SOCIAL_MEDIA_PLATFORMS = [
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'x', label: 'X (Twitter)' },
+  { value: 'linkedin', label: 'LinkedIn' },
+  { value: 'facebook', label: 'Facebook' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'tiktok', label: 'TikTok' },
+  { value: 'custom', label: 'Custom' },
+];
+
+const PRIVACY_OPTIONS = [
+  { value: 'public', label: 'Public' },
+  { value: 'private', label: 'Private' },
+];
 
 const CompleteProfilePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const isEditMode =
+    (location.state as { fromEdit?: boolean })?.fromEdit === true;
+
+  const [userId, setUserId] = useState<string | null>(null);
+  const [originalProfile, setOriginalProfile] = useState<UserProfile | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeRecordId, setResumeRecordId] = useState<string | null>(null);
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
+  const [institutionName, setInstitutionName] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
+    username: '',
+    name: '',
     email: '',
     gender: '',
     date_of_birth: '',
     current_place: '',
+    short_bio: '',
+    profession: '',
+    organisation: '',
     organisation_type: '',
     work_location: '',
     rural_area_access: '',
     permanent_postal_address: '',
-    college_institution: '',
-    education_category: '',
-    specific_stream: '',
+    institution_id: '',
     current_year_of_study: '',
     college_roll_number: '',
     task_registered_id: '',
-    has_laptop: '',
-    laptop_os: '',
-    laptop_ram: '',
+    has_completed_ai_courses: '',
+    ai_courses_list: '',
+    phone_privacy: '',
+    email_privacy: '',
+  });
+
+  const [hardwareDetails, setHardwareDetails] = useState<HardwareDetails>({
+    workstation_os: '',
+    workstation_ram: '',
     mobile_os: '',
     mobile_ram: '',
     internet_speed: '',
     daily_data_limit: '',
-    has_completed_ai_courses: '',
-    ai_courses_list: '',
   });
+
+  const [hasLaptop, setHasLaptop] = useState('');
+  const [fromPlace, setFromPlace] = useState<Coordinates | null>(null);
+  const [fromPlaceAddress, setFromPlaceAddress] = useState<string | null>(null);
+  const [placesLived, setPlacesLived] = useState<PlacesLived>({ places: [] });
+  const [placesLivedAddresses, setPlacesLivedAddresses] = useState<{
+    [key: string]: string;
+  }>({});
+  const [socialMediaProfiles, setSocialMediaProfiles] = useState<
+    SocialMediaProfile[]
+  >([]);
 
   const [languageProficiencies, setLanguageProficiencies] = useState<
     LanguageProficiency[]
   >(
-    internshipLanguages.map((lang) => ({
-      language: lang,
-      proficiency: "Don't know",
+    INTERNSHIP_LANGUAGES.map((lang) => ({
+      language: lang.toLowerCase(),
+      proficiency: '',
     })),
   );
 
-  const [maxDate, setMaxDate] = useState(() => {
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [currentLocationIndex, setCurrentLocationIndex] = useState<
+    number | null
+  >(null);
+  const [viewingResume, setViewingResume] = useState(false);
+
+  const [maxDate] = useState(() => {
     const today = new Date();
     const thirteenYearsAgo = new Date(
       today.getFullYear() - 13,
@@ -98,26 +240,174 @@ const CompleteProfilePage: React.FC = () => {
   });
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
       try {
-        const res = await fetch(`${BACKEND_URL}/auth/me`, {
+        const meRes = await fetch(`${BACKEND_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (res.ok) {
-          const user = await res.json();
-          setCurrentUser(user);
-          if (user.profile_complete) {
-            navigate('/', { replace: true });
-          }
-        }
+        if (!meRes.ok) throw new Error('Failed to fetch user');
+        const me = await meRes.json();
+        setUserId(me.id);
+
+        const profileRes = await fetch(`${BACKEND_URL}/users/${me.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!profileRes.ok) throw new Error('Failed to fetch profile');
+        const profile: UserProfile = await profileRes.json();
+        setOriginalProfile(profile);
+        prePopulateForm(profile);
       } catch (err) {
-        console.error('Error fetching user:', err);
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchUser();
+
+    fetchData();
   }, [navigate]);
+
+  useEffect(() => {
+    if (formData.institution_id) {
+      fetchInstitution(formData.institution_id)
+        .then((inst) => setInstitutionName(inst.name))
+        .catch(() => setInstitutionName(null));
+    } else {
+      setInstitutionName(null);
+    }
+  }, [formData.institution_id]);
+
+  useEffect(() => {
+    if (fromPlace) {
+      fetchFormattedAddress(fromPlace.latitude, fromPlace.longitude, false);
+    } else {
+      setFromPlaceAddress(null);
+    }
+  }, [fromPlace]);
+
+  useEffect(() => {
+    if (placesLived.places.length > 0) {
+      placesLived.places.forEach((place) => {
+        fetchFormattedAddress(place.latitude, place.longitude, true);
+      });
+    } else {
+      setPlacesLivedAddresses({});
+    }
+  }, [placesLived]);
+
+  const fetchFormattedAddress = async (
+    latitude: number,
+    longitude: number,
+    isPlacesLivedItem: boolean = false,
+  ) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${BACKEND_URL}/location/verify-location`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ latitude, longitude }),
+      });
+
+      if (!response.ok) return;
+      const data = await response.json();
+
+      if (isPlacesLivedItem) {
+        const parts: string[] = [];
+        if (data.city) parts.push(data.city);
+        if (data.state) parts.push(data.state);
+        if (data.country) parts.push(data.country);
+        const formatted =
+          parts.length > 0
+            ? parts.join(', ')
+            : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        setPlacesLivedAddresses((prev) => ({
+          ...prev,
+          [`${latitude},${longitude}`]: formatted,
+        }));
+      } else {
+        setFromPlaceAddress(
+          data.formatted_address ||
+            `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+        );
+      }
+    } catch {
+      const fallback = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      if (isPlacesLivedItem) {
+        setPlacesLivedAddresses((prev) => ({
+          ...prev,
+          [`${latitude},${longitude}`]: fallback,
+        }));
+      } else {
+        setFromPlaceAddress(fallback);
+      }
+    }
+  };
+
+  const prePopulateForm = (profile: UserProfile) => {
+    setFormData({
+      username: profile.username || '',
+      name: profile.name || '',
+      email: profile.email || '',
+      gender: profile.gender || '',
+      date_of_birth: profile.date_of_birth || '',
+      current_place: profile.current_place || '',
+      short_bio: profile.short_bio || '',
+      profession: profile.profession || '',
+      organisation: profile.organisation || '',
+      organisation_type: profile.organisation_type || '',
+      work_location: profile.work_location || '',
+      rural_area_access: profile.rural_area_access || '',
+      permanent_postal_address: profile.permanent_postal_address || '',
+      institution_id: profile.institution_id || '',
+      current_year_of_study: profile.current_year_of_study || '',
+      college_roll_number: profile.college_roll_number || '',
+      task_registered_id: profile.task_registered_id || '',
+      has_completed_ai_courses: profile.has_completed_ai_courses || '',
+      ai_courses_list: profile.ai_courses_list || '',
+      phone_privacy: profile.phone_privacy || '',
+      email_privacy: profile.email_privacy || '',
+    });
+
+    if (profile.hardware_details) {
+      setHardwareDetails(profile.hardware_details);
+      if (profile.hardware_details.workstation_os) {
+        setHasLaptop('Yes');
+      }
+    }
+
+    if (
+      profile.language_proficiencies?.proficiencies &&
+      profile.language_proficiencies.proficiencies.length > 0
+    ) {
+      setLanguageProficiencies(profile.language_proficiencies.proficiencies);
+    }
+
+    if (profile.from_place) {
+      setFromPlace(profile.from_place);
+    }
+
+    if (profile.places_lived) {
+      setPlacesLived(profile.places_lived);
+    }
+
+    if (profile.social_media_profiles?.profiles) {
+      setSocialMediaProfiles(profile.social_media_profiles.profiles);
+    }
+
+    if (profile.resume_record_id) {
+      setResumeRecordId(profile.resume_record_id);
+    }
+  };
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -128,6 +418,44 @@ const CompleteProfilePage: React.FC = () => {
       prev.map((lp) =>
         lp.language === language ? { ...lp, proficiency } : lp,
       ),
+    );
+  };
+
+  const handleAddLanguage = () => {
+    setLanguageProficiencies((prev) => [
+      ...prev,
+      { language: '', proficiency: '' },
+    ]);
+  };
+
+  const handleRemoveLanguage = (index: number) => {
+    setLanguageProficiencies((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleLanguageSelectChange = (index: number, language: string) => {
+    setLanguageProficiencies((prev) =>
+      prev.map((lp, i) => (i === index ? { ...lp, language } : lp)),
+    );
+  };
+
+  const handleAddSocialMedia = () => {
+    setSocialMediaProfiles((prev) => [
+      ...prev,
+      { platform: 'instagram', url: '' },
+    ]);
+  };
+
+  const handleRemoveSocialMedia = (index: number) => {
+    setSocialMediaProfiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSocialMediaChange = (
+    index: number,
+    field: 'platform' | 'url',
+    value: string,
+  ) => {
+    setSocialMediaProfiles((prev) =>
+      prev.map((sm, i) => (i === index ? { ...sm, [field]: value } : sm)),
     );
   };
 
@@ -145,7 +473,7 @@ const CompleteProfilePage: React.FC = () => {
     }
 
     const token = localStorage.getItem('token');
-    if (!token || !currentUser) {
+    if (!token || !userId) {
       toast.error(t('common.authenticationRequiredForUpload'));
       return;
     }
@@ -154,7 +482,6 @@ const CompleteProfilePage: React.FC = () => {
     setResumeFileName(file.name);
 
     try {
-      // 1. Fetch categories to find 'resume' and 'internship'
       const catRes = await fetch(`${BACKEND_URL}/categories/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -179,8 +506,6 @@ const CompleteProfilePage: React.FC = () => {
       }
 
       const uploadUuid = crypto.randomUUID();
-
-      // 2. Upload as a single chunk (since it's < 5MB)
       const chunkData = new FormData();
       chunkData.append('chunk', file);
       chunkData.append('filename', file.name);
@@ -188,6 +513,7 @@ const CompleteProfilePage: React.FC = () => {
       chunkData.append('total_chunks', '1');
       chunkData.append('upload_uuid', uploadUuid);
 
+      const username = localStorage.getItem('username') || 'user';
       const chunkRes = await fetch(`${BACKEND_URL}/records/upload/chunk`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -196,19 +522,18 @@ const CompleteProfilePage: React.FC = () => {
 
       if (!chunkRes.ok) throw new Error('Chunk upload failed');
 
-      // 3. Finalize upload
       const finalizeData = new FormData();
       finalizeData.append('upload_uuid', uploadUuid);
-      finalizeData.append('title', `Resume — ${currentUser.username}`);
+      finalizeData.append('title', `Resume — ${username}`);
       finalizeData.append(
         'description',
-        `This is a resume document uploaded by ${currentUser.username} to complete their professional profile for the internship program.`,
+        `Resume uploaded by ${username} to complete their professional profile.`,
       );
       finalizeData.append(
         'category_ids',
         JSON.stringify([resumeCat.id, internshipCat.id]),
       );
-      finalizeData.append('user_id', currentUser.id);
+      finalizeData.append('user_id', userId);
       finalizeData.append('media_type', 'document');
       finalizeData.append('release_rights', 'creator');
       finalizeData.append('language', 'english');
@@ -241,13 +566,56 @@ const CompleteProfilePage: React.FC = () => {
     }
   };
 
+  const handleViewResume = async () => {
+    if (!resumeRecordId) return;
+    setViewingResume(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(
+        `${BACKEND_URL}/records/${resumeRecordId}/record-url`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!res.ok) throw new Error('Failed to get resume URL');
+      const data = await res.json();
+      window.open(data.record_url, '_blank');
+    } catch (err) {
+      console.error('Error viewing resume:', err);
+      toast.error(t('common.failedToViewResume'));
+    } finally {
+      setViewingResume(false);
+    }
+  };
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    if (currentLocationIndex === -1) {
+      setFromPlace({ latitude: lat, longitude: lng });
+    } else {
+      const updatedPlaces = [...placesLived.places];
+      if (currentLocationIndex !== null) {
+        if (currentLocationIndex < updatedPlaces.length) {
+          updatedPlaces[currentLocationIndex] = {
+            latitude: lat,
+            longitude: lng,
+          };
+        } else {
+          updatedPlaces.push({ latitude: lat, longitude: lng });
+        }
+        setPlacesLived({ places: updatedPlaces });
+      }
+    }
+    setShowLocationPicker(false);
+    setCurrentLocationIndex(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Authentication token not found');
+    if (!token || !userId) {
+      toast.error(t('validation.authenticationRequired'));
       setSubmitting(false);
       return;
     }
@@ -258,50 +626,135 @@ const CompleteProfilePage: React.FC = () => {
       return;
     }
 
-    const payload: Record<string, unknown> = {
-      ...formData,
+    const currentProfile: UserProfile = {
+      id: userId,
+      username: formData.username || null,
+      name: formData.name || null,
+      email: formData.email || null,
+      gender: formData.gender || null,
+      date_of_birth: formData.date_of_birth || null,
+      current_place: formData.current_place || null,
+      short_bio: formData.short_bio || null,
+      profession: formData.profession || null,
+      organisation: formData.organisation || null,
+      places_lived: placesLived.places.length > 0 ? placesLived : null,
+      from_place: fromPlace,
+      social_media_profiles:
+        socialMediaProfiles.length > 0
+          ? { profiles: socialMediaProfiles }
+          : null,
+      language_proficiencies:
+        languageProficiencies.filter((lp) => lp.proficiency).length > 0
+          ? {
+              proficiencies: languageProficiencies.filter(
+                (lp) => lp.proficiency,
+              ),
+            }
+          : null,
+      phone_privacy: formData.phone_privacy || null,
+      email_privacy: formData.email_privacy || null,
+      organisation_type: formData.organisation_type || null,
+      work_location: formData.work_location || null,
+      rural_area_access: formData.rural_area_access || null,
+      permanent_postal_address: formData.permanent_postal_address || null,
+      institution_id: formData.institution_id || null,
+      current_year_of_study: formData.current_year_of_study || null,
+      college_roll_number: formData.college_roll_number || null,
+      task_registered_id: formData.task_registered_id || null,
+      hardware_details: Object.values(hardwareDetails).some((v) => v !== '')
+        ? hardwareDetails
+        : null,
       resume_record_id: resumeRecordId,
-      internship_languages: languageProficiencies.reduce(
-        (acc, lp) => {
-          acc[lp.language.toLowerCase()] = lp.proficiency;
-          return acc;
-        },
-        {} as Record<string, string>,
-      ),
+      has_completed_ai_courses: formData.has_completed_ai_courses || null,
+      ai_courses_list: formData.ai_courses_list || null,
     };
 
-    // Remove empty optional fields
-    Object.keys(payload).forEach((key) => {
-      if (payload[key] === '' || payload[key] === null) {
-        delete payload[key];
-      }
-    });
+    const updatePayload: Record<string, unknown> = {};
+
+    if (originalProfile) {
+      (Object.keys(currentProfile) as (keyof UserProfile)[]).forEach((key) => {
+        if (key !== 'id') {
+          const current = currentProfile[key];
+          const original = originalProfile[key];
+          if (JSON.stringify(current) !== JSON.stringify(original)) {
+            if (
+              current !== null &&
+              current !== '' &&
+              !(Array.isArray(current) && current.length === 0) &&
+              !(
+                typeof current === 'object' &&
+                current !== null &&
+                'places' in current &&
+                current.places.length === 0
+              )
+            ) {
+              updatePayload[key] = current;
+            } else if (original !== null && original !== undefined) {
+              updatePayload[key] = current;
+            }
+          }
+        }
+      });
+    } else {
+      (Object.keys(currentProfile) as (keyof UserProfile)[]).forEach((key) => {
+        const value = currentProfile[key];
+        if (value !== null && value !== '' && key !== 'id') {
+          if (
+            typeof value === 'object' &&
+            !Array.isArray(value) &&
+            value !== null
+          ) {
+            if ('places' in value && value.places.length === 0) return;
+            if ('profiles' in value && value.profiles.length === 0) return;
+            if ('proficiencies' in value && value.proficiencies.length === 0)
+              return;
+          }
+          updatePayload[key] = value;
+        }
+      });
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      toast.info(t('common.noChangesToSave'));
+      setSubmitting(false);
+      return;
+    }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/auth/complete-profile`, {
-        method: 'POST',
+      const res = await fetch(`${BACKEND_URL}/users/${userId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(updatePayload),
       });
 
       const data = await res.json();
       if (res.ok) {
         toast.success(t('messages.profileCompletedSuccessfully'));
-        navigate('/', { replace: true });
+        if (isEditMode) {
+          navigate('/profile', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       } else {
-        toast.error(
-          data.detail || data.message || 'Failed to complete profile',
-        );
+        toast.error(data.detail || data.message || 'Failed to save profile');
       }
     } catch (err) {
-      console.error('Error completing profile:', err);
+      console.error('Error saving profile:', err);
       toast.error('Network error. Please try again.');
     }
     setSubmitting(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 px-4 pb-24">
@@ -309,69 +762,287 @@ const CompleteProfilePage: React.FC = () => {
         <Card className="shadow-xl border border-slate-200">
           <CardHeader className="text-center pb-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              {t('nav.completeYourProfile')}
+              {isEditMode ? t('nav.editProfile') : t('nav.completeYourProfile')}
             </h1>
             <p className="text-gray-600 text-sm mt-1">
-              {t(
-                'ui.please.fill.in.the.remaining.details.to.complete.your.registration',
-              )}
+              {isEditMode
+                ? t('ui.updateYourProfileDetails')
+                : t(
+                    'ui.please.fill.in.the.remaining.details.to.complete.your.registration',
+                  )}
             </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Basic Info */}
+              {/* Identity */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="username">{t('auth.username')}</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    placeholder="you@example.com"
-                    required
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => handleChange('username', e.target.value)}
+                    placeholder={t('auth.enterUsername')}
+                    minLength={3}
+                    maxLength={50}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gender">{t('common.gender')}</Label>
-                  <SearchableSelect
-                    id="gender"
-                    value={formData.gender}
-                    onChange={(value) => handleChange('gender', value)}
-                    options={[
-                      { value: 'male', label: 'Male' },
-                      { value: 'female', label: 'Female' },
-                      { value: 'other', label: 'Other' },
-                    ]}
-                    placeholder="Select gender"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="date_of_birth">Date of Birth *</Label>
+                  <Label htmlFor="name">{t('user.fullName')}</Label>
                   <Input
-                    id="date_of_birth"
-                    type="date"
-                    max={maxDate}
-                    value={formData.date_of_birth}
-                    onChange={(e) =>
-                      handleChange('date_of_birth', e.target.value)
-                    }
-                    required
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    placeholder={t('user.enterFullName')}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="current_place">Current Place *</Label>
-                  <Input
-                    id="current_place"
-                    value={formData.current_place}
-                    onChange={(e) =>
-                      handleChange('current_place', e.target.value)
-                    }
-                    placeholder={t('user.cityState')}
-                    required
-                  />
+              </div>
+
+              {/* Basic Info */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  {t('common.basicInfo')}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleChange('email', e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="gender">{t('common.gender')}</Label>
+                    <SearchableSelect
+                      id="gender"
+                      value={formData.gender}
+                      onChange={(value) => handleChange('gender', value)}
+                      options={[
+                        { value: 'male', label: 'Male' },
+                        { value: 'female', label: 'Female' },
+                        { value: 'other', label: 'Other' },
+                      ]}
+                      placeholder="Select gender"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="date_of_birth">Date of Birth *</Label>
+                    <Input
+                      id="date_of_birth"
+                      type="date"
+                      max={maxDate}
+                      value={formData.date_of_birth}
+                      onChange={(e) =>
+                        handleChange('date_of_birth', e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="current_place">Current Place *</Label>
+                    <Input
+                      id="current_place"
+                      value={formData.current_place}
+                      onChange={(e) =>
+                        handleChange('current_place', e.target.value)
+                      }
+                      placeholder={t('user.cityState')}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="short_bio">{t('user.shortBio')}</Label>
+                    <Textarea
+                      id="short_bio"
+                      value={formData.short_bio}
+                      onChange={(e) =>
+                        handleChange('short_bio', e.target.value)
+                      }
+                      placeholder={t('nav.tellUsAboutYourself')}
+                      maxLength={500}
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="profession">{t('user.profession')}</Label>
+                    <Input
+                      id="profession"
+                      value={formData.profession}
+                      onChange={(e) =>
+                        handleChange('profession', e.target.value)
+                      }
+                      placeholder={t('common.enter.profession')}
+                      maxLength={200}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="organisation">
+                      {t('user.organisation')}
+                    </Label>
+                    <Input
+                      id="organisation"
+                      value={formData.organisation}
+                      onChange={(e) =>
+                        handleChange('organisation', e.target.value)
+                      }
+                      placeholder={t('common.enter.organisation')}
+                      maxLength={200}
+                    />
+                  </div>
                 </div>
+              </div>
+
+              {/* From Place & Places Lived */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  {t('common.location')}
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <Label>{t('common.from.place')}</Label>
+                    <div className="flex gap-2 mt-1">
+                      {fromPlace ? (
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-500">
+                            {fromPlaceAddress ||
+                              `${fromPlace.latitude.toFixed(6)}, ${fromPlace.longitude.toFixed(6)}`}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 flex-1">
+                          {t('common.noLocationSet')}
+                        </p>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setCurrentLocationIndex(-1);
+                          setShowLocationPicker(true);
+                        }}
+                      >
+                        {fromPlace
+                          ? t('common.edit')
+                          : t('profile.setLocation')}
+                      </Button>
+                      {fromPlace && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setFromPlace(null)}
+                        >
+                          {t('common.remove')}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>{t('common.places.lived')}</Label>
+                    {placesLived.places.map((place, index) => {
+                      const addressKey = `${place.latitude},${place.longitude}`;
+                      return (
+                        <div key={index} className="flex gap-2 mb-2 mt-1">
+                          <p className="text-sm text-gray-500 flex-1">
+                            {placesLivedAddresses[addressKey] ||
+                              `${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setCurrentLocationIndex(index);
+                              setShowLocationPicker(true);
+                            }}
+                          >
+                            {t('common.edit')}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              const updated = [...placesLived.places];
+                              updated.splice(index, 1);
+                              setPlacesLived({ places: updated });
+                            }}
+                          >
+                            {t('common.remove')}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setCurrentLocationIndex(placesLived.places.length);
+                        setShowLocationPicker(true);
+                      }}
+                    >
+                      {t('common.addPlace')}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {showLocationPicker && (
+                <LocationPicker
+                  onLocationSelect={handleLocationSelect}
+                  onClose={() => {
+                    setShowLocationPicker(false);
+                    setCurrentLocationIndex(null);
+                  }}
+                />
+              )}
+
+              {/* Social Media Profiles */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  {t('nav.socialMediaProfiles')}
+                </h3>
+                {socialMediaProfiles.map((social, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <Select
+                      value={social.platform}
+                      onValueChange={(value) =>
+                        handleSocialMediaChange(index, 'platform', value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Platform" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SOCIAL_MEDIA_PLATFORMS.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={social.url}
+                      onChange={(e) =>
+                        handleSocialMediaChange(index, 'url', e.target.value)
+                      }
+                      placeholder={t('nav.profileUrl')}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleRemoveSocialMedia(index)}
+                    >
+                      {t('common.remove')}
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddSocialMedia}
+                >
+                  {t('common.addSocialMedia')}
+                </Button>
               </div>
 
               {/* Education & Institution */}
@@ -392,55 +1063,14 @@ const CompleteProfilePage: React.FC = () => {
                       }
                       options={organisationTypes}
                       placeholder={t('common.selectType')}
-                      required
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="college_institution">
-                      {t('common.college.institution')}
-                    </Label>
-                    <SearchableSelect
-                      id="college_institution"
-                      value={formData.college_institution}
-                      onChange={(value) =>
-                        handleChange('college_institution', value)
+                  <div className="md:col-span-2">
+                    <InstitutionSelector
+                      institutionId={formData.institution_id}
+                      onChange={(institutionId) =>
+                        handleChange('institution_id', institutionId)
                       }
-                      options={collegeList}
-                      placeholder={t('common.selectCollege')}
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {t('common.cantFindYourInstitutionSelectOtherNotInList')}
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="education_category">
-                      {t('categories.educationCategory')}
-                    </Label>
-                    <SearchableSelect
-                      id="education_category"
-                      value={formData.education_category}
-                      onChange={(value) =>
-                        handleChange('education_category', value)
-                      }
-                      options={educationCategories}
-                      placeholder={t('common.selectCategory')}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="specific_stream">
-                      {t('common.specific.stream')}
-                    </Label>
-                    <SearchableSelect
-                      id="specific_stream"
-                      value={formData.specific_stream}
-                      onChange={(value) =>
-                        handleChange('specific_stream', value)
-                      }
-                      options={specificStreams}
-                      placeholder={t('common.selectStream')}
-                      required
                     />
                   </div>
                   <div>
@@ -455,7 +1085,6 @@ const CompleteProfilePage: React.FC = () => {
                       }
                       options={yearList}
                       placeholder={t('common.selectYear')}
-                      required
                     />
                   </div>
                   <div>
@@ -469,7 +1098,6 @@ const CompleteProfilePage: React.FC = () => {
                         handleChange('college_roll_number', e.target.value)
                       }
                       placeholder={t('common.roll.number')}
-                      required
                     />
                   </div>
                   <div>
@@ -504,7 +1132,6 @@ const CompleteProfilePage: React.FC = () => {
                       onChange={(value) => handleChange('work_location', value)}
                       options={workLocations}
                       placeholder={t('common.selectDistrict')}
-                      required
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -526,7 +1153,6 @@ const CompleteProfilePage: React.FC = () => {
                         'ui.eg.nearby.villages.shamirpet.medchal.etc',
                       )}
                       rows={3}
-                      required
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -542,13 +1168,12 @@ const CompleteProfilePage: React.FC = () => {
                       placeholder={t(
                         'common.enterYourCompletePermanentAddress',
                       )}
-                      required
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Internship Languages */}
+              {/* Language Proficiencies */}
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1">
                   {t('common.language.proficiency')}
@@ -556,29 +1181,64 @@ const CompleteProfilePage: React.FC = () => {
                 <p className="text-sm text-gray-600 mb-3">
                   {t('common.selectYourProficiencyLevelForEachLanguage')}
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {languageProficiencies.map((lp) => (
-                    <div key={lp.language}>
-                      <Label htmlFor={`lang-${lp.language}`}>
-                        {lp.language}
-                      </Label>
-                      <select
-                        id={`lang-${lp.language}`}
-                        value={lp.proficiency}
-                        onChange={(e) =>
-                          handleLanguageChange(lp.language, e.target.value)
+                {languageProficiencies.map((lp, index) => (
+                  <div key={index} className="flex gap-2 mb-2 items-start">
+                    <div className="flex-1">
+                      <Select
+                        value={lp.language}
+                        onValueChange={(value) =>
+                          handleLanguageSelectChange(index, value)
                         }
-                        className="w-full h-10 border rounded-md px-3 bg-white"
                       >
-                        {proficiencyLevels.map((p) => (
-                          <option key={p} value={p}>
-                            {p}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={t('common.selectLanguage')}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LANGUAGE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex-1">
+                      <Select
+                        value={lp.proficiency}
+                        onValueChange={(value) =>
+                          handleLanguageChange(lp.language, value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROFICIENCY_OPTIONS.map((p) => (
+                            <SelectItem key={p.value} value={p.value}>
+                              {p.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleRemoveLanguage(index)}
+                    >
+                      {t('common.remove')}
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddLanguage}
+                >
+                  {t('common.addLanguage')}
+                </Button>
               </div>
 
               {/* Resume Upload */}
@@ -596,7 +1256,6 @@ const CompleteProfilePage: React.FC = () => {
                     accept=".pdf"
                     onChange={handleResumeChange}
                     disabled={resumeUploading}
-                    required={!resumeRecordId}
                   />
                   {resumeUploading && (
                     <div className="flex items-center gap-2 mt-2 text-blue-600 text-sm">
@@ -605,28 +1264,39 @@ const CompleteProfilePage: React.FC = () => {
                     </div>
                   )}
                   {resumeRecordId && (
-                    <p className="text-sm text-green-600 mt-2 font-medium flex items-center gap-1">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <div className="flex items-center gap-2 mt-2">
+                      <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        {t('messages.resumeUploadedSuccessfully')}
+                        {resumeFileName}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleViewResume}
+                        disabled={viewingResume}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      {t('messages.resumeUploadedSuccessfully')}
-                      {resumeFileName}
-                    </p>
+                        {viewingResume ? '...' : t('common.view')}
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Device & Internet */}
+              {/* Device & Internet — Hardware Details */}
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">
                   {t('common.device.internet')}
@@ -638,44 +1308,49 @@ const CompleteProfilePage: React.FC = () => {
                     </Label>
                     <SearchableSelect
                       id="has_laptop"
-                      value={formData.has_laptop}
-                      onChange={(value) => handleChange('has_laptop', value)}
+                      value={hasLaptop}
+                      onChange={(value) => setHasLaptop(value)}
                       options={[
                         { value: 'Yes', label: 'Yes' },
                         { value: 'No', label: 'No' },
                       ]}
                       placeholder="Select"
-                      required
                     />
                   </div>
-                  {formData.has_laptop === 'Yes' && (
+                  {hasLaptop === 'Yes' && (
                     <>
                       <div>
-                        <Label htmlFor="laptop_os">
+                        <Label htmlFor="workstation_os">
                           {t('ui.laptop.operating.system')}
                         </Label>
                         <SearchableSelect
-                          id="laptop_os"
-                          value={formData.laptop_os}
-                          onChange={(value) => handleChange('laptop_os', value)}
-                          options={laptopOS}
+                          id="workstation_os"
+                          value={hardwareDetails.workstation_os}
+                          onChange={(value) =>
+                            setHardwareDetails((prev) => ({
+                              ...prev,
+                              workstation_os: value,
+                            }))
+                          }
+                          options={workstationOS}
                           placeholder={t('common.selectOs')}
-                          required
                         />
                       </div>
                       <div>
-                        <Label htmlFor="laptop_ram">
+                        <Label htmlFor="workstation_ram">
                           {t('common.laptop.ram')}
                         </Label>
                         <SearchableSelect
-                          id="laptop_ram"
-                          value={formData.laptop_ram}
+                          id="workstation_ram"
+                          value={hardwareDetails.workstation_ram}
                           onChange={(value) =>
-                            handleChange('laptop_ram', value)
+                            setHardwareDetails((prev) => ({
+                              ...prev,
+                              workstation_ram: value,
+                            }))
                           }
-                          options={laptopRAM}
+                          options={workstationRAM}
                           placeholder={t('common.selectRam')}
-                          required
                         />
                       </div>
                     </>
@@ -686,22 +1361,30 @@ const CompleteProfilePage: React.FC = () => {
                     </Label>
                     <SearchableSelect
                       id="mobile_os"
-                      value={formData.mobile_os}
-                      onChange={(value) => handleChange('mobile_os', value)}
+                      value={hardwareDetails.mobile_os}
+                      onChange={(value) =>
+                        setHardwareDetails((prev) => ({
+                          ...prev,
+                          mobile_os: value,
+                        }))
+                      }
                       options={mobileOS}
                       placeholder="Select OS"
-                      required
                     />
                   </div>
                   <div>
                     <Label htmlFor="mobile_ram">{t('common.mobile.ram')}</Label>
                     <SearchableSelect
                       id="mobile_ram"
-                      value={formData.mobile_ram}
-                      onChange={(value) => handleChange('mobile_ram', value)}
+                      value={hardwareDetails.mobile_ram}
+                      onChange={(value) =>
+                        setHardwareDetails((prev) => ({
+                          ...prev,
+                          mobile_ram: value,
+                        }))
+                      }
                       options={mobileRAM}
                       placeholder="Select RAM"
-                      required
                     />
                   </div>
                   <div>
@@ -710,13 +1393,15 @@ const CompleteProfilePage: React.FC = () => {
                     </Label>
                     <SearchableSelect
                       id="internet_speed"
-                      value={formData.internet_speed}
+                      value={hardwareDetails.internet_speed}
                       onChange={(value) =>
-                        handleChange('internet_speed', value)
+                        setHardwareDetails((prev) => ({
+                          ...prev,
+                          internet_speed: value,
+                        }))
                       }
                       options={internetSpeeds}
                       placeholder={t('common.selectSpeed')}
-                      required
                     />
                   </div>
                   <div>
@@ -725,13 +1410,15 @@ const CompleteProfilePage: React.FC = () => {
                     </Label>
                     <SearchableSelect
                       id="daily_data_limit"
-                      value={formData.daily_data_limit}
+                      value={hardwareDetails.daily_data_limit}
                       onChange={(value) =>
-                        handleChange('daily_data_limit', value)
+                        setHardwareDetails((prev) => ({
+                          ...prev,
+                          daily_data_limit: value,
+                        }))
                       }
                       options={dailyDataLimits}
                       placeholder={t('common.selectLimit')}
-                      required
                     />
                   </div>
                   <div>
@@ -749,7 +1436,6 @@ const CompleteProfilePage: React.FC = () => {
                         { value: 'No', label: 'No' },
                       ]}
                       placeholder="Select"
-                      required
                     />
                   </div>
                   {formData.has_completed_ai_courses === 'Yes' && (
@@ -767,10 +1453,42 @@ const CompleteProfilePage: React.FC = () => {
                           'ui.please.list.all.ai.courses.you.have.completed',
                         )}
                         rows={3}
-                        required
                       />
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Privacy Settings */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  {t('common.privacySettings')}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="phone_privacy">
+                      {t('common.phonePrivacy')}
+                    </Label>
+                    <SearchableSelect
+                      id="phone_privacy"
+                      value={formData.phone_privacy}
+                      onChange={(value) => handleChange('phone_privacy', value)}
+                      options={PRIVACY_OPTIONS}
+                      placeholder={t('common.selectPrivacy')}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email_privacy">
+                      {t('common.emailPrivacy')}
+                    </Label>
+                    <SearchableSelect
+                      id="email_privacy"
+                      value={formData.email_privacy}
+                      onChange={(value) => handleChange('email_privacy', value)}
+                      options={PRIVACY_OPTIONS}
+                      placeholder={t('common.selectPrivacy')}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -786,8 +1504,10 @@ const CompleteProfilePage: React.FC = () => {
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       {t('common.saving')}
                     </div>
+                  ) : isEditMode ? (
+                    t('common.saveChanges')
                   ) : (
-                    'Complete Profile'
+                    t('nav.completeProfile')
                   )}
                 </Button>
               </div>

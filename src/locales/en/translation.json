@@ -364,7 +364,11 @@
     "viewDocument": "View document",
     "noRecordsFoundInThisCategory": "No records found in this category",
     "trySelectingADifferentCategoryOrClearingTheFilter": "Try selecting a different category or clearing the filter.",
-    "clearFilter": "Clear Filter"
+    "clearFilter": "Clear Filter",
+    "workstation": {
+      "os": "Workstation OS",
+      "ram": "Workstation RAM"
+    }
   },
   "ui": {
     "failed": {
@@ -724,7 +728,8 @@
     "pleaseEnterValidLatitudeAndLongitudeValues": "Please enter valid latitude and longitude values",
     "latitudeMustBeBetween90And90": "Latitude must be between -90 and 90",
     "longitudeMustBeBetween180And180": "Longitude must be between -180 and 180",
-    "pleaseEnterTextContent": "Please enter text content"
+    "pleaseEnterTextContent": "Please enter text content",
+    "authenticationRequired": "Authentication required"
   },
   "categories": {
     "chooseACategoryToContributeContent": "Choose a category to contribute content",

@@ -30,6 +30,7 @@ interface SearchableSelectProps {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 function getOptionValue(option: Option): string {
@@ -54,6 +55,7 @@ const SearchableSelect = React.forwardRef<
       required = false,
       disabled = false,
       className,
+      onSearchChange,
     },
     ref,
   ) => {
@@ -87,7 +89,11 @@ const SearchableSelect = React.forwardRef<
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Search..." className="h-9" />
+            <CommandInput
+              placeholder="Search..."
+              className="h-9"
+              onValueChange={onSearchChange}
+            />
             <CommandList>
               <CommandEmpty>{t('common.noOptionFound')}</CommandEmpty>
               <CommandGroup>
