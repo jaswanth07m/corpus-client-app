@@ -347,7 +347,24 @@
         }
       }
     },
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "preview": "Preview:",
+    "noPreviewAvailable": "No preview available",
+    "searchPlaceOrAddress": "Search place or address",
+    "searching": "Searching...",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": "Failed to copy URL"
+        }
+      }
+    },
+    "goBackHome": "Go back home",
+    "recordNotFound": "Record not found",
+    "viewDocument": "View document",
+    "noRecordsFoundInThisCategory": "No records found in this category",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "Try selecting a different category or clearing the filter.",
+    "clearFilter": "Clear Filter"
   },
   "ui": {
     "failed": {
@@ -648,6 +665,13 @@
           "quota": "Daily Data Limit / Quota"
         }
       }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": "URL copied to clipboard"
+        }
+      }
     }
   },
   "messages": {
@@ -670,7 +694,8 @@
     "resumeUploadedSuccessfully": "Resume uploaded successfully",
     "uploadingNewResume": "Uploading new resume...",
     "profileCompletedSuccessfully": "Profile completed successfully!",
-    "uploadingResume": "Uploading resume..."
+    "uploadingResume": "Uploading resume...",
+    "loadingCategories": "Loading categories..."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -747,7 +772,8 @@
     "imageUrl": "Image URL",
     "enterRecordId": "Enter Record ID",
     "recordControls": "Record Controls",
-    "resumeRecordId": "Resume record ID:"
+    "resumeRecordId": "Resume record ID:",
+    "copyRecordUrl": "Copy record URL"
   },
   "stats": {
     "contributionsYet": "contributions yet.",

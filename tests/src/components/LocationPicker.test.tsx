@@ -81,6 +81,11 @@ vi.mock('react-leaflet', async () => {
         );
       },
     ),
+    useMap: () => ({
+      flyTo: vi.fn(),
+      fitBounds: vi.fn(),
+      setView: vi.fn(),
+    }),
     useMapEvents: (handlers: typeof mockMapEvents) => {
       mockMapEvents.click = handlers.click;
       return {};

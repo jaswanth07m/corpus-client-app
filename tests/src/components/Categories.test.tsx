@@ -79,16 +79,13 @@ vi.mock('sonner', () => ({
   },
 }));
 
-// Mock posthog
+// Mock posthog (removed for F-Droid compliance - mock kept to avoid import errors in test)
 vi.mock('posthog-js', () => ({
   default: {
     capture: vi.fn(),
     captureException: vi.fn(),
   },
 }));
-
-// Import posthog to verify calls
-import posthog from 'posthog-js';
 
 // Mock ContentInput component
 vi.mock('../../../src/components/ContentInput', () => ({
@@ -2232,7 +2229,6 @@ describe('Categories Component', () => {
       // Should show error toast and capture exception
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalled();
-        expect(posthog.captureException).toHaveBeenCalled();
       });
     });
 
@@ -2549,7 +2545,6 @@ describe('Categories Component', () => {
       await waitFor(
         () => {
           expect(toast.error).toHaveBeenCalled();
-          expect(posthog.capture).toHaveBeenCalledWith('upload_error');
         },
         { timeout: 10000, interval: 100 },
       );

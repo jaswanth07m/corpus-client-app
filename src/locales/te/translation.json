@@ -347,7 +347,24 @@
         }
       }
     },
-    "saving": ""
+    "saving": "",
+    "preview": "",
+    "noPreviewAvailable": "",
+    "searchPlaceOrAddress": "",
+    "searching": "",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": ""
+        }
+      }
+    },
+    "goBackHome": "",
+    "recordNotFound": "",
+    "viewDocument": "",
+    "noRecordsFoundInThisCategory": "",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "",
+    "clearFilter": ""
   },
   "ui": {
     "failed": {
@@ -648,6 +665,13 @@
           "quota": ""
         }
       }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": ""
+        }
+      }
     }
   },
   "messages": {
@@ -670,7 +694,8 @@
     "resumeUploadedSuccessfully": "",
     "uploadingNewResume": "",
     "profileCompletedSuccessfully": "",
-    "uploadingResume": ""
+    "uploadingResume": "",
+    "loadingCategories": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -747,7 +772,8 @@
     "imageUrl": "ఇమేజ్ URL",
     "enterRecordId": "రికార్డ్ IDని నమోదు చేయండి",
     "recordControls": "రికార్డ్ నియంత్రణలు",
-    "resumeRecordId": ""
+    "resumeRecordId": "",
+    "copyRecordUrl": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",

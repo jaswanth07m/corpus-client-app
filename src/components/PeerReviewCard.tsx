@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   User,
   Clock,
@@ -11,6 +10,7 @@ import {
   Video,
   Mic,
   Music,
+  CornerUpRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from './ui/input';
@@ -33,6 +33,7 @@ interface PeerReviewCardProps {
   release_rights: string;
   dataUrl: string;
   language?: string;
+  category?: string;
 }
 
 interface HistoryEntry {
@@ -70,6 +71,16 @@ const languages = [
   'urdu',
 ];
 
+const releaseOptions = [
+  { key: 'creator', value: 'This work is created by Author' },
+  {
+    key: 'downloaded',
+    value:
+      "Author downloaded this from the internet and/or Author don't know if it is free to share",
+  },
+  { key: 'others', value: 'Not Done By Author' },
+];
+
 function formatDate(ts?: string) {
   try {
     return ts ? new Date(ts).toLocaleString() : 'N/A';
@@ -88,10 +99,14 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   release_rights,
   dataUrl,
   language: propLanguage,
+  category,
 }) => {
-  const { t } = useTranslation();
+  const recordUrl = `${window.location.origin}/records/${record_id}`;
   const [changed, setChanged] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [categoryName, setCategoryName] = useState<string | undefined>(
+    category,
+  );
 
   const [newTitle, setNewTitle] = useState<string>('');
   const [newDescription, setNewDescription] = useState<string>('');
@@ -120,6 +135,48 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
     setRelRights(release_rights ?? '');
     setSourceLabel('');
   }, [title, description, release_rights, propLanguage]);
+
+  // Fetch category name if category is an ID
+  useEffect(() => {
+    const fetchCategoryName = async () => {
+      if (category && !category.includes(' ')) {
+        // Assuming IDs don't contain spaces, but names do
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${BACKEND_URL}/categories/`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const categories = await response.json();
+            const foundCategory = categories.find(
+              (cat: { id: string; title: string }) => cat.id === category,
+            );
+            if (foundCategory) {
+              setCategoryName(foundCategory.title);
+            } else {
+              setCategoryName(category); // Fallback to original value
+            }
+          } else {
+            setCategoryName(category); // Fallback to original value
+          }
+        } catch (error) {
+          setCategoryName(category); // Fallback to original value
+        }
+      } else {
+        setCategoryName(category); // If it already looks like a name, use it as is
+      }
+    };
+
+    if (category) {
+      fetchCategoryName();
+    } else {
+      setCategoryName(undefined);
+    }
+  }, [category]);
 
   const countMeaningfulWords = (s: string) =>
     s.split(' ').filter((w) => w.trim().length > 2).length;
@@ -205,12 +262,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       // This should trigger a re-render with the new values
       setChanged(false);
       setEditMode(false);
-
-      // Optionally show success feedback to the user
-      console.log(record_id);
-      console.log('Review submitted successfully:', requestBody);
     } catch (error) {
-      console.error('Submission error:', error);
       setSubmitError(
         error instanceof Error ? error.message : 'An unknown error occurred',
       );
@@ -261,7 +313,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         <div className={containerClass}>
           <img
             src={dataUrl}
-            alt={t('common.uploadedMedia')}
+            alt="uploaded media"
             className="w-full h-full object-contain"
             loading="lazy"
           />
@@ -298,7 +350,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-slate-600 font-medium">
-                {t('media.audioTrack')}
+                Audio Track
               </span>
             </div>
           </div>
@@ -308,7 +360,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
     return (
       <div className={containerClass}>
-        <p className="text-slate-400">{t('common.unsupported.media')}</p>
+        <p className="text-slate-400">Unsupported media</p>
       </div>
     );
   };
@@ -343,7 +395,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               }
               setShowHistory((prev) => !prev);
             }}
-            title={t('common.showHistory')}
+            title="Show history"
             className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
             aria-expanded={showHistory}
           >
@@ -374,19 +426,13 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           <div className="border border-slate-200 rounded-lg bg-slate-50 p-4 mt-3">
             <div className="flex items-center gap-2 mb-3">
               <Clock size={16} className="text-slate-500" />
-              <h4 className="text-sm font-bold text-slate-800">
-                {t('common.editHistory')}
-              </h4>
+              <h4 className="text-sm font-bold text-slate-800">Edit History</h4>
               {loadingHistory && (
-                <span className="text-xs text-slate-500">
-                  {t('messages.loading')}
-                </span>
+                <span className="text-xs text-slate-500">loading...</span>
               )}
               {error && <span className="text-xs text-red-500">{error}</span>}
               {!loadingHistory && history.length === 0 && (
-                <span className="text-xs text-slate-500">
-                  {t('common.noHistory')}
-                </span>
+                <span className="text-xs text-slate-500">no history</span>
               )}
             </div>
 
@@ -427,17 +473,13 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                       <div className="p-3 bg-white border-t border-gray-100">
                         <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                           <p>
-                            <strong className="text-gray-600">
-                              {t('categories.type')}
-                            </strong>{' '}
+                            <strong className="text-gray-600">Type:</strong>{' '}
                             <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">
                               {entry.change_type || 'N/A'}
                             </span>
                           </p>
                           <p>
-                            <strong className="text-gray-600">
-                              {t('common.source')}
-                            </strong>{' '}
+                            <strong className="text-gray-600">Source:</strong>{' '}
                             <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">
                               {entry.change_source || 'N/A'}
                             </span>
@@ -447,7 +489,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                           Object.keys(entry.field_changes).length > 0 && (
                             <div>
                               <strong className="text-xs font-semibold text-gray-700">
-                                {t('common.field.changes')}
+                                Field Changes:
                               </strong>
                               <ul className="mt-1.5 space-y-1.5">
                                 {Object.entries(entry.field_changes).map(
@@ -472,7 +514,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                                         </strong>
                                         <div className="flex items-center gap-2 mt-1">
                                           <span className="text-xs font-medium text-red-500">
-                                            {t('common.old')}
+                                            OLD:
                                           </span>
                                           <span className="font-mono text-xs text-red-700 bg-red-50 px-1.5 py-0.5 rounded line-through">
                                             {String(change.old_value ?? 'N/A')}
@@ -480,7 +522,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                                         </div>
                                         <div className="flex items-center gap-2 mt-1">
                                           <span className="text-xs font-medium text-green-500">
-                                            {t('common.new')}
+                                            NEW:
                                           </span>
                                           <span className="font-mono text-xs text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
                                             {String(change.new_value ?? 'N/A')}
@@ -525,7 +567,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               }}
               className={`text-sm font-medium h-10 ${!editMode ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-300 focus:border-emerald-500 focus:ring-emerald-500'}`}
               readOnly={!editMode}
-              placeholder={t('common.enter.title')}
+              placeholder="Enter title"
             />
             {titleError && (
               <p className="text-xs text-red-500 mt-1.5 font-medium">
@@ -573,7 +615,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                   ? 'bg-slate-50 border-slate-200'
                   : 'bg-white border-slate-300 focus:border-emerald-500 focus:ring-emerald-500'
               }`}
-              placeholder={t('common.enter.description')}
+              placeholder="Enter description"
             />
             {descError && (
               <p className="text-xs text-red-500 mt-1.5 font-medium">
@@ -581,15 +623,37 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               </p>
             )}
             <p className="text-xs text-slate-500 mt-1.5">
-              {countMeaningfulWords(newDescription || description)}
-              {t('common.meaningful.words')}
+              {countMeaningfulWords(newDescription || description)} meaningful
+              words
             </p>
           </div>
         ) : (
           <div className="pt-2">
-            <p className="text-center text-slate-700 leading-relaxed">
-              {newDescription}
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-slate-700 leading-relaxed flex-1">
+                {newDescription}
+              </p>
+              <button
+                type="button"
+                onClick={() => window.open(`/records/${record_id}`, '_blank')}
+                className="flex items-center gap-1.5 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors p-2"
+                title="Share"
+              >
+                <CornerUpRight size={18} strokeWidth={3} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Category */}
+        {categoryName && (
+          <div className="pt-3">
+            <p className="text-xs font-semibold text-slate-500 mb-1.5">
+              Category
             </p>
+            <span className="inline-block px-3 py-1.5 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 shadow-sm">
+              {categoryName}
+            </span>
           </div>
         )}
 
@@ -628,7 +692,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('common.release.rights')}
+              Release Rights
             </label>
             <Select
               value={relRights || release_rights}
@@ -650,19 +714,11 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="creator">
-                  {t(
-                    'ui.this.work.is.created.by.me.and.anyone.is.free.to.use.it',
-                  )}
-                </SelectItem>
-                <SelectItem value="others">
-                  {t('common.notDoneByAuthor')}
-                </SelectItem>
-                <SelectItem value="downloaded">
-                  {t(
-                    'common.iDownloadedThisFromTheInternetAndorIDontKnowIfItIsFreeToShare',
-                  )}
-                </SelectItem>
+                {releaseOptions.map((opt) => (
+                  <SelectItem key={opt.key} value={opt.key}>
+                    {opt.value}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -671,7 +727,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         {relRights === 'others' && (
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('categories.sourceLabel')}
+              Source Label
             </label>
             <Input
               className={`h-9 text-sm ${!editMode ? 'bg-gray-50 border-gray-200' : ''}`}
@@ -681,7 +737,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 markChanged();
               }}
               readOnly={!editMode}
-              placeholder={t('common.specify.source')}
+              placeholder="Specify source"
             />
           </div>
         )}
