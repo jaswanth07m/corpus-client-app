@@ -368,7 +368,30 @@
     "workstation": {
       "os": "Workstation OS",
       "ram": "Workstation RAM"
-    }
+    },
+    "basicInfo": "Basic Info",
+    "location": "Location",
+    "privacySettings": "Privacy Settings",
+    "phonePrivacy": "Phone Privacy",
+    "emailPrivacy": "Email Privacy",
+    "selectPrivacy": "Select Privacy",
+    "saveChanges": "Save Changes",
+    "view": "View",
+    "start": {
+      "welcome": {
+        "tour": "Start Welcome Tour"
+      }
+    },
+    "takeAnother": "Take Another",
+    "photoCapturedClickStopCameraWhenDone": "Photo captured. Click stop camera when done.",
+    "university": "University",
+    "selectUniversity": "Select University",
+    "pleaseSelectUniversityFirst": "Please select university first",
+    "specialization": "Specialization",
+    "selectSpecialization": "Select Specialization",
+    "pleaseSelectCollegeFirst": "Please select college first",
+    "reviewedAndVerified": "✓ Reviewed & Verified",
+    "remove": "Remove"
   },
   "ui": {
     "failed": {
@@ -676,7 +699,8 @@
           "clipboard": "URL copied to clipboard"
         }
       }
-    }
+    },
+    "updateYourProfileDetails": "Update your profile details"
   },
   "messages": {
     "networkErrorPleaseTryAgain": "Network error. Please try again.",
@@ -699,7 +723,10 @@
     "uploadingNewResume": "Uploading new resume...",
     "profileCompletedSuccessfully": "Profile completed successfully!",
     "uploadingResume": "Uploading resume...",
-    "loadingCategories": "Loading categories..."
+    "loadingCategories": "Loading categories...",
+    "linkCopiedSuccessfully": "Link copied successfully!",
+    "recordUpdatedSuccessfully": "Record updated successfully!",
+    "error": "Error"
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -778,7 +805,12 @@
     "enterRecordId": "Enter Record ID",
     "recordControls": "Record Controls",
     "resumeRecordId": "Resume record ID:",
-    "copyRecordUrl": "Copy record URL"
+    "copyRecordUrl": "Copy record URL",
+    "document": "Document",
+    "text": "Text",
+    "image": "Image",
+    "video": "Video",
+    "audio": "Audio"
   },
   "stats": {
     "contributionsYet": "contributions yet.",
@@ -871,7 +903,8 @@
     "profileIncompletePleaseCompleteIt": "Profile incomplete, please complete it.",
     "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "Some features may be limited until you finish your profile.",
     "completeProfile": "Complete Profile",
-    "completeYourProfile": "Complete Your Profile"
+    "completeYourProfile": "Complete Your Profile",
+    "editProfile": "Edit Profile"
   },
   "profile": {
     "setLocation": "Set Location",
