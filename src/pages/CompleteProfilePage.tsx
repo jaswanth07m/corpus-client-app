@@ -117,6 +117,7 @@ const LANGUAGE_OPTIONS = [
   { value: 'bengali', label: 'Bengali' },
   { value: 'bodo', label: 'Bodo' },
   { value: 'dogri', label: 'Dogri' },
+  { value: 'english', label: 'English' },
   { value: 'gujarati', label: 'Gujarati' },
   { value: 'hindi', label: 'Hindi' },
   { value: 'kannada', label: 'Kannada' },
@@ -527,7 +528,7 @@ const CompleteProfilePage: React.FC = () => {
       finalizeData.append('title', `Resume — ${username}`);
       finalizeData.append(
         'description',
-        `Resume uploaded by ${username} to complete their professional profile.`,
+        `This resume was uploaded by ${username} to complete their professional profile and showcase their qualifications.`,
       );
       finalizeData.append(
         'category_ids',
@@ -624,6 +625,20 @@ const CompleteProfilePage: React.FC = () => {
       toast.error(t('auth.emailIsRequired'));
       setSubmitting(false);
       return;
+    }
+
+    for (const sm of socialMediaProfiles) {
+      if (
+        sm.url &&
+        !sm.url.startsWith('http://') &&
+        !sm.url.startsWith('https://')
+      ) {
+        toast.error(
+          `${sm.platform} URL must be a valid URL starting with http:// or https://`,
+        );
+        setSubmitting(false);
+        return;
+      }
     }
 
     const currentProfile: UserProfile = {
@@ -739,7 +754,10 @@ const CompleteProfilePage: React.FC = () => {
           navigate('/', { replace: true });
         }
       } else {
-        toast.error(data.detail || data.message || 'Failed to save profile');
+        const errorMsg = Array.isArray(data.detail)
+          ? data.detail.map((e: { msg: string }) => e.msg).join(', ')
+          : data.detail || data.message || 'Failed to save profile';
+        toast.error(errorMsg);
       }
     } catch (err) {
       console.error('Error saving profile:', err);

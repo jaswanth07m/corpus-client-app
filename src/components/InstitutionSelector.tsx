@@ -60,6 +60,13 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     }
   }, [institutionId, initialLoadDone]);
 
+  // Fetch all universities on mount when creating a new profile (no institutionId)
+  useEffect(() => {
+    if (!institutionId && !initialLoadDone) {
+      doFetchUniversities('');
+    }
+  }, [institutionId, initialLoadDone]);
+
   async function loadInitialInstitution(id: string) {
     try {
       const institution = await fetchInstitution(id);

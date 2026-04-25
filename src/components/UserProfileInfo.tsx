@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BACKEND_URL } from '@/lib/constants';
-import { fetchInstitution } from '@/lib/institutionApi';
+import { fetchInstitution, InstitutionDetail } from '@/lib/institutionApi';
 import { toast } from 'sonner';
 import {
   X,
@@ -307,8 +307,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
   const [loading, setLoading] = useState<boolean>(true);
   const [viewingResume, setViewingResume] = useState(false);
-  const [institutionName, setInstitutionName] = useState<string | null>(null);
-  const [institutionNameLoading, setInstitutionNameLoading] = useState(false);
+  const [institutionData, setInstitutionData] =
+    useState<InstitutionDetail | null>(null);
+  const [institutionDataLoading, setInstitutionDataLoading] = useState(false);
   const [currentUserInfo, setCurrentUserInfo] = useState<{
     id: string;
     username: string;
@@ -419,13 +420,13 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
   useEffect(() => {
     if (profile.institution_id) {
-      setInstitutionNameLoading(true);
+      setInstitutionDataLoading(true);
       fetchInstitution(profile.institution_id)
-        .then((inst) => setInstitutionName(inst.name))
-        .catch(() => setInstitutionName(null))
-        .finally(() => setInstitutionNameLoading(false));
+        .then((inst) => setInstitutionData(inst))
+        .catch(() => setInstitutionData(null))
+        .finally(() => setInstitutionDataLoading(false));
     } else {
-      setInstitutionName(null);
+      setInstitutionData(null);
     }
   }, [profile.institution_id]);
 
@@ -741,19 +742,45 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                         </p>
                       </div>
                     )}
-                    {profile.institution_id && (
-                      <div className="p-3 border rounded-lg bg-gray-50 md:col-span-2">
-                        <p className="text-gray-500 text-xs">
-                          {t('common.college.institution')}
-                        </p>
-                        <p className="text-gray-900 font-medium text-sm">
-                          {institutionNameLoading ? (
-                            <span className="inline-block w-32 h-4 bg-gray-200 animate-pulse rounded" />
-                          ) : (
-                            institutionName || profile.institution_id
-                          )}
-                        </p>
-                      </div>
+                    {institutionData && (
+                      <>
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.university')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {institutionDataLoading ? (
+                              <span className="inline-block w-32 h-4 bg-gray-200 animate-pulse rounded" />
+                            ) : (
+                              institutionData.university_name
+                            )}
+                          </p>
+                        </div>
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.college.institution')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {institutionDataLoading ? (
+                              <span className="inline-block w-32 h-4 bg-gray-200 animate-pulse rounded" />
+                            ) : (
+                              institutionData.college_name
+                            )}
+                          </p>
+                        </div>
+                        <div className="p-3 border rounded-lg bg-gray-50">
+                          <p className="text-gray-500 text-xs">
+                            {t('common.specialization')}
+                          </p>
+                          <p className="text-gray-900 font-medium text-sm">
+                            {institutionDataLoading ? (
+                              <span className="inline-block w-32 h-4 bg-gray-200 animate-pulse rounded" />
+                            ) : (
+                              institutionData.name
+                            )}
+                          </p>
+                        </div>
+                      </>
                     )}
                     {profile.current_year_of_study && (
                       <div className="p-3 border rounded-lg bg-gray-50">
