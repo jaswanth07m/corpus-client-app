@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -508,18 +509,59 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
   };
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg">
+    if (typeof document === 'undefined') return null;
+
+    return createPortal(
+      <div
+        className="fixed inset-0"
+        style={{ background: 'rgba(0, 0, 0, 0.5)', zIndex: 99998 }}
+        onClick={onClose}
+      >
+        <div
+          className="fixed"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 99999,
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '90vw',
+            maxWidth: '480px',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
           {t('messages.loadingProfile')}
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-lg border border-gray-200 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0"
+      style={{ background: 'rgba(0, 0, 0, 0.5)', zIndex: 99998 }}
+      onClick={onClose}
+    >
+      <div
+        className="fixed bg-white rounded-3xl shadow-lg border border-gray-200 w-full max-h-[90vh] overflow-y-auto"
+        style={{
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 99999,
+          width: '90vw',
+          maxWidth: '896px',
+          padding: 0,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6 sm:p-8">
           <div className="flex justify-end items-center gap-2">
             {currentUserLoaded &&
@@ -912,7 +954,8 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

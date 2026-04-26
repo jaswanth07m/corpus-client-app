@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -170,6 +171,51 @@ interface EditHistoryEntry {
   change_type?: string;
   change_source?: string;
   field_changes?: Record<string, FieldChange>;
+}
+
+interface PortalDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  maxWidth?: number | string;
+}
+
+function PortalDialog({
+  isOpen,
+  onClose,
+  children,
+  maxWidth = 480,
+}: PortalDialogProps) {
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0"
+      style={{ background: 'rgba(0, 0, 0, 0.5)', zIndex: 99998 }}
+      onClick={onClose}
+    >
+      <div
+        className="fixed"
+        style={{
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 99999,
+          background: 'white',
+          borderRadius: '12px',
+          padding: '24px',
+          width: '90vw',
+          maxWidth,
+          maxHeight: '85vh',
+          overflowY: 'auto',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
 // ── Inline map helpers ────────────────────────────────────────────────────────
@@ -1240,38 +1286,71 @@ function Profile() {
       </div>
 
       {/* Media Grid Overlay - Appears when clicking on media type cards */}
-      {showMediaGrid && selectedMediaType && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold capitalize">
-                {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowMediaGrid(false);
-                  // Optionally reset selectedMediaType when closing the grid
-                  // setSelectedMediaType(null);
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
+      {showMediaGrid &&
+        selectedMediaType &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            <div
+              aria-hidden="true"
+              className="fixed inset-0"
+              style={{
+                background: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 99998,
+              }}
+              onClick={() => {
+                setShowMediaGrid(false);
+              }}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="media-grid-title"
+              className="fixed"
+              style={{
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 99999,
+                background: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                width: '90vw',
+                maxWidth: '700px',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+              }}
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center border-b pb-4">
+                <h3 id="media-grid-title" className="text-lg font-semibold capitalize">
+                  {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowMediaGrid(false);
+                    // Optionally reset selectedMediaType when closing the grid
+                    // setSelectedMediaType(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
-            {/* Grid Content */}
-            <div className="flex-1 overflow-auto p-4">
-              <ContributionsList
-                contributions={contributions}
-                selectedMediaType={selectedMediaType}
-                token={getAuthToken()}
-                isOwnProfile={isOwnProfile}
-              />
+              {/* Grid Content */}
+              <div className="pt-4">
+                <ContributionsList
+                  contributions={contributions}
+                  selectedMediaType={selectedMediaType}
+                  token={getAuthToken()}
+                  isOwnProfile={isOwnProfile}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </>,
+          document.body,
+        )}
 
       {/* Followers and Following Modals */}
       <FollowersModal
@@ -1315,68 +1394,72 @@ function Profile() {
       )}
 
       {/* Profile Picture Update Modal */}
-      {showProfilePictureModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-800">
-                  {t('nav.updateProfilePicture')}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowProfilePictureModal(false);
-                    setProfilePictureUrl('');
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+      <PortalDialog
+        isOpen={showProfilePictureModal}
+        onClose={() => {
+          setShowProfilePictureModal(false);
+          setProfilePictureUrl('');
+        }}
+      >
+        <div className="bg-white rounded-xl shadow-xl w-full">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">
+                {t('nav.updateProfilePicture')}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowProfilePictureModal(false);
+                  setProfilePictureUrl('');
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="profilePictureUrl"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  {t('media.imageUrl')}
-                </label>
-                <input
-                  type="text"
-                  id="profilePictureUrl"
-                  value={profilePictureUrl}
-                  onChange={(e) => setProfilePictureUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  {t('nav.enterAValidImageUrlForYourProfilePicture')}
-                </p>
-              </div>
+            <div className="mb-4">
+              <label
+                htmlFor="profilePictureUrl"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                {t('media.imageUrl')}
+              </label>
+              <input
+                type="text"
+                id="profilePictureUrl"
+                value={profilePictureUrl}
+                onChange={(e) => setProfilePictureUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                {t('nav.enterAValidImageUrlForYourProfilePicture')}
+              </p>
+            </div>
 
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowProfilePictureModal(false);
-                    setProfilePictureUrl('');
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={updateProfilePicture}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                >
-                  Save
-                </button>
-              </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfilePictureModal(false);
+                  setProfilePictureUrl('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={updateProfilePicture}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </PortalDialog>
 
     </div>
   );
@@ -1402,11 +1485,9 @@ const FollowersModal: React.FC<{
   navigate,
   t,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
+    <PortalDialog isOpen={isOpen} onClose={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">{t('profile.followers')}</h3>
           <button
@@ -1416,7 +1497,7 @@ const FollowersModal: React.FC<{
             <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto max-h-80">
+        <div>
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <Loader2 className="animate-spin text-blue-500" size={24} />
@@ -1441,7 +1522,6 @@ const FollowersModal: React.FC<{
                         } else {
                           navigate(`/profile/${username}`);
                         }
-                        // Close the modal after navigation
                         onClose();
                       }
                     }}
@@ -1471,7 +1551,7 @@ const FollowersModal: React.FC<{
           )}
         </div>
       </div>
-    </div>
+    </PortalDialog>
   );
 };
 
@@ -1495,11 +1575,9 @@ const FollowingModal: React.FC<{
   navigate,
   t,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
+    <PortalDialog isOpen={isOpen} onClose={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">{t('profile.following')}</h3>
           <button
@@ -1509,7 +1587,7 @@ const FollowingModal: React.FC<{
             <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto max-h-80">
+        <div>
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <Loader2 className="animate-spin text-blue-500" size={24} />
@@ -1534,7 +1612,6 @@ const FollowingModal: React.FC<{
                         } else {
                           navigate(`/profile/${username}`);
                         }
-                        // Close the modal after navigation
                         onClose();
                       }
                     }}
@@ -1568,7 +1645,7 @@ const FollowingModal: React.FC<{
           )}
         </div>
       </div>
-    </div>
+    </PortalDialog>
   );
 };
 
