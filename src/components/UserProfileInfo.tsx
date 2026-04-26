@@ -16,6 +16,7 @@ import {
   Music2,
   Globe,
   User,
+  Phone,
   Calendar,
   MessageSquare,
   Hash,
@@ -84,7 +85,6 @@ interface UserProfile {
   email_privacy?: string | null;
   profile_picture_path?: string | null;
   organisation_type?: string | null;
-  work_location?: string | null;
   rural_area_access?: string | null;
   permanent_postal_address?: string | null;
   institution_id?: string | null;
@@ -292,7 +292,6 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
     email_privacy: null,
     profile_picture_path: null,
     organisation_type: null,
-    work_location: null,
     rural_area_access: null,
     permanent_postal_address: null,
     institution_id: null,
@@ -645,6 +644,13 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
               {profile.gender && (
                 <InfoBox label="Gender" value={profile.gender} icon={User} />
               )}
+              {profile.phone && (
+                <InfoBox
+                  label={t('auth.phoneNumber')}
+                  value={profile.phone}
+                  icon={Phone}
+                />
+              )}
             </div>
 
             {/* Full width sections */}
@@ -693,7 +699,6 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
 
               {/* Internship Profile - Read Only */}
               {(profile.organisation_type ||
-                profile.work_location ||
                 profile.institution_id ||
                 profile.hardware_details) && (
                 <div className="w-full mt-4">
@@ -711,14 +716,6 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                         </p>
                         <p className="text-gray-900 font-medium text-sm">
                           {profile.organisation_type}
-                        </p>
-                      </div>
-                    )}
-                    {profile.work_location && (
-                      <div className="p-3 border rounded-lg bg-gray-50">
-                        <p className="text-gray-500 text-xs">Work Location</p>
-                        <p className="text-gray-900 font-medium text-sm">
-                          {profile.work_location}
                         </p>
                       </div>
                     )}

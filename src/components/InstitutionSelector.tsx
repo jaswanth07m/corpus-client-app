@@ -53,35 +53,6 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     null,
   );
 
-  // Pre-populate all three levels when institutionId is provided from outside
-  useEffect(() => {
-    if (institutionId && !initialLoadDone) {
-      loadInitialInstitution(institutionId);
-    }
-  }, [institutionId, initialLoadDone]);
-
-  // Fetch all universities on mount when creating a new profile (no institutionId)
-  useEffect(() => {
-    if (!institutionId && !initialLoadDone) {
-      doFetchUniversities('');
-    }
-  }, [institutionId, initialLoadDone]);
-
-  async function loadInitialInstitution(id: string) {
-    try {
-      const institution = await fetchInstitution(id);
-      setSelectedUniversityName(institution.university_name);
-      setSelectedCollegeName(institution.college_name);
-      setSelectedInstitutionId(id);
-      setUniversities([institution.university_name]);
-      setColleges([institution.college_name]);
-      setInstitutions([institution]);
-      setInitialLoadDone(true);
-    } catch {
-      // institution not found, ignore
-    }
-  }
-
   const doFetchUniversities = useCallback(async (search: string) => {
     setUniversitiesLoading(true);
     try {
@@ -131,6 +102,48 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     },
     [],
   );
+
+  const loadInitialInstitution = useCallback(
+    async (id: string) => {
+      try {
+        const institution = await fetchInstitution(id);
+        setSelectedUniversityName(institution.university_name);
+        setSelectedCollegeName(institution.college_name);
+        setSelectedInstitutionId(id);
+        setUniversities([institution.university_name]);
+        setColleges([institution.college_name]);
+        setInstitutions([institution]);
+        setInitialLoadDone(true);
+
+        // Fetch all options so the dropdowns are fully populated when opened
+        doFetchUniversities('');
+        doFetchColleges(institution.university_name, '');
+        doFetchInstitutions(
+          institution.college_name,
+          institution.university_name,
+          '',
+        );
+      } catch {
+        // institution not found, ignore
+      }
+    },
+    [doFetchUniversities, doFetchColleges, doFetchInstitutions],
+  );
+
+  // Pre-populate all three levels when institutionId is provided from outside
+  useEffect(() => {
+    if (institutionId && !initialLoadDone) {
+      loadInitialInstitution(institutionId);
+    }
+  }, [institutionId, initialLoadDone, loadInitialInstitution]);
+
+  // Fetch all universities on mount when creating a new profile (no institutionId)
+  useEffect(() => {
+    if (!institutionId && !initialLoadDone) {
+      doFetchUniversities('');
+      setInitialLoadDone(true);
+    }
+  }, [institutionId, initialLoadDone, doFetchUniversities]);
 
   function handleUniversitySearchChange(value: string) {
     setUniversitySearch(value);

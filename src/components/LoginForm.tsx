@@ -10,6 +10,7 @@ import {
   Sparkles,
   RefreshCw,
   User,
+  Mail,
   UserPlus,
   LogIn,
 } from 'lucide-react';
@@ -79,6 +80,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [signupData, setSignupData] = useState({
     username: '',
     name: '',
+    email: '',
     password: '',
     confirmPassword: '',
     has_given_consent: false,
@@ -338,6 +340,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
+    if (!signupData.email.trim() || !isValidEmail(signupData.email)) {
+      toast.error(t('common.pleaseEnterAValidEmailAddress'));
+      return;
+    }
+
     if (!signupData.password || signupData.password.length < 6) {
       toast.error(t('auth.passwordMustBeAtLeast6CharactersLong'));
       return;
@@ -356,6 +363,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         phone: getFullPhoneNumber(),
         username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
+        email: signupData.email.trim(),
         password: signupData.password,
       };
 
@@ -411,6 +419,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         otp_code: signupOtp.trim(),
         username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
+        email: signupData.email.trim(),
         password: signupData.password,
         confirm_password: signupData.confirmPassword,
         has_given_consent: signupData.has_given_consent,
@@ -528,6 +537,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setSignupData({
       username: '',
       name: '',
+      email: '',
       password: '',
       confirmPassword: '',
       has_given_consent: false,
@@ -920,7 +930,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       {t('auth.phoneNumberIsInvalid')}
                     </div>
                   </div>
-
                   {/*UserName*/}
                   <div className="relative">
                     <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
@@ -959,7 +968,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       )}
                     </div>
                   </div>
-
                   {/* Name */}
                   <div className="relative">
                     <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
@@ -992,8 +1000,38 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       {t('user.nameShouldHaveCharactersOnly')}
                     </div>
                   </div>
-
-                  {/* Password */}
+                  {/* Email */}
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
+                    <Input
+                      type="email"
+                      placeholder={t('common.emailAddress')}
+                      value={signupData.email}
+                      onChange={(e) =>
+                        handleSignupInputChange('email', e.target.value)
+                      }
+                      onFocus={() => {
+                        setValidateEmail('border-gray-500');
+                        setErrorEmailDisplay('hidden');
+                      }}
+                      onBlur={(e) => {
+                        if (!isValidEmail(signupData.email.trim())) {
+                          setValidateEmail('border-rose-800');
+                          setErrorEmailDisplay('block');
+                          setFormValidationErrors(true);
+                        } else {
+                          setFormValidationErrors(false);
+                        }
+                      }}
+                      className={`pl-12 h-14 border-2 ${validateEmail} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
+                    />
+                    <div
+                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`}
+                    >
+                      {t('common.pleaseEnterAValidEmailAddress')}
+                    </div>
+                  </div>
+                  {/* Password */}{' '}
                   <div className="relative">
                     <Input
                       type={showSignupPassword ? 'text' : 'password'}
@@ -1147,7 +1185,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       </div>
                     </div>
                   </div>
-
                   {/* Confirm Password */}
                   <div className="relative">
                     <Input
@@ -1196,7 +1233,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       {t('common.passwordsDoNotMatch')}
                     </div>
                   </div>
-
                   {/* Consent Checkbox */}
                   <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <input
@@ -1235,7 +1271,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       </a>
                     </label>
                   </div>
-
                   {/* Sign Up Button */}
                   <Button
                     onClick={handleSignupSendOTP}

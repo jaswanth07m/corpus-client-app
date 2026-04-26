@@ -5,7 +5,6 @@ export function isProfileComplete(profile: Record<string, unknown>): boolean {
     'date_of_birth',
     'current_place',
     'organisation_type',
-    'work_location',
     'rural_area_access',
     'permanent_postal_address',
     'institution_id',

@@ -1,45 +1,4 @@
-export const organisationTypes = [
-  'Engineering',
-  'Degree',
-  'Pharmacy',
-  'Company',
-];
-
-export const workLocations = [
-  'Adilabad',
-  'Bhadradri Kothagudem',
-  'Hyderabad',
-  'Jagtial',
-  'Jangaon',
-  'Jayashankar Bhupalapally',
-  'Jogulamba Gadwal',
-  'Kamareddy',
-  'Karimnagar',
-  'Khammam',
-  'Komaram Bheem Asifabad',
-  'Mahabubabad',
-  'Mahabubnagar',
-  'Mancherial',
-  'Medak',
-  'Medchal–Malkajgiri',
-  'Mulugu',
-  'Nagarkurnool',
-  'Nalgonda',
-  'Narayanpet',
-  'Nirmal',
-  'Nizamabad',
-  'Peddapalli',
-  'Rajanna Sircilla',
-  'Rangareddy',
-  'Sangareddy',
-  'Siddipet',
-  'Suryapet',
-  'Vikarabad',
-  'Wanaparthy',
-  'Warangal',
-  'Hanumakonda',
-  'Yadadri Bhuvanagiri',
-];
+export const organisationTypes = ['Engineering', 'Degree', 'Pharmacy'];
 
 export const yearList = [
   'First Year',

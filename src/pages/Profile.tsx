@@ -65,6 +65,7 @@ interface UserProfileData {
   id: string;
   name: string;
   username?: string;
+  phone?: string | null;
   profile_picture_path?: string | null;
   short_bio?: string | null;
   profile_complete?: boolean;
@@ -743,6 +744,7 @@ function Profile() {
             id: userData.id,
             name: userData.name || userData.username || 'Unknown User',
             username: userData.username,
+            phone: userData.phone || null,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
             profile_complete: isProfileComplete(userData),
@@ -805,6 +807,7 @@ function Profile() {
             id: userData.user_id,
             name: userData.user_name || 'Unknown User',
             username: userData.username,
+            phone: userData.phone || null,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
             streaks: userData.streaks,
@@ -948,6 +951,11 @@ function Profile() {
                   <p className="text-slate-500 text-sm">
                     @{profile?.username || profile?.id}
                   </p>
+                  {profile?.phone && (
+                    <p className="text-slate-500 text-xs mt-1">
+                      {profile.phone}
+                    </p>
+                  )}
                 </div>
 
                 {/* Stats Row - Side by side with equal width */}

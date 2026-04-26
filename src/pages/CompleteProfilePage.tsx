@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/select';
 import {
   organisationTypes,
-  workLocations,
   yearList,
   workstationOS,
   workstationRAM,
@@ -78,6 +77,7 @@ interface UserProfile {
   username?: string | null;
   name?: string | null;
   email?: string | null;
+  phone?: string | null;
   gender?: string | null;
   date_of_birth?: string | null;
   current_place?: string | null;
@@ -91,7 +91,6 @@ interface UserProfile {
   phone_privacy?: string | null;
   email_privacy?: string | null;
   organisation_type?: string | null;
-  work_location?: string | null;
   rural_area_access?: string | null;
   permanent_postal_address?: string | null;
   institution_id?: string | null;
@@ -175,6 +174,7 @@ const CompleteProfilePage: React.FC = () => {
     username: '',
     name: '',
     email: '',
+    phone: '',
     gender: '',
     date_of_birth: '',
     current_place: '',
@@ -182,7 +182,6 @@ const CompleteProfilePage: React.FC = () => {
     profession: '',
     organisation: '',
     organisation_type: '',
-    work_location: '',
     rural_area_access: '',
     permanent_postal_address: '',
     institution_id: '',
@@ -359,6 +358,7 @@ const CompleteProfilePage: React.FC = () => {
       username: profile.username || '',
       name: profile.name || '',
       email: profile.email || '',
+      phone: profile.phone || '',
       gender: profile.gender || '',
       date_of_birth: profile.date_of_birth || '',
       current_place: profile.current_place || '',
@@ -366,7 +366,6 @@ const CompleteProfilePage: React.FC = () => {
       profession: profile.profession || '',
       organisation: profile.organisation || '',
       organisation_type: profile.organisation_type || '',
-      work_location: profile.work_location || '',
       rural_area_access: profile.rural_area_access || '',
       permanent_postal_address: profile.permanent_postal_address || '',
       institution_id: profile.institution_id || '',
@@ -669,7 +668,6 @@ const CompleteProfilePage: React.FC = () => {
       phone_privacy: formData.phone_privacy || null,
       email_privacy: formData.email_privacy || null,
       organisation_type: formData.organisation_type || null,
-      work_location: formData.work_location || null,
       rural_area_access: formData.rural_area_access || null,
       permanent_postal_address: formData.permanent_postal_address || null,
       institution_id: formData.institution_id || null,
@@ -831,6 +829,15 @@ const CompleteProfilePage: React.FC = () => {
                       onChange={(e) => handleChange('email', e.target.value)}
                       placeholder="you@example.com"
                       required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">{t('auth.phoneNumber')}</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      disabled
+                      className="bg-gray-100"
                     />
                   </div>
                   <div>
@@ -1001,6 +1008,48 @@ const CompleteProfilePage: React.FC = () => {
                       {t('common.addPlace')}
                     </Button>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                    <div className="md:col-span-2">
+                      <Label htmlFor="rural_area_access">
+                        {t('ui.do.you.have.access.to.any.rural.areas.nearby')}
+                      </Label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t(
+                          'nav.mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas',
+                        )}
+                      </p>
+                      <Textarea
+                        id="rural_area_access"
+                        value={formData.rural_area_access}
+                        onChange={(e) =>
+                          handleChange('rural_area_access', e.target.value)
+                        }
+                        placeholder={t(
+                          'ui.eg.nearby.villages.shamirpet.medchal.etc',
+                        )}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="permanent_postal_address">
+                        {t('common.whatIsYourPermanentPostalAddress')}
+                      </Label>
+                      <Input
+                        id="permanent_postal_address"
+                        value={formData.permanent_postal_address}
+                        onChange={(e) =>
+                          handleChange(
+                            'permanent_postal_address',
+                            e.target.value,
+                          )
+                        }
+                        placeholder={t(
+                          'common.enterYourCompletePermanentAddress',
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1129,63 +1178,6 @@ const CompleteProfilePage: React.FC = () => {
                         handleChange('task_registered_id', e.target.value)
                       }
                       placeholder={t('common.task.id')}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Work Location */}
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                  {t('user.locationDetails')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="work_location">
-                      {t('user.chooseYourWorkLocationForTheInternship')}
-                    </Label>
-                    <SearchableSelect
-                      id="work_location"
-                      value={formData.work_location}
-                      onChange={(value) => handleChange('work_location', value)}
-                      options={workLocations}
-                      placeholder={t('common.selectDistrict')}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="rural_area_access">
-                      {t('ui.do.you.have.access.to.any.rural.areas.nearby')}
-                    </Label>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {t(
-                        'nav.mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas',
-                      )}
-                    </p>
-                    <Textarea
-                      id="rural_area_access"
-                      value={formData.rural_area_access}
-                      onChange={(e) =>
-                        handleChange('rural_area_access', e.target.value)
-                      }
-                      placeholder={t(
-                        'ui.eg.nearby.villages.shamirpet.medchal.etc',
-                      )}
-                      rows={3}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="permanent_postal_address">
-                      {t('common.whatIsYourPermanentPostalAddress')}
-                    </Label>
-                    <Input
-                      id="permanent_postal_address"
-                      value={formData.permanent_postal_address}
-                      onChange={(e) =>
-                        handleChange('permanent_postal_address', e.target.value)
-                      }
-                      placeholder={t(
-                        'common.enterYourCompletePermanentAddress',
-                      )}
                     />
                   </div>
                 </div>
