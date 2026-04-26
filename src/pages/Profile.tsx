@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, lazy, Suspense } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -6,7 +6,6 @@ import {
   LogOut,
   MessageSquare,
   Loader2,
-  Globe,
   HelpCircle,
 } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
@@ -30,10 +29,10 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { isProfileComplete } from '@/lib/profileUtils';
-
-const GeoContributionModal = lazy(
-  () => import('../components/GeoContributionModal'),
-);
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useContributionGeo } from '@/hooks/useContributionGeo';
+import { MEDIA_TYPE_COLORS, MEDIA_TYPE_LABELS, formatContributionDate } from '@/lib/geoUtils';
 
 const languages = [
   'assamese',
@@ -173,6 +172,114 @@ interface EditHistoryEntry {
   field_changes?: Record<string, FieldChange>;
 }
 
+// ── Inline map helpers ────────────────────────────────────────────────────────
+function MapResizerInline() {
+  const map = useMap();
+  useEffect(() => {
+    const id = setTimeout(() => map.invalidateSize(), 150);
+    return () => clearTimeout(id);
+  }, [map]);
+  return null;
+}
+
+function FitBoundsInline({ data }: { data: import('@/types/geo').FlatContribution[] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!data.length) { map.setView([17.385044, 78.486671], 10); return; }
+    const bounds = data.map((c) => [c.location.latitude, c.location.longitude] as [number, number]);
+    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 10 });
+  }, [map, data]);
+  return null;
+}
+
+function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
+  const { t } = useTranslation();
+  const { data, isLoading, isError, refetch } = useContributionGeo(userIdentifier);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] items-center justify-center rounded-xl bg-slate-100">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] flex-col items-center justify-center gap-2 rounded-xl bg-slate-100">
+        <p className="text-xs text-slate-500">{t('common.couldNotLoadContributions')}</p>
+        <button onClick={() => refetch()} className="text-xs text-blue-600 underline">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] items-center justify-center rounded-xl bg-slate-100">
+        <p className="text-xs text-slate-500">No geotagged contributions to display</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200">
+      <MapContainer
+        center={[20.5937, 78.9629]}
+        zoom={5}
+        dragging
+        scrollWheelZoom
+        doubleClickZoom
+        touchZoom
+        className="h-[220px] sm:h-[300px] w-full geo-map-container"
+      >
+        <MapResizerInline />
+        <FitBoundsInline data={data} />
+        <TileLayer
+          attribution="&copy; OpenStreetMap contributors"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {data.map((c) => {
+          const color = MEDIA_TYPE_COLORS[c.media_type] ?? '#666';
+          const label = MEDIA_TYPE_LABELS[c.media_type] ?? c.media_type;
+          const date = formatContributionDate(c.timestamp);
+          return (
+            <CircleMarker
+              key={c.id}
+              center={[c.location.latitude, c.location.longitude]}
+              radius={10}
+              fillOpacity={0.85}
+              pathOptions={{ color: '#ffffff', weight: 2, fillColor: color }}
+            >
+              <Popup>
+                <div style={{ fontFamily: 'inherit', padding: '2px 0' }}>
+                  <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 13, color: '#0f172a' }}>
+                    {c.title}
+                  </p>
+                  <p style={{ margin: '0 0 2px', fontSize: 11, color: '#64748b' }}>
+                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, marginRight: 4, verticalAlign: 'middle' }} />
+                    Type: {label}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>Date: {date}</p>
+                </div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
+      </MapContainer>
+      <div className="flex flex-wrap gap-3 border-t border-slate-200 bg-white px-3 py-2">
+        {Object.keys(MEDIA_TYPE_COLORS).map((type) => (
+          <div key={type} className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: MEDIA_TYPE_COLORS[type] }} />
+            <span className="text-xs text-slate-500">{MEDIA_TYPE_LABELS[type]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
 function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -237,7 +344,6 @@ function Profile() {
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
 
   // State for geo contribution modal
-  const [showGeoModal, setShowGeoModal] = useState<boolean>(false);
 
   // Effect to hide bottom navigation when any modal is open
   useEffect(() => {
@@ -246,8 +352,7 @@ function Profile() {
       showFollowersModal ||
       showFollowingModal ||
       showProfileInfo ||
-      showProfilePictureModal ||
-      showGeoModal
+      showProfilePictureModal
     ) {
       document.body.classList.add('modal-open');
     } else {
@@ -264,7 +369,6 @@ function Profile() {
     showFollowingModal,
     showProfileInfo,
     showProfilePictureModal,
-    showGeoModal,
   ]);
 
   const getAuthToken = useCallback(() => {
@@ -896,8 +1000,10 @@ function Profile() {
   // Determine if viewing own profile
   const isOwnProfile =
     username && currentUsername ? currentUsername === username : false;
+  // username from URL params is always available immediately — use it first
+  // so the geo hook fires on first render without waiting for async state
   const geoContributionUserIdentifier =
-    targetUserIdentifier || username || currentUserId || '';
+    username || targetUserIdentifier || currentUserId || '';
 
   console.log(profile);
 
@@ -905,42 +1011,22 @@ function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 sm:mb-12 pt-4 pb-24">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
+        <div className="relative bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
           {/* Profile Info Section - Mobile Responsive Layout */}
-          <div className="p-4 relative">
-            <div className="flex gap-2 absolute right-0 sm:right-5">
-              <button
-                onClick={() => setShowGeoModal(true)}
-                disabled={!geoContributionUserIdentifier}
-                title={t('common.viewContributionsOnMap')}
-                className="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                >
-                  <path
-                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
-                    fill="#000000"
-                  />
-                  <circle cx="12" cy="9" r="2.5" fill="white" />
-                </svg>
-              </button>
+          <div className="p-4">
+            {/* Top-right actions stay out of the content flow so they do not push the profile content down. */}
+            <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
               <LanguageSwitcher />
               <button
                 onClick={startTour}
-                className="flex flex-col items-center gap-1 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex items-center justify-center p-1.5 hover:bg-blue-50 rounded-lg transition-colors"
                 title={t('common.start.welcome.tour')}
               >
                 <HelpCircle className="w-4 h-4 text-blue-500" />
               </button>
               <button
                 onClick={handleLogout}
-                className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex items-center justify-center p-1.5 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4 text-red-500" />
               </button>
@@ -970,11 +1056,11 @@ function Profile() {
               </div>
 
               {/* User Info & Stats - Stacked on mobile */}
-              <div className="flex-1 text-left">
+              <div className="flex-1 min-w-0 text-left">
                 {/* Name and Username */}
-                <div className="mb-4">
-                  <p className="text-sm sm:text-xl mb-1">{profile?.name}</p>
-                  <p className="text-slate-500 text-sm">
+                <div className="mb-0">
+                  <p className="text-sm sm:text-xl leading-tight mb-1">{profile?.name}</p>
+                  <p className="text-slate-500 text-sm leading-tight">
                     @{profile?.username || profile?.id}
                   </p>
                   {profile?.phone && (
@@ -985,7 +1071,7 @@ function Profile() {
                 </div>
 
                 {/* Stats Row - Side by side with equal width */}
-                <div className="flex gap-2">
+                <div className="mt-1 flex gap-2">
                   {/* Followers Button */}
                   <button
                     onClick={() => {
@@ -1120,32 +1206,36 @@ function Profile() {
           )}
         </div>
 
-        {/* Contributions Section - Mobile Responsive Design */}
+        {/* Contribution stats grid — inline, always visible */}
         <div
           id="tour-contributions-dashboard"
-          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3"
+          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-3 sm:p-4 mb-3"
         >
-          <div className="mt-1 sm:mt-2">
-            <ContributionDashboard
-              dailyStats={{
-                uploads_today: calculateUploadsToday(),
-                total_uploads: contributions?.totalContributions || 0,
-                last_upload_date: new Date().toISOString(),
-                streak_days: profile?.streaks?.combined_streak?.current || 0,
-              }}
-              contributions={contributions}
-              loading={contributionsLoading}
-              edits={profile?.summary?.edits?.total_edits}
-              onMediaTypeClick={(mediaType) => {
-                setSelectedMediaType(mediaType);
-                const targetUserIdentifier = username || currentUserId;
-                if (targetUserIdentifier) {
-                  fetchUserContributions(targetUserIdentifier, mediaType);
-                }
-                setShowMediaGrid(true); // Show the grid when a media type is clicked
-              }}
-            />
-          </div>
+          <ContributionDashboard
+            dailyStats={{
+              uploads_today: calculateUploadsToday(),
+              total_uploads: contributions?.totalContributions || 0,
+              last_upload_date: new Date().toISOString(),
+              streak_days: profile?.streaks?.combined_streak?.current || 0,
+            }}
+            contributions={contributions}
+            loading={contributionsLoading}
+            edits={profile?.summary?.edits?.total_edits}
+            onMediaTypeClick={(mediaType) => {
+              setSelectedMediaType(mediaType);
+              const id = username || currentUserId;
+              if (id) fetchUserContributions(id, mediaType);
+              setShowMediaGrid(true);
+            }}
+          />
+        </div>
+
+        {/* Inline Geo Contribution Map */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-5 mb-3">
+          <p className="text-sm font-semibold text-slate-700 mb-3">
+            {t('stats.myContributionsOnTheMap')}
+          </p>
+          <InlineGeoMap userIdentifier={geoContributionUserIdentifier} />
         </div>
       </div>
 
@@ -1288,13 +1378,6 @@ function Profile() {
         </div>
       )}
 
-      <Suspense fallback={null}>
-        <GeoContributionModal
-          userIdentifier={geoContributionUserIdentifier}
-          open={showGeoModal}
-          onClose={() => setShowGeoModal(false)}
-        />
-      </Suspense>
     </div>
   );
 }

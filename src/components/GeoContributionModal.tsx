@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useMemo, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, MapPin, AlertCircle, RefreshCw } from 'lucide-react';
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  Popup,
-  useMap,
-} from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useContributionGeo } from '@/hooks/useContributionGeo';
 import type { FlatContribution } from '@/types/geo';
@@ -23,10 +17,6 @@ interface GeoContributionModalProps {
   onClose: () => void;
 }
 
-/**
- * Must live inside <MapContainer>. Calls invalidateSize() after the modal's
- * CSS transition finishes so Leaflet recalculates tile layout correctly.
- */
 function MapResizer() {
   const map = useMap();
   useEffect(() => {
@@ -36,57 +26,74 @@ function MapResizer() {
   return null;
 }
 
+function FitBounds({ data }: { data: FlatContribution[] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!data.length) {
+      map.setView([17.385044, 78.486671], 10);
+      return;
+    }
+    const L = (window as any).L ?? require('leaflet');
+    const bounds = data.map(
+      (c) => [c.location.latitude, c.location.longitude] as [number, number],
+    );
+    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 10 });
+  }, [map, data]);
+  return null;
+}
+
 function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
   const { t } = useTranslation();
   const { data, isLoading, isError, error, refetch } =
     useContributionGeo(userIdentifier);
 
   const markers = useMemo(() => {
-    if (!data) return [];
-    return data.map((contribution: FlatContribution) => (
-      <CircleMarker
-        key={contribution.id}
-        center={[
-          contribution.location.latitude,
-          contribution.location.longitude,
-        ]}
-        radius={8}
-        fillOpacity={0.8}
-        pathOptions={{
-          color: MEDIA_TYPE_COLORS[contribution.media_type],
-          fillColor: MEDIA_TYPE_COLORS[contribution.media_type],
-        }}
-      >
-        <Popup className="geo-popup" maxWidth={500} minWidth={300}>
-          <div className="p-1">
-            <p className="text-base font-bold text-slate-900 leading-tight">
-              {contribution.title}
-            </p>
-            <p className="mt-2 text-sm font-medium text-slate-600 capitalize">
-              {MEDIA_TYPE_LABELS[contribution.media_type]} ·{' '}
-              {formatContributionDate(contribution.timestamp)}
-            </p>
-          </div>
-        </Popup>
-      </CircleMarker>
-    ));
+    if (!data) return null;
+    return data.map((c: FlatContribution) => {
+      const color = MEDIA_TYPE_COLORS[c.media_type] ?? '#666';
+      const label = MEDIA_TYPE_LABELS[c.media_type] ?? c.media_type;
+      const date = formatContributionDate(c.timestamp);
+      return (
+        <CircleMarker
+          key={c.id}
+          center={[c.location.latitude, c.location.longitude]}
+          radius={10}
+          fillOpacity={0.85}
+          pathOptions={{ color: '#ffffff', weight: 2, fillColor: color }}
+        >
+          <Popup>
+            <div style={{ fontFamily: 'inherit', padding: '2px 0' }}>
+              <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 13, color: '#0f172a' }}>
+                {c.title}
+              </p>
+              <p style={{ margin: '0 0 2px', fontSize: 11, color: '#64748b' }}>
+                <span
+                  style={{
+                    display: 'inline-block', width: 8, height: 8,
+                    borderRadius: '50%', background: color,
+                    marginRight: 4, verticalAlign: 'middle',
+                  }}
+                />
+                Type: {label}
+              </p>
+              <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>Date: {date}</p>
+            </div>
+          </Popup>
+        </CircleMarker>
+      );
+    });
   }, [data]);
 
   if (isLoading) {
     return (
       <div className="flex h-[520px] items-center justify-center rounded-2xl bg-slate-100">
-        <span className="text-sm text-slate-500">
-          {t('messages.loadingMap')}
-        </span>
+        <span className="text-sm text-slate-500">{t('messages.loadingMap')}</span>
       </div>
     );
   }
 
   if (isError) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : t('common.couldNotLoadContributions');
+    const message = error instanceof Error ? error.message : t('common.couldNotLoadContributions');
     return (
       <div className="flex h-[520px] flex-col items-center justify-center gap-3 rounded-2xl bg-slate-100 px-6 text-center">
         <AlertCircle className="h-8 w-8 text-red-400" />
@@ -107,9 +114,7 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
     return (
       <div className="flex h-[520px] flex-col items-center justify-center gap-2 rounded-2xl bg-slate-100">
         <MapPin className="h-8 w-8 text-slate-400" />
-        <p className="text-sm text-slate-500">
-          {t('common.noGeotaggedContributionsYet')}
-        </p>
+        <p className="text-sm text-slate-500">{t('common.noGeotaggedContributionsYet')}</p>
       </div>
     );
   }
@@ -117,16 +122,16 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200">
       <MapContainer
-        center={[17.385, 78.4867]}
-        zoom={6}
-        dragging={true}
-        scrollWheelZoom={true}
-        doubleClickZoom={true}
-        touchZoom={true}
+        center={[20.5937, 78.9629]}
+        zoom={5}
+        dragging
+        scrollWheelZoom
+        doubleClickZoom
+        touchZoom
         className="h-[520px] w-full geo-map-container"
-        style={{ cursor: 'grab' }}
       >
         <MapResizer />
+        <FitBounds data={data} />
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -141,9 +146,7 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
               className="h-2.5 w-2.5 rounded-full"
               style={{ backgroundColor: MEDIA_TYPE_COLORS[type] }}
             />
-            <span className="text-xs text-slate-600">
-              {MEDIA_TYPE_LABELS[type]}
-            </span>
+            <span className="text-xs text-slate-600">{MEDIA_TYPE_LABELS[type]}</span>
           </div>
         ))}
       </div>
@@ -151,23 +154,15 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
   );
 }
 
-function GeoContributionModal({
-  userIdentifier,
-  open,
-  onClose,
-}: GeoContributionModalProps) {
+function GeoContributionModal({ userIdentifier, open, onClose }: GeoContributionModalProps) {
   const { t } = useTranslation();
+
   useEffect(() => {
     if (!open) return;
-
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
-
     return () => {
       document.body.style.overflow = prev;
       document.removeEventListener('keydown', onKey);
@@ -175,9 +170,7 @@ function GeoContributionModal({
   }, [open, onClose]);
 
   const handleOverlay = useCallback(
-    (e: MouseEvent<HTMLDivElement>) => {
-      if (e.target === e.currentTarget) onClose();
-    },
+    (e: MouseEvent<HTMLDivElement>) => { if (e.target === e.currentTarget) onClose(); },
     [onClose],
   );
 
@@ -197,17 +190,13 @@ function GeoContributionModal({
         @keyframes geoSlideIn { from { opacity: 0; transform: translateY(10px) scale(0.98); }
                                 to   { opacity: 1; transform: translateY(0)    scale(1);    } }
       `}</style>
-
       <div
         className="w-full max-w-[95vw] sm:max-w-[900px] max-h-[95vh] overflow-auto rounded-2xl bg-white p-4 shadow-2xl"
         style={{ animation: 'geoSlideIn 180ms ease-out' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2
-            id="geo-modal-title"
-            className="text-lg font-semibold text-slate-900"
-          >
+          <h2 id="geo-modal-title" className="text-lg font-semibold text-slate-900">
             {t('stats.myContributionsOnTheMap')}
           </h2>
           <button
@@ -219,7 +208,6 @@ function GeoContributionModal({
             <X className="h-5 w-5" />
           </button>
         </div>
-
         <GeoMapContent userIdentifier={userIdentifier} />
       </div>
     </div>

@@ -1,9 +1,9 @@
 export const MEDIA_TYPE_COLORS: Record<string, string> = {
-  audio: '#1D9E75',
-  video: '#378ADD',
-  text: '#534AB7',
-  image: '#BA7517',
-  document: '#D85A30',
+  audio: '#22c55e',
+  video: '#3b82f6',
+  text: '#7c3aed',
+  image: '#f59e0b',
+  document: '#ef4444',
 };
 
 export const MEDIA_TYPE_LABELS: Record<string, string> = {
