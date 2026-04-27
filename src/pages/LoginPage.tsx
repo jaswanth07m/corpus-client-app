@@ -19,7 +19,7 @@ function LoginPage() {
     try {
       const fullUser = await login(token, user);
       if (fullUser && !isProfileComplete(fullUser)) {
-        navigate('/complete-profile', { replace: true });
+        navigate('/complete-profile/step-2', { replace: true });
       } else {
         navigate('/', { replace: true });
       }

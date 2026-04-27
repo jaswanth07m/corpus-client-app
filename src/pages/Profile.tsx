@@ -1055,7 +1055,7 @@ function Profile() {
                 </p>
               </div>
               <button
-                onClick={() => navigate('/complete-profile')}
+                onClick={() => navigate('/complete-profile/step-2')}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-md"
               >
                 {t('nav.completeProfile')}

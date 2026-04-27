@@ -368,6 +368,14 @@
     "workstation": {
       "os": "",
       "ram": ""
+    },
+    "normalUser": "",
+    "are": {
+      "you": {
+        "an": {
+          "intern": ""
+        }
+      }
     }
   },
   "ui": {
@@ -674,6 +682,18 @@
       "copied": {
         "to": {
           "clipboard": ""
+        }
+      }
+    },
+    "step": {
+      "1": {
+        "general": {
+          "information": ""
+        }
+      },
+      "2": {
+        "academic": {
+          "details": ""
         }
       }
     }

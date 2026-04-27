@@ -78,12 +78,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   // Signup form fields (step 1 only)
   const [signupData, setSignupData] = useState({
-    username: '',
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
     has_given_consent: false,
+    is_intern: false,
   });
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -330,11 +330,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    if (!isValidUserName(signupData.username)) {
-      toast.error(t('auth.pleaseEnterAValidUsername'));
-      return;
-    }
-
     if (!signupData.name.trim()) {
       toast.error(t('user.pleaseEnterYourName'));
       return;
@@ -361,10 +356,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
       const requestBody = {
         phone: getFullPhoneNumber(),
-        username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
         email: signupData.email.trim(),
         password: signupData.password,
+        is_intern: signupData.is_intern,
       };
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/send-otp`, {
@@ -417,12 +412,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const requestBody = {
         phone: getFullPhoneNumber(),
         otp_code: signupOtp.trim(),
-        username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
         email: signupData.email.trim(),
         password: signupData.password,
         confirm_password: signupData.confirmPassword,
         has_given_consent: signupData.has_given_consent,
+        is_intern: signupData.is_intern,
       };
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/verify-otp`, {
@@ -541,6 +536,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       password: '',
       confirmPassword: '',
       has_given_consent: false,
+      is_intern: false,
     });
     setShowSignupOtpInput(false);
     setSignupOtp('');
@@ -892,6 +888,41 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             <>
               {!showSignupOtpInput ? (
                 <div className="space-y-5 animate-fade-in-up">
+                  {/* User Type Selection */}
+                  <div className="flex gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="userType"
+                        checked={!signupData.is_intern}
+                        onChange={() =>
+                          handleSignupInputChange('is_intern', false)
+                        }
+                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span
+                        className={`text-sm font-medium ${!signupData.is_intern ? 'text-purple-700' : 'text-gray-600'}`}
+                      >
+                        {t('common.normalUser')}
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="userType"
+                        checked={signupData.is_intern}
+                        onChange={() =>
+                          handleSignupInputChange('is_intern', true)
+                        }
+                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span
+                        className={`text-sm font-medium ${signupData.is_intern ? 'text-purple-700' : 'text-gray-600'}`}
+                      >
+                        Intern
+                      </span>
+                    </label>
+                  </div>
                   {/* Phone Number */}
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
@@ -928,44 +959,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPhoneDisplay}`}
                     >
                       {t('auth.phoneNumberIsInvalid')}
-                    </div>
-                  </div>
-                  {/*UserName*/}
-                  <div className="relative">
-                    <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                    <Input
-                      type="text"
-                      placeholder={t('auth.username')}
-                      value={signupData.username}
-                      onChange={(e) =>
-                        handleSignupInputChange('username', e.target.value)
-                      }
-                      onFocus={() => {
-                        setValidateUserName('border-gray-500');
-                        setErrorUserNameDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const newNameRegex = /^[A-Za-z0-9_]{3,50}$/;
-                        const nameValue = e.target.value.trim();
-
-                        if (!newNameRegex.test(nameValue)) {
-                          setValidateUserName('border-rose-800');
-                          setErrorUserNameDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setValidateUserName('');
-                          setErrorUserNameDisplay('hidden');
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validateUserName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                    />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorUserNameDisplay}`}
-                    >
-                      {t(
-                        'auth.usernameShouldConsistOfCharactersUnderscoresDigitsOnly',
-                      )}
                     </div>
                   </div>
                   {/* Name */}

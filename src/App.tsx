@@ -16,7 +16,8 @@ import RecordDetails from './pages/RecordDetails'; // Import RecordDetails compo
 import ImageReviewPage from './pages/ImageReviewPage';
 import AudioReviewPage from './pages/AudioReviewPage';
 import VideoReviewPage from './pages/VideoReviewPage';
-import CompleteProfilePage from './pages/CompleteProfilePage';
+import CompleteProfileGeneralPage from './pages/CompleteProfileGeneralPage';
+import CompleteProfileInternPage from './pages/CompleteProfileInternPage';
 import { AuthProvider } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import RequireAuth from './components/RequireAuth';
@@ -101,9 +102,21 @@ const App = () => (
               />
               <Route
                 path="/complete-profile"
+                element={<Navigate to="/complete-profile/step-2" replace />}
+              />
+              <Route
+                path="/complete-profile/step-2"
                 element={
                   <RequireAuth>
-                    <CompleteProfilePage />
+                    <CompleteProfileGeneralPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/complete-profile/step-3"
+                element={
+                  <RequireAuth>
+                    <CompleteProfileInternPage />
                   </RequireAuth>
                 }
               />

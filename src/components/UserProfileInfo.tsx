@@ -530,7 +530,9 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    navigate('/complete-profile', { state: { fromEdit: true } })
+                    navigate('/complete-profile/step-2', {
+                      state: { fromEdit: true },
+                    })
                   }
                   className="px-3 py-1.5 rounded-lg flex items-center bg-blue-100 hover:bg-blue-200 text-blue-700"
                 >

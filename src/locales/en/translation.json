@@ -337,7 +337,12 @@
     },
     "whatIsYourPermanentPostalAddress": "What is your permanent postal address?",
     "enterYourCompletePermanentAddress": "Enter your complete permanent address",
-    "uploadResumePdfOnlyMax5mb": "Upload Resume (PDF only, max 5MB) *",
+    "uploadResumeLabel": "Upload Resume (Max 100 MB) *",
+    "supportedFileTypes": "Supported file types: PDF, DOC, DOCX, ODT, RTF, TXT, TEX, PAGES",
+    "fileTypeNotAllowedForSecurityReasons": "File type not allowed for security reasons",
+    "archiveFileTypesAreNotAllowed": "Archive file types are not allowed",
+    "fileSizeMustBeLessThan100mb": "File size must be less than 100MB",
+    "invalidFilename": "Filename contains invalid characters",
     "do": {
       "you": {
         "have": {
@@ -391,7 +396,15 @@
     "selectSpecialization": "Select Specialization",
     "pleaseSelectCollegeFirst": "Please select college first",
     "reviewedAndVerified": "✓ Reviewed & Verified",
-    "remove": "Remove"
+    "remove": "Remove",
+    "normalUser": "Normal User",
+    "are": {
+      "you": {
+        "an": {
+          "intern": "Are you an intern? *"
+        }
+      }
+    }
   },
   "ui": {
     "failed": {
@@ -638,12 +651,8 @@
       }
     },
     "resume": {
-      "pdf": {
-        "only": {
-          "max": {
-            "5mb": "Resume (PDF only, max 5MB)"
-          }
-        }
+      "max": {
+        "100mb": "Resume (Max 100MB)"
       }
     },
     "internship": {
@@ -700,7 +709,19 @@
         }
       }
     },
-    "updateYourProfileDetails": "Update your profile details"
+    "updateYourProfileDetails": "Update your profile details",
+    "step": {
+      "1": {
+        "general": {
+          "information": "Step 1: General Information"
+        }
+      },
+      "2": {
+        "academic": {
+          "details": "Step 2: Academic Details"
+        }
+      }
+    }
   },
   "messages": {
     "networkErrorPleaseTryAgain": "Network error. Please try again.",

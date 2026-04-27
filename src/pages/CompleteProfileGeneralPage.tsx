@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -17,8 +18,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  organisationTypes,
-  yearList,
   workstationOS,
   workstationRAM,
   mobileOS,
@@ -26,9 +25,7 @@ import {
   internetSpeeds,
   dailyDataLimits,
 } from '@/lib/profileConstants';
-import InstitutionSelector from '@/components/InstitutionSelector';
 import LocationPicker from '@/components/LocationPicker';
-import { fetchInstitution } from '@/lib/institutionApi';
 import {
   Globe,
   Instagram,
@@ -90,17 +87,13 @@ interface UserProfile {
   language_proficiencies?: { proficiencies: LanguageProficiency[] } | null;
   phone_privacy?: string | null;
   email_privacy?: string | null;
-  organisation_type?: string | null;
   rural_area_access?: string | null;
   permanent_postal_address?: string | null;
-  institution_id?: string | null;
-  current_year_of_study?: string | null;
-  college_roll_number?: string | null;
-  task_registered_id?: string | null;
   hardware_details?: HardwareDetails | null;
   resume_record_id?: string | null;
   has_completed_ai_courses?: string | null;
   ai_courses_list?: string | null;
+  is_intern?: boolean;
 }
 
 const INTERNSHIP_LANGUAGES = ['Telugu', 'Hindi', 'English', 'Urdu'];
@@ -152,7 +145,7 @@ const PRIVACY_OPTIONS = [
   { value: 'private', label: 'Private' },
 ];
 
-const CompleteProfilePage: React.FC = () => {
+const CompleteProfileGeneralPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -168,7 +161,6 @@ const CompleteProfilePage: React.FC = () => {
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeRecordId, setResumeRecordId] = useState<string | null>(null);
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
-  const [institutionName, setInstitutionName] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -181,17 +173,13 @@ const CompleteProfilePage: React.FC = () => {
     short_bio: '',
     profession: '',
     organisation: '',
-    organisation_type: '',
     rural_area_access: '',
     permanent_postal_address: '',
-    institution_id: '',
-    current_year_of_study: '',
-    college_roll_number: '',
-    task_registered_id: '',
     has_completed_ai_courses: '',
     ai_courses_list: '',
     phone_privacy: '',
     email_privacy: '',
+    is_intern: false,
   });
 
   const [hardwareDetails, setHardwareDetails] = useState<HardwareDetails>({
@@ -271,16 +259,6 @@ const CompleteProfilePage: React.FC = () => {
 
     fetchData();
   }, [navigate]);
-
-  useEffect(() => {
-    if (formData.institution_id) {
-      fetchInstitution(formData.institution_id)
-        .then((inst) => setInstitutionName(inst.name))
-        .catch(() => setInstitutionName(null));
-    } else {
-      setInstitutionName(null);
-    }
-  }, [formData.institution_id]);
 
   useEffect(() => {
     if (fromPlace) {
@@ -365,17 +343,13 @@ const CompleteProfilePage: React.FC = () => {
       short_bio: profile.short_bio || '',
       profession: profile.profession || '',
       organisation: profile.organisation || '',
-      organisation_type: profile.organisation_type || '',
       rural_area_access: profile.rural_area_access || '',
       permanent_postal_address: profile.permanent_postal_address || '',
-      institution_id: profile.institution_id || '',
-      current_year_of_study: profile.current_year_of_study || '',
-      college_roll_number: profile.college_roll_number || '',
-      task_registered_id: profile.task_registered_id || '',
       has_completed_ai_courses: profile.has_completed_ai_courses || '',
       ai_courses_list: profile.ai_courses_list || '',
       phone_privacy: profile.phone_privacy || '',
       email_privacy: profile.email_privacy || '',
+      is_intern: profile.is_intern || false,
     });
 
     if (profile.hardware_details) {
@@ -463,12 +437,51 @@ const CompleteProfilePage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      toast.error(t('common.pleaseUploadAPdfFile'));
+    if (
+      file.name.includes('..') ||
+      file.name.includes('/') ||
+      file.name.includes('\\')
+    ) {
+      toast.error(t('common.invalidFilename'));
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error(t('common.fileSizeMustBeLessThan5mb'));
+
+    const dangerousExtensions = [
+      '.exe',
+      '.bat',
+      '.cmd',
+      '.com',
+      '.pif',
+      '.scr',
+      '.vbs',
+      '.js',
+      '.jar',
+    ];
+    const forbiddenMimeTypes = [
+      'application/zip',
+      'application/x-tar',
+      'application/x-gzip',
+      'application/x-7z-compressed',
+      'application/x-rar-compressed',
+    ];
+
+    const fileExtension = file.name.slice(
+      ((file.name.lastIndexOf('.') - 1) >>> 0) + 2,
+    );
+
+    if (dangerousExtensions.includes(`.${fileExtension.toLowerCase()}`)) {
+      toast.error(t('common.fileTypeNotAllowedForSecurityReasons'));
+      return;
+    }
+
+    if (forbiddenMimeTypes.includes(file.type)) {
+      toast.error(t('common.archiveFileTypesAreNotAllowed'));
+      return;
+    }
+
+    const MAX_SIZE = 100 * 1024 * 1024; // 100MB matching backend default
+    if (file.size > MAX_SIZE) {
+      toast.error(t('common.fileSizeMustBeLessThan100mb'));
       return;
     }
 
@@ -649,6 +662,7 @@ const CompleteProfilePage: React.FC = () => {
       date_of_birth: formData.date_of_birth || null,
       current_place: formData.current_place || null,
       short_bio: formData.short_bio || null,
+      is_intern: formData.is_intern,
       profession: formData.profession || null,
       organisation: formData.organisation || null,
       places_lived: placesLived.places.length > 0 ? placesLived : null,
@@ -667,13 +681,8 @@ const CompleteProfilePage: React.FC = () => {
           : null,
       phone_privacy: formData.phone_privacy || null,
       email_privacy: formData.email_privacy || null,
-      organisation_type: formData.organisation_type || null,
       rural_area_access: formData.rural_area_access || null,
       permanent_postal_address: formData.permanent_postal_address || null,
-      institution_id: formData.institution_id || null,
-      current_year_of_study: formData.current_year_of_study || null,
-      college_roll_number: formData.college_roll_number || null,
-      task_registered_id: formData.task_registered_id || null,
       hardware_details: Object.values(hardwareDetails).some((v) => v !== '')
         ? hardwareDetails
         : null,
@@ -730,6 +739,14 @@ const CompleteProfilePage: React.FC = () => {
     if (Object.keys(updatePayload).length === 0) {
       toast.info(t('common.noChangesToSave'));
       setSubmitting(false);
+      // Even if no changes, we should still handle redirection
+      if (isEditMode) {
+        navigate('/profile', { replace: true });
+      } else if (formData.is_intern) {
+        navigate('/complete-profile/step-3', { replace: true });
+      } else {
+        navigate('/profile', { replace: true });
+      }
       return;
     }
 
@@ -748,8 +765,10 @@ const CompleteProfilePage: React.FC = () => {
         toast.success(t('messages.profileCompletedSuccessfully'));
         if (isEditMode) {
           navigate('/profile', { replace: true });
+        } else if (formData.is_intern) {
+          navigate('/complete-profile/step-3', { replace: true });
         } else {
-          navigate('/', { replace: true });
+          navigate('/profile', { replace: true });
         }
       } else {
         const errorMsg = Array.isArray(data.detail)
@@ -781,11 +800,7 @@ const CompleteProfilePage: React.FC = () => {
               {isEditMode ? t('nav.editProfile') : t('nav.completeYourProfile')}
             </h1>
             <p className="text-gray-600 text-sm mt-1">
-              {isEditMode
-                ? t('ui.updateYourProfileDetails')
-                : t(
-                    'ui.please.fill.in.the.remaining.details.to.complete.your.registration',
-                  )}
+              {t('ui.step.1.general.information')}
             </p>
           </CardHeader>
           <CardContent>
@@ -811,6 +826,35 @@ const CompleteProfilePage: React.FC = () => {
                     onChange={(e) => handleChange('name', e.target.value)}
                     placeholder={t('user.enterFullName')}
                   />
+                </div>
+                <div className="space-y-3">
+                  <Label>{t('common.are.you.an.intern')}</Label>
+                  <RadioGroup
+                    value={formData.is_intern ? 'yes' : 'no'}
+                    onValueChange={(value) =>
+                      handleChange('is_intern', value === 'yes')
+                    }
+                    className="flex space-x-6"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="intern-yes" />
+                      <Label
+                        htmlFor="intern-yes"
+                        className="font-normal cursor-pointer"
+                      >
+                        Yes
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="intern-no" />
+                      <Label
+                        htmlFor="intern-no"
+                        className="font-normal cursor-pointer"
+                      >
+                        No
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
 
@@ -866,17 +910,6 @@ const CompleteProfilePage: React.FC = () => {
                       }
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="current_place">Current Place *</Label>
-                    <Input
-                      id="current_place"
-                      value={formData.current_place}
-                      onChange={(e) =>
-                        handleChange('current_place', e.target.value)
-                      }
-                      placeholder={t('user.cityState')}
-                    />
-                  </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="short_bio">{t('user.shortBio')}</Label>
                     <Textarea
@@ -924,9 +957,21 @@ const CompleteProfilePage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">
                   {t('common.location')}
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
+                    <Label htmlFor="current_place">Current Place *</Label>
+                    <Input
+                      id="current_place"
+                      value={formData.current_place}
+                      onChange={(e) =>
+                        handleChange('current_place', e.target.value)
+                      }
+                      placeholder={t('user.cityState')}
+                    />
+                  </div>
+                  <div className="space-y-3 pt-2 border-t">
                     <Label>{t('common.from.place')}</Label>
+
                     <div className="flex gap-2 mt-1">
                       {fromPlace ? (
                         <div className="flex-1">
@@ -1112,77 +1157,6 @@ const CompleteProfilePage: React.FC = () => {
                 </Button>
               </div>
 
-              {/* Education & Institution */}
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                  {t('common.academic.details')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="organisation_type">
-                      {t('categories.organisationType')}
-                    </Label>
-                    <SearchableSelect
-                      id="organisation_type"
-                      value={formData.organisation_type}
-                      onChange={(value) =>
-                        handleChange('organisation_type', value)
-                      }
-                      options={organisationTypes}
-                      placeholder={t('common.selectType')}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <InstitutionSelector
-                      institutionId={formData.institution_id}
-                      onChange={(institutionId) =>
-                        handleChange('institution_id', institutionId)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="current_year_of_study">
-                      {t('time.currentYearOfStudy')}
-                    </Label>
-                    <SearchableSelect
-                      id="current_year_of_study"
-                      value={formData.current_year_of_study}
-                      onChange={(value) =>
-                        handleChange('current_year_of_study', value)
-                      }
-                      options={yearList}
-                      placeholder={t('common.selectYear')}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="college_roll_number">
-                      {t('common.college.roll.number')}
-                    </Label>
-                    <Input
-                      id="college_roll_number"
-                      value={formData.college_roll_number}
-                      onChange={(e) =>
-                        handleChange('college_roll_number', e.target.value)
-                      }
-                      placeholder={t('common.roll.number')}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="task_registered_id">
-                      {t('ui.task.registered.id.optional')}
-                    </Label>
-                    <Input
-                      id="task_registered_id"
-                      value={formData.task_registered_id}
-                      onChange={(e) =>
-                        handleChange('task_registered_id', e.target.value)
-                      }
-                      placeholder={t('common.task.id')}
-                    />
-                  </div>
-                </div>
-              </div>
-
               {/* Language Proficiencies */}
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1">
@@ -1257,13 +1231,16 @@ const CompleteProfilePage: React.FC = () => {
                   Resume
                 </h3>
                 <div>
-                  <Label htmlFor="resume">
-                    {t('common.uploadResumePdfOnlyMax5mb')}
+                  <Label htmlFor="resume" className="flex flex-col gap-1 mb-2">
+                    <span>{t('common.uploadResumeLabel')}</span>
+                    <span className="text-xs font-normal text-slate-500">
+                      {t('common.supportedFileTypes')}
+                    </span>
                   </Label>
                   <Input
                     id="resume"
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.doc,.docx,.odt,.rtf,.txt,.pages,.tex"
                     onChange={handleResumeChange}
                     disabled={resumeUploading}
                   />
@@ -1514,10 +1491,8 @@ const CompleteProfilePage: React.FC = () => {
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       {t('common.saving')}
                     </div>
-                  ) : isEditMode ? (
-                    t('common.saveChanges')
                   ) : (
-                    t('nav.completeProfile')
+                    'Next'
                   )}
                 </Button>
               </div>
@@ -1529,4 +1504,4 @@ const CompleteProfilePage: React.FC = () => {
   );
 };
 
-export default CompleteProfilePage;
+export default CompleteProfileGeneralPage;
