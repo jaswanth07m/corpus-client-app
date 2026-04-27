@@ -236,15 +236,6 @@ describe('LoginForm', () => {
     );
     fireEvent.change(phoneInput, { target: { value: '9000000000' } });
     getHandler()!();
-    expect(mockToastError).toHaveBeenCalledWith(
-      'auth.pleaseEnterAValidUsername',
-    );
-    mockToastError.mockClear();
-
-    // Set a valid username
-    const usernameInput = screen.getByPlaceholderText('auth.username');
-    fireEvent.change(usernameInput, { target: { value: 'valid_user' } });
-    getHandler()!();
     expect(mockToastError).toHaveBeenCalledWith('user.pleaseEnterYourName');
     mockToastError.mockClear();
 
@@ -314,9 +305,6 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
@@ -385,9 +373,6 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
@@ -483,9 +468,6 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
@@ -568,9 +550,6 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
