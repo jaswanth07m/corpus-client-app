@@ -12,7 +12,7 @@ const CategoriesRoute = () => {
   const { token, logout } = useAuth();
 
   if (!mediaType || !MEDIA_TYPES.includes(mediaType as MediaType)) {
-    return <Navigate to="/media" replace />;
+    return <Navigate to="/upload" replace />;
   }
 
   const safeMediaType = mediaType as MediaType;
@@ -21,7 +21,7 @@ const CategoriesRoute = () => {
     <Categories
       token={token!}
       preSelectedMediaType={safeMediaType}
-      onBack={() => navigate('/media')}
+      onBack={() => navigate('/upload')}
       onLogout={logout}
       onSessionExpired={() => {
         logout();

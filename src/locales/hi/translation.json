@@ -12,7 +12,10 @@
         "text": "OCR टेक्स्ट की समीक्षा करें"
       }
     },
+    "showCompleteText": "पूरा टेक्स्ट दिखाएं",
+    "hideCompleteText": "पूरा टेक्स्ट छिपाएं",
     "submitPage": "पृष्ठ सबमिट करें",
+    "savePage": "पृष्ठ सहेजें",
     "loading": "लोड हो रहा है...",
     "error": "त्रुटि",
     "success": "सफल",
@@ -167,7 +170,10 @@
         "place": "वर्तमान स्थान दर्ज करें"
       },
       "profession": "व्यवसाय दर्ज करें",
-      "organisation": "संगठन दर्ज करें"
+      "organisation": "संगठन दर्ज करें",
+      "roll": {
+        "number": ""
+      }
     },
     "noUsersFound": "कोई उपयोगकर्ता नहीं मिला",
     "from": {
@@ -216,8 +222,8 @@
       }
     },
     "contributeToOpenDataAndHelpBuildTheFuture": "ओपन डेटा में योगदान करें और भविष्य का निर्माण करने में मदद करें",
-    "proofreading": {
-      "tool": "प्रूफरीडिंग टूल"
+    "docDigitization": {
+      "tool": "दस्तावेज़ डिजिटाइज़ेशन टूल"
     },
     "reviewAndCorrectOcrTextFromDocuments": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
     "showHints": "संकेत दिखाएं",
@@ -227,7 +233,150 @@
     "theUserMightNotBeInTheLoadedRecordsYetTryClearingTheSearchAndScrollingToLoadMoreRecords": "उपयोगकर्ता लोड किए गए रिकॉर्ड में नहीं हो सकता है। खोज को साफ़ करने और अधिक रिकॉर्ड लोड करने के लिए स्क्रॉल करने का प्रयास करें।",
     "processing": "प्रसंस्करण...",
     "noFollowersFound": "कोई फ़ॉलोअर नहीं मिला",
-    "noUsersBeingFollowed": "कोई उपयोगकर्ता फ़ॉलो नहीं किए जा रहे"
+    "noUsersBeingFollowed": "कोई उपयोगकर्ता फ़ॉलो नहीं किए जा रहे",
+    "on": {
+      "page": "पेज पर"
+    },
+    "Previous": "← पिछला",
+    "editSegmentText": "सेगमेंट टेक्स्ट संपादित करें...",
+    "noSegmentsFoundForThisPage": "इस पेज के लिए कोई सेगमेंट नहीं मिला।",
+    "update": {
+      "reading": {
+        "order": "रीडिंग ऑर्डर अपडेट करें?"
+      },
+      "order": "ऑर्डर अपडेट करें"
+    },
+    "overall": {
+      "progress": "कुल प्रगति"
+    },
+    "previousPage": "पिछला पेज",
+    "nextPage": "अगला पेज",
+    "noOptionFound": "",
+    "pleaseUploadAPdfFile": "",
+    "fileSizeMustBeLessThan5mb": "",
+    "authenticationRequiredForUpload": "",
+    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "",
+    "failedToViewResume": "",
+    "selectType": "",
+    "selectDistrict": "",
+    "permanentPostalAddress": "",
+    "enterPermanentPostalAddress": "",
+    "college": {
+      "institution": "",
+      "roll": {
+        "number": ""
+      }
+    },
+    "selectCollege": "",
+    "cantFindYourInstitutionSelectOtherNotInList": "",
+    "selectCategory": "",
+    "specific": {
+      "stream": ""
+    },
+    "selectStream": "",
+    "selectYear": "",
+    "task": {
+      "registered": {
+        "id": ""
+      },
+      "id": ""
+    },
+    "device": {
+      "internet": ""
+    },
+    "has": {
+      "laptop": ""
+    },
+    "laptop": {
+      "os": "",
+      "ram": ""
+    },
+    "selectOs": "",
+    "selectRam": "",
+    "mobile": {
+      "os": "",
+      "ram": ""
+    },
+    "internet": {
+      "speed": ""
+    },
+    "selectSpeed": "",
+    "daily": {
+      "data": {
+        "limit": ""
+      }
+    },
+    "selectLimit": "",
+    "list": {
+      "your": {
+        "ai": {
+          "courses": ""
+        }
+      }
+    },
+    "language": {
+      "proficiency": ""
+    },
+    "selectYourProficiencyLevelForEachLanguage": "",
+    "rural": {
+      "area": {
+        "access": ""
+      }
+    },
+    "completed": {
+      "ai": {
+        "courses": ""
+      }
+    },
+    "gender": "",
+    "academic": {
+      "details": ""
+    },
+    "roll": {
+      "number": ""
+    },
+    "whatIsYourPermanentPostalAddress": "",
+    "enterYourCompletePermanentAddress": "",
+    "uploadResumePdfOnlyMax5mb": "",
+    "do": {
+      "you": {
+        "have": {
+          "a": {
+            "laptop": ""
+          }
+        }
+      }
+    },
+    "saving": "",
+    "preview": "",
+    "noPreviewAvailable": "",
+    "searchPlaceOrAddress": "",
+    "searching": "",
+    "failed": {
+      "to": {
+        "copy": {
+          "url": ""
+        }
+      }
+    },
+    "goBackHome": "",
+    "recordNotFound": "",
+    "viewDocument": "",
+    "noRecordsFoundInThisCategory": "",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "",
+    "clearFilter": "",
+    "workstation": {
+      "os": "",
+      "ram": ""
+    },
+    "normalUser": "",
+    "are": {
+      "you": {
+        "an": {
+          "intern": ""
+        }
+      }
+    }
   },
   "ui": {
     "failed": {
@@ -285,6 +434,11 @@
           "content": {
             "here": "अपनी टेक्स्ट सामग्री को यहां दर्ज करें..."
           }
+        }
+      },
+      "task": {
+        "id": {
+          "optional": ""
         }
       }
     },
@@ -352,6 +506,36 @@
             }
           }
         }
+      },
+      "list": {
+        "all": {
+          "ai": {
+            "courses": {
+              "you": {
+                "have": {
+                  "completed": ""
+                }
+              }
+            }
+          }
+        }
+      },
+      "fill": {
+        "in": {
+          "the": {
+            "remaining": {
+              "details": {
+                "to": {
+                  "complete": {
+                    "your": {
+                      "registration": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "place": {
@@ -397,6 +581,121 @@
           }
         }
       }
+    },
+    "do": {
+      "you": {
+        "have": {
+          "access": {
+            "to": {
+              "any": {
+                "rural": {
+                  "areas": {
+                    "nearby": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "education": {
+      "institution": ""
+    },
+    "have": {
+      "you": {
+        "completed": {
+          "any": {
+            "ai": {
+              "courses": ""
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "of": {
+        "ai": {
+          "courses": {
+            "completed": ""
+          }
+        }
+      }
+    },
+    "resume": {
+      "pdf": {
+        "only": {
+          "max": {
+            "5mb": ""
+          }
+        }
+      }
+    },
+    "internship": {
+      "language": {
+        "proficiency": ""
+      }
+    },
+    "task": {
+      "registered": {
+        "id": {
+          "optional": ""
+        }
+      }
+    },
+    "eg": {
+      "nearby": {
+        "villages": {
+          "shamirpet": {
+            "medchal": {
+              "etc": ""
+            }
+          }
+        }
+      }
+    },
+    "laptop": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "mobile": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "internet": {
+      "connection": {
+        "speed": {
+          "mbps": ""
+        }
+      }
+    },
+    "daily": {
+      "data": {
+        "limit": {
+          "quota": ""
+        }
+      }
+    },
+    "url": {
+      "copied": {
+        "to": {
+          "clipboard": ""
+        }
+      }
+    },
+    "step": {
+      "1": {
+        "general": {
+          "information": ""
+        }
+      },
+      "2": {
+        "academic": {
+          "details": ""
+        }
+      }
     }
   },
   "messages": {
@@ -414,7 +713,13 @@
     "profileUpdatedSuccessfully": "प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई!",
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
-    "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है..."
+    "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।",
+    "resumeUploadedSuccessfully": "",
+    "uploadingNewResume": "",
+    "profileCompletedSuccessfully": "",
+    "uploadingResume": "",
+    "loadingCategories": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -433,20 +738,27 @@
     "enterFullName": "पूरा नाम दर्ज करें",
     "shortBio": "संक्षिप्त परिचय",
     "profession": "व्यवसाय",
-    "organisation": "संगठन"
+    "organisation": "संगठन",
+    "workLocation": "",
+    "cityState": "",
+    "locationDetails": "",
+    "chooseYourWorkLocationForTheInternship": ""
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "कृपया मान्य अक्षांश और देशांतर मान दर्ज करें",
     "latitudeMustBeBetween90And90": "अक्षांश -90 और 90 के बीच होना चाहिए",
     "longitudeMustBeBetween180And180": "देशांतर -180 और 180 के बीच होना चाहिए",
-    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें"
+    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें",
+    "authenticationRequired": ""
   },
   "categories": {
     "chooseACategoryToContributeContent": "सामग्री योगदान देने के लिए एक श्रेणी चुनें",
     "changeType": "प्रकार बदलें:",
     "unsupportedMediaType": "असमर्थित मीडिया प्रकार",
     "sourceLabel": "स्रोत लेबल",
-    "type": "प्रकार:"
+    "type": "प्रकार:",
+    "organisationType": "",
+    "educationCategory": ""
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",
@@ -482,7 +794,11 @@
     "capturedPhoto": "कैप्चर की गई फ़ोटो",
     "audioTrack": "ऑडियो ट्रैक",
     "pleaseEnterAValidImageUrl": "कृपया एक मान्य छवि URL दर्ज करें",
-    "imageUrl": "छवि URL"
+    "imageUrl": "छवि URL",
+    "enterRecordId": "रिकॉर्ड आईडी दर्ज करें",
+    "recordControls": "रिकॉर्ड नियंत्रण",
+    "resumeRecordId": "",
+    "copyRecordUrl": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",
@@ -518,7 +834,7 @@
     "selectGender": "लिंग चुनें",
     "male": "पुरुष",
     "female": "महिला",
-    "other": "",
+    "other": "अन्य",
     "dateOfBirth": "जन्म तिथि",
     "createPassword": "पासवर्ड बनाएं *",
     "passwordStrength": "पासवर्ड मजबूती:",
@@ -551,7 +867,8 @@
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
     "loginWithPassword": "पासवर्ड से लॉगिन करें",
     "loginWithOtp": "OTP से लॉगिन करें",
-    "enterPassword": "पासवर्ड दर्ज करें"
+    "enterPassword": "पासवर्ड दर्ज करें",
+    "emailIsRequired": ""
   },
   "nav": {
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
@@ -568,7 +885,13 @@
     "profile": "प्रोफ़ाइल",
     "settings": "सेटिंग्स",
     "logout": "लॉगआउट",
-    "login": "लॉगिन"
+    "login": "लॉगिन",
+    "internshipProfile": "",
+    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "",
+    "profileIncompletePleaseCompleteIt": "",
+    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "",
+    "completeProfile": "",
+    "completeYourProfile": ""
   },
   "profile": {
     "setLocation": "स्थान सेट करें",
@@ -630,13 +953,13 @@
       "title": "वीडियो उपकरण",
       "description": "वीडियो सामग्री समीक्षा के लिए समर्पित इंटरफ़ेस।"
     },
-    "proofreading": {
-      "title": "प्रूफरीडिंग",
-      "description": "पाठ योगदानों की प्रूफरीडिंग करके डेटा गुणवत्ता में सुधार करने में सहायता करें।"
+    "docDigitization": {
+      "title": "दस्तावेज़ डिजिटाइज़ेशन",
+      "description": "पाठ योगदानों को डिजिटाइज़ करके डेटा गुणवत्ता में सुधार करने में सहायता करें।"
     },
     "futureTools": {
       "title": "आगामी सुविधाएँ",
-      "description": "RAG, कहानी जनरेटर, एजेंट वर्कफ़्लो और बहुत कुछ के लिए बने रहें!"
+      "description": "अस्क योर कॉर्पस, कहानी जनरेटर, एजेंट वर्कफ़्लो और बहुत कुछ के लिए बने रहें!"
     },
     "profile": {
       "title": "प्रोफ़ाइल",
@@ -656,14 +979,30 @@
     }
   },
   "tools": {
-    "proofreading": "प्रूफरीडिंग",
-    "proofreadingDescription": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
+    "docDigitization": "दस्तावेज़ डिजिटाइज़ेशन",
+    "docDigitizationDescription": "दस्तावेज़ों से OCR टेक्स्ट की समीक्षा करें और सही करें",
+    "askYourCorpus": "अस्क योर कॉर्पस",
+    "askYourCorpusDescription": "बुद्धिमान दस्तावेज़ क्वेरी के लिए रिट्रीवल-ऑगमेंटेड जनरेशन",
+    "peerReview": "पीर रिव्यू",
+    "peerReviewDescription": "अन्य उपयोगकर्ताओं के योगदानों की समीक्षा करें और प्रतिक्रिया प्रदान करें",
+    "imageAnnotation": "छवि एनोटेशन",
+    "imageAnnotationDescription": "छवियों में वस्तुओं, क्षेत्रों और पैटर्न को एनोटेट करें",
+    "audioTool": "ऑडियो उपकरण",
+    "audioToolDescription": "ऑडियो रिकॉर्डिंग की समीक्षा और एनोटेट करें",
+    "videoTool": "वीडियो उपकरण",
+    "videoToolDescription": "वीडियो सामग्री की समीक्षा और एनोटेट करें",
     "transcription": "ट्रांस्क्रिप्शन",
     "transcriptionDescription": "ऑडियो और वीडियो सामग्री को टेक्स्ट में बदलें",
     "textExtraction": "टेक्स्ट एक्सट्रैक्शन",
     "textExtractionDescription": "छवियों और दस्तावेज़ों से टेक्स्ट निकालें",
     "audioProofreading": "ऑडियो प्रूफरीडिंग",
     "audioProofreadingDescription": "ट्रांस्क्राइब किए गए ऑडियो सामग्री को सुनें और सही करें",
+    "storyGenerator": "कहानी जनरेटर",
+    "storyGeneratorDescription": "एकत्रित डेटा से आकर्षक कहानियां स्वचालित रूप से उत्पन्न करें",
+    "agentWorkflows": "एजेंट वर्कफ़्लो",
+    "agentWorkflowsDescription": "स्वचालित एआई एजेंट प्रक्रियाओं को डिज़ाइन और प्रबंधित करें",
+    "metadataIndex": "मेटाडेटा इंडेक्स",
+    "metadataIndexDescription": "समुदाय मेटाडेटा के लिए उन्नत इंडेक्सिंग और खोज",
     "heading": "उपकरण",
     "planned": "योजनाबद्ध",
     "comingSoonDescription": "डेटासेट इंजेक्शन मॉड्यूल कैलिब्रेशन के अंतर्गत है।"
@@ -688,6 +1027,13 @@
   "languages": {
     "telugu": "तेलुगु",
     "english": "अंग्रेजी",
-    "hindi": "हिंदी"
+    "hindi": "हिंदी",
+    "kannada": "कन्नड़",
+    "tamil": "तमिल",
+    "bengali": "बंगाली",
+    "malayalam": "मलयालम"
+  },
+  "time": {
+    "currentYearOfStudy": ""
   }
 }

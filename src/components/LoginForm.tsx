@@ -11,8 +11,6 @@ import {
   RefreshCw,
   User,
   Mail,
-  Calendar,
-  MapPin,
   UserPlus,
   LogIn,
 } from 'lucide-react';
@@ -78,17 +76,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [resendTimer, setResendTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
 
-  // Signup form fields
+  // Signup form fields (step 1 only)
   const [signupData, setSignupData] = useState({
-    username: '',
     name: '',
     email: '',
-    gender: '',
-    date_of_birth: '',
-    current_place: '',
     password: '',
     confirmPassword: '',
     has_given_consent: false,
+    is_intern: false,
   });
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -335,16 +330,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    if (!isValidUserName) {
-      toast.error(t('auth.pleaseEnterAValidUsername'));
-    }
-
     if (!signupData.name.trim()) {
       toast.error(t('user.pleaseEnterYourName'));
       return;
     }
 
-    if (!isValidEmail(signupData.email)) {
+    if (!signupData.email.trim() || !isValidEmail(signupData.email)) {
       toast.error(t('common.pleaseEnterAValidEmailAddress'));
       return;
     }
@@ -365,14 +356,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
       const requestBody = {
         phone: getFullPhoneNumber(),
-        username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
         email: signupData.email.trim(),
-        gender: signupData.gender || undefined,
-        date_of_birth: signupData.date_of_birth || undefined,
-        current_place: signupData.current_place.trim() || undefined,
         password: signupData.password,
-        role_ids: [2], // Default role ID as per schema
+        is_intern: signupData.is_intern,
       };
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/send-otp`, {
@@ -425,24 +412,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const requestBody = {
         phone: getFullPhoneNumber(),
         otp_code: signupOtp.trim(),
-        username: signupData.username.trim().toLowerCase(),
         name: signupData.name.trim(),
         email: signupData.email.trim(),
-        gender: signupData.gender || undefined,
-        date_of_birth: signupData.date_of_birth || undefined,
-        current_place: signupData.current_place.trim() || undefined,
         password: signupData.password,
         confirm_password: signupData.confirmPassword,
-        role_ids: [2], // Default role ID as per schema
         has_given_consent: signupData.has_given_consent,
+        is_intern: signupData.is_intern,
       };
-
-      // Remove undefined values
-      Object.keys(requestBody).forEach((key) => {
-        if (requestBody[key] === undefined) {
-          delete requestBody[key];
-        }
-      });
 
       const response = await fetch(`${BACKEND_URL}/auth/signup/verify-otp`, {
         method: 'POST',
@@ -459,8 +435,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         toast.success(
           t('messages.accountCreatedAndVerifiedSuccessfullyPleaseLogin'),
         );
-        setMode('login');
-        resetForm();
+        onLoginSuccess(data.access_token, data);
       } else {
         console.error('Signup Verify OTP Error:', data);
         if (data.detail && Array.isArray(data.detail)) {
@@ -520,10 +495,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             data.error ||
             'Failed to resend signup OTP',
         );
+        setCanResend(true);
       }
     } catch (error) {
       console.error('Network Error:', error);
       toast.error('Network error. Please check your connection and try again.');
+      setCanResend(true);
     }
     setLoading(false);
   };
@@ -556,12 +533,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       username: '',
       name: '',
       email: '',
-      gender: '',
-      date_of_birth: '',
-      current_place: '',
       password: '',
       confirmPassword: '',
       has_given_consent: false,
+      is_intern: false,
     });
     setShowSignupOtpInput(false);
     setSignupOtp('');
@@ -913,6 +888,41 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             <>
               {!showSignupOtpInput ? (
                 <div className="space-y-5 animate-fade-in-up">
+                  {/* User Type Selection */}
+                  <div className="flex gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="userType"
+                        checked={!signupData.is_intern}
+                        onChange={() =>
+                          handleSignupInputChange('is_intern', false)
+                        }
+                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span
+                        className={`text-sm font-medium ${!signupData.is_intern ? 'text-purple-700' : 'text-gray-600'}`}
+                      >
+                        {t('common.normalUser')}
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="userType"
+                        checked={signupData.is_intern}
+                        onChange={() =>
+                          handleSignupInputChange('is_intern', true)
+                        }
+                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span
+                        className={`text-sm font-medium ${signupData.is_intern ? 'text-purple-700' : 'text-gray-600'}`}
+                      >
+                        Intern
+                      </span>
+                    </label>
+                  </div>
                   {/* Phone Number */}
                   <div className="relative">
                     <Phone className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
@@ -951,46 +961,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       {t('auth.phoneNumberIsInvalid')}
                     </div>
                   </div>
-
-                  {/*UserName*/}
-                  <div className="relative">
-                    <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                    <Input
-                      type="text"
-                      placeholder={t('auth.username')}
-                      value={signupData.username}
-                      onChange={(e) =>
-                        handleSignupInputChange('username', e.target.value)
-                      }
-                      onFocus={() => {
-                        setValidateUserName('border-gray-500');
-                        setErrorUserNameDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const newNameRegex = /^[A-Za-z0-9_]{3,50}$/;
-                        const nameValue = e.target.value.trim();
-
-                        if (!newNameRegex.test(nameValue)) {
-                          setValidateUserName('border-rose-800');
-                          setErrorUserNameDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setValidateUserName('');
-                          setErrorUserNameDisplay('hidden');
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validateUserName} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                    />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorUserNameDisplay}`}
-                    >
-                      {t(
-                        'auth.usernameShouldConsistOfCharactersUnderscoresDigitsOnly',
-                      )}
-                    </div>
-                  </div>
-
                   {/* Name */}
                   <div className="relative">
                     <User className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
@@ -1023,7 +993,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       {t('user.nameShouldHaveCharactersOnly')}
                     </div>
                   </div>
-
                   {/* Email */}
                   <div className="relative">
                     <Mail className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
@@ -1039,8 +1008,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                         setErrorEmailDisplay('hidden');
                       }}
                       onBlur={(e) => {
-                        const emailRegex = /^[^+\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (!emailRegex.test(signupData.email.trim())) {
+                        if (!isValidEmail(signupData.email.trim())) {
                           setValidateEmail('border-rose-800');
                           setErrorEmailDisplay('block');
                           setFormValidationErrors(true);
@@ -1053,84 +1021,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     <div
                       className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorEmailDisplay}`}
                     >
-                      {t('auth.emailIsInvalid')}
+                      {t('common.pleaseEnterAValidEmailAddress')}
                     </div>
                   </div>
-
-                  {/* Gender */}
-                  <div className="relative">
-                    <select
-                      value={signupData.gender}
-                      onChange={(e) =>
-                        handleSignupInputChange('gender', e.target.value)
-                      }
-                      className="w-full h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 pl-4 pr-4"
-                      aria-label={t('auth.selectGender')}
-                    >
-                      <option value="">{t('auth.selectGender')}</option>
-                      <option value="male">{t('auth.male')}</option>
-                      <option value="female">{t('auth.female')}</option>
-                      <option value="other">{t('auth.other')}</option>
-                    </select>
-                  </div>
-
-                  {/* Date of Birth */}
-                  <div className="relative">
-                    <label className="text-sm text-gray-700 mb-1 block">
-                      {t('auth.dateOfBirth')}
-                    </label>
-                    <Calendar className="absolute left-4 top-10 h-5 w-5 text-purple-500" />
-                    <Input
-                      type="date"
-                      placeholder={t('common.date.of.birth')}
-                      min={minDate}
-                      max={maxDate}
-                      value={signupData.date_of_birth}
-                      onChange={(e) =>
-                        handleSignupInputChange('date_of_birth', e.target.value)
-                      }
-                      className="pl-12 h-14 border-2 border-gray-200 focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300 mt-1"
-                    />
-                  </div>
-
-                  {/* Place */}
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-4 h-5 w-5 text-purple-500" />
-                    <Input
-                      type="text"
-                      placeholder={t('user.placeCityState')}
-                      value={signupData.current_place}
-                      onChange={(e) =>
-                        handleSignupInputChange('current_place', e.target.value)
-                      }
-                      onFocus={() => {
-                        setValidatePlace('border-gray-500');
-                        setErrorPlaceDisplay('hidden');
-                      }}
-                      onBlur={(e) => {
-                        const currentPlaceRegex = /^[A-Za-z\s,]+$/;
-                        if (
-                          !currentPlaceRegex.test(
-                            signupData.current_place.trim(),
-                          )
-                        ) {
-                          setValidatePlace('border-rose-800');
-                          setErrorPlaceDisplay('block');
-                          setFormValidationErrors(true);
-                        } else {
-                          setFormValidationErrors(false);
-                        }
-                      }}
-                      className={`pl-12 h-14 border-2 ${validatePlace} focus:border-purple-500 rounded-xl text-lg bg-gray-50 focus:bg-white transition-all duration-300`}
-                    />
-                    <div
-                      className={`text-xs text-red-500 mt-1 ml-1 font-medium ${errorPlaceDisplay}`}
-                    >
-                      {t('ui.place.should.have.characters.is.allowed')}
-                    </div>
-                  </div>
-
-                  {/* Password */}
+                  {/* Password */}{' '}
                   <div className="relative">
                     <Input
                       type={showSignupPassword ? 'text' : 'password'}
@@ -1284,7 +1178,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       </div>
                     </div>
                   </div>
-
                   {/* Confirm Password */}
                   <div className="relative">
                     <Input
@@ -1333,7 +1226,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       {t('common.passwordsDoNotMatch')}
                     </div>
                   </div>
-
                   {/* Consent Checkbox */}
                   <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <input
@@ -1372,7 +1264,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       </a>
                     </label>
                   </div>
-
                   {/* Sign Up Button */}
                   <Button
                     onClick={handleSignupSendOTP}
@@ -1380,7 +1271,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                       loading ||
                       !isValidPhoneNumber() ||
                       !signupData.name.trim() ||
-                      !isValidEmail(signupData.email) ||
                       !signupData.password ||
                       signupData.password !== signupData.confirmPassword ||
                       !signupData.has_given_consent ||

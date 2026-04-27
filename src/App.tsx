@@ -7,14 +7,17 @@ import Index from './pages/Index';
 import LandingPage from './pages/LandingPage';
 import NotFound from './pages/NotFound';
 import ForgotPassword from './pages/ForgotPassword'; // Import the new component
-import Proofreading from './pages/Proofreading';
+import DocDigitization from './pages/DocDigitization';
 import AnnotationsDashboard from './pages/AnnotationsDashboard';
 import Profile from './pages/Profile';
 import MyProfileRedirect from './pages/MyProfileRedirect';
 import PeerReview from './pages/PeerReview';
+import RecordDetails from './pages/RecordDetails'; // Import RecordDetails component
 import ImageReviewPage from './pages/ImageReviewPage';
 import AudioReviewPage from './pages/AudioReviewPage';
 import VideoReviewPage from './pages/VideoReviewPage';
+import CompleteProfileGeneralPage from './pages/CompleteProfileGeneralPage';
+import CompleteProfileInternPage from './pages/CompleteProfileInternPage';
 import { AuthProvider } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import RequireAuth from './components/RequireAuth';
@@ -49,7 +52,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/media"
+                path="/upload"
                 element={
                   <RequireAuth>
                     <Index />
@@ -57,7 +60,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/media/:mediaType"
+                path="/upload/:mediaType"
                 element={
                   <RequireAuth>
                     <UploadPage />
@@ -65,7 +68,10 @@ const App = () => (
                 }
               />
               <Route path="/tools" element={<AnnotationsDashboard />} />
-              <Route path="/proofreading" element={<AnnotationsDashboard />} />
+              <Route
+                path="/doc-digitization"
+                element={<AnnotationsDashboard />}
+              />
               <Route
                 path="/myprofile/"
                 element={
@@ -95,6 +101,26 @@ const App = () => (
                 }
               />
               <Route
+                path="/complete-profile"
+                element={<Navigate to="/complete-profile/step-2" replace />}
+              />
+              <Route
+                path="/complete-profile/step-2"
+                element={
+                  <RequireAuth>
+                    <CompleteProfileGeneralPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/complete-profile/step-3"
+                element={
+                  <RequireAuth>
+                    <CompleteProfileInternPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
                 path="/peer-review"
                 element={
                   <RequireAuth>
@@ -102,13 +128,25 @@ const App = () => (
                   </RequireAuth>
                 }
               />
+              <Route
+                path="/records/:recordId"
+                element={
+                  <RequireAuth>
+                    <RecordDetails />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/shared/:recordId"
+                element={<RecordDetails isSharedView={true} />}
+              />
             </Route>
 
             <Route
-              path="/tools/proofreading"
+              path="/tools/doc-digitization"
               element={
                 <RequireAuth>
-                  <Proofreading />
+                  <DocDigitization />
                 </RequireAuth>
               }
             />

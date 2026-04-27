@@ -1117,7 +1117,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             <div className="mb-6">
               <label className="block font-medium mb-2">
                 {t('common.release.rights')}
-                {t('common.')}
               </label>
               <select
                 value={releaseRights}

@@ -26,7 +26,7 @@ export const useWelcomeTour = () => {
             side: 'top',
             align: 'center',
             onNextClick: () => {
-              navigate('/media');
+              navigate('/upload');
               setTimeout(() => {
                 driverObj.current?.moveNext();
               }, 500);
@@ -160,12 +160,12 @@ export const useWelcomeTour = () => {
           },
         },
         {
-          element: '#tour-proofreading-tool',
+          element: '#tour-doc-digitization-tool',
           popover: {
-            title: t('tour.proofreading.title', 'Proofreading'),
+            title: t('tour.docDigitization.title', 'Document Digitization'),
             description: t(
-              'tour.proofreading.description',
-              'Help improve data quality by proofreading text contributions.',
+              'tour.docDigitization.description',
+              'Help improve data quality by digitizing text contributions.',
             ),
             side: 'bottom',
             align: 'center',
@@ -177,7 +177,7 @@ export const useWelcomeTour = () => {
             title: t('tour.futureTools.title', 'Upcoming Features'),
             description: t(
               'tour.futureTools.description',
-              'Stay tuned for RAG, Story Generator, Agent Workflows, and more!',
+              'Stay tuned for Ask Your Corpus, Story Generator, Agent Workflows, and more!',
             ),
             side: 'top',
             align: 'center',
