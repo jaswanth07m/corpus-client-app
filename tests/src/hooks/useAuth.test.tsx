@@ -289,7 +289,9 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       await act(async () => {
-        await result.current.login('bad-token', { id: 'dummy' });
+        await expect(
+          result.current.login('bad-token', { id: 'dummy' }),
+        ).rejects.toThrow('Login networking error');
       });
 
       expect(errorSpy).toHaveBeenCalledWith(

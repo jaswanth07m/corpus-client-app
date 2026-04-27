@@ -129,8 +129,7 @@ const UserContributions: React.FC<UserContributionsProps> = ({
       <h3>
         {mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} Contributions
         <span className="contribution-count-badge">
-          ({displayedContributions.length} of {allContributions.length}
-          {t('common.')}
+          ({displayedContributions.length} of {allContributions.length})
         </span>
       </h3>
 

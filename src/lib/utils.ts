@@ -71,3 +71,7 @@ export function getISTDate(dateString: string): Date {
   );
   return result;
 }
+
+export function enumToLabel(value: string): string {
+  return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}

@@ -45,7 +45,6 @@
     },
     "selectALocation": "एक स्थान चुनें",
     "confirmLocation": "स्थान की पुष्टि करें",
-    "details": "विवरण",
     "selectMediaType": "मीडिया प्रकार चुनें",
     "to": {
       "choose": "चुनने के लिए"
@@ -167,13 +166,14 @@
     "enter": {
       "title": "शीर्षक दर्ज करें",
       "description": "विवरण दर्ज करें",
-      "language": "भाषा दर्ज करें",
-      "rights": "अधिकार दर्ज करें",
       "current": {
         "place": "वर्तमान स्थान दर्ज करें"
       },
       "profession": "व्यवसाय दर्ज करें",
-      "organisation": "संगठन दर्ज करें"
+      "organisation": "संगठन दर्ज करें",
+      "roll": {
+        "number": ""
+      }
     },
     "noUsersFound": "कोई उपयोगकर्ता नहीं मिला",
     "from": {
@@ -251,13 +251,107 @@
     },
     "previousPage": "पिछला पेज",
     "nextPage": "अगला पेज",
-    "goBackHome": "",
-    "recordNotFound": "",
-    "viewDocument": "",
-    "reviewedVerified": "",
-    "noRecordsFoundInThisCategory": "",
-    "trySelectingADifferentCategoryOrClearingTheFilter": "",
-    "clearFilter": "",
+    "noOptionFound": "",
+    "pleaseUploadAPdfFile": "",
+    "fileSizeMustBeLessThan5mb": "",
+    "authenticationRequiredForUpload": "",
+    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "",
+    "failedToViewResume": "",
+    "selectType": "",
+    "selectDistrict": "",
+    "permanentPostalAddress": "",
+    "enterPermanentPostalAddress": "",
+    "college": {
+      "institution": "",
+      "roll": {
+        "number": ""
+      }
+    },
+    "selectCollege": "",
+    "cantFindYourInstitutionSelectOtherNotInList": "",
+    "selectCategory": "",
+    "specific": {
+      "stream": ""
+    },
+    "selectStream": "",
+    "selectYear": "",
+    "task": {
+      "registered": {
+        "id": ""
+      },
+      "id": ""
+    },
+    "device": {
+      "internet": ""
+    },
+    "has": {
+      "laptop": ""
+    },
+    "laptop": {
+      "os": "",
+      "ram": ""
+    },
+    "selectOs": "",
+    "selectRam": "",
+    "mobile": {
+      "os": "",
+      "ram": ""
+    },
+    "internet": {
+      "speed": ""
+    },
+    "selectSpeed": "",
+    "daily": {
+      "data": {
+        "limit": ""
+      }
+    },
+    "selectLimit": "",
+    "list": {
+      "your": {
+        "ai": {
+          "courses": ""
+        }
+      }
+    },
+    "language": {
+      "proficiency": ""
+    },
+    "selectYourProficiencyLevelForEachLanguage": "",
+    "rural": {
+      "area": {
+        "access": ""
+      }
+    },
+    "completed": {
+      "ai": {
+        "courses": ""
+      }
+    },
+    "gender": "",
+    "academic": {
+      "details": ""
+    },
+    "roll": {
+      "number": ""
+    },
+    "whatIsYourPermanentPostalAddress": "",
+    "enterYourCompletePermanentAddress": "",
+    "uploadResumePdfOnlyMax5mb": "",
+    "do": {
+      "you": {
+        "have": {
+          "a": {
+            "laptop": ""
+          }
+        }
+      }
+    },
+    "saving": "",
+    "preview": "",
+    "noPreviewAvailable": "",
+    "searchPlaceOrAddress": "",
+    "searching": "",
     "failed": {
       "to": {
         "copy": {
@@ -265,9 +359,24 @@
         }
       }
     },
-    "preview": "",
-    "noPreviewAvailable": "",
-    "reviewedAndVerified": "समीक्षित और सत्यापित"
+    "goBackHome": "",
+    "recordNotFound": "",
+    "viewDocument": "",
+    "noRecordsFoundInThisCategory": "",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "",
+    "clearFilter": "",
+    "workstation": {
+      "os": "",
+      "ram": ""
+    },
+    "normalUser": "",
+    "are": {
+      "you": {
+        "an": {
+          "intern": ""
+        }
+      }
+    }
   },
   "ui": {
     "failed": {
@@ -325,6 +434,11 @@
           "content": {
             "here": "अपनी टेक्स्ट सामग्री को यहां दर्ज करें..."
           }
+        }
+      },
+      "task": {
+        "id": {
+          "optional": ""
         }
       }
     },
@@ -392,6 +506,36 @@
             }
           }
         }
+      },
+      "list": {
+        "all": {
+          "ai": {
+            "courses": {
+              "you": {
+                "have": {
+                  "completed": ""
+                }
+              }
+            }
+          }
+        }
+      },
+      "fill": {
+        "in": {
+          "the": {
+            "remaining": {
+              "details": {
+                "to": {
+                  "complete": {
+                    "your": {
+                      "registration": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "place": {
@@ -438,10 +582,118 @@
         }
       }
     },
+    "do": {
+      "you": {
+        "have": {
+          "access": {
+            "to": {
+              "any": {
+                "rural": {
+                  "areas": {
+                    "nearby": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "education": {
+      "institution": ""
+    },
+    "have": {
+      "you": {
+        "completed": {
+          "any": {
+            "ai": {
+              "courses": ""
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "of": {
+        "ai": {
+          "courses": {
+            "completed": ""
+          }
+        }
+      }
+    },
+    "resume": {
+      "pdf": {
+        "only": {
+          "max": {
+            "5mb": ""
+          }
+        }
+      }
+    },
+    "internship": {
+      "language": {
+        "proficiency": ""
+      }
+    },
+    "task": {
+      "registered": {
+        "id": {
+          "optional": ""
+        }
+      }
+    },
+    "eg": {
+      "nearby": {
+        "villages": {
+          "shamirpet": {
+            "medchal": {
+              "etc": ""
+            }
+          }
+        }
+      }
+    },
+    "laptop": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "mobile": {
+      "operating": {
+        "system": ""
+      }
+    },
+    "internet": {
+      "connection": {
+        "speed": {
+          "mbps": ""
+        }
+      }
+    },
+    "daily": {
+      "data": {
+        "limit": {
+          "quota": ""
+        }
+      }
+    },
     "url": {
       "copied": {
         "to": {
           "clipboard": ""
+        }
+      }
+    },
+    "step": {
+      "1": {
+        "general": {
+          "information": ""
+        }
+      },
+      "2": {
+        "academic": {
+          "details": ""
         }
       }
     }
@@ -463,11 +715,11 @@
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।",
-    "linkCopiedSuccessfully": "",
-    "recordUpdatedSuccessfully": "रिकॉर्ड सफलतापूर्वक अपडेट किया गया!",
-    "error": "",
-    "loadingCategories": "",
-    "saving": "सहेजा जा रहा है..."
+    "resumeUploadedSuccessfully": "",
+    "uploadingNewResume": "",
+    "profileCompletedSuccessfully": "",
+    "uploadingResume": "",
+    "loadingCategories": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -486,20 +738,27 @@
     "enterFullName": "पूरा नाम दर्ज करें",
     "shortBio": "संक्षिप्त परिचय",
     "profession": "व्यवसाय",
-    "organisation": "संगठन"
+    "organisation": "संगठन",
+    "workLocation": "",
+    "cityState": "",
+    "locationDetails": "",
+    "chooseYourWorkLocationForTheInternship": ""
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "कृपया मान्य अक्षांश और देशांतर मान दर्ज करें",
     "latitudeMustBeBetween90And90": "अक्षांश -90 और 90 के बीच होना चाहिए",
     "longitudeMustBeBetween180And180": "देशांतर -180 और 180 के बीच होना चाहिए",
-    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें"
+    "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें",
+    "authenticationRequired": ""
   },
   "categories": {
     "chooseACategoryToContributeContent": "सामग्री योगदान देने के लिए एक श्रेणी चुनें",
     "changeType": "प्रकार बदलें:",
     "unsupportedMediaType": "असमर्थित मीडिया प्रकार",
     "sourceLabel": "स्रोत लेबल",
-    "type": "प्रकार:"
+    "type": "प्रकार:",
+    "organisationType": "",
+    "educationCategory": ""
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",
@@ -538,6 +797,7 @@
     "imageUrl": "छवि URL",
     "enterRecordId": "रिकॉर्ड आईडी दर्ज करें",
     "recordControls": "रिकॉर्ड नियंत्रण",
+    "resumeRecordId": "",
     "copyRecordUrl": ""
   },
   "stats": {
@@ -607,7 +867,8 @@
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
     "loginWithPassword": "पासवर्ड से लॉगिन करें",
     "loginWithOtp": "OTP से लॉगिन करें",
-    "enterPassword": "पासवर्ड दर्ज करें"
+    "enterPassword": "पासवर्ड दर्ज करें",
+    "emailIsRequired": ""
   },
   "nav": {
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
@@ -624,7 +885,13 @@
     "profile": "प्रोफ़ाइल",
     "settings": "सेटिंग्स",
     "logout": "लॉगआउट",
-    "login": "लॉगिन"
+    "login": "लॉगिन",
+    "internshipProfile": "",
+    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "",
+    "profileIncompletePleaseCompleteIt": "",
+    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "",
+    "completeProfile": "",
+    "completeYourProfile": ""
   },
   "profile": {
     "setLocation": "स्थान सेट करें",
@@ -765,5 +1032,8 @@
     "tamil": "तमिल",
     "bengali": "बंगाली",
     "malayalam": "मलयालम"
+  },
+  "time": {
+    "currentYearOfStudy": ""
   }
 }

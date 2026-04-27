@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import {
+  cleanup,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import LoginPage from '@/pages/LoginPage';
 
@@ -85,14 +91,16 @@ describe('LoginPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
   });
 
-  it('logs in the user and redirects after login success', () => {
+  it('logs in the user and redirects after login success', async () => {
     render(<LoginPage />);
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Trigger Login Success' }),
     );
 
-    expect(mockLogin).toHaveBeenCalledWith(mockToken, mockUser);
-    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith(mockToken, mockUser);
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    });
   });
 });

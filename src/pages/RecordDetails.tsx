@@ -383,7 +383,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
             {error}
           </p>
           <Link to="/" className="text-blue-600 hover:underline">
-            Go back home
+            {t('common.goBackHome')}
           </Link>
         </div>
       </div>
@@ -394,7 +394,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Record not found</p>
+          <p className="text-gray-600 mb-4">{t('common.recordNotFound')}</p>
           <Link to="/" className="text-blue-600 hover:underline">
             Go back home
           </Link>
@@ -452,7 +452,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                   >
                     <Download className="w-5 h-5" />
-                    View document
+                    {t('common.viewDocument')}
                   </a>
                 </div>
               ) : (

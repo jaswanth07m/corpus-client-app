@@ -297,11 +297,6 @@ const mockCategories = [
   },
 ];
 
-const mockToken = 'mock.jwt.token';
-const mockOnBack = vi.fn();
-const mockOnLogout = vi.fn();
-const mockOnSessionExpired = vi.fn();
-
 // Helper function to create a mock JWT token
 const createMockJWTToken = (payload: { exp?: number; sub?: string } = {}) => {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -314,6 +309,11 @@ const createMockJWTToken = (payload: { exp?: number; sub?: string } = {}) => {
   const signature = 'mock-signature';
   return `${header}.${encodedPayload}.${signature}`;
 };
+
+const mockToken = createMockJWTToken();
+const mockOnBack = vi.fn();
+const mockOnLogout = vi.fn();
+const mockOnSessionExpired = vi.fn();
 
 const renderCategories = (props = {}) => {
   return render(
@@ -337,7 +337,10 @@ describe('Categories Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    fetchMock = vi.fn();
+    fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    });
     global.fetch = fetchMock;
 
     // Mock geolocation
@@ -933,6 +936,13 @@ describe('Categories Component', () => {
     });
 
     it('should handle session expiration on profile fetch', async () => {
+      // Create a token without sub field to force fallback to API
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(
+        JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+      );
+      const tokenWithoutSub = `${header}.${payload}.signature`;
+
       // First call for categories (success)
       fetchMock
         .mockResolvedValueOnce({
@@ -945,7 +955,7 @@ describe('Categories Component', () => {
           status: 401,
         });
 
-      renderCategories();
+      renderCategories({ token: tokenWithoutSub });
 
       await waitFor(() => {
         expect(mockOnSessionExpired).toHaveBeenCalled();

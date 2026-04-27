@@ -181,14 +181,14 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search place or address"
+            placeholder={t('common.searchPlaceOrAddress')}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {(isSearching || searchResults.length > 0) && (
             <div className="absolute z-[1001] mt-1 w-full max-h-56 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
               {isSearching && (
                 <div className="px-3 py-2 text-sm text-gray-500">
-                  Searching...
+                  {t('common.searching')}
                 </div>
               )}
               {!isSearching &&

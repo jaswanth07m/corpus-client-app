@@ -78,13 +78,8 @@ describe('LoginForm', () => {
     await user.type(phoneInput, '4234567890');
     fireEvent.blur(phoneInput);
 
-    await waitFor(
-      () => {
-        expect(screen.getByText('auth.phoneNumberIsInvalid')).not.toHaveClass(
-          'hidden',
-        );
-      },
-      { timeout: 10000 },
+    expect(screen.getByText('auth.phoneNumberIsInvalid')).not.toHaveClass(
+      'hidden',
     );
 
     await user.clear(phoneInput);
@@ -144,17 +139,16 @@ describe('LoginForm', () => {
 
   it('login missing fields returns error toast early', async () => {
     renderComponent();
+    const phoneInput = screen.getByPlaceholderText(
+      'auth.enter10digitPhoneNumber',
+    );
     const passwordInput = screen.getByPlaceholderText('auth.enterYourPassword');
 
-    // Enter should run schema validation and show inline errors.
+    // Test early exit by hitting Enter since the button is disabled natively
     fireEvent.keyDown(passwordInput, { key: 'Enter', code: 'Enter' });
-    await waitFor(() => {
-      expect(
-        screen.getByText('auth.pleaseEnterAValid10digitPhoneNumber'),
-      ).toBeInTheDocument();
-      expect(screen.getByText('auth.enterYourPassword')).toBeInTheDocument();
-    });
-    expect(mockToastError).not.toHaveBeenCalled();
+    expect(mockToastError).toHaveBeenCalledWith(
+      'auth.pleaseEnterAValidPhoneNumberAndPassword',
+    );
   });
 
   it('handles API errors during password login', async () => {
@@ -214,80 +208,91 @@ describe('LoginForm', () => {
     const signupBtns = screen.getAllByRole('button', { name: 'auth.signUp' });
     await user.click(signupBtns[0]);
 
-    fireEvent.change(
-      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
-      {
-        target: { value: '123' },
-      },
+    // The button is disabled by React state. We call the React onClick prop directly
+    // to test each internal validation branch of handleSignupSendOTP.
+    // We get it from __reactProps$ to ensure we have the freshest closure after state updates.
+    const getHandler = () => {
+      const submitOtpBtn = screen.getByRole('button', {
+        name: 'auth.requestOtpForPhoneVerification',
+      });
+      const key = Object.keys(submitOtpBtn).find((k) =>
+        k.startsWith('__reactProps$'),
+      );
+      return key
+        ? (submitOtpBtn as Record<string, { onClick: () => void }>)[key].onClick
+        : null;
+    };
+
+    // empty phone
+    getHandler()!();
+    expect(mockToastError).toHaveBeenCalledWith(
+      'Please enter a valid 10-digit phone number',
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'a' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
-      target: { value: '123' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'abc' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
-      target: { value: '123' },
+    mockToastError.mockClear();
+
+    // Set a valid phone
+    const phoneInput = screen.getByPlaceholderText(
+      'auth.enter10digitPhoneNumber',
+    );
+    fireEvent.change(phoneInput, { target: { value: '9000000000' } });
+    getHandler()!();
+    expect(mockToastError).toHaveBeenCalledWith('user.pleaseEnterYourName');
+    mockToastError.mockClear();
+
+    const nameInput = screen.getByPlaceholderText('user.fullName');
+    fireEvent.change(nameInput, { target: { value: 'Valid Name' } });
+    getHandler()!();
+    expect(mockToastError).toHaveBeenCalledWith(
+      'common.pleaseEnterAValidEmailAddress',
+    );
+    mockToastError.mockClear();
+
+    const emailInput = screen.getByPlaceholderText('common.emailAddress');
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    getHandler()!();
+    expect(mockToastError).toHaveBeenCalledWith(
+      'auth.passwordMustBeAtLeast6CharactersLong',
+    );
+    mockToastError.mockClear();
+
+    const passwordInput = screen.getByPlaceholderText('auth.createPassword');
+    fireEvent.change(passwordInput, { target: { value: 'Valid@123!' } });
+    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
+      target: { value: 'Valid@123!' },
     });
 
-    await waitFor(() => {
-      expect(
-        screen.getByText('auth.pleaseEnterAValid10digitPhoneNumber'),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('auth.pleaseEnterAValidUsername'),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('user.nameShouldHaveCharactersOnly'),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('common.pleaseEnterAValidEmailAddress'),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('auth.passwordMustBeAtLeast6CharactersLong'),
-      ).toBeInTheDocument();
-    });
-
-    const submitOtpBtn = screen.getByRole('button', {
-      name: 'auth.requestOtpForPhoneVerification',
-    });
-    expect(submitOtpBtn).toBeDisabled();
-    expect(mockToastError).not.toHaveBeenCalled();
+    getHandler()!();
+    expect(mockToastError).toHaveBeenCalledWith(
+      'ui.please.agree.to.the.terms.and.conditions',
+    );
   });
 
   it('tests signup password strength validation logic', async () => {
+    const user = userEvent.setup();
     renderComponent();
     const signupBtns = screen.getAllByRole('button', { name: 'auth.signUp' });
-    fireEvent.click(signupBtns[0]);
+    await user.click(signupBtns[0]);
 
     const passwordInput = screen.getByPlaceholderText('auth.createPassword');
-    fireEvent.focus(passwordInput);
-    await waitFor(() => {
-      expect(screen.getByText('auth.passwordStrength')).toBeInTheDocument();
-      expect(screen.getByText('Enter Password')).toBeInTheDocument();
-    });
 
-    fireEvent.change(passwordInput, { target: { value: 'weak' } });
-    await waitFor(() => {
-      expect(screen.getByText('Weak')).toBeInTheDocument();
-    });
+    await user.type(passwordInput, 'weak');
+    fireEvent.blur(passwordInput);
+    expect(passwordInput).toHaveClass('border-rose-800');
 
-    fireEvent.change(passwordInput, { target: { value: '' } });
-    fireEvent.change(passwordInput, { target: { value: 'Medium123' } });
-    await waitFor(() => {
-      expect(screen.getByText('Medium')).toBeInTheDocument();
-    });
+    await user.clear(passwordInput);
+    await user.type(passwordInput, 'Medium123');
+    fireEvent.blur(passwordInput);
+    expect(passwordInput).toHaveClass('border-yellow-500');
 
-    fireEvent.change(passwordInput, { target: { value: '' } });
-    fireEvent.change(passwordInput, {
-      target: { value: 'StrongPassword123!' },
-    });
-    await waitFor(() => {
-      expect(screen.getByText('Strong')).toBeInTheDocument();
-    });
+    await user.clear(passwordInput);
+    await user.type(passwordInput, 'StrongPassword123!');
+    fireEvent.blur(passwordInput);
+    expect(passwordInput).toHaveClass('border-green-500');
+
+    const confirmInput = screen.getByPlaceholderText('common.confirmPassword');
+    await user.type(confirmInput, 'Different!23');
+    fireEvent.blur(confirmInput);
+    expect(confirmInput).toHaveClass('border-rose-800');
   });
 
   it('submits a valid signup flow and resolves OTP sending API, then tests verification branch failures', async () => {
@@ -300,14 +305,11 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
     fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+      target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },
@@ -371,14 +373,11 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
     fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+      target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },
@@ -469,14 +468,11 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
     fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+      target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },
@@ -554,14 +550,11 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
     fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@swecha.org' },
+      target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },

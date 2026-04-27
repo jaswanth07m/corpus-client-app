@@ -45,7 +45,7 @@ interface UserProfile {
 type AuthContextType = {
   token: string | null;
   user: UserProfile | null;
-  login: (token: string, user: UserProfile) => void;
+  login: (token: string, user: UserProfile) => Promise<UserProfile>;
   logout: () => void;
   isReady: boolean;
   refetchUser: () => Promise<void>;
@@ -165,9 +165,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(fullUserData);
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(fullUserData));
+      return fullUserData;
     } catch (error) {
       console.error('Error during login:', error);
-      // Handle error appropriately
+      throw error;
     }
   };
 
