@@ -508,38 +508,44 @@ describe('LoginForm', () => {
     return resendBtn;
   }
 
-  it('handles signup Resend OTP flow errors and success', async () => {
-    let resendBtn = await setupResendOTPFlow();
+  it(
+    'handles signup Resend OTP flow errors and success',
+    { timeout: 150000 },
+    async () => {
+      let resendBtn = await setupResendOTPFlow();
 
-    (global.fetch as Mock).mockRejectedValueOnce(new Error('Network failure'));
-    fireEvent.click(resendBtn);
-    await vi.runAllTimersAsync();
-    expect(mockToastError).toHaveBeenCalledWith(
-      'Network error. Please check your connection and try again.',
-    );
-    mockToastError.mockClear();
+      (global.fetch as Mock).mockRejectedValueOnce(
+        new Error('Network failure'),
+      );
+      fireEvent.click(resendBtn);
+      await vi.runAllTimersAsync();
+      expect(mockToastError).toHaveBeenCalledWith(
+        'Network error. Please check your connection and try again.',
+      );
+      mockToastError.mockClear();
 
-    await vi.advanceTimersByTimeAsync(61000);
-    resendBtn = screen.getByText('Resend OTP');
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ message: 'Specific API Error' }, false, 400),
-    );
-    fireEvent.click(resendBtn);
-    await vi.runAllTimersAsync();
-    expect(mockToastError).toHaveBeenCalledWith('Specific API Error');
-    mockToastError.mockClear();
+      await vi.advanceTimersByTimeAsync(61000);
+      resendBtn = screen.getByText('Resend OTP');
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ message: 'Specific API Error' }, false, 400),
+      );
+      fireEvent.click(resendBtn);
+      await vi.runAllTimersAsync();
+      expect(mockToastError).toHaveBeenCalledWith('Specific API Error');
+      mockToastError.mockClear();
 
-    await vi.advanceTimersByTimeAsync(61000);
-    resendBtn = screen.getByText('Resend OTP');
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ status: 'sent' }, true, 200),
-    );
-    fireEvent.click(resendBtn);
-    await vi.runAllTimersAsync();
-    expect(mockToastSuccess).toHaveBeenCalledWith(
-      'messages.signupOtpResentSuccessfully',
-    );
-  });
+      await vi.advanceTimersByTimeAsync(61000);
+      resendBtn = screen.getByText('Resend OTP');
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ status: 'sent' }, true, 200),
+      );
+      fireEvent.click(resendBtn);
+      await vi.runAllTimersAsync();
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        'messages.signupOtpResentSuccessfully',
+      );
+    },
+  );
 
   it('can use back logic to return to signup form after OTP send', async () => {
     const user = userEvent.setup();

@@ -395,6 +395,53 @@
     "specialization": "Specialization",
     "selectSpecialization": "Select Specialization",
     "pleaseSelectCollegeFirst": "Please select college first",
+    "reviewedAndVerified": "Reviewed and verified",
+    "remove": "Remove",
+    "normalUser": "Normal User",
+    "are": {
+      "you": {
+        "an": {
+          "intern": "Are you an intern? *"
+        }
+      }
+    },
+    "preview": "Preview:",
+    "noPreviewAvailable": "No preview available",
+    "searchPlaceOrAddress": "Search place or address",
+    "searching": "Searching..."
+  },
+<<<<<<< HEAD
+    "goBackHome": "Go back home",
+    "recordNotFound": "Record not found",
+    "viewDocument": "View document",
+    "noRecordsFoundInThisCategory": "No records found in this category",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "Try selecting a different category or clearing the filter.",
+    "clearFilter": "Clear Filter",
+    "workstation": {
+      "os": "Workstation OS",
+      "ram": "Workstation RAM"
+    },
+    "basicInfo": "Basic Info",
+    "location": "Location",
+    "privacySettings": "Privacy Settings",
+    "phonePrivacy": "Phone Privacy",
+    "emailPrivacy": "Email Privacy",
+    "selectPrivacy": "Select Privacy",
+    "saveChanges": "Save Changes",
+    "view": "View",
+    "start": {
+      "welcome": {
+        "tour": "Start Welcome Tour"
+      }
+    },
+    "takeAnother": "Take Another",
+    "photoCapturedClickStopCameraWhenDone": "Photo captured. Click stop camera when done.",
+    "university": "University",
+    "selectUniversity": "Select University",
+    "pleaseSelectUniversityFirst": "Please select university first",
+    "specialization": "Specialization",
+    "selectSpecialization": "Select Specialization",
+    "pleaseSelectCollegeFirst": "Please select college first",
     "reviewedAndVerified": "✓ Reviewed & Verified",
     "remove": "Remove",
     "normalUser": "Normal User",
@@ -410,6 +457,13 @@
     "noGeotaggedContributionsYet": "No geotagged contributions yet.",
     "closeMap": "Close map",
     "retry": "Retry"
+=======
+    "preview": "Preview:",
+    "noPreviewAvailable": "No preview available",
+    "reviewedAndVerified": "Reviewed and verified",
+    "searchPlaceOrAddress": "Search place or address",
+    "searching": "Searching..."
+>>>>>>> c8a798b7 (fix: replace heatmap.less and heatmap.more with proper labels)
   },
   "ui": {
     "failed": {
