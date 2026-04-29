@@ -347,36 +347,38 @@
         }
       }
     },
-    "saving": "",
-    "preview": "",
-    "noPreviewAvailable": "",
+    "saving": "सहेजा जा रहा है...",
+    "preview": "पूर्वावलोकन:",
+    "noPreviewAvailable": "पूर्वावलोकन उपलब्ध नहीं है",
     "searchPlaceOrAddress": "स्थान या पता खोजें",
     "searching": "खोज रहे हैं...",
     "failed": {
       "to": {
         "copy": {
-          "url": ""
+          "url": "URL कॉपी करने में विफल"
         }
       }
     },
-    "goBackHome": "",
-    "recordNotFound": "",
-    "viewDocument": "",
-    "noRecordsFoundInThisCategory": "",
-    "trySelectingADifferentCategoryOrClearingTheFilter": "",
-    "clearFilter": "",
+    "goBackHome": "होम पर वापस जाएं",
+    "recordNotFound": "रिकॉर्ड नहीं मिला",
+    "viewDocument": "दस्तावेज़ देखें",
+    "noRecordsFoundInThisCategory": "इस श्रेणी में कोई रिकॉर्ड नहीं मिला",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "किसी दूसरी श्रेणी को चुनने या फ़िल्टर साफ़ करने का प्रयास करें।",
+    "clearFilter": "फ़िल्टर साफ़ करें",
     "workstation": {
-      "os": "",
-      "ram": ""
+      "os": "वर्कस्टेशन OS",
+      "ram": "वर्कस्टेशन RAM"
     },
-    "normalUser": "",
+    "normalUser": "सामान्य उपयोगकर्ता",
     "are": {
       "you": {
         "an": {
-          "intern": ""
+          "intern": "क्या आप इंटर्न हैं? *"
         }
       }
     },
+    "preview": "पूर्वावलोकन:",
+    "noPreviewAvailable": "पूर्वावलोकन उपलब्ध नहीं है",
     "reviewedAndVerified": "समीक्षित और सत्यापित",
     "viewContributionsOnMap": "मानचित्र पर योगदान देखें",
     "couldNotLoadContributions": "योगदान लोड नहीं हो सके.",
