@@ -259,25 +259,31 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
       {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 5 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gap: 5,
+        }}
+      >
         {[
           {
             label: 'Uploads',
             value: contributions?.totalContributions || 0,
             color: 'linear-gradient(135deg, #34d399, #10b981)',
-            icon: <TrendingUp size={9} />,
+            icon: <TrendingUp size={8} />,
           },
           {
             label: 'Edits',
             value: edits,
             color: '#aada00ff',
-            icon: <Edit size={9} />,
+            icon: <Edit size={8} />,
           },
           {
             label: 'Streak',
             value: contributionStreak,
             color: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-            icon: <Flame size={9} />,
+            icon: <Flame size={8} />,
           },
           {
             label: 'Hours',
@@ -286,36 +292,67 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
                 (contributions?.videoDuration || 0),
             ),
             color: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
-            icon: <Clock size={9} />,
+            icon: <Clock size={8} />,
           },
           {
             label: 'Today',
             value: uploadsToday,
             color: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
-            icon: <Upload size={9} />,
+            icon: <Upload size={8} />,
           },
         ].map((item, idx) => (
           <div
             key={idx}
             style={{
               background: item.color,
-              borderRadius: 7,
-              padding: '5px 6px',
+              borderRadius: 8,
+              padding: '4px 8px',
               color: '#fff',
               textAlign: 'center',
-              height: 50,
+              height: 38,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 2,
+              gap: 5,
             }}
           >
-            <div className="flex justify-center items-center gap-1">
-              <div style={{ fontSize: '0.6rem', opacity: 0.9 }}>{item.label}</div>
-              <div style={{ opacity: 0.85 }}>{item.icon}</div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                height: '100%',
+                width: '100%',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
+                }}
+              >
+                <div style={{ fontSize: '0.58rem', opacity: 0.9 }}>
+                  {item.label}
+                </div>
+                <div style={{ fontSize: '0.58rem', opacity: 0.85 }}>
+                  {item.icon}
+                </div>
+              </div>
+              <div
+                style={{
+                  fontSize: '0.82rem',
+                  fontWeight: 'bold',
+                  lineHeight: 1.1,
+                }}
+              >
+                {item.value}
+              </div>
             </div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1.1 }}>{item.value}</div>
           </div>
         ))}
       </div>
@@ -324,37 +361,43 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
 
       {/* Contributions by Media Type */}
       <div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 5 }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: 5,
+          }}
+        >
           {[
             {
               label: 'Text',
               value: contributions?.contributionsByType.text || 0,
               color: '#3b82f6',
-              icon: <Activity size={9} />,
+              icon: <Activity size={8} />,
             },
             {
               label: 'Doc',
               value: contributions?.contributionsByType.document || 0,
               color: '#ef4444',
-              icon: <BarChart size={9} />,
+              icon: <BarChart size={8} />,
             },
             {
               label: 'Image',
               value: contributions?.contributionsByType.image || 0,
               color: '#f97316',
-              icon: <Award size={9} />,
+              icon: <Award size={8} />,
             },
             {
               label: 'Audio',
               value: contributions?.contributionsByType.audio || 0,
               color: '#22c55e',
-              icon: <TrendingUp size={9} />,
+              icon: <TrendingUp size={8} />,
             },
             {
               label: 'Video',
               value: contributions?.contributionsByType.video || 0,
               color: '#8b5cf6',
-              icon: <Calendar size={9} />,
+              icon: <Calendar size={8} />,
             },
           ].map((item, idx) => {
             const mediaTypeMap: {
@@ -377,29 +420,58 @@ const ContributionDashboard: React.FC<ContributionDashboardProps> = ({
                 }
                 style={{
                   background: item.color,
-                  borderRadius: 7,
-                  padding: '5px 6px',
+                  borderRadius: 8,
+                  padding: '4px 8px',
                   color: '#fff',
                   textAlign: 'center',
                   cursor: mediaType ? 'pointer' : 'default',
                   opacity: mediaType ? 1 : 0.6,
-                  height: 50,
+                  height: 38,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 2,
+                  gap: 5,
                 }}
                 className={
                   mediaType ? 'hover:brightness-110 transition-all' : ''
                 }
               >
-                <div className="flex justify-center items-center gap-1">
-                  <div style={{ fontSize: '0.6rem', opacity: 0.9 }}>{item.label}</div>
-                  <div style={{ opacity: 0.85 }}>{item.icon}</div>
-                </div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1.1 }}>
-                  {item.value}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    height: '100%',
+                    width: '100%',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{ fontSize: '0.58rem', opacity: 0.9 }}>
+                      {item.label}
+                    </div>
+                    <div style={{ fontSize: '0.58rem', opacity: 0.85 }}>
+                      {item.icon}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.82rem',
+                      fontWeight: 'bold',
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {item.value}
+                  </div>
                 </div>
               </div>
             );
