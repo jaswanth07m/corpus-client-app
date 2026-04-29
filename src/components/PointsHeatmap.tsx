@@ -1,14 +1,25 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DailyPoint } from '@/lib/points';
+import CalendarHeatmap from 'react-calendar-heatmap';
+import { Tooltip, type TooltipRefProps } from 'react-tooltip';
+import 'react-calendar-heatmap/dist/styles.css';
+import 'react-tooltip/dist/react-tooltip.css';
 import { TrendingUp } from 'lucide-react';
+
+import { DailyPoint } from '@/lib/points';
+
+import './PointsHeatmap.css';
 
 interface PointsHeatmapProps {
   dailyData: DailyPoint[];
 }
 
-const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_LABELS = [
+interface HeatmapValue {
+  date: string;
+  count: number;
+}
+
+const MONTH_LABELS_EN = [
   'Jan',
   'Feb',
   'Mar',
@@ -22,314 +33,258 @@ const MONTH_LABELS = [
   'Nov',
   'Dec',
 ];
-const SQUARE_SIZE = 12; // Size of each day cell
-const SQUARE_GAP = 2; // Gap between cells
-const panelColors = [
-  '#ebedf0', // 0: Empty (Level 0)
-  '#bbf7d0', // 1: Lighter Green (Level 1)
-  '#4ade80', // 2: Light Green (Level 2)
-  '#16a34a', // 3: Green (Level 3)
-  '#14532d', // 4: Darkest Green (Level 4)
+
+const MONTH_LABELS_TE = [
+  'జన',
+  'ఫిబ',
+  'మార్',
+  'ఏప్రి',
+  'మే',
+  'జూన్',
+  'జూలై',
+  'ఆగ',
+  'సెప్',
+  'అక్టో',
+  'నవం',
+  'డిసెం',
 ];
 
-interface TooltipData {
-  visible: boolean;
-  content: string;
-  x: number;
-  y: number;
-}
+const WEEKDAY_LABELS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAY_LABELS_TE = ['ఆది', 'సోమ', 'మంగళ', 'బుధ', 'గురు', 'శుక్ర', 'శని'];
 
-interface CalendarDay {
-  date: Date;
-  points: number;
-  level: number;
-}
+const getLevel = (count: number) => {
+  if (count >= 20) return 4;
+  if (count >= 10) return 3;
+  if (count >= 5) return 2;
+  if (count >= 1) return 1;
+  return 0;
+};
+
+const toDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeDateKey = (date: string) => date.slice(0, 10);
+
+const getLocalizedDateFormatter = (locale: string) =>
+  new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+const getLocalizedNumberFormatter = (locale: string) =>
+  new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+
+const getLabel = (translated: string, key: string, fallback: string) =>
+  translated === key ? fallback : translated;
 
 const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const tooltipRef = useRef<TooltipRefProps | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [tooltip, setTooltip] = useState<TooltipData>({
-    visible: false,
-    content: '',
-    x: 0,
-    y: 0,
-  });
-  const [keepTooltipVisible, setKeepTooltipVisible] = useState(false);
+  const [pinnedDate, setPinnedDate] = useState<string | null>(null);
 
-  // --- Data Preparation (Memoized for performance) ---
-  const { calendarData, monthLabels } = useMemo(() => {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setFullYear(endDate.getFullYear() - 1);
-    startDate.setDate(endDate.getDate() + 1);
+  const language = i18n?.language ?? 'en';
+  const locale = language.startsWith('te')
+    ? 'te-IN'
+    : language.startsWith('hi')
+      ? 'hi-IN'
+      : 'en-US';
 
-    const pointsMap = new Map(
-      dailyData.map((item) => [item.date, item.points]),
-    );
+  const monthLabels = locale.startsWith('te')
+    ? MONTH_LABELS_TE
+    : MONTH_LABELS_EN;
+  const weekdayLabels = locale.startsWith('te')
+    ? WEEKDAY_LABELS_TE
+    : WEEKDAY_LABELS_EN;
 
-    const days = [];
-    const currentDate = new Date(startDate);
+  const dateFormatter = useMemo(
+    () => getLocalizedDateFormatter(locale),
+    [locale],
+  );
+  const numberFormatter = useMemo(
+    () => getLocalizedNumberFormatter(locale),
+    [locale],
+  );
 
-    // Pad the beginning of the array to align the first day with Sunday
-    const startDayOfWeek = currentDate.getDay();
-    for (let i = 0; i < startDayOfWeek; i++) {
-      days.push(null);
-    }
+  const { startDate, endDate, values } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Generate data for each day in the range
-    while (currentDate <= endDate) {
-      const dateStr = currentDate.toISOString().split('T')[0];
-      const points = pointsMap.get(dateStr) || 0;
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-      // Fixed ranges like GitHub's contribution heatmap
-      let level = 0;
-      if (points > 0) {
-        if (points >= 20)
-          level = 4; // 20+ points: darkest green
-        else if (points >= 10)
-          level = 3; // 10-19 points: medium-dark green
-        else if (points >= 5)
-          level = 2; // 5-9 points: medium-light green
-        else level = 1; // 1-4 points: lightest green
-      }
+    const countsByDate = dailyData.reduce((acc, item) => {
+      const dateKey = normalizeDateKey(item.date);
+      if (!dateKey) return acc;
+      const nextCount = (acc.get(dateKey) ?? 0) + (Number(item.points) || 0);
+      acc.set(dateKey, nextCount);
+      return acc;
+    }, new Map<string, number>());
 
-      days.push({
-        date: new Date(currentDate),
-        points,
-        level,
+    const heatmapValues: HeatmapValue[] = [];
+    const currentDate = new Date(oneYearAgo);
+
+    while (currentDate <= today) {
+      const dateKey = toDateKey(currentDate);
+      heatmapValues.push({
+        date: dateKey,
+        count: countsByDate.get(dateKey) ?? 0,
       });
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // Calculate month label positions
-    const mLabels = [];
-    let lastProcessedMonth = -1;
-
-    for (let i = 0; i < days.length; i++) {
-      const day = days[i];
-      if (day) {
-        const month = day.date.getMonth();
-
-        // Only add a month label when we encounter the first day of a new month
-        if (month !== lastProcessedMonth) {
-          // Calculate which week this month starts in
-          const weekIndex = Math.floor(i / 7);
-
-          // Add the month label at the correct week position
-          mLabels.push({
-            label: MONTH_LABELS[month],
-            col: weekIndex,
-            date: day.date, // Store the date to identify oldest
-          });
-
-          lastProcessedMonth = month;
-        }
-      }
-    }
-
-    // If there are 2 or more month labels, mark the oldest (first) one to be hidden
-    const processedMonthLabels = mLabels.map((label, index) => ({
-      ...label,
-      hide: mLabels.length >= 2 && index === 0,
-    }));
-
-    return { calendarData: days, monthLabels: processedMonthLabels };
+    return {
+      startDate: oneYearAgo,
+      endDate: today,
+      values: heatmapValues,
+    };
   }, [dailyData]);
 
-  // --- Tooltip Event Handlers ---
-  const handleMouseEnter = (
-    e: React.MouseEvent<HTMLDivElement>,
-    day: CalendarDay | null,
-  ) => {
-    if (!day || !containerRef.current) return;
-    // Only update tooltip if we're not keeping it visible from a click
-    if (!keepTooltipVisible) {
-      const cellRect = e.currentTarget.getBoundingClientRect();
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const pointsStr = `${day.points.toFixed(1)} points`;
-      const dateStr = day.date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+  const buildTooltipContent = (value: HeatmapValue) => {
+    const pointsLabel = numberFormatter.format(value.count);
+    const dateLabel = dateFormatter.format(new Date(`${value.date}T00:00:00`));
+    return t('heatmap.activityOnDate', {
+      count: pointsLabel,
+      date: dateLabel,
+      defaultValue: `${pointsLabel} points on ${dateLabel}`,
+    });
+  };
 
-      setTooltip({
-        visible: true,
-        content: `${pointsStr} on ${dateStr}`,
-        x: cellRect.left - containerRect.left + cellRect.width / 2,
-        y: cellRect.top - containerRect.top,
-      });
-    }
+  const openTooltip = (
+    event: React.MouseEvent<SVGRectElement>,
+    value: HeatmapValue,
+  ) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    tooltipRef.current?.open({
+      content: buildTooltipContent(value),
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      },
+      place: 'top',
+      delay: 0,
+    });
+  };
+
+  const handleMouseOver = (
+    event: React.MouseEvent<SVGRectElement>,
+    value: HeatmapValue | null,
+  ) => {
+    if (!value || (pinnedDate && pinnedDate !== value.date)) return;
+    openTooltip(event, value);
   };
 
   const handleMouseLeave = () => {
-    // Only hide tooltip if we're not keeping it visible from a click
-    if (!keepTooltipVisible) {
-      setTooltip((prev) => ({ ...prev, visible: false }));
-    }
+    if (pinnedDate) return;
+    tooltipRef.current?.close({ delay: 0 });
   };
 
   const handleClick = (
-    e: React.MouseEvent<HTMLDivElement>,
-    day: CalendarDay | null,
+    event: React.MouseEvent<SVGRectElement>,
+    value: HeatmapValue | null,
   ) => {
-    if (!day || !containerRef.current) return;
-    const cellRect = e.currentTarget.getBoundingClientRect();
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const pointsStr = `${day.points.toFixed(1)} points`;
-    const dateStr = day.date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    if (!value) return;
 
-    // Toggle tooltip visibility on click
-    if (
-      keepTooltipVisible &&
-      tooltip.content === `${pointsStr} on ${dateStr}`
-    ) {
-      // If clicking the same day again, hide the tooltip
-      setTooltip((prev) => ({ ...prev, visible: false }));
-      setKeepTooltipVisible(false);
-    } else {
-      // Show tooltip for the clicked day and keep it visible
-      setTooltip({
-        visible: true,
-        content: `${pointsStr} on ${dateStr}`,
-        x: cellRect.left - containerRect.left + cellRect.width / 2,
-        y: cellRect.top - containerRect.top,
-      });
-      setKeepTooltipVisible(true);
+    if (pinnedDate === value.date) {
+      setPinnedDate(null);
+      tooltipRef.current?.close({ delay: 0 });
+      return;
     }
+
+    setPinnedDate(value.date);
+    openTooltip(event, value);
   };
 
-  const totalWeeks = Math.ceil(calendarData.length / 7);
-
-  // Close tooltip when clicking outside the heatmap
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleOutsideClick = (event: MouseEvent) => {
       if (
+        pinnedDate &&
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        if (keepTooltipVisible) {
-          setKeepTooltipVisible(false);
-          setTooltip((prev) => ({ ...prev, visible: false }));
-        }
+        setPinnedDate(null);
+        tooltipRef.current?.close({ delay: 0 });
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleOutsideClick);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleOutsideClick);
     };
-  }, [keepTooltipVisible]);
+  }, [pinnedDate]);
 
   return (
-    <div className="relative" ref={containerRef}>
-      {/* --- Heading and Legend --- */}
-      <div className="flex justify-between items-center mb-3">
+    <div className="corpus-points-heatmap relative w-full" ref={containerRef}>
+      <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <TrendingUp size={20} className="text-blue-600" />
           <p className="text-sm font-bold text-slate-900">
             {t('stats.pointsActivity')}
           </p>
         </div>
+
         <div className="flex items-center gap-1 text-xs text-gray-500">
-          <span>Less</span>
-          {panelColors.map((color, index) => (
-            <div
-              key={index}
-              className="rounded-sm"
-              style={{
-                backgroundColor: color,
-                width: `${SQUARE_SIZE - 2}px`,
-                height: `${SQUARE_SIZE - 2}px`,
-              }}
-            />
-          ))}
-          <span>More</span>
+          <span>
+            {getLabel(t('heatmap.less', 'Less'), 'heatmap.less', 'Less')}
+          </span>
+          <div className="flex items-center gap-[2px]">
+            <span className="heatmap-legend-swatch heatmap-level-0" />
+            <span className="heatmap-legend-swatch heatmap-level-1" />
+            <span className="heatmap-legend-swatch heatmap-level-2" />
+            <span className="heatmap-legend-swatch heatmap-level-3" />
+            <span className="heatmap-legend-swatch heatmap-level-4" />
+          </div>
+          <span>
+            {getLabel(t('heatmap.more', 'More'), 'heatmap.more', 'More')}
+          </span>
         </div>
       </div>
-
-      {/* --- Custom Tooltip --- */}
-      {(tooltip.visible || keepTooltipVisible) && (
-        <div
-          className="absolute z-10 px-2 py-1 text-xs font-semibold text-white bg-gray-900 rounded-md shadow-lg pointer-events-none whitespace-nowrap"
-          style={{
-            top: tooltip.y,
-            left: tooltip.x,
-            transform: `translate(-50%, -100%) translateY(-${SQUARE_GAP * 2}px)`,
-          }}
-        >
-          {tooltip.content}
-        </div>
-      )}
 
       <div className="overflow-x-auto pb-1">
-        <div className="inline-block">
-          {/* --- Month Labels --- */}
-          <div className="relative h-6" style={{ marginLeft: '24px' }}>
-            {monthLabels
-              .filter((monthLabel) => !monthLabel.hide) // Filter out hidden labels
-              .map(({ label, col }) => (
-                <div
-                  key={label}
-                  className="absolute text-xs text-gray-500 whitespace-nowrap"
-                  style={{
-                    left: `${col * (SQUARE_SIZE + SQUARE_GAP)}px`,
-                  }}
-                >
-                  {label}
-                </div>
-              ))}
-          </div>
-
-          <div className="flex">
-            {/* --- Day Labels (Sun, Mon, etc.) --- */}
-            <div
-              className="flex flex-col pr-2"
-              style={{ gap: `${SQUARE_GAP}px` }}
-            >
-              {WEEK_DAYS.map((day, i) => (
-                <div
-                  key={day}
-                  className="text-xs text-gray-500"
-                  style={{
-                    height: `${SQUARE_SIZE}px`,
-                    visibility: i % 2 !== 0 ? 'visible' : 'hidden',
-                  }}
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* --- Calendar Grid --- */}
-            <div
-              className="grid grid-flow-col grid-rows-7"
-              style={{ gap: `${SQUARE_GAP}px` }}
-            >
-              {calendarData.map((day, index) => (
-                <div
-                  key={index}
-                  className="rounded-none cursor-pointer"
-                  style={{
-                    width: `${SQUARE_SIZE}px`,
-                    height: `${SQUARE_SIZE}px`,
-                    backgroundColor: day
-                      ? panelColors[day.level]
-                      : 'transparent',
-                  }}
-                  onMouseEnter={(e) => handleMouseEnter(e, day)}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={(e) => handleClick(e, day)}
-                />
-              ))}
-            </div>
-          </div>
+        <div className="corpus-points-heatmap__chart inline-block grid-flow-col min-w-[640px]">
+          <CalendarHeatmap
+            values={values}
+            startDate={startDate}
+            endDate={endDate}
+            showWeekdayLabels
+            monthLabels={monthLabels}
+            weekdayLabels={weekdayLabels}
+            gutterSize={2}
+            classForValue={(value) => {
+              if (!value) return 'heatmap-level-0';
+              return `heatmap-level-${getLevel(Number(value.count) || 0)}`;
+            }}
+            onMouseOver={handleMouseOver}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleClick}
+          />
         </div>
       </div>
+
+      <Tooltip
+        ref={tooltipRef}
+        imperativeModeOnly
+        positionStrategy="fixed"
+        className="corpus-heatmap-tooltip"
+        noArrow={false}
+        opacity={1}
+        style={{
+          backgroundColor: 'hsl(222.2 84% 4.9%)',
+          color: 'white',
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          borderRadius: '0.5rem',
+          padding: '0.375rem 0.625rem',
+          boxShadow:
+            '0 10px 20px -5px rgba(15, 23, 42, 0.3), 0 4px 6px -4px rgba(15, 23, 42, 0.3)',
+          zIndex: 50,
+        }}
+      />
     </div>
   );
 };
