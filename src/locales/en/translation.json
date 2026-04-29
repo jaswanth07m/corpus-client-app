@@ -410,7 +410,6 @@
     "searchPlaceOrAddress": "Search place or address",
     "searching": "Searching..."
   },
-<<<<<<< HEAD
     "goBackHome": "Go back home",
     "recordNotFound": "Record not found",
     "viewDocument": "View document",
@@ -451,19 +450,7 @@
           "intern": "Are you an intern? *"
         }
       }
-    },
-    "viewContributionsOnMap": "View contributions on map",
-    "couldNotLoadContributions": "Could not load contributions.",
-    "noGeotaggedContributionsYet": "No geotagged contributions yet.",
-    "closeMap": "Close map",
-    "retry": "Retry"
-=======
-    "preview": "Preview:",
-    "noPreviewAvailable": "No preview available",
-    "reviewedAndVerified": "Reviewed and verified",
-    "searchPlaceOrAddress": "Search place or address",
-    "searching": "Searching..."
->>>>>>> c8a798b7 (fix: replace heatmap.less and heatmap.more with proper labels)
+    }
   },
   "ui": {
     "failed": {
