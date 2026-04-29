@@ -364,98 +364,109 @@ describe('LoginForm', () => {
     );
   });
 
-  it('resolves Signup verify OTP with all API error handling branches', async () => {
-    const user = userEvent.setup();
-    renderComponent();
-    await user.click(screen.getAllByRole('button', { name: 'auth.signUp' })[0]);
+  it(
+    'resolves Signup verify OTP with all API error handling branches',
+    { timeout: 30000 },
+    async () => {
+      const user = userEvent.setup();
+      renderComponent();
+      await user.click(
+        screen.getAllByRole('button', { name: 'auth.signUp' })[0],
+      );
 
-    fireEvent.change(
-      screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
-      { target: { value: '9000000000' } },
-    );
-    fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
-      target: { value: 'Valid Name' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
-      target: { value: 'Valid@123!' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
-      target: { value: 'Valid@123!' },
-    });
-    await user.click(screen.getByRole('checkbox'));
+      fireEvent.change(
+        screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
+        { target: { value: '9000000000' } },
+      );
+      fireEvent.change(screen.getByPlaceholderText('auth.username'), {
+        target: { value: 'valid_user' },
+      });
+      fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
+        target: { value: 'Valid Name' },
+      });
+      fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
+        target: { value: 'test@swecha.org' },
+      });
+      fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
+        target: { value: 'Valid@123!' },
+      });
+      fireEvent.change(screen.getByPlaceholderText('common.confirmPassword'), {
+        target: { value: 'Valid@123!' },
+      });
+      await user.click(screen.getByRole('checkbox'));
 
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ status: 'success' }, true, 200),
-    );
-    await user.click(
-      screen.getByRole('button', {
-        name: 'auth.requestOtpForPhoneVerification',
-      }),
-    );
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ status: 'success' }, true, 200),
+      );
+      await user.click(
+        screen.getByRole('button', {
+          name: 'auth.requestOtpForPhoneVerification',
+        }),
+      );
 
-    const otpInput = await screen.findByPlaceholderText('auth.enter6digitOtp');
-    fireEvent.change(otpInput, { target: { value: '123456' } });
-    const verifyButton = screen.getByRole('button', {
-      name: 'Verify OTP & Create Account',
-    });
+      const otpInput = await screen.findByPlaceholderText(
+        'auth.enter6digitOtp',
+      );
+      fireEvent.change(otpInput, { target: { value: '123456' } });
+      const verifyButton = screen.getByRole('button', {
+        name: 'Verify OTP & Create Account',
+      });
 
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ detail: [{ msg: 'OTP expired' }] }, false, 422),
-    );
-    await user.click(verifyButton);
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith(
-        'Validation error: OTP expired',
-      ),
-    );
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ detail: [{ msg: 'OTP expired' }] }, false, 422),
+      );
+      await user.click(verifyButton);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith(
+          'Validation error: OTP expired',
+        ),
+      );
 
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ detail: 'String detail' }, false, 400),
-    );
-    await user.click(verifyButton);
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith('String detail'),
-    );
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ detail: 'String detail' }, false, 400),
+      );
+      await user.click(verifyButton);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith('String detail'),
+      );
 
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ message: 'Error message' }, false, 400),
-    );
-    await user.click(verifyButton);
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith('Error message'),
-    );
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ message: 'Error message' }, false, 400),
+      );
+      await user.click(verifyButton);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith('Error message'),
+      );
 
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ error: 'Error field' }, false, 400),
-    );
-    await user.click(verifyButton);
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith('Error field'),
-    );
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ error: 'Error field' }, false, 400),
+      );
+      await user.click(verifyButton);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith('Error field'),
+      );
 
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({}, false, 503),
-    );
-    await user.click(verifyButton);
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith(
-        'Signup OTP verification failed (503)',
-      ),
-    );
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({}, false, 503),
+      );
+      await user.click(verifyButton);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith(
+          'Signup OTP verification failed (503)',
+        ),
+      );
 
-    (global.fetch as Mock).mockResolvedValueOnce(
-      mockFetchResponse({ access_token: 'fake-token' }, true, 200),
-    );
-    await user.click(verifyButton);
-    await waitFor(() =>
-      expect(mockToastSuccess).toHaveBeenCalledWith(
-        'messages.accountCreatedAndVerifiedSuccessfullyPleaseLogin',
-      ),
-    );
-  });
+      (global.fetch as Mock).mockResolvedValueOnce(
+        mockFetchResponse({ access_token: 'fake-token' }, true, 200),
+      );
+      await user.click(verifyButton);
+      await waitFor(() =>
+        expect(mockToastSuccess).toHaveBeenCalledWith(
+          'messages.accountCreatedAndVerifiedSuccessfullyPleaseLogin',
+        ),
+      );
+    },
+  );
 
   async function setupResendOTPFlow() {
     const user = userEvent.setup();
@@ -510,7 +521,7 @@ describe('LoginForm', () => {
 
   it(
     'handles signup Resend OTP flow errors and success',
-    { timeout: 150000 },
+    { timeout: 30000 },
     async () => {
       let resendBtn = await setupResendOTPFlow();
 

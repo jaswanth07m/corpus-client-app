@@ -685,7 +685,7 @@
       "description": "আপনার দৈনন্দিন অবদান এবং ধারাবাহিকতা ট্র্যাক করুন।",
       "less": "কম",
       "more": "বেশি",
-      "activityOnDate": "{{date}} তে {{count}} পয়েন্ট"
+      "activityOnDate": "{{date}}-তে {{count}} পয়েন্ট"
     },
     "dashboard": {
       "title": "অবদান ড্যাশবোর্ড",

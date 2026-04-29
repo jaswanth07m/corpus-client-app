@@ -7,6 +7,7 @@ import 'react-tooltip/dist/react-tooltip.css';
 import { TrendingUp } from 'lucide-react';
 
 import { DailyPoint } from '@/lib/points';
+import { toDateKey } from '@/lib/utils';
 
 import './PointsHeatmap.css';
 
@@ -26,15 +27,6 @@ const getLevel = (count: number) => {
   if (count >= 1) return 1;
   return 0;
 };
-
-const toDateKey = (date: Date) => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const normalizeDateKey = (date: string) => date.slice(0, 10);
 
 const LOCALE_MAP: Record<string, string> = {
   en: 'en-US',
@@ -98,7 +90,7 @@ const PointsHeatmap: React.FC<PointsHeatmapProps> = ({ dailyData }) => {
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
     const countsByDate = dailyData.reduce((acc, item) => {
-      const dateKey = normalizeDateKey(item.date);
+      const dateKey = toDateKey(item.date);
       if (!dateKey) return acc;
       const nextCount = (acc.get(dateKey) ?? 0) + (Number(item.points) || 0);
       acc.set(dateKey, nextCount);
