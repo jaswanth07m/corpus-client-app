@@ -410,48 +410,6 @@
     "searchPlaceOrAddress": "Search place or address",
     "searching": "Searching..."
   },
-    "goBackHome": "Go back home",
-    "recordNotFound": "Record not found",
-    "viewDocument": "View document",
-    "noRecordsFoundInThisCategory": "No records found in this category",
-    "trySelectingADifferentCategoryOrClearingTheFilter": "Try selecting a different category or clearing the filter.",
-    "clearFilter": "Clear Filter",
-    "workstation": {
-      "os": "Workstation OS",
-      "ram": "Workstation RAM"
-    },
-    "basicInfo": "Basic Info",
-    "location": "Location",
-    "privacySettings": "Privacy Settings",
-    "phonePrivacy": "Phone Privacy",
-    "emailPrivacy": "Email Privacy",
-    "selectPrivacy": "Select Privacy",
-    "saveChanges": "Save Changes",
-    "view": "View",
-    "start": {
-      "welcome": {
-        "tour": "Start Welcome Tour"
-      }
-    },
-    "takeAnother": "Take Another",
-    "photoCapturedClickStopCameraWhenDone": "Photo captured. Click stop camera when done.",
-    "university": "University",
-    "selectUniversity": "Select University",
-    "pleaseSelectUniversityFirst": "Please select university first",
-    "specialization": "Specialization",
-    "selectSpecialization": "Select Specialization",
-    "pleaseSelectCollegeFirst": "Please select college first",
-    "reviewedAndVerified": "✓ Reviewed & Verified",
-    "remove": "Remove",
-    "normalUser": "Normal User",
-    "are": {
-      "you": {
-        "an": {
-          "intern": "Are you an intern? *"
-        }
-      }
-    }
-  },
   "ui": {
     "failed": {
       "to": {
