@@ -754,7 +754,9 @@
     "recordUpdatedSuccessfully": "Record updated successfully!",
     "error": "Error",
     "saving": "Saving...",
-    "loadingMap": "Loading map..."
+    "loadingMap": "Loading map...",
+    "loadingDistrictBoundariesPleaseWait": "Loading district boundaries... please wait",
+    "loadingDistrictBoundaries": "Loading district boundaries..."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",

@@ -443,7 +443,9 @@
     "profilePictureUpdatedSuccessfully": "പ്രൊഫൈൽ ചിത്രം വിജയകരമായി പുതുക്കി!",
     "loadingPointsData": "പോയിന്റ് ഡാറ്റ ലോഡ് ചെയ്യുന്നു...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "ഈ സെഗ്‌മെന്റുകളുടെ വായനാ ക്രമം അപ്‌ഡേറ്റ് ചെയ്യണമെന്ന് നിങ്ങൾക്ക് ഉറപ്പാണോ? ഇത് ബൗണ്ടിംഗ് ബോക്സ് ക്രമത്തെയും മാറ്റുന്നതാണ്.",
-    "loadingMap": "മാപ്പ് ലോഡ് ചെയ്യുന്നു..."
+    "loadingMap": "മാപ്പ് ലോഡ് ചെയ്യുന്നു...",
+    "loadingDistrictBoundariesPleaseWait": "ജില്ലാ അതിരുകൾ ലോഡ് ചെയ്യുന്നു... ദയവായി കാത്തിരിക്കുക",
+    "loadingDistrictBoundaries": "ജില്ലാ അതിരുകൾ ലോഡ് ചെയ്യുന്നു..."
   },
   "user": {
     "requestingLocationAccess": "ലൊക്കേഷൻ അനുമതി ചോദിക്കുന്നു...",

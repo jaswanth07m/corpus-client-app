@@ -649,12 +649,12 @@ function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200">
+    <div className="relative z-0 mb-6 overflow-hidden rounded-xl border border-slate-200">
       <style>{`
         .leaflet-popup-content { max-height: 320px !important; overflow-y: auto !important; overflow-x: hidden !important; margin: 12px 16px !important; }
         .leaflet-popup-content-wrapper { overflow: hidden !important; border-radius: 10px !important; }
       `}</style>
-      <div className="relative">
+      <div className="relative h-[220px] sm:h-[300px]">
         <MapContainer
           bounds={boundaryBounds}
           boundsOptions={{ padding: [10, 10] }}
@@ -662,7 +662,7 @@ function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
           scrollWheelZoom
           doubleClickZoom
           touchZoom
-          className="h-[220px] sm:h-[300px] w-full geo-map-container"
+          className="h-full w-full geo-map-container"
         >
           <MapPaneSetupInline />
           <MapResizerInline />

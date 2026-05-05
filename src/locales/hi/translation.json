@@ -732,7 +732,9 @@
     "recordUpdatedSuccessfully": "रिकॉर्ड सफलतापूर्वक अपडेट किया गया!",
     "error": "",
     "saving": "सहेजा जा रहा है...",
-    "loadingMap": "मानचित्र लोड हो रहा है..."
+    "loadingMap": "मानचित्र लोड हो रहा है...",
+    "loadingDistrictBoundariesPleaseWait": "जिला सीमाएँ लोड हो रही हैं... कृपया प्रतीक्षा करें",
+    "loadingDistrictBoundaries": "जिला सीमाएँ लोड हो रही हैं..."
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",

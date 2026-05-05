@@ -732,7 +732,9 @@
     "recordUpdatedSuccessfully": "రికార్డు విజయవంతంగా అప్‌డేట్ అయింది!",
     "error": "",
     "saving": "సేవ్ చేస్తోంది...",
-    "loadingMap": "మ్యాప్ లోడ్ అవుతోంది..."
+    "loadingMap": "మ్యాప్ లోడ్ అవుతోంది...",
+    "loadingDistrictBoundariesPleaseWait": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి... దయచేసి వేచి ఉండండి",
+    "loadingDistrictBoundaries": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి..."
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",

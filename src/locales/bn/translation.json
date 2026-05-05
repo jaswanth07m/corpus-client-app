@@ -443,7 +443,9 @@
     "profilePictureUpdatedSuccessfully": "প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!",
     "loadingPointsData": "পয়েন্টের তথ্য লোড হচ্ছে...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "আপনি কি এই অংশগুলোর পড়ার ক্রম আপডেট করতে চান? এটি বাউন্ডিং বক্সের ক্রমও আপডেট করবে।",
-    "loadingMap": "ম্যাপ লোড হচ্ছে..."
+    "loadingMap": "ম্যাপ লোড হচ্ছে...",
+    "loadingDistrictBoundariesPleaseWait": "জেলার সীমানা লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন",
+    "loadingDistrictBoundaries": "জেলার সীমানা লোড হচ্ছে..."
   },
   "user": {
     "requestingLocationAccess": "স্থানের অনুমতি চাওয়া হচ্ছে...",

@@ -443,7 +443,9 @@
     "profilePictureUpdatedSuccessfully": "சுயவிவரப் படம் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டது!",
     "loadingPointsData": "புள்ளிகள் தரவு ஏற்றப்படுகிறது...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "இந்தப் பகுதிகளின் வாசிப்பு வரிசையைப் புதுப்பிக்க விரும்புகிறீர்களா? இது எல்லைப் பெட்டி வரிசையையும் புதுப்பிக்கும்.",
-    "loadingMap": "வரைபடம் ஏற்றப்படுகிறது..."
+    "loadingMap": "வரைபடம் ஏற்றப்படுகிறது...",
+    "loadingDistrictBoundariesPleaseWait": "மாவட்ட எல்லைகள் ஏற்றப்படுகிறது... தயவுசெய்து காத்திருக்கவும்",
+    "loadingDistrictBoundaries": "மாவட்ட எல்லைகள் ஏற்றப்படுகிறது..."
   },
   "user": {
     "requestingLocationAccess": "இருப்பிட அணுகல் கோரப்படுகிறது...",

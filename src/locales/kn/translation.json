@@ -443,7 +443,9 @@
     "profilePictureUpdatedSuccessfully": "ಪ್ರೊಫೈಲ್ ಚಿತ್ರವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ!",
     "loadingPointsData": "ಪಾಯಿಂಟ್ಸ್ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "ಈ ಭಾಗಗಳ ಓದುವ ಕ್ರಮವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಲು ನೀವು ಖಚಿತವಾಗಿರುವಿರಾ? ಇದು ಬೌಂಡಿಂಗ್ ಬಾಕ್ಸ್ ಅನುಕ್ರಮವನ್ನು ಸಹ ಅಪ್‌ಡೇಟ್ ಮಾಡುತ್ತದೆ.",
-    "loadingMap": "ನಕ್ಷೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ..."
+    "loadingMap": "ನಕ್ಷೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "loadingDistrictBoundariesPleaseWait": "ಜಿಲ್ಲಾ ಗಡಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ... ದಯವಿಟ್ಟು ಕಾಯಿರಿ",
+    "loadingDistrictBoundaries": "ಜಿಲ್ಲಾ ಗಡಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ..."
   },
   "user": {
     "requestingLocationAccess": "ಸ್ಥಳ ಪ್ರವೇಶವನ್ನು ಕೋರಲಾಗುತ್ತಿದೆ...",
