@@ -5,6 +5,7 @@ import {
   waitFor,
   act,
 } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Profile from '../../src/pages/Profile';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -181,13 +182,33 @@ const renderWithRouter = (
   component: React.ReactElement,
   initialEntries: string[] = ['/profile/testuser'],
 ) => {
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Routes>
-        <Route path="/profile/:username?" element={component} />
-      </Routes>
-    </MemoryRouter>,
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  });
+
+  const wrap = (ui: React.ReactElement) => (
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Routes>
+          <Route path="/profile/:username?" element={ui} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
+
+  const result = render(wrap(component));
+
+  return {
+    ...result,
+    rerender: (ui: React.ReactElement) => result.rerender(wrap(ui)),
+  };
 };
 
 describe('Profile Page', () => {
