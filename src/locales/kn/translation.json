@@ -247,7 +247,14 @@
       "progress": "ಒಟ್ಟಾರೆ ಪ್ರಗತಿ"
     },
     "previousPage": "ಹಿಂದಿನ ಪುಟ",
-    "nextPage": "ಮುಂದಿನ ಪುಟ"
+    "nextPage": "ಮುಂದಿನ ಪುಟ",
+    "viewContributionsOnMap": "ನಕ್ಷೆಯಲ್ಲಿ ಕೊಡುಗೆಗಳನ್ನು ನೋಡಿ",
+    "couldNotLoadContributions": "ಕೊಡುಗೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+    "noGeotaggedContributionsYet": "ಇನ್ನೂ ಯಾವುದೇ ಜಿಯೋಟ್ಯಾಗ್ ಕೊಡುಗೆಗಳಿಲ್ಲ.",
+    "closeMap": "ನಕ್ಷೆ ಮುಚ್ಚಿ",
+    "retry": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+    "searchPlaceOrAddress": "ಸ್ಥಳ ಅಥವಾ ವಿಳಾಸ ಹುಡುಕಿ",
+    "searching": "ಹುಡುಕಲಾಗುತ್ತಿದೆ..."
   },
   "ui": {
     "failed": {
@@ -435,7 +442,10 @@
     "loadingProfile": "ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
     "profilePictureUpdatedSuccessfully": "ಪ್ರೊಫೈಲ್ ಚಿತ್ರವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ!",
     "loadingPointsData": "ಪಾಯಿಂಟ್ಸ್ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "ಈ ಭಾಗಗಳ ಓದುವ ಕ್ರಮವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಲು ನೀವು ಖಚಿತವಾಗಿರುವಿರಾ? ಇದು ಬೌಂಡಿಂಗ್ ಬಾಕ್ಸ್ ಅನುಕ್ರಮವನ್ನು ಸಹ ಅಪ್‌ಡೇಟ್ ಮಾಡುತ್ತದೆ."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "ಈ ಭಾಗಗಳ ಓದುವ ಕ್ರಮವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಲು ನೀವು ಖಚಿತವಾಗಿರುವಿರಾ? ಇದು ಬೌಂಡಿಂಗ್ ಬಾಕ್ಸ್ ಅನುಕ್ರಮವನ್ನು ಸಹ ಅಪ್‌ಡೇಟ್ ಮಾಡುತ್ತದೆ.",
+    "loadingMap": "ನಕ್ಷೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "loadingDistrictBoundariesPleaseWait": "ಜಿಲ್ಲಾ ಗಡಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ... ದಯವಿಟ್ಟು ಕಾಯಿರಿ",
+    "loadingDistrictBoundaries": "ಜಿಲ್ಲಾ ಗಡಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ..."
   },
   "user": {
     "requestingLocationAccess": "ಸ್ಥಳ ಪ್ರವೇಶವನ್ನು ಕೋರಲಾಗುತ್ತಿದೆ...",
@@ -511,7 +521,8 @@
     "contributionsYet": "ಇನ್ನೂ ಯಾವುದೇ ಕೊಡುಗೆಗಳಿಲ್ಲ.",
     "pointsActivity": "ಪಾಯಿಂಟ್ಸ್ ಚಟುವಟಿಕೆ",
     "contributions": "ಕೊಡುಗೆಗಳು...",
-    "contributionsFound": "ಕೊಡುಗೆಗಳು ಕಂಡುಬಂದಿವೆ."
+    "contributionsFound": "ಕೊಡುಗೆಗಳು ಕಂಡುಬಂದಿವೆ.",
+    "myContributionsOnTheMap": "ನಕ್ಷೆಯಲ್ಲಿ ನನ್ನ ಕೊಡುಗೆಗಳು"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ 10-ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",

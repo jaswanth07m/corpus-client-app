@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  X,
-  LogOut,
-  MessageSquare,
-  Loader2,
-  Globe,
-  HelpCircle,
-} from 'lucide-react';
+import { X, LogOut, MessageSquare, Loader2, HelpCircle } from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import { getPointsStats, DailyPoint } from '@/lib/points';
@@ -30,6 +30,24 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { isProfileComplete } from '@/lib/profileUtils';
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  useMap,
+} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import * as turf from '@turf/turf';
+import { useContributionGeo } from '@/hooks/useContributionGeo';
+import type { FlatContribution } from '@/types/geo';
+import type { GeoJsonObject, GeometryObject } from 'geojson';
+import {
+  MEDIA_TYPE_COLORS,
+  MEDIA_TYPE_LABELS,
+  formatContributionDate,
+} from '@/lib/geoUtils';
 
 const languages = [
   'assamese',
@@ -169,10 +187,599 @@ interface EditHistoryEntry {
   field_changes?: Record<string, FieldChange>;
 }
 
+interface PortalDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  maxWidth?: number | string;
+}
+
+function PortalDialog({
+  isOpen,
+  onClose,
+  children,
+  maxWidth = 480,
+}: PortalDialogProps) {
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0"
+      style={{ background: 'rgba(0, 0, 0, 0.5)', zIndex: 99998 }}
+      onClick={onClose}
+    >
+      <div
+        className="fixed"
+        style={{
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 99999,
+          background: 'white',
+          borderRadius: '12px',
+          padding: '24px',
+          width: '90vw',
+          maxWidth,
+          maxHeight: '85vh',
+          overflowY: 'auto',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// ── Inline map helpers ────────────────────────────────────────────────────────
+const GEOJSON_URL = '/telugu_sub_districts.geojson';
+const BOUNDARY_PANE = 'boundaries';
+const MARKER_PANE = 'markers';
+
+type GeoJsonFeature = {
+  type?: string;
+  properties?: Record<string, string | number | null | undefined>;
+  geometry?: GeometryObject;
+};
+
+type GeoJsonFeatureCollection = {
+  type: 'FeatureCollection';
+  features: GeoJsonFeature[];
+};
+
+function normalizeName(value?: string | null) {
+  return value?.trim().toLowerCase() ?? '';
+}
+
+function getFeatureSubDistrict(feature: GeoJsonFeature | undefined) {
+  if (!feature?.properties) return '';
+  return (
+    feature.properties.subdistrict ??
+    feature.properties.SUB_DISTRICT ??
+    feature.properties.Subdistrict ??
+    feature.properties.SUBDISTRICT ??
+    feature.properties.Sub_dist ??
+    feature.properties.mandal ??
+    feature.properties.MANDAL ??
+    feature.properties.name ??
+    feature.properties.NAME ??
+    feature.properties.taluk ??
+    feature.properties.TALUK ??
+    ''
+  )
+    .toString()
+    .trim();
+}
+
+function getFeatureDistrict(feature: GeoJsonFeature | undefined) {
+  if (!feature?.properties) return '';
+  return (
+    feature.properties.district ??
+    feature.properties.DISTRICT ??
+    feature.properties.District ??
+    feature.properties.taluk ??
+    ''
+  )
+    .toString()
+    .trim();
+}
+
+function getFeatureState(feature: GeoJsonFeature | undefined) {
+  if (!feature?.properties) return '';
+  return (
+    feature.properties.state ??
+    feature.properties.STATE ??
+    feature.properties.State ??
+    feature.properties.STATE_UT ??
+    ''
+  )
+    .toString()
+    .trim();
+}
+
+function isPointInFeature(lat: number, lng: number, feature: GeoJsonFeature) {
+  if (!feature?.geometry) return false;
+  const point = turf.point([lng, lat]);
+  const polygon = turf.feature(feature.geometry);
+  return turf.booleanPointInPolygon(point, polygon);
+}
+
+function getSubDistrictStyle(
+  feature: GeoJsonFeature,
+  contributedSubDistricts: Set<string>,
+) {
+  const featureName = normalizeName(getFeatureSubDistrict(feature));
+  const hasContribution = contributedSubDistricts.has(featureName);
+
+  return {
+    fillColor: hasContribution ? '#4ade80' : '#93c5fd',
+    fillOpacity: 0.4,
+    color: '#1d4ed8',
+    weight: 0.6,
+    opacity: 0.8,
+  };
+}
+
+function getContributionIcon(mediaType?: string) {
+  switch ((mediaType ?? '').toLowerCase()) {
+    case 'audio':
+      return '🎵';
+    case 'video':
+      return '🎬';
+    case 'image':
+      return '🖼';
+    case 'document':
+      return '📄';
+    case 'text':
+      return '📝';
+    default:
+      return '📁';
+  }
+}
+
+function getContributionTitle(contribution: FlatContribution) {
+  return contribution.title || 'Contribution';
+}
+
+function getContributionDate(contribution: FlatContribution) {
+  return contribution.timestamp
+    ? formatContributionDate(contribution.timestamp)
+    : '';
+}
+
+function getContributionsInsideFeature(
+  feature: GeoJsonFeature,
+  userContributions: FlatContribution[],
+) {
+  return userContributions.filter((contribution) =>
+    isPointInFeature(
+      contribution.location.latitude,
+      contribution.location.longitude,
+      feature,
+    ),
+  );
+}
+
+function buildSubDistrictPopupHtml(
+  feature: GeoJsonFeature,
+  userContributions: FlatContribution[],
+) {
+  const subDistrict = getFeatureSubDistrict(feature) || 'Unknown';
+  const district = getFeatureDistrict(feature);
+  const state = getFeatureState(feature);
+  const inside = getContributionsInsideFeature(feature, userContributions);
+
+  const contribHTML =
+    inside.length > 0
+      ? inside
+          .map((contribution) => {
+            const icon = getContributionIcon(contribution.media_type);
+            const title = getContributionTitle(contribution);
+            const date = getContributionDate(contribution);
+            return `
+              <tr>
+                <td style="width:18px;padding:2px 0;font-size:14px">${icon}</td>
+                <td style="padding:2px 8px;font-size:12px">${title}</td>
+                <td style="font-size:11px;color:#666;white-space:nowrap">${date}</td>
+              </tr>
+            `;
+          })
+          .join('')
+      : '<tr><td colspan="3" style="color:#888;font-size:12px;padding:6px 0">No contributions in this area</td></tr>';
+
+  return `
+    <div style="min-width:240px;max-width:290px;font-family:sans-serif">
+      <div style="font-weight:700;font-size:14px;margin-bottom:2px">
+        📍 ${subDistrict}
+      </div>
+      <div style="font-size:11px;color:#666;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:6px">
+        ${district}${state ? `, ${state}` : ''}
+      </div>
+      <div style="font-weight:600;font-size:12px;margin-bottom:6px">
+        Contributions (${inside.length})
+      </div>
+      <div style="max-height:200px;overflow-y:auto;overflow-x:hidden;padding-right:4px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          ${contribHTML}
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function MapResizerInline() {
+  const map = useMap();
+  useEffect(() => {
+    const id = setTimeout(() => map.invalidateSize(), 150);
+    return () => clearTimeout(id);
+  }, [map]);
+  return null;
+}
+
+function MapPaneSetupInline() {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map.getPane(BOUNDARY_PANE)) {
+      const pane = map.createPane(BOUNDARY_PANE);
+      pane.style.zIndex = '400';
+      pane.style.pointerEvents = 'auto';
+    }
+
+    if (!map.getPane(MARKER_PANE)) {
+      const pane = map.createPane(MARKER_PANE);
+      pane.style.zIndex = '450';
+      pane.style.pointerEvents = 'auto';
+    }
+  }, [map]);
+
+  return null;
+}
+
+function SubDistrictBoundaryLayer({
+  geojsonData,
+  userContributions,
+  contributedSubDistricts,
+}: {
+  geojsonData: GeoJsonFeatureCollection;
+  userContributions: FlatContribution[];
+  contributedSubDistricts: Set<string>;
+}) {
+  const map = useMap();
+  const layerRef = useRef<L.GeoJSON | null>(null);
+  const rendererRef = useRef<L.Canvas | null>(null);
+
+  if (!rendererRef.current) {
+    rendererRef.current = L.canvas({ tolerance: 3 });
+  }
+
+  useEffect(() => {
+    if (layerRef.current) {
+      map.removeLayer(layerRef.current);
+      layerRef.current = null;
+    }
+
+    const boundaryLayer = L.geoJSON(geojsonData as GeoJsonObject, {
+      pane: BOUNDARY_PANE,
+      renderer: rendererRef.current ?? undefined,
+      style: (feature) =>
+        getSubDistrictStyle(feature as GeoJsonFeature, contributedSubDistricts),
+      onEachFeature: (feature, layer) => {
+        layer.on('click', (event) => {
+          const popupHtml = buildSubDistrictPopupHtml(
+            feature as GeoJsonFeature,
+            userContributions,
+          );
+          layer
+            .bindPopup(popupHtml, {
+              maxWidth: 300,
+              autoPan: true,
+              autoPanPadding: [20, 20],
+            })
+            .openPopup(event.latlng);
+          setTimeout(() => {
+            const popupEl = document.querySelector('.leaflet-popup-content');
+            if (popupEl)
+              L.DomEvent.disableScrollPropagation(popupEl as HTMLElement);
+          }, 50);
+        });
+      },
+    }).addTo(map);
+
+    layerRef.current = boundaryLayer;
+
+    return () => {
+      map.removeLayer(boundaryLayer);
+      if (layerRef.current === boundaryLayer) {
+        layerRef.current = null;
+      }
+    };
+  }, [map, geojsonData, userContributions, contributedSubDistricts]);
+
+  return null;
+}
+
+function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
+  const { t } = useTranslation();
+  const { data, isLoading, isError, refetch } =
+    useContributionGeo(userIdentifier);
+  const [boundaryData, setBoundaryData] =
+    useState<GeoJsonFeatureCollection | null>(null);
+  const [boundaryLoading, setBoundaryLoading] = useState(true);
+  const [boundaryError, setBoundaryError] = useState<string | null>(null);
+  const [boundaryReloadKey, setBoundaryReloadKey] = useState(0);
+  const contributions = useMemo(() => data ?? [], [data]);
+  const contributedSubDistricts = useMemo(() => {
+    const next = new Set<string>();
+
+    if (!boundaryData?.features?.length || !contributions.length) {
+      return next;
+    }
+
+    boundaryData.features.forEach((feature) => {
+      const featureName = normalizeName(getFeatureSubDistrict(feature));
+      if (!featureName) return;
+
+      const hasContribution = contributions.some((contribution) => {
+        if (!contribution.location) return false;
+        try {
+          return isPointInFeature(
+            contribution.location.latitude,
+            contribution.location.longitude,
+            feature,
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      if (hasContribution) {
+        next.add(featureName);
+      }
+    });
+
+    return next;
+  }, [boundaryData, contributions]);
+
+  useEffect(() => {
+    let isActive = true;
+    const controller = new AbortController();
+
+    setBoundaryLoading(true);
+    setBoundaryError(null);
+
+    fetch(GEOJSON_URL, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(
+            `Failed to fetch sub-district boundaries: ${res.status}`,
+          );
+        }
+        return res.json();
+      })
+      .then((geojsonData: GeoJsonFeatureCollection) => {
+        if (!isActive) return;
+        try {
+          const simplified = turf.simplify(geojsonData as GeoJsonObject, {
+            tolerance: 0.001,
+            highQuality: false,
+          }) as GeoJsonFeatureCollection;
+          setBoundaryData(simplified);
+        } catch (simplifyError) {
+          console.error(
+            'Error simplifying sub-district boundaries:',
+            simplifyError,
+          );
+          setBoundaryData(geojsonData);
+        }
+        setBoundaryLoading(false);
+      })
+      .catch((error) => {
+        if (!isActive || controller.signal.aborted) return;
+        console.error('Error loading sub-district boundaries:', error);
+        setBoundaryData(null);
+        setBoundaryError('Failed to load boundaries');
+        setBoundaryLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [boundaryReloadKey]);
+
+  const boundaryBounds = React.useMemo(() => {
+    if (!boundaryData?.features?.length) return undefined;
+
+    const bounds = L.geoJSON(boundaryData as GeoJsonObject).getBounds();
+    if (!bounds.isValid()) return undefined;
+    return bounds;
+  }, [boundaryData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] items-center justify-center rounded-xl bg-slate-100">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] flex-col items-center justify-center gap-2 rounded-xl bg-slate-100">
+        <p className="text-xs text-slate-500">
+          {t('common.couldNotLoadContributions')}
+        </p>
+        <button
+          onClick={() => refetch()}
+          className="text-xs text-blue-600 underline"
+        >
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (boundaryLoading && !boundaryData) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] flex-col items-center justify-center gap-2 rounded-xl bg-slate-100">
+        <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+        <p className="text-xs text-slate-500">
+          Loading district boundaries... please wait
+        </p>
+      </div>
+    );
+  }
+
+  if (!boundaryData || !boundaryBounds) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] flex-col items-center justify-center gap-2 rounded-xl bg-slate-100">
+        <p className="text-xs text-slate-500">
+          {boundaryError ?? 'Failed to load boundaries'}
+        </p>
+        <button
+          onClick={() => setBoundaryReloadKey((value) => value + 1)}
+          className="text-xs text-blue-600 underline"
+        >
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative z-0 mb-6 overflow-hidden rounded-xl border border-slate-200">
+      <style>{`
+        .leaflet-popup-content { max-height: 320px !important; overflow-y: auto !important; overflow-x: hidden !important; margin: 12px 16px !important; }
+        .leaflet-popup-content-wrapper { overflow: hidden !important; border-radius: 10px !important; }
+      `}</style>
+      <div className="relative h-[220px] sm:h-[300px]">
+        <MapContainer
+          bounds={boundaryBounds}
+          boundsOptions={{ padding: [10, 10] }}
+          dragging
+          scrollWheelZoom
+          doubleClickZoom
+          touchZoom
+          className="h-full w-full geo-map-container"
+        >
+          <MapPaneSetupInline />
+          <MapResizerInline />
+          <SubDistrictBoundaryLayer
+            geojsonData={boundaryData}
+            userContributions={contributions}
+            contributedSubDistricts={contributedSubDistricts}
+          />
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {contributions.map((c) => {
+            const color = MEDIA_TYPE_COLORS[c.media_type] ?? '#666';
+            const label = MEDIA_TYPE_LABELS[c.media_type] ?? c.media_type;
+            const date = formatContributionDate(c.timestamp);
+            return (
+              <CircleMarker
+                key={c.id}
+                center={[c.location.latitude, c.location.longitude]}
+                radius={10}
+                fillOpacity={0.85}
+                pane={MARKER_PANE}
+                pathOptions={{ color: '#ffffff', weight: 2, fillColor: color }}
+              >
+                <Popup>
+                  <div style={{ fontFamily: 'inherit', padding: '2px 0' }}>
+                    <p
+                      style={{
+                        margin: '0 0 4px',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        color: '#0f172a',
+                      }}
+                    >
+                      {c.title}
+                    </p>
+                    <p
+                      style={{
+                        margin: '0 0 2px',
+                        fontSize: 11,
+                        color: '#64748b',
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: color,
+                          marginRight: 4,
+                          verticalAlign: 'middle',
+                        }}
+                      />
+                      Type: {label}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>
+                      Date: {date}
+                    </p>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            );
+          })}
+        </MapContainer>
+        {boundaryLoading && (
+          <div className="pointer-events-none absolute left-3 top-3 z-[650] rounded-md bg-white/85 px-2.5 py-1 text-[11px] text-slate-600 shadow-sm backdrop-blur">
+            Loading district boundaries...
+          </div>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-3 border-t border-slate-200 bg-white px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="h-2.5 w-2.5 rounded-sm border"
+            style={{ borderColor: '#1d4ed8', backgroundColor: '#93c5fd' }}
+          />
+          <span className="text-xs text-slate-500">
+            {t(
+              'stats.subDistrictNoContributions',
+              'Sub-district (no contributions)',
+            )}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="h-2.5 w-2.5 rounded-sm border"
+            style={{ borderColor: '#1d4ed8', backgroundColor: '#4ade80' }}
+          />
+          <span className="text-xs text-slate-500">
+            {t(
+              'stats.subDistrictWithContributions',
+              'Sub-district (with contributions)',
+            )}
+          </span>
+        </div>
+        {Object.keys(MEDIA_TYPE_COLORS).map((type) => (
+          <div key={type} className="flex items-center gap-1.5">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: MEDIA_TYPE_COLORS[type] }}
+            />
+            <span className="text-xs text-slate-500">
+              {MEDIA_TYPE_LABELS[type]}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
 function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user: authUser } = useAuth();
   const { startTour } = useWelcomeTour();
 
   const handleLogout = () => {
@@ -231,6 +838,8 @@ function Profile() {
   const [showProfilePictureModal, setShowProfilePictureModal] =
     useState<boolean>(false);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
+
+  // State for geo contribution modal
 
   // Effect to hide bottom navigation when any modal is open
   useEffect(() => {
@@ -574,11 +1183,8 @@ function Profile() {
 
       if (response.ok) {
         setIsFollowing(true);
-        // Update the followers count by incrementing it (since target user now has one more follower)
         setFollowersCount((prev) => prev + 1);
-        // Refetch profile to update counts
-        fetchOtherUserProfile(targetUsername);
-        // Refetch followers and following data to keep them updated
+        fetchUserProfile(targetUsername);
         fetchFollowers(targetUsername);
         fetchFollowing(targetUsername);
       } else {
@@ -614,11 +1220,8 @@ function Profile() {
 
       if (response.ok) {
         setIsFollowing(false);
-        // Update the followers count by decrementing it (since target user now has one less follower)
         setFollowersCount((prev) => Math.max(0, prev - 1));
-        // Refetch profile to update counts
-        fetchOtherUserProfile(targetUsername);
-        // Refetch followers and following data to keep them updated
+        fetchUserProfile(targetUsername);
         fetchFollowers(targetUsername);
         fetchFollowing(targetUsername);
       } else {
@@ -893,6 +1496,10 @@ function Profile() {
   // Determine if viewing own profile
   const isOwnProfile =
     username && currentUsername ? currentUsername === username : false;
+  // username from URL params is always available immediately — use it first
+  // so the geo hook fires on first render without waiting for async state
+  const geoContributionUserIdentifier =
+    username || targetUserIdentifier || currentUserId || '';
 
   console.log(profile);
 
@@ -900,21 +1507,22 @@ function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 sm:mb-12 pt-4 pb-24">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
+        <div className="relative bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
           {/* Profile Info Section - Mobile Responsive Layout */}
-          <div className="p-4 relative">
-            <div className="flex gap-2 absolute right-0 sm:right-5">
+          <div className="p-4">
+            {/* Top-right actions stay out of the content flow so they do not push the profile content down. */}
+            <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
               <LanguageSwitcher />
               <button
                 onClick={startTour}
-                className="flex flex-col items-center gap-1 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex items-center justify-center p-1.5 hover:bg-blue-50 rounded-lg transition-colors"
                 title={t('common.start.welcome.tour')}
               >
                 <HelpCircle className="w-4 h-4 text-blue-500" />
               </button>
               <button
                 onClick={handleLogout}
-                className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex items-center justify-center p-1.5 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4 text-red-500" />
               </button>
@@ -944,11 +1552,13 @@ function Profile() {
               </div>
 
               {/* User Info & Stats - Stacked on mobile */}
-              <div className="flex-1 text-left">
+              <div className="flex-1 min-w-0 text-left">
                 {/* Name and Username */}
-                <div className="mb-4">
-                  <p className="text-sm sm:text-xl mb-1">{profile?.name}</p>
-                  <p className="text-slate-500 text-sm">
+                <div className="mb-0">
+                  <p className="text-sm sm:text-xl leading-tight mb-1">
+                    {profile?.name}
+                  </p>
+                  <p className="text-slate-500 text-sm leading-tight">
                     @{profile?.username || profile?.id}
                   </p>
                   {profile?.phone && (
@@ -959,7 +1569,7 @@ function Profile() {
                 </div>
 
                 {/* Stats Row - Side by side with equal width */}
-                <div className="flex gap-2">
+                <div className="mt-1 flex gap-2">
                   {/* Followers Button */}
                   <button
                     onClick={() => {
@@ -1094,68 +1704,108 @@ function Profile() {
           )}
         </div>
 
-        {/* Contributions Section - Mobile Responsive Design */}
+        {/* Contribution stats grid — inline, always visible */}
         <div
           id="tour-contributions-dashboard"
-          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3"
+          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-3 sm:p-4 mb-3"
         >
-          <div className="mt-1 sm:mt-2">
-            <ContributionDashboard
-              dailyStats={{
-                uploads_today: calculateUploadsToday(),
-                total_uploads: contributions?.totalContributions || 0,
-                last_upload_date: new Date().toISOString(),
-                streak_days: profile?.streaks?.combined_streak?.current || 0,
-              }}
-              contributions={contributions}
-              loading={contributionsLoading}
-              edits={profile?.summary?.edits?.total_edits}
-              onMediaTypeClick={(mediaType) => {
-                setSelectedMediaType(mediaType);
-                const targetUserIdentifier = username || currentUserId;
-                if (targetUserIdentifier) {
-                  fetchUserContributions(targetUserIdentifier, mediaType);
-                }
-                setShowMediaGrid(true); // Show the grid when a media type is clicked
-              }}
-            />
-          </div>
+          <ContributionDashboard
+            dailyStats={{
+              uploads_today: calculateUploadsToday(),
+              total_uploads: contributions?.totalContributions || 0,
+              last_upload_date: new Date().toISOString(),
+              streak_days: profile?.streaks?.combined_streak?.current || 0,
+            }}
+            contributions={contributions}
+            loading={contributionsLoading}
+            edits={profile?.summary?.edits?.total_edits}
+            onMediaTypeClick={(mediaType) => {
+              setSelectedMediaType(mediaType);
+              const id = username || currentUserId;
+              if (id) fetchUserContributions(id, mediaType);
+              setShowMediaGrid(true);
+            }}
+          />
+        </div>
+
+        {/* Inline Geo Contribution Map */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-5 mb-3">
+          <p className="text-sm font-semibold text-slate-700 mb-3">
+            {t('stats.myContributionsOnTheMap')}
+          </p>
+          <InlineGeoMap userIdentifier={geoContributionUserIdentifier} />
         </div>
       </div>
 
       {/* Media Grid Overlay - Appears when clicking on media type cards */}
-      {showMediaGrid && selectedMediaType && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold capitalize">
-                {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowMediaGrid(false);
-                  // Optionally reset selectedMediaType when closing the grid
-                  // setSelectedMediaType(null);
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
+      {showMediaGrid &&
+        selectedMediaType &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            <div
+              aria-hidden="true"
+              className="fixed inset-0"
+              style={{
+                background: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 99998,
+              }}
+              onClick={() => {
+                setShowMediaGrid(false);
+              }}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="media-grid-title"
+              className="fixed"
+              style={{
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 99999,
+                background: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                width: '90vw',
+                maxWidth: '700px',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+              }}
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center border-b pb-4">
+                <h3
+                  id="media-grid-title"
+                  className="text-lg font-semibold capitalize"
+                >
+                  {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowMediaGrid(false);
+                    // Optionally reset selectedMediaType when closing the grid
+                    // setSelectedMediaType(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
-            {/* Grid Content */}
-            <div className="flex-1 overflow-auto p-4">
-              <ContributionsList
-                contributions={contributions}
-                selectedMediaType={selectedMediaType}
-                token={getAuthToken()}
-                isOwnProfile={isOwnProfile}
-              />
+              {/* Grid Content */}
+              <div className="pt-4">
+                <ContributionsList
+                  contributions={contributions}
+                  selectedMediaType={selectedMediaType}
+                  token={getAuthToken()}
+                  isOwnProfile={isOwnProfile}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </>,
+          document.body,
+        )}
 
       {/* Followers and Following Modals */}
       <FollowersModal
@@ -1199,68 +1849,72 @@ function Profile() {
       )}
 
       {/* Profile Picture Update Modal */}
-      {showProfilePictureModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-800">
-                  {t('nav.updateProfilePicture')}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowProfilePictureModal(false);
-                    setProfilePictureUrl('');
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+      <PortalDialog
+        isOpen={showProfilePictureModal}
+        onClose={() => {
+          setShowProfilePictureModal(false);
+          setProfilePictureUrl('');
+        }}
+      >
+        <div className="bg-white rounded-xl shadow-xl w-full">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">
+                {t('nav.updateProfilePicture')}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowProfilePictureModal(false);
+                  setProfilePictureUrl('');
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="profilePictureUrl"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  {t('media.imageUrl')}
-                </label>
-                <input
-                  type="text"
-                  id="profilePictureUrl"
-                  value={profilePictureUrl}
-                  onChange={(e) => setProfilePictureUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  {t('nav.enterAValidImageUrlForYourProfilePicture')}
-                </p>
-              </div>
+            <div className="mb-4">
+              <label
+                htmlFor="profilePictureUrl"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                {t('media.imageUrl')}
+              </label>
+              <input
+                type="text"
+                id="profilePictureUrl"
+                value={profilePictureUrl}
+                onChange={(e) => setProfilePictureUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                {t('nav.enterAValidImageUrlForYourProfilePicture')}
+              </p>
+            </div>
 
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowProfilePictureModal(false);
-                    setProfilePictureUrl('');
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={updateProfilePicture}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                >
-                  Save
-                </button>
-              </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfilePictureModal(false);
+                  setProfilePictureUrl('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={updateProfilePicture}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </PortalDialog>
     </div>
   );
 }
@@ -1285,11 +1939,9 @@ const FollowersModal: React.FC<{
   navigate,
   t,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
+    <PortalDialog isOpen={isOpen} onClose={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">{t('profile.followers')}</h3>
           <button
@@ -1299,7 +1951,7 @@ const FollowersModal: React.FC<{
             <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto max-h-80">
+        <div>
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <Loader2 className="animate-spin text-blue-500" size={24} />
@@ -1324,7 +1976,6 @@ const FollowersModal: React.FC<{
                         } else {
                           navigate(`/profile/${username}`);
                         }
-                        // Close the modal after navigation
                         onClose();
                       }
                     }}
@@ -1354,7 +2005,7 @@ const FollowersModal: React.FC<{
           )}
         </div>
       </div>
-    </div>
+    </PortalDialog>
   );
 };
 
@@ -1378,11 +2029,9 @@ const FollowingModal: React.FC<{
   navigate,
   t,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
+    <PortalDialog isOpen={isOpen} onClose={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">{t('profile.following')}</h3>
           <button
@@ -1392,7 +2041,7 @@ const FollowingModal: React.FC<{
             <X size={20} />
           </button>
         </div>
-        <div className="overflow-y-auto max-h-80">
+        <div>
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <Loader2 className="animate-spin text-blue-500" size={24} />
@@ -1417,7 +2066,6 @@ const FollowingModal: React.FC<{
                         } else {
                           navigate(`/profile/${username}`);
                         }
-                        // Close the modal after navigation
                         onClose();
                       }
                     }}
@@ -1451,7 +2099,7 @@ const FollowingModal: React.FC<{
           )}
         </div>
       </div>
-    </div>
+    </PortalDialog>
   );
 };
 

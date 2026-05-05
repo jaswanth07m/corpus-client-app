@@ -350,8 +350,8 @@
     "saving": "",
     "preview": "",
     "noPreviewAvailable": "",
-    "searchPlaceOrAddress": "",
-    "searching": "",
+    "searchPlaceOrAddress": "స్థలం లేదా చిరునామా శోధించండి",
+    "searching": "శోధిస్తోంది...",
     "failed": {
       "to": {
         "copy": {
@@ -376,7 +376,15 @@
           "intern": ""
         }
       }
-    }
+    },
+    "reviewedAndVerified": "సమీక్షించబడింది మరియు నిర్ధారించబడింది",
+    "viewContributionsOnMap": "మ్యాప్‌లో సహకారాలు చూడండి",
+    "couldNotLoadContributions": "సహకారాలు లోడ్ చేయడం సాధ్యపడలేదు.",
+    "noGeotaggedContributionsYet": "ఇంకా జియోట్యాగ్ చేయబడిన సహకారాలు లేవు.",
+    "closeMap": "మ్యాప్ మూసివేయి",
+    "retry": "మళ్లీ ప్రయత్నించు",
+    "preview": "",
+    "noPreviewAvailable": ""
   },
   "ui": {
     "failed": {
@@ -719,7 +727,14 @@
     "uploadingNewResume": "",
     "profileCompletedSuccessfully": "",
     "uploadingResume": "",
-    "loadingCategories": ""
+    "loadingCategories": "",
+    "linkCopiedSuccessfully": "",
+    "recordUpdatedSuccessfully": "రికార్డు విజయవంతంగా అప్‌డేట్ అయింది!",
+    "error": "",
+    "saving": "సేవ్ చేస్తోంది...",
+    "loadingMap": "మ్యాప్ లోడ్ అవుతోంది...",
+    "loadingDistrictBoundariesPleaseWait": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి... దయచేసి వేచి ఉండండి",
+    "loadingDistrictBoundaries": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి..."
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -804,7 +819,8 @@
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
     "pointsActivity": "పాయింట్ల కార్యకలాపం",
     "contributions": "సహకారాలు...",
-    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి."
+    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి.",
+    "myContributionsOnTheMap": "మ్యాప్‌లో నా సహకారాలు"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "దయచేసి సరైన 10 అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి",

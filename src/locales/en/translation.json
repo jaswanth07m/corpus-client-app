@@ -404,7 +404,12 @@
           "intern": "Are you an intern? *"
         }
       }
-    }
+    },
+    "viewContributionsOnMap": "View contributions on map",
+    "couldNotLoadContributions": "Could not load contributions.",
+    "noGeotaggedContributionsYet": "No geotagged contributions yet.",
+    "closeMap": "Close map",
+    "retry": "Retry"
   },
   "ui": {
     "failed": {
@@ -747,7 +752,11 @@
     "loadingCategories": "Loading categories...",
     "linkCopiedSuccessfully": "Link copied successfully!",
     "recordUpdatedSuccessfully": "Record updated successfully!",
-    "error": "Error"
+    "error": "Error",
+    "saving": "Saving...",
+    "loadingMap": "Loading map...",
+    "loadingDistrictBoundariesPleaseWait": "Loading district boundaries... please wait",
+    "loadingDistrictBoundaries": "Loading district boundaries..."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -837,7 +846,8 @@
     "contributionsYet": "contributions yet.",
     "pointsActivity": "Points Activity",
     "contributions": "contributions...",
-    "contributionsFound": "contributions found."
+    "contributionsFound": "contributions found.",
+    "myContributionsOnTheMap": "My contributions on the map"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "Please enter a valid 10-digit phone number",

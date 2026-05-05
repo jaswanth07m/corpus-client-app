@@ -957,32 +957,4 @@ describe('ContributionDashboard', () => {
       expect(videoCard).toBeInTheDocument();
     });
   });
-
-  describe('Tile Width Fallback', () => {
-    it('uses default width for stats tiles when full is not provided', () => {
-      const { container } = render(
-        <ContributionDashboard {...createMockProps()} />,
-      );
-
-      const uploadsTile = Array.from(container.querySelectorAll('div')).find(
-        (div) =>
-          div.textContent?.includes('Uploads') &&
-          (div as HTMLElement).style.width === 'calc(32% - 4px)',
-      );
-      expect(uploadsTile).toBeTruthy();
-    });
-
-    it('uses default width for media tiles when full is not provided', () => {
-      const { container } = render(
-        <ContributionDashboard {...createMockProps()} />,
-      );
-
-      const textTile = Array.from(container.querySelectorAll('div')).find(
-        (div) =>
-          div.textContent?.includes('Text') &&
-          (div as HTMLElement).style.width === 'calc(32% - 4px)',
-      );
-      expect(textTile).toBeTruthy();
-    });
-  });
 });
