@@ -75,3 +75,16 @@ export function getISTDate(dateString: string): Date {
 export function enumToLabel(value: string): string {
   return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+/**
+ * Converts a Date object or ISO date string to a YYYY-MM-DD key.
+ * Replaces both toDateKey() and normalizeDateKey().
+ */
+export function toDateKey(date: Date | string): string {
+  if (typeof date === 'string') {
+    return date.split('T')[0];
+  }
+
+  return date.toISOString().split('T')[0];
+}
+

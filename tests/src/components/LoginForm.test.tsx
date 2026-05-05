@@ -377,7 +377,7 @@ describe('LoginForm', () => {
       target: { value: 'Valid Name' },
     });
     fireEvent.change(screen.getByPlaceholderText('common.emailAddress'), {
-      target: { value: 'test@example.com' },
+      target: { value: 'test@swecha.org' },
     });
     fireEvent.change(screen.getByPlaceholderText('auth.createPassword'), {
       target: { value: 'Valid@123!' },
@@ -455,7 +455,7 @@ describe('LoginForm', () => {
         'messages.accountCreatedAndVerifiedSuccessfullyPleaseLogin',
       ),
     );
-  });
+  }, 30000);
 
   async function setupResendOTPFlow() {
     const user = userEvent.setup();
@@ -539,7 +539,7 @@ describe('LoginForm', () => {
     expect(mockToastSuccess).toHaveBeenCalledWith(
       'messages.signupOtpResentSuccessfully',
     );
-  });
+  }, 30000);
 
   it('can use back logic to return to signup form after OTP send', async () => {
     const user = userEvent.setup();

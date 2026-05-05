@@ -395,7 +395,7 @@
     "specialization": "Specialization",
     "selectSpecialization": "Select Specialization",
     "pleaseSelectCollegeFirst": "Please select college first",
-    "reviewedAndVerified": "✓ Reviewed & Verified",
+    "reviewedAndVerified": "Reviewed and verified",
     "remove": "Remove",
     "normalUser": "Normal User",
     "are": {
@@ -405,11 +405,10 @@
         }
       }
     },
-    "viewContributionsOnMap": "View contributions on map",
-    "couldNotLoadContributions": "Could not load contributions.",
-    "noGeotaggedContributionsYet": "No geotagged contributions yet.",
-    "closeMap": "Close map",
-    "retry": "Retry"
+    "preview": "Preview:",
+    "noPreviewAvailable": "No preview available",
+    "searchPlaceOrAddress": "Search place or address",
+    "searching": "Searching..."
   },
   "ui": {
     "failed": {
@@ -1015,7 +1014,10 @@
     },
     "heatmap": {
       "title": "Activity Heatmap",
-      "description": "Track your daily contributions and streaks over time."
+      "description": "Track your daily contributions and streaks over time.",
+      "less": "Less",
+      "more": "More",
+      "activityOnDate": "{{count}} points on {{date}}"
     },
     "dashboard": {
       "title": "Contributions Dashboard",
