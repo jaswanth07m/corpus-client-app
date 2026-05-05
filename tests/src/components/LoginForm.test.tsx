@@ -373,9 +373,6 @@ describe('LoginForm', () => {
       screen.getByPlaceholderText('auth.enter10digitPhoneNumber'),
       { target: { value: '9000000000' } },
     );
-    fireEvent.change(screen.getByPlaceholderText('auth.username'), {
-      target: { value: 'valid_user' },
-    });
     fireEvent.change(screen.getByPlaceholderText('user.fullName'), {
       target: { value: 'Valid Name' },
     });
