@@ -320,7 +320,11 @@ import UserProfileInfo from '../../../src/components/UserProfileInfo';
 import { toast } from 'sonner';
 
 function renderWithRouter(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  const result = render(<MemoryRouter>{ui}</MemoryRouter>);
+  return {
+    ...result,
+    container: document.body,
+  };
 }
 
 describe('UserProfileInfo', () => {

@@ -347,36 +347,41 @@
         }
       }
     },
-    "saving": "",
-    "preview": "",
-    "noPreviewAvailable": "",
-    "searchPlaceOrAddress": "",
-    "searching": "",
+    "saving": "సేవ్ అవుతోంది...",
+    "preview": "ప్రివ్యూ:",
+    "noPreviewAvailable": "ప్రివ్యూ అందుబాటులో లేదు",
+    "searchPlaceOrAddress": "స్థలం లేదా చిరునామా వెతకండి",
+    "searching": "వెతుకుతోంది...",
     "failed": {
       "to": {
         "copy": {
-          "url": ""
+          "url": "URLను కాపీ చేయడం విఫలమైంది"
         }
       }
     },
-    "goBackHome": "",
-    "recordNotFound": "",
-    "viewDocument": "",
-    "noRecordsFoundInThisCategory": "",
-    "trySelectingADifferentCategoryOrClearingTheFilter": "",
-    "clearFilter": "",
+    "goBackHome": "హోమ్‌కు తిరిగి వెళ్ళు",
+    "recordNotFound": "రికార్డ్ కనుగొనబడలేదు",
+    "viewDocument": "డాక్యుమెంట్‌ను చూడండి",
+    "noRecordsFoundInThisCategory": "ఈ వర్గంలో రికార్డులు లభించలేదు",
+    "trySelectingADifferentCategoryOrClearingTheFilter": "వేరే వర్గాన్ని ఎంచుకోండి లేదా ఫిల్టర్‌ను క్లియర్ చేయడానికి ప్రయత్నించండి.",
+    "clearFilter": "ఫిల్టర్‌ను క్లియర్ చేయండి",
     "workstation": {
-      "os": "",
-      "ram": ""
+      "os": "వర్క్‌స్టేషన్ OS",
+      "ram": "వర్క్‌స్టేషన్ RAM"
     },
-    "normalUser": "",
+    "normalUser": "సాధారణ వినియోగదారు",
     "are": {
       "you": {
         "an": {
-          "intern": ""
+          "intern": "మీరు ఇంటర్న్‌నా? *"
         }
       }
-    }
+    },
+    "preview": "ప్రివ్యూ:",
+    "noPreviewAvailable": "ప్రివ్యూ అందుబాటులో లేదు",
+    "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది",
+    "searchPlaceOrAddress": "స్థలం లేదా చిరునామా వెతకండి",
+    "searching": "వెతుకుతోంది..."
   },
   "ui": {
     "failed": {
@@ -388,7 +393,7 @@
                 "try": {
                   "logging": {
                     "in": {
-                      "again": "యూజర్ సమాచారాన్ని పొందడం విఫలమైంది. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి."
+                      "again": "యూజర్ సమాచారాన్ని పొందడం విఫలమైంది. దయచేసి మళ్లీ లాగిన్ ప్రయత్నించండి"
                     }
                   }
                 }
@@ -432,7 +437,7 @@
       "your": {
         "text": {
           "content": {
-            "here": "మీ టెక్స్ట్ కంటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
+            "here": "మీ టెక్స్ట్ కoటెంట్‌ను ఇక్కడ నమోదు చేయండి..."
           }
         }
       },
@@ -719,7 +724,14 @@
     "uploadingNewResume": "",
     "profileCompletedSuccessfully": "",
     "uploadingResume": "",
-    "loadingCategories": ""
+    "loadingCategories": "",
+    "linkCopiedSuccessfully": "",
+    "recordUpdatedSuccessfully": "రికార్డు విజయవంతంగా అప్‌డేట్ అయింది!",
+    "error": "",
+    "saving": "సేవ్ చేస్తోంది...",
+    "loadingMap": "మ్యాప్ లోడ్ అవుతోంది...",
+    "loadingDistrictBoundariesPleaseWait": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి... దయచేసి వేచి ఉండండి",
+    "loadingDistrictBoundaries": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి..."
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -804,7 +816,8 @@
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
     "pointsActivity": "పాయింట్ల కార్యకలాపం",
     "contributions": "సహకారాలు...",
-    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి."
+    "contributionsFound": "సహకారాలు కనుగొనబడ్డాయి.",
+    "myContributionsOnTheMap": "మ్యాప్‌లో నా సహకారాలు"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "దయచేసి సరైన 10 అంకెల ఫోన్ నంబర్‌ను నమోదు చేయండి",
@@ -970,8 +983,11 @@
       "description": "అప్లికేషన్ భాషను ఇక్కడ మార్చండి."
     },
     "heatmap": {
-      "title": "కార్యాచరణ హీట్‌మ్యాప్",
-      "description": "కాలక్రమేణా మీ రోజువారీ సహకారాలను మరియు స్ట్రీక్‌లను ట్రాక్ చేయండి."
+      "title": "యాక్టివిటీ హీట్‌మ్యాప్",
+      "description": "కాలక్రమేణా మీ రోజువారీ సహకారాలు మరియు స్ట్రీక్‌లను ట్రాక్ చేయండి.",
+      "less": "తక్కువ",
+      "more": "ఎక్కువ",
+      "activityOnDate": "{{date}} న {{count}} పాయింట్లు"
     },
     "dashboard": {
       "title": "కంట్రిబ్యూషన్స్ డాష్‌బోర్డ్",

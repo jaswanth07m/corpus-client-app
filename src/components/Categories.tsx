@@ -709,7 +709,9 @@ const Categories: React.FC<CategoriesProps> = ({
           resetUploadState();
           // Redirect to landing page after successful upload
           setTimeout(() => {
-            window.location.href = '/';
+            if (typeof window !== 'undefined') {
+              window.location.href = '/';
+            }
           }, 1500);
         } else {
           partialResetUploadState();

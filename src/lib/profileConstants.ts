@@ -1,4 +1,9 @@
-export const organisationTypes = ['Engineering', 'Degree', 'Pharmacy'];
+export const organisationTypes = [
+  'Engineering',
+  'Degree',
+  'Pharmacy',
+  'Pre University Course',
+];
 
 export const yearList = [
   'First Year',

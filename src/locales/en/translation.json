@@ -395,7 +395,7 @@
     "specialization": "Specialization",
     "selectSpecialization": "Select Specialization",
     "pleaseSelectCollegeFirst": "Please select college first",
-    "reviewedAndVerified": "✓ Reviewed & Verified",
+    "reviewedAndVerified": "Reviewed and verified",
     "remove": "Remove",
     "normalUser": "Normal User",
     "are": {
@@ -404,7 +404,11 @@
           "intern": "Are you an intern? *"
         }
       }
-    }
+    },
+    "preview": "Preview:",
+    "noPreviewAvailable": "No preview available",
+    "searchPlaceOrAddress": "Search place or address",
+    "searching": "Searching..."
   },
   "ui": {
     "failed": {
@@ -747,7 +751,11 @@
     "loadingCategories": "Loading categories...",
     "linkCopiedSuccessfully": "Link copied successfully!",
     "recordUpdatedSuccessfully": "Record updated successfully!",
-    "error": "Error"
+    "error": "Error",
+    "saving": "Saving...",
+    "loadingMap": "Loading map...",
+    "loadingDistrictBoundariesPleaseWait": "Loading district boundaries... please wait",
+    "loadingDistrictBoundaries": "Loading district boundaries..."
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -837,7 +845,8 @@
     "contributionsYet": "contributions yet.",
     "pointsActivity": "Points Activity",
     "contributions": "contributions...",
-    "contributionsFound": "contributions found."
+    "contributionsFound": "contributions found.",
+    "myContributionsOnTheMap": "My contributions on the map"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "Please enter a valid 10-digit phone number",
@@ -1005,7 +1014,10 @@
     },
     "heatmap": {
       "title": "Activity Heatmap",
-      "description": "Track your daily contributions and streaks over time."
+      "description": "Track your daily contributions and streaks over time.",
+      "less": "Less",
+      "more": "More",
+      "activityOnDate": "{{count}} points on {{date}}"
     },
     "dashboard": {
       "title": "Contributions Dashboard",

@@ -1,0 +1,91 @@
+.corpus-points-heatmap .react-calendar-heatmap {
+  width: 100%;
+  overflow: visible;
+}
+
+.corpus-points-heatmap .react-calendar-heatmap text {
+  fill: hsl(215 20% 45%);
+  font-family: inherit;
+  font-size: 10px;
+}
+
+.corpus-points-heatmap
+  .react-calendar-heatmap
+  .react-calendar-heatmap-weekday-label,
+.corpus-points-heatmap
+  .react-calendar-heatmap
+  .react-calendar-heatmap-month-label {
+  fill: hsl(215 20% 45%);
+}
+
+.corpus-points-heatmap .react-calendar-heatmap rect {
+  cursor: pointer;
+  transition:
+    fill 0.2s ease,
+    stroke 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.corpus-points-heatmap .react-calendar-heatmap rect:hover {
+  stroke: hsl(222.2 47.4% 11.2% / 0.55);
+  stroke-width: 1px;
+}
+
+.corpus-points-heatmap .react-calendar-heatmap .heatmap-level-0 {
+  fill: #ebedf0;
+}
+
+.corpus-points-heatmap .heatmap-legend-swatch.heatmap-level-0 {
+  background-color: #ebedf0;
+}
+
+.corpus-points-heatmap .react-calendar-heatmap .heatmap-level-1 {
+  fill: #bbf7d0;
+}
+
+.corpus-points-heatmap .heatmap-legend-swatch.heatmap-level-1 {
+  background-color: #bbf7d0;
+}
+
+.corpus-points-heatmap .react-calendar-heatmap .heatmap-level-2 {
+  fill: #4ade80;
+}
+
+.corpus-points-heatmap .heatmap-legend-swatch.heatmap-level-2 {
+  background-color: #4ade80;
+}
+
+.corpus-points-heatmap .react-calendar-heatmap .heatmap-level-3 {
+  fill: #16a34a;
+}
+
+.corpus-points-heatmap .heatmap-legend-swatch.heatmap-level-3 {
+  background-color: #16a34a;
+}
+
+.corpus-points-heatmap .react-calendar-heatmap .heatmap-level-4 {
+  fill: #14532d;
+}
+
+.corpus-points-heatmap .heatmap-legend-swatch.heatmap-level-4 {
+  background-color: #14532d;
+}
+
+.corpus-points-heatmap .heatmap-legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 0.125rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.corpus-points-heatmap__chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.corpus-points-heatmap__chart svg {
+  width: 100%;
+  height: auto;
+}

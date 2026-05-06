@@ -46,6 +46,11 @@ vi.mock('leaflet', () => ({
 vi.mock('react-leaflet', async () => {
   const React = await import('react');
 
+  const mockMap = {
+    flyTo: vi.fn(),
+    getZoom: vi.fn(() => 13),
+  };
+
   return {
     MapContainer: ({
       center,
@@ -59,6 +64,7 @@ vi.mock('react-leaflet', async () => {
       </div>
     ),
     TileLayer: () => <div data-testid="tile-layer" />,
+    useMap: () => mockMap,
     Marker: React.forwardRef(
       (
         props: {
