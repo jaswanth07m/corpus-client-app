@@ -27,6 +27,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 import { BACKEND_URL } from '@/lib/constants';
+import { toast } from 'sonner';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -630,7 +631,7 @@ function DocDigitization() {
 
   async function handleSubmitPage() {
     if (!recordId || !fullRecordData) {
-      alert('Cannot submit: No record is currently loaded.');
+      toast.error('Cannot submit: No record is currently loaded.');
       return;
     }
     setIsSubmitting(true);
@@ -692,7 +693,7 @@ function DocDigitization() {
         );
       }
 
-      alert(`Page ${pageNumber} submitted successfully!`);
+      toast.success(`Page ${pageNumber} submitted successfully!`);
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
 
       if (numPages && pageNumber < numPages) {
@@ -701,7 +702,7 @@ function DocDigitization() {
     } catch (err) {
       const error = err as Error;
       setError(error.message);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
