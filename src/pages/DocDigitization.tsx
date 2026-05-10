@@ -667,7 +667,6 @@ function DocDigitization() {
     });
 
     const requestBody = {
-      transcription: fullRecordData.extracted_text?.transcription || '',
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
       segments: updatedSegments,
     };
