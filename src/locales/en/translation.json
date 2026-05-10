@@ -330,7 +330,8 @@
     },
     "gender": "Gender *",
     "academic": {
-      "details": "Academic Details"
+      "details": "Academic Details",
+      "stream": "Academic Stream"
     },
     "roll": {
       "number": "Roll number"
@@ -404,11 +405,7 @@
           "intern": "Are you an intern? *"
         }
       }
-    },
-    "preview": "Preview:",
-    "noPreviewAvailable": "No preview available",
-    "searchPlaceOrAddress": "Search place or address",
-    "searching": "Searching..."
+    }
   },
   "ui": {
     "failed": {
