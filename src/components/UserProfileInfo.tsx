@@ -742,7 +742,8 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
               )}
 
               {/* Internship Profile - Read Only */}
-              {(profile.organisation_type ||
+              {(profile.academic_stream ||
+                profile.organisation_type ||
                 profile.institution_id ||
                 profile.hardware_details) && (
                 <div className="w-full mt-4">
@@ -753,13 +754,13 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     </p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {profile.organisation_type && (
+                    {(profile.academic_stream || profile.organisation_type) && (
                       <div className="p-3 border rounded-lg bg-gray-50">
                         <p className="text-gray-500 text-xs">
                           {t('categories.organisationType')}
                         </p>
                         <p className="text-gray-900 font-medium text-sm">
-                          {profile.organisation_type}
+                          {profile.academic_stream || profile.organisation_type}
                         </p>
                       </div>
                     )}

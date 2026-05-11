@@ -213,10 +213,26 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     label: c,
   }));
 
-  const institutionOptions = institutions.map((inst) => ({
-    value: inst.id,
-    label: inst.name,
-  }));
+  const institutionOptions = institutions.flatMap((inst) => {
+    if (inst.courses && inst.courses.length > 0) {
+      return inst.courses.map((course) => {
+        const buckets = [
+          course.option_a_bucket,
+          course.option_b_bucket,
+          course.option_c_bucket,
+          course.option_d_bucket,
+        ].filter((b): b is string => !!b);
+
+        const label =
+          buckets.length > 0
+            ? `${course.course_name} (${buckets.join(', ')})`
+            : course.course_name;
+
+        return { value: inst.id, label };
+      });
+    }
+    return [{ value: inst.id, label: inst.name || inst.course_name || '' }];
+  });
 
   return (
     <div className="space-y-4">

@@ -23,18 +23,31 @@ export interface Enums {
   management_types: string[];
   mediums: string[];
   modes: string[];
+  academic_streams: string[];
 }
 
 export interface InstitutionRow {
   id: string;
-  name: string;
+  name?: string;
   college_name: string;
   university_name: string;
-  course_name: string;
-  medium: string;
-  mode: string;
+  course_name?: string;
+  medium: string | null;
+  mode: string | null;
   district: string;
-  college_type: string;
+  college_type: string | null;
+  academic_stream?: string;
+  courses?: {
+    id: string;
+    course_name: string;
+    option_a_bucket?: string | null;
+    option_b_bucket?: string | null;
+    option_c_bucket?: string | null;
+    option_d_bucket?: string | null;
+    cbcs?: boolean;
+    revised_intake?: number | null;
+    mode?: string | null;
+  }[];
 }
 
 export interface InstitutionDetail extends InstitutionRow {
@@ -47,12 +60,14 @@ export interface InstitutionDetail extends InstitutionRow {
   option_d_bucket?: string | null;
   cbcs?: boolean;
   revised_intake?: number;
+  academic_stream?: string;
 }
 
 const BASE = `${BACKEND_URL}/institutions`;
 
-export function fetchEnums(): Promise<Enums> {
-  return fetchJson<Enums>(`${BASE}/enums`);
+export function fetchEnums(enumType?: string): Promise<Enums> {
+  const qs = enumType ? `?enum_type=${enumType}` : '';
+  return fetchJson<Enums>(`${BASE}/enums${qs}`);
 }
 
 export interface PaginatedParams {
