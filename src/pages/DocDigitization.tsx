@@ -698,6 +698,8 @@ function DocDigitization() {
 
       if (numPages && pageNumber < numPages) {
         setPageNumber(pageNumber + 1);
+      } else {
+        await fetchNextRecord();
       }
     } catch (err) {
       const error = err as Error;
