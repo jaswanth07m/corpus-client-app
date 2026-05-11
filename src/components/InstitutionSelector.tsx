@@ -15,6 +15,7 @@ interface InstitutionSelectorProps {
   onChange: (institutionId: string) => void;
   disabled?: boolean;
   required?: boolean;
+  academicStream?: string;
 }
 
 const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
@@ -22,6 +23,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
   onChange,
   disabled = false,
   required = false,
+  academicStream,
 }) => {
   const { t } = useTranslation();
 
@@ -53,17 +55,23 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     null,
   );
 
-  const doFetchUniversities = useCallback(async (search: string) => {
-    setUniversitiesLoading(true);
-    try {
-      const data = await fetchUniversityNames({ search: search || undefined });
-      setUniversities(data);
-    } catch {
-      // error handled silently
-    } finally {
-      setUniversitiesLoading(false);
-    }
-  }, []);
+  const doFetchUniversities = useCallback(
+    async (search: string) => {
+      setUniversitiesLoading(true);
+      try {
+        const data = await fetchUniversityNames({
+          search: search || undefined,
+          academic_stream: academicStream || undefined,
+        });
+        setUniversities(data);
+      } catch {
+        // error handled silently
+      } finally {
+        setUniversitiesLoading(false);
+      }
+    },
+    [academicStream],
+  );
 
   const doFetchColleges = useCallback(
     async (universityName: string, search: string) => {
@@ -72,6 +80,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         const data = await fetchCollegeNames({
           university_name: universityName || undefined,
           search: search || undefined,
+          academic_stream: academicStream || undefined,
         });
         setColleges(data);
       } catch {
@@ -81,6 +90,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
       }
     },
     [],
+    [academicStream],
   );
 
   const doFetchInstitutions = useCallback(
@@ -91,6 +101,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
           college_name: collegeName || undefined,
           university_name: universityName || undefined,
           search: search || undefined,
+          academic_stream: academicStream || undefined,
           limit: 500,
         });
         setInstitutions(data);
@@ -100,7 +111,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         setInstitutionsLoading(false);
       }
     },
-    [],
+    [academicStream],
   );
 
   const loadInitialInstitution = useCallback(
@@ -109,7 +120,8 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         const institution = await fetchInstitution(id);
         setSelectedUniversityName(institution.university_name);
         setSelectedCollegeName(institution.college_name);
-        setSelectedInstitutionId(id);
+        const courseId = institution.courses?.[0]?.id || id;
+        setSelectedInstitutionId(`${id}__${courseId}`);
         setUniversities([institution.university_name]);
         setColleges([institution.college_name]);
         setInstitutions([institution]);
@@ -144,6 +156,18 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
       setInitialLoadDone(true);
     }
   }, [institutionId, initialLoadDone, doFetchUniversities]);
+
+  // Re-fetch universities when academic stream changes
+  useEffect(() => {
+    if (!initialLoadDone) return;
+    setSelectedUniversityName('');
+    setSelectedCollegeName('');
+    setSelectedInstitutionId('');
+    setColleges([]);
+    setInstitutions([]);
+    onChange('');
+    doFetchUniversities('');
+  }, [academicStream]);
 
   function handleUniversitySearchChange(value: string) {
     setUniversitySearch(value);
@@ -199,8 +223,9 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
   }
 
   function handleInstitutionSelect(value: string) {
+    const institutionId = value.split('__')[0];
     setSelectedInstitutionId(value);
-    onChange(value);
+    onChange(institutionId);
   }
 
   const universityOptions = universities.map((u) => ({
@@ -228,10 +253,15 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
             ? `${course.course_name} (${buckets.join(', ')})`
             : course.course_name;
 
-        return { value: inst.id, label };
+        return { value: `${inst.id}__${course.id}`, label };
       });
     }
-    return [{ value: inst.id, label: inst.name || inst.course_name || '' }];
+    return [
+      {
+        value: `${inst.id}__${inst.id}`,
+        label: inst.name || inst.course_name || '',
+      },
+    ];
   });
 
   return (

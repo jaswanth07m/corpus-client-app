@@ -99,6 +99,7 @@ export function fetchInstitutions(params?: {
   management_type?: string;
   medium?: string;
   mode?: string;
+  academic_stream?: string;
   skip?: number;
   limit?: number;
 }): Promise<InstitutionRow[]> {
@@ -111,6 +112,7 @@ export function fetchInstitutions(params?: {
     management_type: params?.management_type,
     medium: params?.medium,
     mode: params?.mode,
+    academic_stream: params?.academic_stream,
     skip: params?.skip ?? 0,
     limit: params?.limit ?? 100,
   });
@@ -123,18 +125,24 @@ export function fetchInstitution(id: string): Promise<InstitutionDetail> {
 
 export function fetchUniversityNames(params?: {
   search?: string;
+  academic_stream?: string;
 }): Promise<string[]> {
-  const qs = buildQuery({ search: params?.search });
+  const qs = buildQuery({
+    search: params?.search,
+    academic_stream: params?.academic_stream,
+  });
   return fetchJson<string[]>(`${BASE}/university-names${qs}`);
 }
 
 export function fetchCollegeNames(params?: {
   university_name?: string;
   search?: string;
+  academic_stream?: string;
 }): Promise<string[]> {
   const qs = buildQuery({
     university_name: params?.university_name,
     search: params?.search,
+    academic_stream: params?.academic_stream,
   });
   return fetchJson<string[]>(`${BASE}/college-names${qs}`);
 }
