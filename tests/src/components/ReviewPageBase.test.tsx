@@ -25,6 +25,7 @@ vi.mock('@/components/UserSearchResults', () => ({
     onSelectUser,
     isVisible,
     onClose,
+    error,
   }: {
     users: { username: string }[];
     onSelectUser: (u: string) => void;
@@ -34,7 +35,9 @@ vi.mock('@/components/UserSearchResults', () => ({
     error?: string;
   }) => (
     <div data-testid="user-search-results">
+      {error && <div data-testid="user-search-error">{error}</div>}
       {isVisible &&
+        Array.isArray(users) &&
         users.map((u) => (
           <div
             key={u.username}
@@ -79,11 +82,11 @@ describe('ReviewPageBase', () => {
     vi.clearAllMocks();
     localStorage.setItem('token', 'test-token');
 
-    // Default: 404 (no more records)
+    // Default: empty results (no more records)
     mockFetch.mockResolvedValue({
-      ok: false,
-      status: 404,
-      json: async () => ({ message: 'Not found' }),
+      ok: true,
+      status: 200,
+      json: async () => ({ record_ids: [] }),
     });
   });
 
@@ -192,7 +195,9 @@ describe('ReviewPageBase', () => {
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => [{ record_id: 'rec1' }, { record_id: 'rec2' }],
+        json: async () => ({
+          record_ids: [{ record_id: 'rec1' }, { record_id: 'rec2' }],
+        }),
       })
       .mockResolvedValueOnce({
         ok: true,
@@ -225,7 +230,7 @@ describe('ReviewPageBase', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => [],
+      json: async () => ({ record_ids: [] }),
     });
 
     render(

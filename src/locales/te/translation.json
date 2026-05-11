@@ -330,7 +330,8 @@
     },
     "gender": "",
     "academic": {
-      "details": ""
+      "details": "",
+      "stream": ""
     },
     "roll": {
       "number": ""
@@ -377,11 +378,7 @@
         }
       }
     },
-    "preview": "ప్రివ్యూ:",
-    "noPreviewAvailable": "ప్రివ్యూ అందుబాటులో లేదు",
-    "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది",
-    "searchPlaceOrAddress": "స్థలం లేదా చిరునామా వెతకండి",
-    "searching": "వెతుకుతోంది..."
+    "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది"
   },
   "ui": {
     "failed": {

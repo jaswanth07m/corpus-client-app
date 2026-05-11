@@ -27,6 +27,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
 import { BACKEND_URL } from '@/lib/constants';
+import { toast } from 'sonner';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -422,18 +423,14 @@ function DocDigitization() {
 
     const token = localStorage.getItem('token');
     try {
-      const [recordDetailsResponse, recordUrlResponse, recordTextResponse] =
-        await Promise.all([
-          fetch(`${BACKEND_URL}/records/${recordId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${BACKEND_URL}/records/${recordId}/record-url`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${BACKEND_URL}/records/${recordId}/text`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+      const [recordDetailsResponse, recordUrlResponse] = await Promise.all([
+        fetch(`${BACKEND_URL}/records/${recordId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${BACKEND_URL}/records/${recordId}/record-url`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
       if (!recordDetailsResponse.ok) {
         if (recordDetailsResponse.status === 404) {
@@ -444,6 +441,9 @@ function DocDigitization() {
         );
       }
       if (!recordUrlResponse.ok) {
+        if (recordUrlResponse.status === 404) {
+          throw new Error(`Record URL not found for record "${recordId}".`);
+        }
         throw new Error(
           `Failed to fetch record URL. Status: ${recordUrlResponse.status}`,
         );
@@ -452,9 +452,6 @@ function DocDigitization() {
       const recordDetails =
         (await recordDetailsResponse.json()) as RecordDetails;
       const urlData = await recordUrlResponse.json();
-      const recordTextData = recordTextResponse.ok
-        ? ((await recordTextResponse.json()) as ExtractedTextResponse)
-        : null;
 
       setFullRecordData(recordDetails);
       setRecordId(recordId);
@@ -466,10 +463,7 @@ function DocDigitization() {
         throw new Error('Could not find a valid URL in the API response.');
       }
 
-      const segments =
-        recordTextData?.segments ||
-        recordDetails.extracted_text?.segments ||
-        [];
+      const segments = recordDetails.extracted_text?.segments || [];
 
       if (segments.length === 0) {
         throw new Error('No segments found in the record.');
@@ -535,41 +529,41 @@ function DocDigitization() {
     const token = localStorage.getItem('token');
     try {
       const nextRecordResponse = await fetch(
-        `${BACKEND_URL}/records/next-for-review`,
+        `${BACKEND_URL}/records/for-review`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            filters: { media_type: ['document'], is_fully_proofread: false },
+            limit: 1,
+          }),
         },
       );
 
-      if (nextRecordResponse.status === 404) {
-        throw new Error('No new records are available for proofreading.');
-      }
       if (!nextRecordResponse.ok) {
         const errorData = await nextRecordResponse.json();
         throw new Error(errorData.message || 'Failed to find the next record.');
       }
 
-      const responseArray = await nextRecordResponse.json();
+      const responseBody = await nextRecordResponse.json();
+      const responseArray = responseBody.record_ids;
       if (!Array.isArray(responseArray) || responseArray.length === 0) {
-        throw new Error(
-          'Invalid response format from /next-for-review - expected an array with at least one record',
-        );
+        throw new Error('No new records are available for proofreading.');
       }
       const { record_id } = responseArray[0];
       setRecordId(record_id);
 
-      const [recordDetailsResponse, recordUrlResponse, recordTextResponse] =
-        await Promise.all([
-          fetch(`${BACKEND_URL}/records/${record_id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${BACKEND_URL}/records/${record_id}/record-url`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${BACKEND_URL}/records/${record_id}/text`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+      const [recordDetailsResponse, recordUrlResponse] = await Promise.all([
+        fetch(`${BACKEND_URL}/records/${record_id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${BACKEND_URL}/records/${record_id}/record-url`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
       if (!recordDetailsResponse.ok) {
         throw new Error(
@@ -585,9 +579,6 @@ function DocDigitization() {
       const recordDetails =
         (await recordDetailsResponse.json()) as RecordDetails;
       const urlData = await recordUrlResponse.json();
-      const recordTextData = recordTextResponse.ok
-        ? ((await recordTextResponse.json()) as ExtractedTextResponse)
-        : null;
 
       setFullRecordData(recordDetails);
 
@@ -598,10 +589,7 @@ function DocDigitization() {
         throw new Error('Could not find a valid URL in the API response.');
       }
 
-      const segments =
-        recordTextData?.segments ||
-        recordDetails.extracted_text?.segments ||
-        [];
+      const segments = recordDetails.extracted_text?.segments || [];
 
       if (segments.length === 0) {
         throw new Error('No segments found in the record.');
@@ -643,7 +631,7 @@ function DocDigitization() {
 
   async function handleSubmitPage() {
     if (!recordId || !fullRecordData) {
-      alert('Cannot submit: No record is currently loaded.');
+      toast.error('Cannot submit: No record is currently loaded.');
       return;
     }
     setIsSubmitting(true);
@@ -680,7 +668,6 @@ function DocDigitization() {
     });
 
     const requestBody = {
-      transcription: fullRecordData.extracted_text?.transcription || '',
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
       segments: updatedSegments,
     };
@@ -706,16 +693,18 @@ function DocDigitization() {
         );
       }
 
-      alert(`Page ${pageNumber} submitted successfully!`);
+      toast.success(`Page ${pageNumber} submitted successfully!`);
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
 
       if (numPages && pageNumber < numPages) {
         setPageNumber(pageNumber + 1);
+      } else {
+        await fetchNextRecord();
       }
     } catch (err) {
       const error = err as Error;
       setError(error.message);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

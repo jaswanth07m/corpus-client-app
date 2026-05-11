@@ -330,7 +330,8 @@
     },
     "gender": "",
     "academic": {
-      "details": ""
+      "details": "",
+      "stream": ""
     },
     "roll": {
       "number": ""
@@ -348,8 +349,8 @@
       }
     },
     "saving": "सहेजा जा रहा है...",
-    "preview": "पूर्वावलोकन:",
-    "noPreviewAvailable": "पूर्वावलोकन उपलब्ध नहीं है",
+    "preview": "",
+    "noPreviewAvailable": "",
     "searchPlaceOrAddress": "स्थान या पता खोजें",
     "searching": "खोज रहे हैं...",
     "failed": {
@@ -377,16 +378,12 @@
         }
       }
     },
-    "preview": "पूर्वावलोकन:",
-    "noPreviewAvailable": "पूर्वावलोकन उपलब्ध नहीं है",
     "reviewedAndVerified": "समीक्षित और सत्यापित",
     "viewContributionsOnMap": "मानचित्र पर योगदान देखें",
     "couldNotLoadContributions": "योगदान लोड नहीं हो सके.",
     "noGeotaggedContributionsYet": "अभी तक कोई जियोटैग योगदान नहीं हैं.",
     "closeMap": "मानचित्र बंद करें",
-    "retry": "पुनः प्रयास करें",
-    "preview": "",
-    "noPreviewAvailable": ""
+    "retry": "पुनः प्रयास करें"
   },
   "ui": {
     "failed": {
