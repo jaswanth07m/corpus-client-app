@@ -247,7 +247,14 @@
       "progress": "ஒட்டுமொத்த முன்னேற்றம்"
     },
     "previousPage": "முந்தைய பக்கம்",
-    "nextPage": "அடுத்த பக்கம்"
+    "nextPage": "அடுத்த பக்கம்",
+    "viewContributionsOnMap": "வரைபடத்தில் பங்களிப்புகளைக் காண்க",
+    "couldNotLoadContributions": "பங்களிப்புகளை ஏற்ற முடியவில்லை.",
+    "noGeotaggedContributionsYet": "இன்னும் ஜியோடேக் செய்யப்பட்ட பங்களிப்புகள் இல்லை.",
+    "closeMap": "வரைபடத்தை மூடு",
+    "retry": "மீண்டும் முயற்சிக்கவும்",
+    "searchPlaceOrAddress": "இடம் அல்லது முகவரி தேடுக",
+    "searching": "தேடுகிறது..."
   },
   "ui": {
     "failed": {
@@ -435,7 +442,10 @@
     "loadingProfile": "சுயவிவரம் ஏற்றப்படுகிறது...",
     "profilePictureUpdatedSuccessfully": "சுயவிவரப் படம் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டது!",
     "loadingPointsData": "புள்ளிகள் தரவு ஏற்றப்படுகிறது...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "இந்தப் பகுதிகளின் வாசிப்பு வரிசையைப் புதுப்பிக்க விரும்புகிறீர்களா? இது எல்லைப் பெட்டி வரிசையையும் புதுப்பிக்கும்."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "இந்தப் பகுதிகளின் வாசிப்பு வரிசையைப் புதுப்பிக்க விரும்புகிறீர்களா? இது எல்லைப் பெட்டி வரிசையையும் புதுப்பிக்கும்.",
+    "loadingMap": "வரைபடம் ஏற்றப்படுகிறது...",
+    "loadingDistrictBoundariesPleaseWait": "மாவட்ட எல்லைகள் ஏற்றப்படுகிறது... தயவுசெய்து காத்திருக்கவும்",
+    "loadingDistrictBoundaries": "மாவட்ட எல்லைகள் ஏற்றப்படுகிறது..."
   },
   "user": {
     "requestingLocationAccess": "இருப்பிட அணுகல் கோரப்படுகிறது...",
@@ -511,7 +521,8 @@
     "contributionsYet": "இன்னும் பங்களிப்புகள் இல்லை.",
     "pointsActivity": "புள்ளிகள் செயல்பாடு",
     "contributions": "பங்களிப்புகள்...",
-    "contributionsFound": "பங்களிப்புகள் கண்டறியப்பட்டன."
+    "contributionsFound": "பங்களிப்புகள் கண்டறியப்பட்டன.",
+    "myContributionsOnTheMap": "வரைபடத்தில் என் பங்களிப்புகள்"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "சரியான 10 இலக்கத் தொலைபேசி எண்ணை உள்ளிடவும்",
@@ -671,7 +682,10 @@
     },
     "heatmap": {
       "title": "செயல்பாட்டு வரைபடம்",
-      "description": "உங்கள் தினசரி பங்களிப்புகளைக் கண்காணித்து முன்னேற்றத்தைப் பார்க்கவும்."
+      "description": "உங்கள் தினசரி பங்களிப்புகளை கண்காணித்து முன்னேற்றத்தைப் பார்க்கவும்.",
+      "less": "குறைவ",
+      "more": "அதிகம்",
+      "activityOnDate": "{{date}} அன்று {{count}} புள்ளிகள்"
     },
     "dashboard": {
       "title": "பங்களிப்புத் தகவல் பலகை",

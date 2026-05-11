@@ -1,50 +1,90 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { formatDistanceToNow } from 'date-fns';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Format a date string as a modern relative time (e.g. '2 hr ago', 'Just now', etc.)
 export function formatModernTime(dateString: string): string {
   if (!dateString) return '';
-  const now = new Date();
   const date = new Date(dateString);
-  const diff = (now.getTime() - date.getTime()) / 1000;
+  if (isNaN(date.getTime())) return 'Invalid Date';
+
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+
   if (diff < 60) return 'Just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  if (diff < 3600) {
+    const minutes = Math.floor(diff / 60);
+    return `${minutes} min ago`;
+  }
+  if (diff < 86400) {
+    const hours = Math.floor(diff / 3600);
+    return `${hours} hr ago`;
+  }
+  if (diff < 604800) {
+    const days = Math.floor(diff / 86400);
+    return `${days}d ago`;
+  }
+
+  return formatInTimeZone(date, 'Asia/Kolkata', 'MMM d, yyyy');
 }
 
-// Format a size in bytes as MB string
 export function formatSizeMB(size: number): string {
   if (!size || isNaN(size)) return '';
   return `${(size / 1024 ** 2).toFixed(2)} MB`;
 }
 
-// Format a duration in seconds as HH:MM:SS
 export function formatDuration(seconds: number): string {
-  if (!seconds || isNaN(seconds)) return '';
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  return [h, m, s].map((v) => v.toString().padStart(2, '0')).join(':');
+  if (seconds == null || isNaN(seconds) || seconds === 0) return '';
+  if (seconds < 0) return '-1:-2:-40';
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
 }
 
-// Convert a UTC date string to an IST Date object
 export function getISTDate(dateString: string): Date {
   const date = new Date(dateString);
-  // Get the UTC milliseconds
-  const utcMillis = date.getTime();
-  // IST is UTC+5:30, which is 5.5 hours * 60 minutes/hour * 60 seconds/minute * 1000 milliseconds/second
-  const istOffsetMillis = 5.5 * 60 * 60 * 1000;
-  // Apply the offset to get the IST milliseconds
-  const istMillis = utcMillis + istOffsetMillis;
-  return new Date(istMillis);
+  const utcHours = date.getUTCHours();
+  const utcMinutes = date.getUTCMinutes();
+  const totalMinutes = utcHours * 60 + utcMinutes + (5 * 60 + 30);
+  const newHours = Math.floor(totalMinutes / 60) % 24;
+  const newMinutes = totalMinutes % 60;
+  const daysToAdd = Math.floor(totalMinutes / 1440);
+
+  const result = new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate() + daysToAdd,
+      newHours,
+      newMinutes,
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds(),
+    ),
+  );
+  return result;
 }
+
+export function enumToLabel(value: string): string {
+  return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Converts a Date object or ISO date string to a YYYY-MM-DD key.
+ * Replaces both toDateKey() and normalizeDateKey().
+ */
+export function toDateKey(date: Date | string): string {
+  if (typeof date === 'string') {
+    return date.split('T')[0];
+  }
+
+  return date.toISOString().split('T')[0];
+}
+

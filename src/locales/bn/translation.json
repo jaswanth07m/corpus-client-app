@@ -247,7 +247,14 @@
       "progress": "সামগ্রিক অগ্রগতি"
     },
     "previousPage": "পূর্ববর্তী পৃষ্ঠা",
-    "nextPage": "পরবর্তী পৃষ্ঠা"
+    "nextPage": "পরবর্তী পৃষ্ঠা",
+    "viewContributionsOnMap": "ম্যাপে অবদান দেখুন",
+    "couldNotLoadContributions": "অবদান লোড করা সম্ভব হয়নি।",
+    "noGeotaggedContributionsYet": "এখনো কোনো জিওট্যাগ করা অবদান নেই।",
+    "closeMap": "ম্যাপ বন্ধ করুন",
+    "retry": "আবার চেষ্টা করুন",
+    "searchPlaceOrAddress": "স্থান বা ঠিকানা খুঁজুন",
+    "searching": "খোঁজা হচ্ছে..."
   },
   "ui": {
     "failed": {
@@ -435,7 +442,10 @@
     "loadingProfile": "প্রোফাইল লোড হচ্ছে...",
     "profilePictureUpdatedSuccessfully": "প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!",
     "loadingPointsData": "পয়েন্টের তথ্য লোড হচ্ছে...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "আপনি কি এই অংশগুলোর পড়ার ক্রম আপডেট করতে চান? এটি বাউন্ডিং বক্সের ক্রমও আপডেট করবে।"
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "আপনি কি এই অংশগুলোর পড়ার ক্রম আপডেট করতে চান? এটি বাউন্ডিং বক্সের ক্রমও আপডেট করবে।",
+    "loadingMap": "ম্যাপ লোড হচ্ছে...",
+    "loadingDistrictBoundariesPleaseWait": "জেলার সীমানা লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন",
+    "loadingDistrictBoundaries": "জেলার সীমানা লোড হচ্ছে..."
   },
   "user": {
     "requestingLocationAccess": "স্থানের অনুমতি চাওয়া হচ্ছে...",
@@ -511,7 +521,8 @@
     "contributionsYet": "এখনও কোনো অবদান নেই।",
     "pointsActivity": "পয়েন্ট কার্যক্রম",
     "contributions": "অবদানসমূহ...",
-    "contributionsFound": "অবদান পাওয়া গেছে।"
+    "contributionsFound": "অবদান পাওয়া গেছে।",
+    "myContributionsOnTheMap": "ম্যাপে আমার অবদান"
   },
   "auth": {
     "pleaseEnterAValid10digitPhoneNumber": "দয়া করে সঠিক ১০ সংখ্যার ফোন নম্বর লিখুন",
@@ -671,7 +682,10 @@
     },
     "heatmap": {
       "title": "অ্যাক্টিভিটি হিটম্যাপ",
-      "description": "আপনার দৈনন্দিন অবদান এবং ধারাবাহিকতা ট্র্যাক করুন।"
+      "description": "আপনার দৈনন্দিন অবদান এবং ধারাবাহিকতা ট্র্যাক করুন।",
+      "less": "কম",
+      "more": "বেশি",
+      "activityOnDate": "{{date}}-তে {{count}} পয়েন্ট"
     },
     "dashboard": {
       "title": "অবদান ড্যাশবোর্ড",

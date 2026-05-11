@@ -67,27 +67,30 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
     const token = localStorage.getItem('token');
 
     try {
-      const mediaTypesQuery = mediaTypes
-        .map((type) => `media_type=${type}`)
-        .join('&');
       const nextRecordResponse = await fetch(
-        `${BACKEND_URL}/records/next-for-review?${mediaTypesQuery}&proof_reading=${proofReading}&limit=${numberOfRecordsFetched}`,
+        `${BACKEND_URL}/records/for-review`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            filters: {
+              media_type: mediaTypes,
+            },
+            limit: numberOfRecordsFetched,
+          }),
         },
       );
-
-      if (nextRecordResponse.status === 404) {
-        setHasMore(false);
-        return;
-      }
 
       if (!nextRecordResponse.ok) {
         const errorData = await nextRecordResponse.json();
         throw new Error(errorData.message || 'Error in fetching');
       }
 
-      const responseArray = await nextRecordResponse.json();
+      const responseBody = await nextRecordResponse.json();
+      const responseArray = responseBody.record_ids;
 
       if (!Array.isArray(responseArray) || responseArray.length === 0) {
         setHasMore(false);

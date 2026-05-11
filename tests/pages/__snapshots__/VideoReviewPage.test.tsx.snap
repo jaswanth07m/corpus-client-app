@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`VideoReviewPage > should match snapshot 1`] = `
+<div>
+  <div
+    data-testid="review-page-base"
+  >
+    <h1
+      data-testid="page-title"
+    >
+      Video Tool
+    </h1>
+    <p
+      data-testid="page-description"
+    >
+      Review and annotate video content.
+    </p>
+    <div
+      data-testid="media-types"
+    >
+      <span
+        data-testid="media-type-video"
+      >
+        video
+      </span>
+    </div>
+  </div>
+</div>
+`;

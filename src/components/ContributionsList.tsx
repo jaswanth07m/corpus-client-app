@@ -96,7 +96,6 @@ export const ContributionsList: React.FC<ContributionsListProps> = ({
             item={item}
             mediaType={selectedMediaType}
             token={token}
-            isOwnProfile={isOwnProfile}
           />
         ))}
       </div>
