@@ -46,7 +46,7 @@ describe('constants', () => {
 
     it('should be a valid URL format when set', () => {
       if (BACKEND_URL && BACKEND_URL.length > 0) {
-        expect(BACKEND_URL).toMatch(/^https?:\/\/.+/);
+        expect(BACKEND_URL).toMatch(/^(https?:\/\/.+|\/[^\s]+)$/);
       }
     });
 

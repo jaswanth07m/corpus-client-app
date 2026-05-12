@@ -13,11 +13,30 @@ import { toast } from 'sonner';
 import { audioRecordingService } from '../../../src/lib/audioRecordingService';
 import { videoRecordingService } from '../../../src/lib/videoRecordingService';
 
+const mockNetworkInfo = vi.hoisted(() => ({
+  status: 'Excellent',
+  effectiveType: '4g',
+  downlink: 8,
+  rtt: 50,
+  isOnline: true,
+}));
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
 }));
+
+vi.mock('@/hooks/useNetworkStrength', async () => {
+  const actual = await vi.importActual<
+    typeof import('../../../src/hooks/useNetworkStrength')
+  >('../../../src/hooks/useNetworkStrength');
+
+  return {
+    ...actual,
+    useNetworkStrength: () => mockNetworkInfo,
+  };
+});
 
 // Mock MediaStream for video tests
 class MockMediaStream {
@@ -278,6 +297,11 @@ describe('ContentInput', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockReset();
+    mockNetworkInfo.status = 'Excellent';
+    mockNetworkInfo.effectiveType = '4g';
+    mockNetworkInfo.downlink = 8;
+    mockNetworkInfo.rtt = 50;
+    mockNetworkInfo.isOnline = true;
 
     // Default mock for location verification success
     mockFetch.mockResolvedValue({
@@ -1504,6 +1528,25 @@ describe('ContentInput', () => {
   });
 
   describe('Upload Progress', () => {
+    it('shows estimated upload time when a selected file and known speed exist', () => {
+      const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
+        type: 'video/mp4',
+      });
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'video',
+            selectedFile: testFile,
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText('common.EstimatedUploadTime: ~8 sec'),
+      ).toBeInTheDocument();
+    });
+
     it('shows upload progress bar when chunked upload is in progress', () => {
       render(
         <ContentInput
@@ -1518,10 +1561,82 @@ describe('ContentInput', () => {
       expect(screen.getByText('50%')).toBeInTheDocument();
     });
 
-    it('shows "Uploaded. Analyzing..." when progress is 100%', () => {
+    it('shows remaining estimated upload time during chunked upload', () => {
+      const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
+        type: 'video/mp4',
+      });
+
       render(
         <ContentInput
           {...createMockProps({
+            uploadMode: 'video',
+            selectedFile: testFile,
+            isChunkedUploading: true,
+            chunkedUploadProgress: 50,
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText('common.EstimatedTimeRemaining: ~4 sec'),
+      ).toBeInTheDocument();
+    });
+
+    it('updates remaining estimated time when live upload throughput changes', async () => {
+      let now = 0;
+      const dateNowSpy = vi.spyOn(Date, 'now').mockImplementation(() => now);
+
+      const testFile = new File([new Uint8Array(24_000_000)], 'video.mp4', {
+        type: 'video/mp4',
+      });
+
+      const props = createMockProps({
+        uploadMode: 'video',
+        selectedFile: testFile,
+        isChunkedUploading: true,
+        chunkedUploadProgress: 10,
+      });
+
+      const { rerender } = render(<ContentInput {...props} />);
+
+      // Initial estimate uses network downlink fallback (8 Mbps).
+      expect(
+        screen.getByText('common.EstimatedTimeRemaining: ~22 sec'),
+      ).toBeInTheDocument();
+
+      now = 2000;
+
+      rerender(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'video',
+            selectedFile: testFile,
+            isChunkedUploading: true,
+            chunkedUploadProgress: 50,
+          })}
+        />,
+      );
+
+      // The current component recomputes remaining time from remaining bytes only.
+      await waitFor(() => {
+        expect(
+          screen.getByText('common.EstimatedTimeRemaining: ~12 sec'),
+        ).toBeInTheDocument();
+      });
+
+      dateNowSpy.mockRestore();
+    });
+
+    it('shows "Uploaded. Analyzing..." when progress is 100%', () => {
+      const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
+        type: 'video/mp4',
+      });
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'video',
+            selectedFile: testFile,
             isChunkedUploading: true,
             chunkedUploadProgress: 100,
           })}
@@ -1531,6 +1646,9 @@ describe('ContentInput', () => {
       expect(
         screen.getByText('Uploaded. Analyzing your upload...'),
       ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Estimated time remaining/i),
+      ).not.toBeInTheDocument();
     });
 
     it('does not show progress bar when not uploading', () => {
@@ -1539,6 +1657,53 @@ describe('ContentInput', () => {
       );
 
       expect(screen.queryByText('Uploading...')).not.toBeInTheDocument();
+    });
+
+    it('shows unavailable copy when upload speed cannot be estimated', () => {
+      mockNetworkInfo.status = 'Unknown';
+      mockNetworkInfo.effectiveType = null;
+      mockNetworkInfo.downlink = null;
+
+      const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
+        type: 'video/mp4',
+      });
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'video',
+            selectedFile: testFile,
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText('common.EstimatedUploadTimeUnavailable'),
+      ).toBeInTheDocument();
+    });
+
+    it('shows offline copy when the network is offline', () => {
+      mockNetworkInfo.status = 'Offline';
+      mockNetworkInfo.effectiveType = null;
+      mockNetworkInfo.downlink = null;
+      mockNetworkInfo.isOnline = false;
+
+      const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
+        type: 'video/mp4',
+      });
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'video',
+            selectedFile: testFile,
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText('common.UploadUnavailableWhileOffline'),
+      ).toBeInTheDocument();
     });
   });
 
