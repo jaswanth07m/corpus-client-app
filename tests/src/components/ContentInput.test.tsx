@@ -2821,7 +2821,10 @@ describe('ContentInput', () => {
 
       await waitFor(() => {
         expect(onUpload).toHaveBeenCalledTimes(1);
-        expect(onUpload).toHaveBeenCalledWith(first, expect.any(String));
+        expect(onUpload).toHaveBeenCalled();
+        const [[fileArg, titleArg]] = onUpload.mock.calls;
+        expect(fileArg).toBe(first);
+        expect(titleArg).toEqual(expect.any(String));
       });
     });
 
