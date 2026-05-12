@@ -35,8 +35,6 @@ import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
 import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { useUserPreferences } from '@/context/UserPreferencesContext';
-
 interface Category {
   id: string;
   name: string;
@@ -202,8 +200,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 }) => {
   const { t } = useTranslation();
   const { preferences } = useUserPreferences();
-  const { preferences } = useUserPreferences();
-  // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -797,48 +793,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     if (newFiles.length > 0) {
       setSelectedFile(newFiles[0]);
     }
-    // Check file limit (max 5 files)
-    const currentFileCount = selectedFiles.length;
-    const newFilesCount = files.length;
-    const totalFiles = currentFileCount + newFilesCount;
-
-    if (totalFiles > 5 || currentFileCount >= 5) {
-      toast.error(
-        `You can only upload a maximum of 5 files. You already have ${currentFileCount} file(s) selected.`,
-      );
-      // Only add up to 5 files
-      const filesToAdd = Array.from(files).slice(0, 5 - currentFileCount);
-      if (filesToAdd.length > 0) {
-        const newFiles = [...selectedFiles, ...filesToAdd];
-        setSelectedFiles(newFiles);
-        // Initialize metadata for new files
-        const newMetadata = [...fileMetadata];
-        filesToAdd.forEach(() => {
-          newMetadata.push({ title: '', description: '' });
-        });
-        setFileMetadata(newMetadata);
-        if (newFiles.length > 0) {
-          setSelectedFile(newFiles[0]);
-        }
-      }
-      event.target.value = '';
-      return;
-    }
-
-    // Add all new files
-    const newFiles = [...selectedFiles, ...Array.from(files)];
-    setSelectedFiles(newFiles);
-
-    // Initialize metadata for new files
-    const newMetadata = [...fileMetadata];
-    Array.from(files).forEach(() => {
-      newMetadata.push({ title: '', description: '' });
-    });
-    setFileMetadata(newMetadata);
-
-    if (newFiles.length > 0) {
-      setSelectedFile(newFiles[0]);
-    }
     setRecordedBlob(null);
     setAudioUrl(null);
     setVideoUrl(null);
@@ -946,32 +900,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       }
     }
 
-    // Upload all files with their individual metadata
-    let allUploadsSuccessful = true;
-    let failedCount = 0;
-    let hasStorageFailure = false;
-
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
-      const metadata = fileMetadata[i];
-      console.log(
-        `[Bulk Upload] Starting upload ${i + 1}/${selectedFiles.length}:`,
-        file.name,
-      );
-      try {
-        const result = await onUpload(
-          file,
-          metadata.description,
-          metadata.title,
-        );
-        console.log(`[Bulk Upload] Upload ${i + 1} result:`, result);
-        if (!result || !result.success) {
-          allUploadsSuccessful = false;
-          failedCount++;
-          if (result?.errorType === 'STORAGE_FAILURE') {
-            hasStorageFailure = true;
-          }
-        }
       const metadata = fileMetadata[i];
       console.log(
         `[Bulk Upload] Starting upload ${i + 1}/${selectedFiles.length}:`,
@@ -996,13 +926,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           `[Bulk Upload] Upload ${i + 1} exception for ${file.name}:`,
           err,
         );
-        console.error(
-          `[Bulk Upload] Upload ${i + 1} exception for ${file.name}:`,
-          err,
-        );
-        allUploadsSuccessful = false;
-        failedCount++;
-        hasStorageFailure = true;
         allUploadsSuccessful = false;
         failedCount++;
         hasStorageFailure = true;
@@ -1010,44 +933,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     }
 
     setUploadingFiles(false);
-
-    console.log(
-      `[Bulk Upload] Completed. Success: ${allUploadsSuccessful}, Failed: ${failedCount}, StorageError: ${hasStorageFailure}`,
-    );
-
-    // Dismiss any existing toasts first to prevent stacking
-    toast.dismiss();
-
-    // Single centralized toast handling - ONLY ONE toast per result
-    if (allUploadsSuccessful && selectedFiles.length > 0) {
-      toast.success(
-        `${selectedFiles.length} file(s) uploaded successfully! Redirecting to Home...`,
-      );
-      setSelectedFiles([]);
-      setFileMetadata([]);
-      setSelectedFile(null);
-      setTitle('');
-      setDescription('');
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
-    } else if (hasStorageFailure) {
-      // Storage/API failure - highest priority, show ONLY this toast
-      toast.error(
-        'Storage upload failed. Please contact admin or retry later.',
-      );
-    } else if (failedCount > 0) {
-      // Partial failure without storage error
-      if (failedCount === selectedFiles.length) {
-        toast.error(
-          'All uploads failed. Please check your files and try again.',
-        );
-      } else {
-        toast.error(
-          `${failedCount} of ${selectedFiles.length} uploads failed.`,
-        );
-      }
-    }
 
     console.log(
       `[Bulk Upload] Completed. Success: ${allUploadsSuccessful}, Failed: ${failedCount}, StorageError: ${hasStorageFailure}`,
@@ -1278,33 +1163,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   placeholder={t(
                     'ui.provide.a.detailed.description.minimum.32.characters',
                   )}
-            {/* Description Input - only show for text mode or when no files are selected */}
-            {(uploadMode === 'text' || selectedFiles.length === 0) && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('common.description')}
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => {
-                    const newDescription = e.target.value;
-                    setDescription(newDescription);
-                    if (newDescription.trim().length < 32) {
-                      setDescriptionError(
-                        'Description must be at least 32 characters long.',
-                      );
-                    } else if (countMeaningfulWords(newDescription) < 10) {
-                      setDescriptionError(
-                        'Description must contain at least 10 meaningful words.',
-                      );
-                    } else {
-                      setDescriptionError(null);
-                    }
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
-                  placeholder={t(
-                    'ui.provide.a.detailed.description.minimum.32.characters',
-                  )}
                 />
                 {descriptionError && (
                   <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
@@ -1312,74 +1170,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   </div>
                 )}
               </div>
-            {/* Title Input - hide when files are selected for non-text uploads */}
-            {(uploadMode === 'text' || selectedFiles.length === 0) && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => {
-                    const newTitle = e.target.value;
-                    setTitle(newTitle);
-                    if (newTitle.trim().length < 8) {
-                      setTitleError(
-                        'Title must be at least 8 characters long.',
-                      );
-                    } else if (countMeaningfulWords(newTitle) < 2) {
-                      setTitleError(
-                        'Title must contain at least 2 meaningful words.',
-                      );
-                    } else {
-                      setTitleError(null);
-                    }
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                  placeholder="Enter a title for your content"
-                />
-                {titleError && (
-                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                    {titleError}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Description Input - hide when files are selected for non-text uploads */}
-            {(uploadMode === 'text' || selectedFiles.length === 0) && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => {
-                    const newDescription = e.target.value;
-                    setDescription(newDescription);
-                    if (newDescription.trim().length < 32) {
-                      setDescriptionError(
-                        'Description must be at least 32 characters long.',
-                      );
-                    } else if (countMeaningfulWords(newDescription) < 10) {
-                      setDescriptionError(
-                        'Description must contain at least 10 meaningful words.',
-                      );
-                    } else {
-                      setDescriptionError(null);
-                    }
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
-                  placeholder="Provide a detailed description (minimum 32 characters)"
-                />
-                {descriptionError && (
-                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                    {descriptionError}
-                  </div>
-                )}
-              </div>
-            )}
             )}
 
             {/* Multi-Category Selection as Tags */}

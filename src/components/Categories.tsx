@@ -20,7 +20,6 @@ import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import SwechaLogo from './SwechaLogo';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
@@ -550,15 +549,10 @@ const Categories: React.FC<CategoriesProps> = ({
     filename,
     customTitle,
     customDescription,
-    customTitle,
-    customDescription,
   }: {
     uploadUuid: string;
     totalChunks: number;
     filename: string;
-    customTitle?: string;
-    customDescription?: string;
-  }): Promise<FinalizeResult> => {
     customTitle?: string;
     customDescription?: string;
   }): Promise<FinalizeResult> => {
@@ -567,9 +561,6 @@ const Categories: React.FC<CategoriesProps> = ({
       formData.append('upload_uuid', uploadUuid);
       formData.append('title', customTitle || title);
       formData.append('description', customDescription || description);
-      // Use custom title/description if provided, otherwise fall back to component state
-      formData.append('title', customTitle || customTitle || title);
-      formData.append('description', customDescription || customDescription || description);
       const categoryIds =
         selectedCategories && selectedCategories.length > 0
           ? selectedCategories.map((cat) => cat.id)
@@ -829,42 +820,6 @@ const Categories: React.FC<CategoriesProps> = ({
       }
 
       return { success: true };
-      if (success) {
-        const totalChunks = getTotalChunks(fileToUpload!);
-        // Finalize upload
-        const finalized = await finalizeUpload({
-          uploadUuid: newUploadUuid,
-          totalChunks: totalChunks,
-          filename: fileToUpload!.name,
-          customTitle: uploadTitle,
-          customDescription: uploadDescription,
-        });
-        if (finalized) {
-          posthog.capture('upload_success');
-
-          // Only redirect and reset for single file uploads (when file param is NOT provided)
-          // For multi-file uploads, let the caller handle the redirect
-          if (!isMultiFileUpload) {
-            toast.success(
-              'Content uploaded successfully! Redirecting to Landing...',
-            );
-            resetUploadState();
-            // Update preferences based on current upload values
-          setPreferences({
-            language: selectedLanguage,
-            rights: releaseRights,
-          });
-        setPreferences({
-          language: selectedLanguage,
-          rights: releaseRights,
-        });
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1500);
-          }
-          // For multi-file upload, return success without redirecting
-          return;
-      }
 
       return { success: true };
     } catch (error) {

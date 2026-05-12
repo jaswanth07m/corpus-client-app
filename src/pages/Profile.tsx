@@ -36,7 +36,6 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
-import { useUserPreferences } from '@/context/UserPreferencesContext';
 
 const languages = [
   'assamese',
@@ -379,77 +378,6 @@ function Profile() {
       rights: preferences.rights,
     });
   }, [preferences]);
-
-  // Verify location when coordinates change
-  const verifyPrefLocation = useCallback(async (lat: number, lng: number) => {
-    if (!lat || !lng) return;
-    setIsVerifyingLocation(true);
-    setPrefLocationError('');
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/location/verify-location`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latitude: lat, longitude: lng }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setPrefVerifiedLocation(data);
-        setLocalPrefs((prev) => ({
-          ...prev,
-          location: data.formatted_address,
-        }));
-      } else {
-        throw new Error('Failed to verify location');
-      }
-    } catch (error) {
-      console.error('Location verification error:', error);
-      setPrefLocationError('Could not verify location');
-    } finally {
-      setIsVerifyingLocation(false);
-    }
-  }, []);
-
-  // Auto-verify location when coordinates are set from map
-  useEffect(() => {
-    if (prefLocationCoords && !prefVerifiedLocation) {
-      verifyPrefLocation(prefLocationCoords.lat, prefLocationCoords.lng);
-    }
-  }, [prefLocationCoords, prefVerifiedLocation, verifyPrefLocation]);
-
-  // Request current location for preferences
-  const requestPrefLocation = () => {
-    setPrefLocationError('');
-    if (!navigator.geolocation) {
-      setPrefLocationError('Geolocation is not supported');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-        setPrefLocationCoords(coords);
-        setPreferences({ locationCoords: coords });
-      },
-      (err) => {
-        setPrefLocationError('Location access denied');
-      },
-      { enableHighAccuracy: true, timeout: 15000 },
-    );
-  };
-
-  // Save preferences handler
-  const handleSavePreferences = () => {
-    setPreferences({
-      language: localPrefs.language,
-      rights: localPrefs.rights,
-    });
-    toast.success(t('common.preferencesSavedSuccessfully'));
-    setShowPreferencesPanel(false);
-  };
 
   const getAuthToken = useCallback(() => {
     return localStorage.getItem('token');
