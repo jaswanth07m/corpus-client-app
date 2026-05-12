@@ -26,6 +26,7 @@
     "submit": "Submit",
     "confirm": "Confirm",
     "back": "Back",
+    "goBack": "Go back",
     "next": "Next",
     "previous": "Previous",
     "close": "Close",
@@ -405,7 +406,10 @@
           "intern": "Are you an intern? *"
         }
       }
-    }
+    },
+    "downlink": "Downlink:",
+    "rtt": "RTT:",
+    "apiNotSupported": "API not supported"
   },
   "ui": {
     "failed": {

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Search } from 'lucide-react';
 import React, { useEffect, useState, useCallback } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 interface PeerReviewCardProps {
   user_id: string;
@@ -356,12 +357,15 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
               <p className="text-slate-600 text-sm">{description}</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
-            className={`p-2 rounded-lg transition-all duration-200 ${!isHeaderCollapsed ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-600' : 'hover:bg-slate-100 text-slate-700'}`}
-          >
-            <Search className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+              className={`p-2 rounded-lg transition-all duration-200 ${!isHeaderCollapsed ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-600' : 'hover:bg-slate-100 text-slate-700'}`}
+            >
+              <Search className="w-6 h-6" />
+            </button>
+            <NetworkStrengthIndicator />
+          </div>
         </div>
 
         {!isHeaderCollapsed && (

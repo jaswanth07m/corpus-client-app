@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CloudUpload } from 'lucide-react';
 import UserStatsSummary from '@/components/UserStatsSummary';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 import { useEffect } from 'react';
 
 const LandingPage = () => {
@@ -26,7 +27,12 @@ const LandingPage = () => {
       <div className="absolute top-20 left-10 w-32 h-32 bg-emerald-200/20 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-200/20 rounded-full blur-3xl"></div>
 
-      <div className="max-w-4xl w-full mx-auto py-8">
+      {/* Top bar: network indicator pinned to top-right, never overlaps stats */}
+      <div className="flex justify-end pt-3 pr-2">
+        <NetworkStrengthIndicator />
+      </div>
+
+      <div className="max-w-4xl w-full mx-auto pb-8">
         {/* Stats Summary at the top */}
         <div id="tour-stats-summary">
           <UserStatsSummary />

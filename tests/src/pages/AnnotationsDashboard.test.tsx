@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AnnotationsDashboard from '../../../src/pages/AnnotationsDashboard';
 import { MemoryRouter } from 'react-router-dom';
@@ -91,7 +91,8 @@ describe('AnnotationsDashboard', () => {
 
     it('should render back button', () => {
       renderWithRouter(<AnnotationsDashboard />);
-      const backButton = screen.getByRole('button');
+      const backLink = screen.getByRole('link');
+      const backButton = within(backLink).getByRole('button');
       expect(backButton).toBeInTheDocument();
     });
 
@@ -256,13 +257,15 @@ describe('AnnotationsDashboard', () => {
   describe('Back Button', () => {
     it('should have back button with proper link', () => {
       renderWithRouter(<AnnotationsDashboard />);
-      const backButton = screen.getByRole('button');
-      expect(backButton).toBeInTheDocument();
+      const backLink = screen.getByRole('link');
+      expect(backLink).toHaveAttribute('href', '/');
+      expect(within(backLink).getByRole('button')).toBeInTheDocument();
     });
 
     it('should render back arrow icon', () => {
       renderWithRouter(<AnnotationsDashboard />);
-      const backButton = screen.getByRole('button');
+      const backLink = screen.getByRole('link');
+      const backButton = within(backLink).getByRole('button');
       expect(backButton).toHaveClass('hover:bg-slate-100');
     });
   });
@@ -424,8 +427,9 @@ describe('AnnotationsDashboard', () => {
 
     it('should have back button with proper role', () => {
       renderWithRouter(<AnnotationsDashboard />);
-      const backButton = screen.getByRole('button');
-      expect(backButton).toBeInTheDocument();
+      const backLink = screen.getByRole('link');
+      expect(backLink).toBeInTheDocument();
+      expect(within(backLink).getByRole('button')).toBeInTheDocument();
     });
 
     it('should have descriptive text for each tool', () => {

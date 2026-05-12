@@ -34,6 +34,7 @@ import MediaUploadComponent from './MediaUploadComponent';
 import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
 import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 interface Category {
   id: string;
@@ -790,7 +791,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </p>
             )}
           </div>
-          <div className="w-10"></div>
+          <div className="w-10 flex justify-end">
+            <NetworkStrengthIndicator />
+          </div>
         </div>
       </div>
 

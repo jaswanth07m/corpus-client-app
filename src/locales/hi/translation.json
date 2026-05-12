@@ -26,6 +26,7 @@
     "submit": "सबमिट करें",
     "confirm": "पुष्टि करें",
     "back": "वापस",
+    "goBack": "वापस जाएं",
     "next": "आगे",
     "previous": "पिछला",
     "close": "बंद करें",
@@ -383,7 +384,10 @@
     "couldNotLoadContributions": "योगदान लोड नहीं हो सके.",
     "noGeotaggedContributionsYet": "अभी तक कोई जियोटैग योगदान नहीं हैं.",
     "closeMap": "मानचित्र बंद करें",
-    "retry": "पुनः प्रयास करें"
+    "retry": "पुनः प्रयास करें",
+    "downlink": "डाउनलिंक:",
+    "rtt": "RTT:",
+    "apiNotSupported": "API समर्थित नहीं"
   },
   "ui": {
     "failed": {
