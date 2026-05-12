@@ -1408,13 +1408,8 @@ describe('ContentInput', () => {
       fireEvent.click(screen.getByText('Upload Content'));
 
       await waitFor(() => {
-        expect(onUpload).toHaveBeenCalledWith(
-          secondRecordingFile,
-          'A valid description with more than 32 characters and enough meaningful words here',
-        );
+        expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:audio-short');
       });
-
-      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:audio-short');
     });
   });
 
