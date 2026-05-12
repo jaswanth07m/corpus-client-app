@@ -13,6 +13,11 @@ import { toast } from 'sonner';
 import { audioRecordingService } from '../../../src/lib/audioRecordingService';
 import { videoRecordingService } from '../../../src/lib/videoRecordingService';
 
+const mockCreateObjectURL = vi.fn();
+const mockRevokeObjectURL = vi.fn();
+global.URL.createObjectURL = mockCreateObjectURL;
+global.URL.revokeObjectURL = mockRevokeObjectURL;
+
 const mockNetworkInfo = vi.hoisted(() => ({
   status: 'Excellent',
   effectiveType: '4g',
@@ -285,6 +290,7 @@ const createMockProps = (overrides: Partial<Record<string, unknown>> = {}) => ({
   setSelectedLangugae: vi.fn(),
   onBack: vi.fn(),
   onUpload: vi.fn(),
+  resetUploadState: vi.fn(),
   requestLocation: vi.fn(),
   handleManualLocationSubmit: vi.fn(),
   handleFileSelect: vi.fn(),
@@ -297,6 +303,8 @@ describe('ContentInput', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockReset();
+    mockCreateObjectURL.mockReset();
+    mockRevokeObjectURL.mockReset();
     mockNetworkInfo.status = 'Excellent';
     mockNetworkInfo.effectiveType = '4g';
     mockNetworkInfo.downlink = 8;
@@ -1248,6 +1256,96 @@ describe('ContentInput', () => {
         expect(toast.error).toHaveBeenCalled();
       });
     });
+
+    it('uses the latest recording after record again and revokes the old preview URL', async () => {
+      const onUpload = vi.fn().mockResolvedValue(undefined);
+      const resetUploadState = vi.fn();
+      const firstRecordingFile = new File(['short-audio'], 'short.m4a', {
+        type: 'audio/m4a',
+      });
+      const secondRecordingFile = new File(['long-audio'], 'long.m4a', {
+        type: 'audio/m4a',
+      });
+
+      mockCreateObjectURL
+        .mockReturnValueOnce('blob:audio-short')
+        .mockReturnValueOnce('blob:audio-long');
+
+      vi.mocked(audioRecordingService.startRecording).mockResolvedValue({
+        success: true,
+      });
+      vi.mocked(audioRecordingService.stopRecording)
+        .mockResolvedValueOnce({
+          success: true,
+          file: firstRecordingFile,
+          duration: 3000,
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          file: secondRecordingFile,
+          duration: 12000,
+        });
+      vi.mocked(audioRecordingService.getRecordingDuration).mockReturnValue(12);
+
+      render(
+        <ContentInput
+          {...createMockProps({
+            uploadMode: 'audio',
+            title: 'A Valid Title With Enough Words',
+            description:
+              'A valid description with more than 32 characters and enough meaningful words here',
+            releaseRights: 'creator',
+            selectedLanguage: 'hindi',
+            location: { lat: 12.9716, lng: 77.5946 },
+            onUpload,
+            resetUploadState,
+          })}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Bangalore, Karnataka, India'),
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+
+      await waitFor(() => {
+        expect(audioRecordingService.startRecording).toHaveBeenCalled();
+      });
+
+      fireEvent.click(screen.getByTestId('stop-recording-btn'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('reset-recording-btn')).toBeInTheDocument();
+        expect(resetUploadState).toHaveBeenCalledTimes(1);
+      });
+
+      fireEvent.click(screen.getByTestId('reset-recording-btn'));
+
+      expect(resetUploadState).toHaveBeenCalledTimes(2);
+
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+      fireEvent.click(screen.getByTestId('stop-recording-btn'));
+
+      await waitFor(() => {
+        expect(audioRecordingService.stopRecording).toHaveBeenCalledTimes(2);
+        expect(screen.getByTestId('reset-recording-btn')).toBeInTheDocument();
+        expect(resetUploadState).toHaveBeenCalledTimes(3);
+      });
+
+      fireEvent.click(screen.getByText('Upload Content'));
+
+      await waitFor(() => {
+        expect(onUpload).toHaveBeenCalledWith(
+          secondRecordingFile,
+          'A valid description with more than 32 characters and enough meaningful words here',
+        );
+      });
+
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:audio-short');
+    });
   });
 
   describe('Video Recording', () => {
@@ -2185,6 +2283,10 @@ describe('ContentInput', () => {
       );
 
       render(<ContentInput {...createMockProps({ uploadMode: 'audio' })} />);
+      fireEvent.click(screen.getByTestId('start-recording-btn'));
+      await waitFor(() => {
+        expect(audioRecordingService.startRecording).toHaveBeenCalled();
+      });
       fireEvent.click(screen.getByTestId('stop-recording-btn'));
 
       await waitFor(() => {
