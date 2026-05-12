@@ -899,6 +899,7 @@ const Categories: React.FC<CategoriesProps> = ({
         setDescriptionError={setDescriptionError} // Pass setDescriptionError
         onBack={handleBack}
         onUpload={handleUpload}
+        resetUploadState={resetUploadState}
         requestLocation={requestLocation}
         handleManualLocationSubmit={handleManualLocationSubmit}
         handleFileSelect={handleFileSelect}

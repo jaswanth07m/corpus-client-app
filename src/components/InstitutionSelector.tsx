@@ -16,7 +16,6 @@ interface InstitutionSelectorProps {
   disabled?: boolean;
   required?: boolean;
   academicStream?: string;
-  onAcademicStreamLoad?: (stream: string) => void;
 }
 
 const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
@@ -25,7 +24,6 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
   disabled = false,
   required = false,
   academicStream,
-  onAcademicStreamLoad,
 }) => {
   const { t } = useTranslation();
 
@@ -128,9 +126,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         setColleges([institution.college_name]);
         setInstitutions([institution]);
         setInitialLoadDone(true);
-        if (institution.academic_stream && onAcademicStreamLoad) {
-          onAcademicStreamLoad(institution.academic_stream);
-        }
+        setInitialLoadDone(true);
 
         // Fetch all options so the dropdowns are fully populated when opened
         doFetchUniversities('');
@@ -144,12 +140,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         // institution not found, ignore
       }
     },
-    [
-      doFetchUniversities,
-      doFetchColleges,
-      doFetchInstitutions,
-      onAcademicStreamLoad,
-    ],
+    [doFetchUniversities, doFetchColleges, doFetchInstitutions],
   );
 
   // Pre-populate all three levels when institutionId is provided from outside
