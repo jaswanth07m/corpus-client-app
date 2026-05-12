@@ -235,6 +235,9 @@ const CompleteProfileInternPage: React.FC = () => {
                         handleChange('institution_id', institutionId)
                       }
                       academicStream={formData.academic_stream}
+                      onAcademicStreamLoad={(stream) =>
+                        handleChange('academic_stream', stream)
+                      }
                     />
                   </div>
                   <div>
