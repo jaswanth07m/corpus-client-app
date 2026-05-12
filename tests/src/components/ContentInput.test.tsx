@@ -14,6 +14,17 @@ import { audioRecordingService } from '../../../src/lib/audioRecordingService';
 import { videoRecordingService } from '../../../src/lib/videoRecordingService';
 import { UserPreferencesProvider } from '../../../src/context/UserPreferencesContext';
 
+// Reusable test file fixtures
+const TEST_FILE_8MB = new File([new Uint8Array(8_000_000)], 'video.mp4', {
+  type: 'video/mp4',
+});
+const TEST_FILE_24MB = new File([new Uint8Array(24_000_000)], 'video.mp4', {
+  type: 'video/mp4',
+});
+const TEST_FILE_TEXT = new File(['test content'], 'test.txt', {
+  type: 'text/plain',
+});
+
 const mockNetworkInfo = vi.hoisted(() => ({
   status: 'Excellent',
   effectiveType: '4g',
@@ -36,6 +47,25 @@ vi.mock('@/hooks/useNetworkStrength', async () => {
   return {
     ...actual,
     useNetworkStrength: () => mockNetworkInfo,
+  };
+});
+
+vi.mock('../../../src/components/NetworkStrengthIndicator', () => ({
+  NetworkStrengthIndicator: () => (
+    <div data-testid="network-strength-indicator" />
+  ),
+}));
+
+// Mock UserPreferencesContext to bypass provider requirement in tests
+vi.mock('@/context/UserPreferencesContext', async () => {
+  const actual = await vi.importActual('@/context/UserPreferencesContext');
+  return {
+    ...actual,
+    useUserPreferences: () => ({
+      preferences: { language: '', rights: '' },
+      setPreferences: vi.fn(),
+      isLoaded: true,
+    }),
   };
 });
 
@@ -1624,6 +1654,10 @@ describe('ContentInput', () => {
     });
 
     it('shows "Uploaded. Analyzing..." when progress is 100%', () => {
+      const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
+        type: 'video/mp4',
+      });
+
       renderWithProvider(
         <ContentInput
           {...createMockProps({
@@ -1655,7 +1689,7 @@ describe('ContentInput', () => {
         chunkedUploadProgress: 10,
       });
 
-      const { rerender } = render(<ContentInput {...props} />);
+      const { rerender } = renderWithProvider(<ContentInput {...props} />);
 
       // Initial estimate uses network downlink fallback (8 Mbps).
       expect(
@@ -1726,7 +1760,7 @@ describe('ContentInput', () => {
         type: 'video/mp4',
       });
 
-      render(
+      renderWithProvider(
         <ContentInput
           {...createMockProps({
             uploadMode: 'video',

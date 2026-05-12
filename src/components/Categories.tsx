@@ -20,6 +20,7 @@ import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import SwechaLogo from './SwechaLogo';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { NetworkStrengthIndicator } from './NetworkStrengthIndicator';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {

@@ -35,6 +35,12 @@ import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
 import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
+import {
+  getEstimatedUploadMbps,
+  useNetworkStrength,
+  formatEstimatedUploadTime,
+} from '@/hooks/useNetworkStrength';
+import { NetworkStrengthIndicator } from './NetworkStrengthIndicator';
 interface Category {
   id: string;
   name: string;
@@ -236,6 +242,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Location Picker Modal State
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const hasVerifiedLocation = useRef<string>('');
+  const networkInfo = useNetworkStrength();
 
   const estimatedUploadMbps = getEstimatedUploadMbps(networkInfo);
   const uploadPayloadSize =
