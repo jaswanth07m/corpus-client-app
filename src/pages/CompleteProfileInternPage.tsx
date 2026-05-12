@@ -74,6 +74,18 @@ const CompleteProfileInternPage: React.FC = () => {
         if (!profileRes.ok) throw new Error('Failed to fetch profile');
         const profile: UserProfile = await profileRes.json();
         setOriginalProfile(profile);
+
+        if (profile.institution_id) {
+          try {
+            const inst = await fetchInstitution(profile.institution_id);
+            if (inst.academic_stream) {
+              profile.academic_stream = inst.academic_stream;
+            }
+          } catch {
+            // institution not found, ignore
+          }
+        }
+
         prePopulateForm(profile);
         setAcademicStreamOptions(enumsRes.academic_streams || []);
       } catch (err) {
@@ -235,9 +247,6 @@ const CompleteProfileInternPage: React.FC = () => {
                         handleChange('institution_id', institutionId)
                       }
                       academicStream={formData.academic_stream}
-                      onAcademicStreamLoad={(stream) =>
-                        handleChange('academic_stream', stream)
-                      }
                     />
                   </div>
                   <div>
