@@ -182,6 +182,15 @@ const App = () => (
                   }
                 />
 
+                <Route
+                  path="/records/:recordId"
+                  element={
+                    <RequireAuth>
+                      <RecordDetails />
+                    </RequireAuth>
+                  }
+                />
+
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </UserPreferencesProvider>

@@ -222,10 +222,6 @@ const Categories: React.FC<CategoriesProps> = ({
       if (preferences.rights && !releaseRights) {
         setreleaseRights(preferences.rights);
       }
-      // Apply location from preferences if available
-      if (preferences.locationCoords && !location) {
-        setLocation(preferences.locationCoords);
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadMode, preferences]);
@@ -562,12 +558,15 @@ const Categories: React.FC<CategoriesProps> = ({
     filename: string;
     customTitle?: string;
     customDescription?: string;
+  }): Promise<FinalizeResult> => {
     customTitle?: string;
     customDescription?: string;
   }): Promise<FinalizeResult> => {
     try {
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
+      formData.append('title', customTitle || title);
+      formData.append('description', customDescription || description);
       // Use custom title/description if provided, otherwise fall back to component state
       formData.append('title', customTitle || customTitle || title);
       formData.append('description', customDescription || customDescription || description);
@@ -709,7 +708,7 @@ const Categories: React.FC<CategoriesProps> = ({
     file?: File,
     description?: string,
     fileTitle?: string,
-  ): Promise<void> => {
+  ): Promise<boolean> => {
     // Use provided parameters or fall back to component state
     const uploadTitle = fileTitle || title;
     const uploadDescription = description || '';
@@ -773,7 +772,7 @@ const Categories: React.FC<CategoriesProps> = ({
       });
     } else if (!fileToUpload) {
       toast.error('Please select a file');
-      return;
+      return false;
     }
 
     // Initialize upload state
@@ -789,6 +788,47 @@ const Categories: React.FC<CategoriesProps> = ({
         newUploadUuid,
       );
 
+      if (!success) {
+        partialResetUploadState();
+        setIsUploading(false);
+        return false;
+      }
+
+      const totalChunks = getTotalChunks(fileToUpload!);
+      // Finalize upload
+      const finalizeResult = await finalizeUpload({
+        uploadUuid: newUploadUuid,
+        totalChunks: totalChunks,
+        filename: fileToUpload!.name,
+        customTitle: uploadTitle,
+        customDescription: uploadDescription,
+      });
+
+      if (!finalizeResult.success) {
+        partialResetUploadState();
+        setIsUploading(false);
+        if (finalizeResult.errorType === 'STORAGE_FAILURE') {
+          return { success: false, errorType: 'STORAGE_FAILURE' };
+        }
+        return { success: false, errorType: 'GENERIC_FAILURE' };
+      }
+
+      // Only redirect for single file uploads
+      if (!isMultiFileUpload) {
+        toast.success(
+          'Content uploaded successfully! Redirecting to Landing...',
+        );
+        resetUploadState();
+        setPreferences({
+          language: selectedLanguage,
+          rights: releaseRights,
+        });
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      }
+
+      return { success: true };
       if (success) {
         const totalChunks = getTotalChunks(fileToUpload!);
         // Finalize upload
