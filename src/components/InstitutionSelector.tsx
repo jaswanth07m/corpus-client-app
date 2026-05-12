@@ -15,6 +15,8 @@ interface InstitutionSelectorProps {
   onChange: (institutionId: string) => void;
   disabled?: boolean;
   required?: boolean;
+  academicStream?: string;
+  onAcademicStreamLoad?: (stream: string) => void;
 }
 
 const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
@@ -22,6 +24,8 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
   onChange,
   disabled = false,
   required = false,
+  academicStream,
+  onAcademicStreamLoad,
 }) => {
   const { t } = useTranslation();
 
@@ -53,17 +57,23 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     null,
   );
 
-  const doFetchUniversities = useCallback(async (search: string) => {
-    setUniversitiesLoading(true);
-    try {
-      const data = await fetchUniversityNames({ search: search || undefined });
-      setUniversities(data);
-    } catch {
-      // error handled silently
-    } finally {
-      setUniversitiesLoading(false);
-    }
-  }, []);
+  const doFetchUniversities = useCallback(
+    async (search: string) => {
+      setUniversitiesLoading(true);
+      try {
+        const data = await fetchUniversityNames({
+          search: search || undefined,
+          academic_stream: academicStream || undefined,
+        });
+        setUniversities(data);
+      } catch {
+        // error handled silently
+      } finally {
+        setUniversitiesLoading(false);
+      }
+    },
+    [academicStream],
+  );
 
   const doFetchColleges = useCallback(
     async (universityName: string, search: string) => {
@@ -72,6 +82,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         const data = await fetchCollegeNames({
           university_name: universityName || undefined,
           search: search || undefined,
+          academic_stream: academicStream || undefined,
         });
         setColleges(data);
       } catch {
@@ -81,6 +92,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
       }
     },
     [],
+    [academicStream],
   );
 
   const doFetchInstitutions = useCallback(
@@ -91,6 +103,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
           college_name: collegeName || undefined,
           university_name: universityName || undefined,
           search: search || undefined,
+          academic_stream: academicStream || undefined,
           limit: 500,
         });
         setInstitutions(data);
@@ -100,7 +113,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         setInstitutionsLoading(false);
       }
     },
-    [],
+    [academicStream],
   );
 
   const loadInitialInstitution = useCallback(
@@ -109,11 +122,15 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         const institution = await fetchInstitution(id);
         setSelectedUniversityName(institution.university_name);
         setSelectedCollegeName(institution.college_name);
-        setSelectedInstitutionId(id);
+        const courseId = institution.courses?.[0]?.id || id;
+        setSelectedInstitutionId(`${id}__${courseId}`);
         setUniversities([institution.university_name]);
         setColleges([institution.college_name]);
         setInstitutions([institution]);
         setInitialLoadDone(true);
+        if (institution.academic_stream && onAcademicStreamLoad) {
+          onAcademicStreamLoad(institution.academic_stream);
+        }
 
         // Fetch all options so the dropdowns are fully populated when opened
         doFetchUniversities('');
@@ -127,15 +144,20 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         // institution not found, ignore
       }
     },
-    [doFetchUniversities, doFetchColleges, doFetchInstitutions],
+    [
+      doFetchUniversities,
+      doFetchColleges,
+      doFetchInstitutions,
+      onAcademicStreamLoad,
+    ],
   );
 
   // Pre-populate all three levels when institutionId is provided from outside
   useEffect(() => {
-    if (institutionId && !initialLoadDone) {
+    if (institutionId) {
       loadInitialInstitution(institutionId);
     }
-  }, [institutionId, initialLoadDone, loadInitialInstitution]);
+  }, [institutionId, loadInitialInstitution]);
 
   // Fetch all universities on mount when creating a new profile (no institutionId)
   useEffect(() => {
@@ -144,6 +166,18 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
       setInitialLoadDone(true);
     }
   }, [institutionId, initialLoadDone, doFetchUniversities]);
+
+  // Re-fetch universities when academic stream changes
+  useEffect(() => {
+    if (!initialLoadDone) return;
+    setSelectedUniversityName('');
+    setSelectedCollegeName('');
+    setSelectedInstitutionId('');
+    setColleges([]);
+    setInstitutions([]);
+    onChange('');
+    doFetchUniversities('');
+  }, [academicStream]);
 
   function handleUniversitySearchChange(value: string) {
     setUniversitySearch(value);
@@ -199,8 +233,9 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
   }
 
   function handleInstitutionSelect(value: string) {
+    const institutionId = value.split('__')[0];
     setSelectedInstitutionId(value);
-    onChange(value);
+    onChange(institutionId);
   }
 
   const universityOptions = universities.map((u) => ({
@@ -213,10 +248,31 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     label: c,
   }));
 
-  const institutionOptions = institutions.map((inst) => ({
-    value: inst.id,
-    label: inst.name,
-  }));
+  const institutionOptions = institutions.flatMap((inst) => {
+    if (inst.courses && inst.courses.length > 0) {
+      return inst.courses.map((course) => {
+        const buckets = [
+          course.option_a_bucket,
+          course.option_b_bucket,
+          course.option_c_bucket,
+          course.option_d_bucket,
+        ].filter((b): b is string => !!b);
+
+        const label =
+          buckets.length > 0
+            ? `${course.course_name} (${buckets.join(', ')})`
+            : course.course_name;
+
+        return { value: `${inst.id}__${course.id}`, label };
+      });
+    }
+    return [
+      {
+        value: `${inst.id}__${inst.id}`,
+        label: inst.name || inst.course_name || '',
+      },
+    ];
+  });
 
   return (
     <div className="space-y-4">

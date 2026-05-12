@@ -23,11 +23,9 @@ export function isProfileComplete(profile: Record<string, unknown>): boolean {
   // Step 3 Fields (Required only for interns)
   if (profile.is_intern === true) {
     const academicRequiredFields = [
-      'organisation_type',
       'institution_id',
       'current_year_of_study',
       'college_roll_number',
-      'task_registered_id',
     ];
 
     for (const field of academicRequiredFields) {

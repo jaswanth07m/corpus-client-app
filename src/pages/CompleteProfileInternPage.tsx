@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { BACKEND_URL } from '@/lib/constants';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
-import { organisationTypes, yearList } from '@/lib/profileConstants';
+import { yearList } from '@/lib/profileConstants';
 import InstitutionSelector from '@/components/InstitutionSelector';
-import { fetchInstitution } from '@/lib/institutionApi';
+import { fetchInstitution, fetchEnums } from '@/lib/institutionApi';
 
 interface UserProfile {
   id: string;
-  organisation_type?: string | null;
+  academic_stream?: string | null;
   institution_id?: string | null;
   current_year_of_study?: string | null;
   college_roll_number?: string | null;
@@ -35,9 +35,12 @@ const CompleteProfileInternPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [institutionName, setInstitutionName] = useState<string | null>(null);
+  const [academicStreamOptions, setAcademicStreamOptions] = useState<string[]>(
+    [],
+  );
 
   const [formData, setFormData] = useState({
-    organisation_type: '',
+    academic_stream: '',
     institution_id: '',
     current_year_of_study: '',
     college_roll_number: '',
@@ -60,13 +63,19 @@ const CompleteProfileInternPage: React.FC = () => {
         const me = await meRes.json();
         setUserId(me.id);
 
-        const profileRes = await fetch(`${BACKEND_URL}/users/${me.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [profileRes, enumsRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/users/${me.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetchEnums('academic_streams').catch(() => ({
+            academic_streams: [],
+          })),
+        ]);
         if (!profileRes.ok) throw new Error('Failed to fetch profile');
         const profile: UserProfile = await profileRes.json();
         setOriginalProfile(profile);
         prePopulateForm(profile);
+        setAcademicStreamOptions(enumsRes.academic_streams || []);
       } catch (err) {
         console.error('Error fetching data:', err);
       } finally {
@@ -89,7 +98,8 @@ const CompleteProfileInternPage: React.FC = () => {
 
   const prePopulateForm = (profile: UserProfile) => {
     setFormData({
-      organisation_type: profile.organisation_type || '',
+      academic_stream:
+        profile.academic_stream || profile.organisation_type || '',
       institution_id: profile.institution_id || '',
       current_year_of_study: profile.current_year_of_study || '',
       college_roll_number: profile.college_roll_number || '',
@@ -114,7 +124,7 @@ const CompleteProfileInternPage: React.FC = () => {
 
     const currentProfile: UserProfile = {
       id: userId,
-      organisation_type: formData.organisation_type || null,
+      academic_stream: formData.academic_stream || null,
       institution_id: formData.institution_id || null,
       current_year_of_study: formData.current_year_of_study || null,
       college_roll_number: formData.college_roll_number || null,
@@ -205,16 +215,16 @@ const CompleteProfileInternPage: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="organisation_type">
+                    <Label htmlFor="academic_stream">
                       {t('common.academic.stream')}
                     </Label>
                     <SearchableSelect
-                      id="organisation_type"
-                      value={formData.organisation_type}
+                      id="academic_stream"
+                      value={formData.academic_stream}
                       onChange={(value) =>
-                        handleChange('organisation_type', value)
+                        handleChange('academic_stream', value)
                       }
-                      options={organisationTypes}
+                      options={academicStreamOptions}
                       placeholder={t('common.selectType')}
                     />
                   </div>
@@ -223,6 +233,10 @@ const CompleteProfileInternPage: React.FC = () => {
                       institutionId={formData.institution_id}
                       onChange={(institutionId) =>
                         handleChange('institution_id', institutionId)
+                      }
+                      academicStream={formData.academic_stream}
+                      onAcademicStreamLoad={(stream) =>
+                        handleChange('academic_stream', stream)
                       }
                     />
                   </div>
