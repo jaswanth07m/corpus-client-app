@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -430,6 +430,23 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
     }
   }, [profile.institution_id]);
 
+  const specializationLabel = useMemo(() => {
+    if (!institutionData) return '';
+    const course = institutionData.courses?.[0];
+    if (course) {
+      const buckets = [
+        course.option_a_bucket,
+        course.option_b_bucket,
+        course.option_c_bucket,
+        course.option_d_bucket,
+      ].filter((b): b is string => !!b);
+      return buckets.length > 0
+        ? `${course.course_name} (${buckets.join(', ')})`
+        : course.course_name;
+    }
+    return institutionData.name || institutionData.course_name || '';
+  }, [institutionData]);
+
   const fetchFormattedAddress = async (
     latitude: number,
     longitude: number,
@@ -742,7 +759,8 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
               )}
 
               {/* Internship Profile - Read Only */}
-              {(profile.organisation_type ||
+              {(profile.academic_stream ||
+                profile.organisation_type ||
                 profile.institution_id ||
                 profile.hardware_details) && (
                 <div className="w-full mt-4">
@@ -753,13 +771,13 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                     </p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {profile.organisation_type && (
+                    {(profile.academic_stream || profile.organisation_type) && (
                       <div className="p-3 border rounded-lg bg-gray-50">
                         <p className="text-gray-500 text-xs">
                           {t('categories.organisationType')}
                         </p>
                         <p className="text-gray-900 font-medium text-sm">
-                          {profile.organisation_type}
+                          {profile.academic_stream || profile.organisation_type}
                         </p>
                       </div>
                     )}
@@ -817,7 +835,7 @@ const UserProfileInfo: React.FC<UserProfileInfoProps> = ({
                             {institutionDataLoading ? (
                               <span className="inline-block w-32 h-4 bg-gray-200 animate-pulse rounded" />
                             ) : (
-                              institutionData.name
+                              specializationLabel
                             )}
                           </p>
                         </div>

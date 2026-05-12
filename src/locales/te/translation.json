@@ -26,6 +26,7 @@
     "submit": "సమర్పించు",
     "confirm": "నిర్ధారించు",
     "back": "వెనుకకు",
+    "goBack": "వెనుకకు వెళ్ళు",
     "next": "తర్వాత",
     "previous": "మునుపటి",
     "close": "మూసివేయి",
@@ -330,7 +331,8 @@
     },
     "gender": "",
     "academic": {
-      "details": ""
+      "details": "",
+      "stream": ""
     },
     "roll": {
       "number": ""
@@ -377,11 +379,14 @@
         }
       }
     },
-    "preview": "ప్రివ్యూ:",
-    "noPreviewAvailable": "ప్రివ్యూ అందుబాటులో లేదు",
     "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది",
-    "searchPlaceOrAddress": "స్థలం లేదా చిరునామా వెతకండి",
-    "searching": "వెతుకుతోంది..."
+    "downlink": "డౌన్‌లింక్:",
+    "rtt": "RTT:",
+    "apiNotSupported": "API మద్దతు లేదు",
+    "UploadUnavailableWhileOffline": "ఆఫ్‌లైన్‌లో ఉన్నప్పుడు అప్‌లోడ్ అందుబాటులో లేదు",
+    "EstimatedUploadTime": "అంచనా వేయబడిన అప్‌లోడ్ సమయం",
+    "EstimatedTimeRemaining": "అంచనా వేయబడిన మిగిలిన సమయం",
+    "EstimatedUploadTimeUnavailable": "అంచనా వేయబడిన అప్‌లోడ్ సమయం అందుబాటులో లేదు"
   },
   "ui": {
     "failed": {

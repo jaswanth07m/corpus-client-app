@@ -34,6 +34,12 @@ import MediaUploadComponent from './MediaUploadComponent';
 import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
 import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
+import {
+  formatEstimatedUploadTime,
+  getEstimatedUploadMbps,
+  useNetworkStrength,
+} from '@/hooks/useNetworkStrength';
 
 interface Category {
   id: string;
@@ -96,6 +102,7 @@ interface ContentInputProps {
 
   onBack: () => void;
   onUpload: (file: File, description: string) => Promise<void>;
+  resetUploadState?: () => void;
 
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
@@ -136,6 +143,11 @@ const getCategoryIcon = (name: string) => {
   return iconMap[name] || '📂';
 };
 
+const getTextContentSize = (textContent: string) => {
+  if (!textContent) return 0;
+  return new Blob([textContent], { type: 'text/plain' }).size;
+};
+
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
@@ -172,6 +184,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
   onBack,
   onUpload,
+  resetUploadState,
   requestLocation,
   handleManualLocationSubmit,
   handleFileSelect,
@@ -180,6 +193,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   isChunkedUploading = false,
 }) => {
   const { t } = useTranslation();
+  const networkInfo = useNetworkStrength();
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -214,6 +228,48 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Location Picker Modal State
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const hasVerifiedLocation = useRef<string>('');
+
+  const estimatedUploadMbps = getEstimatedUploadMbps(networkInfo);
+  const uploadPayloadSize =
+    selectedFiles.length > 0
+      ? selectedFiles.reduce((total, file) => total + file.size, 0)
+      : selectedFile
+        ? selectedFile.size
+        : uploadMode === 'text'
+          ? getTextContentSize(textContent || '')
+          : 0;
+  const clampedUploadProgress = Math.min(
+    100,
+    Math.max(0, chunkedUploadProgress),
+  );
+
+  const remainingUploadSize = isChunkedUploading
+    ? uploadPayloadSize * (1 - clampedUploadProgress / 100)
+    : uploadPayloadSize;
+
+  const estimatedUploadSeconds =
+    estimatedUploadMbps && remainingUploadSize > 0
+      ? (remainingUploadSize * 8) / (estimatedUploadMbps * 1_000_000)
+      : null;
+
+  const uploadTimeEstimate =
+    estimatedUploadSeconds != null
+      ? formatEstimatedUploadTime(estimatedUploadSeconds)
+      : null;
+
+  const shouldShowUploadEstimate =
+    uploadPayloadSize > 0 &&
+    (!isChunkedUploading || Math.round(clampedUploadProgress) < 100);
+
+  const uploadEstimateLabel = !networkInfo.isOnline
+    ? t('common.UploadUnavailableWhileOffline')
+    : uploadTimeEstimate
+      ? `${
+          isChunkedUploading
+            ? t('common.EstimatedTimeRemaining')
+            : t('common.EstimatedUploadTime')
+        }: ${uploadTimeEstimate}`
+      : t('common.EstimatedUploadTimeUnavailable');
 
   // Location Verification State
   const [verifiedLocation, setVerifiedLocation] =
@@ -288,6 +344,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recordingInterval = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRecordingSessionRef = useRef(0);
+  const latestAudioFileRef = useRef<File | null>(null);
 
   const uploadOptions = [
     {
@@ -416,6 +474,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   ) => {
     try {
       if (type === 'audio') {
+        audioRecordingSessionRef.current += 1;
+        latestAudioFileRef.current = null;
+
         const result = await audioRecordingService.startRecording();
 
         if (result.success) {
@@ -529,15 +590,44 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const stopRecording = async () => {
     try {
       if (uploadMode === 'audio') {
+        const recordingSession = audioRecordingSessionRef.current;
         const result = await audioRecordingService.stopRecording();
 
+        if (recordingSession !== audioRecordingSessionRef.current) {
+          console.debug('Ignoring stale audio recording result', {
+            recordingSession,
+            activeSession: audioRecordingSessionRef.current,
+          });
+          return;
+        }
+
         if (result.success && result.file) {
+          console.debug('Audio recording completed', {
+            fileName: result.file.name,
+            fileSize: result.file.size,
+            durationMs: result.duration,
+            session: recordingSession,
+          });
+
+          const previousAudioUrl = audioUrl;
+          if (previousAudioUrl) {
+            URL.revokeObjectURL(previousAudioUrl);
+          }
+
+          latestAudioFileRef.current = result.file;
           setRecordedBlob(result.file);
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
           setAudioUrl(URL.createObjectURL(result.file));
+          resetUploadState?.();
           setIsRecording(false);
           setIsPaused(false);
+          setRecordingTime(
+            typeof result.duration === 'number' &&
+              Number.isFinite(result.duration)
+              ? Math.max(0, Math.round(result.duration / 1000))
+              : recordingTime,
+          );
           toast.success(t('media.recordingStopped'));
         } else {
           toast.error(result.error || t('media.failedToStopRecording'));
@@ -550,6 +640,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
           setVideoUrl(URL.createObjectURL(result.file));
+          resetUploadState?.();
           setIsRecording(false);
           setIsPaused(false);
 
@@ -671,14 +762,33 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   };
 
   const resetRecording = () => {
+    audioRecordingSessionRef.current += 1;
+    latestAudioFileRef.current = null;
+
+    const previousAudioUrl = audioUrl;
+    const previousVideoUrl = videoUrl;
+
     setRecordedBlob(null);
     setSelectedFile(null);
     setSelectedFiles([]);
     setRecordingTime(0);
     setAudioUrl(null);
     setVideoUrl(null);
-    if (audioUrl) URL.revokeObjectURL(audioUrl);
-    if (videoUrl) URL.revokeObjectURL(videoUrl);
+    resetUploadState?.();
+    setIsRecording(false);
+    setIsPaused(false);
+    setMediaRecorder(null);
+    setStream(null);
+    setCameraStream(null);
+    setIsCameraActive(false);
+    setIsVideoInitialized(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    if (previousAudioUrl) URL.revokeObjectURL(previousAudioUrl);
+    if (previousVideoUrl) URL.revokeObjectURL(previousVideoUrl);
   };
 
   const handleSingleFileSelect = async (
@@ -751,19 +861,34 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     }
 
     // For other modes, upload selected files
-    if (selectedFiles.length === 0) {
+    const uploadFile =
+      uploadMode === 'audio'
+        ? (latestAudioFileRef.current ??
+          selectedFile ??
+          selectedFiles[0] ??
+          null)
+        : (selectedFiles[0] ?? null);
+
+    if (!uploadFile) {
       setUploadingFiles(false);
       return;
     }
 
-    for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
-      try {
-        await onUpload(file, description);
-      } catch (err) {
-        console.error('Upload failed for', file.name, err);
-        toast.error(`Upload failed: ${file.name}`);
-      }
+    if (uploadMode === 'audio') {
+      latestAudioFileRef.current = uploadFile;
+      setSelectedFile(uploadFile);
+      setSelectedFiles([uploadFile]);
+      console.debug('Uploading audio file', {
+        fileName: uploadFile.name,
+        fileSize: uploadFile.size,
+      });
+    }
+
+    try {
+      await onUpload(uploadFile, description);
+    } catch (err) {
+      console.error('Upload failed for', uploadFile.name, err);
+      toast.error(`Upload failed: ${uploadFile.name}`);
     }
 
     setUploadingFiles(false);
@@ -790,7 +915,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </p>
             )}
           </div>
-          <div className="w-10"></div>
+          <div className="w-10 flex justify-end">
+            <NetworkStrengthIndicator />
+          </div>
         </div>
       </div>
 
@@ -834,6 +961,12 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     }}
                   ></div>
                 </div>
+              </div>
+            )}
+
+            {shouldShowUploadEstimate && (
+              <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                {uploadEstimateLabel}
               </div>
             )}
 

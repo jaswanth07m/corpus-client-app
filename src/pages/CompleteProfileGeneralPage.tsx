@@ -740,9 +740,7 @@ const CompleteProfileGeneralPage: React.FC = () => {
       toast.info(t('common.noChangesToSave'));
       setSubmitting(false);
       // Even if no changes, we should still handle redirection
-      if (isEditMode) {
-        navigate('/profile', { replace: true });
-      } else if (formData.is_intern) {
+      if (formData.is_intern) {
         navigate('/complete-profile/step-3', { replace: true });
       } else {
         navigate('/profile', { replace: true });
@@ -763,9 +761,7 @@ const CompleteProfileGeneralPage: React.FC = () => {
       const data = await res.json();
       if (res.ok) {
         toast.success(t('messages.profileCompletedSuccessfully'));
-        if (isEditMode) {
-          navigate('/profile', { replace: true });
-        } else if (formData.is_intern) {
+        if (formData.is_intern) {
           navigate('/complete-profile/step-3', { replace: true });
         } else {
           navigate('/profile', { replace: true });

@@ -26,6 +26,7 @@
     "submit": "Submit",
     "confirm": "Confirm",
     "back": "Back",
+    "goBack": "Go back",
     "next": "Next",
     "previous": "Previous",
     "close": "Close",
@@ -330,7 +331,8 @@
     },
     "gender": "Gender *",
     "academic": {
-      "details": "Academic Details"
+      "details": "Academic Details",
+      "stream": "Academic Stream"
     },
     "roll": {
       "number": "Roll number"
@@ -405,10 +407,13 @@
         }
       }
     },
-    "preview": "Preview:",
-    "noPreviewAvailable": "No preview available",
-    "searchPlaceOrAddress": "Search place or address",
-    "searching": "Searching..."
+    "downlink": "Downlink:",
+    "rtt": "RTT:",
+    "apiNotSupported": "API not supported",
+    "UploadUnavailableWhileOffline": "Upload unavailable while offline",
+    "EstimatedUploadTime": "Estimated Upload Time",
+    "EstimatedTimeRemaining": "Estimated Time Remaining",
+    "EstimatedUploadTimeUnavailable": "Estimated Upload Time Unavailable"
   },
   "ui": {
     "failed": {

@@ -23,18 +23,31 @@ export interface Enums {
   management_types: string[];
   mediums: string[];
   modes: string[];
+  academic_streams: string[];
 }
 
 export interface InstitutionRow {
   id: string;
-  name: string;
+  name?: string;
   college_name: string;
   university_name: string;
-  course_name: string;
-  medium: string;
-  mode: string;
+  course_name?: string;
+  medium: string | null;
+  mode: string | null;
   district: string;
-  college_type: string;
+  college_type: string | null;
+  academic_stream?: string;
+  courses?: {
+    id: string;
+    course_name: string;
+    option_a_bucket?: string | null;
+    option_b_bucket?: string | null;
+    option_c_bucket?: string | null;
+    option_d_bucket?: string | null;
+    cbcs?: boolean;
+    revised_intake?: number | null;
+    mode?: string | null;
+  }[];
 }
 
 export interface InstitutionDetail extends InstitutionRow {
@@ -47,12 +60,14 @@ export interface InstitutionDetail extends InstitutionRow {
   option_d_bucket?: string | null;
   cbcs?: boolean;
   revised_intake?: number;
+  academic_stream?: string;
 }
 
 const BASE = `${BACKEND_URL}/institutions`;
 
-export function fetchEnums(): Promise<Enums> {
-  return fetchJson<Enums>(`${BASE}/enums`);
+export function fetchEnums(enumType?: string): Promise<Enums> {
+  const qs = enumType ? `?enum_type=${enumType}` : '';
+  return fetchJson<Enums>(`${BASE}/enums${qs}`);
 }
 
 export interface PaginatedParams {
@@ -84,6 +99,7 @@ export function fetchInstitutions(params?: {
   management_type?: string;
   medium?: string;
   mode?: string;
+  academic_stream?: string;
   skip?: number;
   limit?: number;
 }): Promise<InstitutionRow[]> {
@@ -96,6 +112,7 @@ export function fetchInstitutions(params?: {
     management_type: params?.management_type,
     medium: params?.medium,
     mode: params?.mode,
+    academic_stream: params?.academic_stream,
     skip: params?.skip ?? 0,
     limit: params?.limit ?? 100,
   });
@@ -108,18 +125,24 @@ export function fetchInstitution(id: string): Promise<InstitutionDetail> {
 
 export function fetchUniversityNames(params?: {
   search?: string;
+  academic_stream?: string;
 }): Promise<string[]> {
-  const qs = buildQuery({ search: params?.search });
+  const qs = buildQuery({
+    search: params?.search,
+    academic_stream: params?.academic_stream,
+  });
   return fetchJson<string[]>(`${BASE}/university-names${qs}`);
 }
 
 export function fetchCollegeNames(params?: {
   university_name?: string;
   search?: string;
+  academic_stream?: string;
 }): Promise<string[]> {
   const qs = buildQuery({
     university_name: params?.university_name,
     search: params?.search,
+    academic_stream: params?.academic_stream,
   });
   return fetchJson<string[]>(`${BASE}/college-names${qs}`);
 }

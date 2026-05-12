@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Search } from 'lucide-react';
 import React, { useEffect, useState, useCallback } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 interface PeerReviewCardProps {
   user_id: string;
@@ -67,27 +68,30 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
     const token = localStorage.getItem('token');
 
     try {
-      const mediaTypesQuery = mediaTypes
-        .map((type) => `media_type=${type}`)
-        .join('&');
       const nextRecordResponse = await fetch(
-        `${BACKEND_URL}/records/next-for-review?${mediaTypesQuery}&proof_reading=${proofReading}&limit=${numberOfRecordsFetched}`,
+        `${BACKEND_URL}/records/for-review`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            filters: {
+              media_type: mediaTypes,
+            },
+            limit: numberOfRecordsFetched,
+          }),
         },
       );
-
-      if (nextRecordResponse.status === 404) {
-        setHasMore(false);
-        return;
-      }
 
       if (!nextRecordResponse.ok) {
         const errorData = await nextRecordResponse.json();
         throw new Error(errorData.message || 'Error in fetching');
       }
 
-      const responseArray = await nextRecordResponse.json();
+      const responseBody = await nextRecordResponse.json();
+      const responseArray = responseBody.record_ids;
 
       if (!Array.isArray(responseArray) || responseArray.length === 0) {
         setHasMore(false);
@@ -353,12 +357,15 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
               <p className="text-slate-600 text-sm">{description}</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
-            className={`p-2 rounded-lg transition-all duration-200 ${!isHeaderCollapsed ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-600' : 'hover:bg-slate-100 text-slate-700'}`}
-          >
-            <Search className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
+              className={`p-2 rounded-lg transition-all duration-200 ${!isHeaderCollapsed ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-600' : 'hover:bg-slate-100 text-slate-700'}`}
+            >
+              <Search className="w-6 h-6" />
+            </button>
+            <NetworkStrengthIndicator />
+          </div>
         </div>
 
         {!isHeaderCollapsed && (

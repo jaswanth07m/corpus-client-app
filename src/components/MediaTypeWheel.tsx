@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Type, Mic, Video, FileText, Image } from 'lucide-react';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 interface MediaType {
   type: 'text' | 'audio' | 'video' | 'image' | 'document';
@@ -76,6 +77,10 @@ const MediaTypeWheel: React.FC<MediaTypeWheelProps> = ({
   // Wheel view
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center px-4">
+      {/* Network indicator — top-right corner, above the wheel */}
+      <div className="absolute top-3 right-4 md:top-4 md:right-6 z-50">
+        <NetworkStrengthIndicator />
+      </div>
       {/* Wheel Container - Responsive sizing */}
       <div className="relative w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] md:w-[480px] md:h-[480px]">
         {/* Outer glow effect */}

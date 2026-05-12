@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
 import SwechaLogo from './SwechaLogo';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 const decodeJWTToken = (token: string): { exp: number; sub: string } | null => {
   try {
@@ -797,6 +798,7 @@ const Categories: React.FC<CategoriesProps> = ({
         setDescriptionError={setDescriptionError} // Pass setDescriptionError
         onBack={handleBack}
         onUpload={handleUpload}
+        resetUploadState={resetUploadState}
         requestLocation={requestLocation}
         handleManualLocationSubmit={handleManualLocationSubmit}
         handleFileSelect={handleFileSelect}
@@ -1006,6 +1008,7 @@ const Categories: React.FC<CategoriesProps> = ({
                 Logout
               </span>
             </div>
+            <NetworkStrengthIndicator />
           </div>
         </div>
       </div>
