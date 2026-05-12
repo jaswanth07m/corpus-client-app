@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import ContentInput from './ContentInput';
 import { BACKEND_URL } from '@/lib/constants';
-import posthog from 'posthog-js';
 import SwechaLogo from './SwechaLogo';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 
@@ -221,10 +220,6 @@ const Categories: React.FC<CategoriesProps> = ({
       }
       if (preferences.rights && !releaseRights) {
         setreleaseRights(preferences.rights);
-      }
-      // Apply location from preferences if available
-      if (preferences.locationCoords && !location) {
-        setLocation(preferences.locationCoords);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -529,6 +524,12 @@ const Categories: React.FC<CategoriesProps> = ({
   };
 
   // Step 2.3: Create Upload Finalization Function
+  interface FinalizeResult {
+    success: boolean;
+    errorType?: 'STORAGE_FAILURE' | 'GENERIC_FAILURE';
+    errorMessage?: string;
+  }
+
   const finalizeUpload = async ({
     uploadUuid,
     totalChunks,
@@ -541,15 +542,12 @@ const Categories: React.FC<CategoriesProps> = ({
     filename: string;
     customTitle?: string;
     customDescription?: string;
-  }): Promise<boolean> => {
+  }): Promise<FinalizeResult> => {
     try {
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
-      // Use custom title/description if provided, otherwise fall back to component state
       formData.append('title', customTitle || title);
       formData.append('description', customDescription || description);
-
-      // Send category_ids as a JSON string array instead of individual form fields
       const categoryIds =
         selectedCategories && selectedCategories.length > 0
           ? selectedCategories.map((cat) => cat.id)
@@ -557,7 +555,6 @@ const Categories: React.FC<CategoriesProps> = ({
             ? [selectedCategory.id]
             : [];
       formData.append('category_ids', JSON.stringify(categoryIds));
-
       formData.append('user_id', userId);
       formData.append('media_type', uploadMode || '');
       formData.append('latitude', location!.lat.toString());
@@ -581,16 +578,50 @@ const Categories: React.FC<CategoriesProps> = ({
 
       if (response.ok) {
         const result = await response.json();
-        return true;
+        console.log('[Upload Finalize] Response:', result);
+        if (result.success === false || result.error) {
+          console.error(
+            '[Upload Finalize] Backend returned error:',
+            result.error || 'Unknown error',
+          );
+          return {
+            success: false,
+            errorType: 'STORAGE_FAILURE',
+            errorMessage: result.error,
+          };
+        }
+        if (!result.file_url) {
+          console.error(
+            '[Upload Finalize] Missing file_url in response:',
+            result,
+          );
+          return {
+            success: false,
+            errorType: 'STORAGE_FAILURE',
+            errorMessage: 'Server did not return file URL',
+          };
+        }
+        console.log('[Upload Finalize] Success - file_url:', result.file_url);
+        return { success: true };
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Upload finalization failed:', errorData);
-        toast.error(errorData.message);
-        return false;
+        const status = response.status;
+        console.error('[Upload Finalize] HTTP Error, status:', status);
+        if (status >= 500 || status === 403 || status === 401) {
+          return {
+            success: false,
+            errorType: 'STORAGE_FAILURE',
+            errorMessage: 'Storage upload failed',
+          };
+        }
+        return { success: false, errorType: 'GENERIC_FAILURE' };
       }
     } catch (error) {
-      console.error('Upload finalization error:', error);
-      return false;
+      console.error('[Upload Finalize] Exception:', error);
+      return {
+        success: false,
+        errorType: 'STORAGE_FAILURE',
+        errorMessage: 'Upload failed due to server error',
+      };
     }
   };
 
@@ -655,7 +686,7 @@ const Categories: React.FC<CategoriesProps> = ({
     file?: File,
     description?: string,
     fileTitle?: string,
-  ): Promise<void> => {
+  ): Promise<boolean> => {
     // Use provided parameters or fall back to component state
     const uploadTitle = fileTitle || title;
     const uploadDescription = description || '';
@@ -669,7 +700,7 @@ const Categories: React.FC<CategoriesProps> = ({
       !uploadTitle.trim()
     ) {
       toast.error(t('common.pleaseSelectAtLeastOneCategoryAndProvideATitle'));
-      return;
+      return false;
     }
 
     if (!location) {
@@ -679,17 +710,17 @@ const Categories: React.FC<CategoriesProps> = ({
       if (!showManualLocation) {
         setShowManualLocation(true);
       }
-      return;
+      return false;
     }
 
     if (!userId) {
       toast.error('User ID not found. Please try logging in again.');
-      return;
+      return false;
     }
 
     if (!releaseRights) {
       toast.error(t('common.releaseRightsNotFoundCheckForReleaseRights'));
-      return;
+      return false;
     }
 
     if (releaseRights == 'downloaded') {
@@ -698,11 +729,12 @@ const Categories: React.FC<CategoriesProps> = ({
           'common.uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission',
         ),
       );
-      return; // <-- Add return here to block upload if releaseRights is 'internet'
+      return false;
     }
 
     if (!selectedLanguage) {
       toast.error(t('common.selectALangauge'));
+      return false;
     }
 
     // Prepare file for upload - use provided file or fall back to component state
@@ -710,7 +742,7 @@ const Categories: React.FC<CategoriesProps> = ({
     if (uploadMode === 'text') {
       if (!textContent.trim()) {
         toast.error(t('validation.pleaseEnterTextContent'));
-        return;
+        return false;
       }
       const textBlob = new Blob([textContent], { type: 'text/plain' });
       fileToUpload = new File([textBlob], 'text-content.txt', {
@@ -718,7 +750,7 @@ const Categories: React.FC<CategoriesProps> = ({
       });
     } else if (!fileToUpload) {
       toast.error('Please select a file');
-      return;
+      return false;
     }
 
     // Initialize upload state
@@ -734,58 +766,55 @@ const Categories: React.FC<CategoriesProps> = ({
         newUploadUuid,
       );
 
-      if (success) {
-        const totalChunks = getTotalChunks(fileToUpload!);
-        // Finalize upload
-        const finalized = await finalizeUpload({
-          uploadUuid: newUploadUuid,
-          totalChunks: totalChunks,
-          filename: fileToUpload!.name,
-          customTitle: uploadTitle,
-          customDescription: uploadDescription,
-        });
-        if (finalized) {
-          posthog.capture('upload_success');
-
-          // Only redirect and reset for single file uploads (when file param is NOT provided)
-          // For multi-file uploads, let the caller handle the redirect
-          if (!isMultiFileUpload) {
-            toast.success(
-              'Content uploaded successfully! Redirecting to Landing...',
-            );
-            resetUploadState();
-            // Update preferences based on current upload values
-          setPreferences({
-            language: selectedLanguage,
-            rights: releaseRights,
-          });
-          // Redirect to landing page after successful upload
-            setTimeout(() => {
-              window.location.href = '/';
-            }, 1500);
-          }
-          // For multi-file upload, return success without redirecting
-          return;
-        } else {
-          posthog.capture('upload_finalization_failed');
-          partialResetUploadState();
-        }
-      } else {
-        posthog.capture('upload_error');
-        toast.error(t('common.uploadFailedPleaseTryAgain'));
+      if (!success) {
         partialResetUploadState();
+        setIsUploading(false);
+        return false;
       }
+
+      const totalChunks = getTotalChunks(fileToUpload!);
+      // Finalize upload
+      const finalizeResult = await finalizeUpload({
+        uploadUuid: newUploadUuid,
+        totalChunks: totalChunks,
+        filename: fileToUpload!.name,
+        customTitle: uploadTitle,
+        customDescription: uploadDescription,
+      });
+
+      if (!finalizeResult.success) {
+        partialResetUploadState();
+        setIsUploading(false);
+        if (finalizeResult.errorType === 'STORAGE_FAILURE') {
+          return { success: false, errorType: 'STORAGE_FAILURE' };
+        }
+        return { success: false, errorType: 'GENERIC_FAILURE' };
+      }
+
+      // Only redirect for single file uploads
+      if (!isMultiFileUpload) {
+        toast.success(
+          'Content uploaded successfully! Redirecting to Landing...',
+        );
+        resetUploadState();
+        setPreferences({
+          language: selectedLanguage,
+          rights: releaseRights,
+        });
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      }
+
+      return { success: true };
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error(
-        t('messages.networkErrorPleaseCheckYourConnectionAndTryAgain'),
-      );
       partialResetUploadState();
-      posthog.capture('upload_error');
-      posthog.captureException(error);
+      setIsUploading(false);
+      return { success: false, errorType: 'STORAGE_FAILURE' };
+    } finally {
+      setIsUploading(false);
     }
-
-    setIsUploading(false);
   };
 
   const handleBack = () => {

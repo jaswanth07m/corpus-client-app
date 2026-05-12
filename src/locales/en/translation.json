@@ -254,7 +254,18 @@
     "uploadDocumentFilesPdfDocxTxtMax5Files": "Upload Document Files (PDF, DOCX, TXT) - Max 5 files",
     "uploadAudioFilesMax5Files": "Upload Audio Files (Max 5 files)",
     "uploadVideoFilesMax5Files": "Upload Video Files (Max 5 files)",
-    "uploadImageFilesMax5Files": "Upload Image Files (Max 5 files)"
+    "uploadImageFilesMax5Files": "Upload Image Files (Max 5 files)",
+    "takeAnother": "Take Another",
+    "startWelcomeTour": "Start Welcome Tour",
+    "storageUploadFailedPleaseContactAdminOrRetryLater": "Storage upload failed. Please contact admin or retry later.",
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again.",
+    "mobile": {
+      "os": "Mobile OS",
+      "ram": "Mobile RAM"
+    },
+    "goBackHome": "Go back home",
+    "selectOs": "Select OS",
+    "selectRam": "Select RAM"
   },
   "ui": {
     "failed": {
@@ -449,7 +460,8 @@
     "loadingPointsData": "Loading points data...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence.",
     "somethingWentWrong": "Something went wrong",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "resumeUploadedSuccessfully": "Resume uploaded successfully"
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -686,8 +698,8 @@
       "description": "Change the application language here."
     },
     "heatmap": {
-      "title": "Activity Heatmap",
-      "description": "Track your daily contributions and streaks over time."
+      "less": "Less",
+      "more": "More"
     },
     "dashboard": {
       "title": "Contributions Dashboard",

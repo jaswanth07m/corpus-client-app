@@ -247,7 +247,16 @@
       "progress": "कुल प्रगति"
     },
     "previousPage": "पिछला पेज",
-    "nextPage": "अगला पेज"
+    "nextPage": "अगला पेज",
+    "storageUploadFailedPleaseContactAdminOrRetryLater": "",
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "",
+    "mobile": {
+      "os": "",
+      "ram": ""
+    },
+    "goBackHome": "",
+    "selectOs": "",
+    "selectRam": ""
   },
   "ui": {
     "failed": {
@@ -440,7 +449,8 @@
     "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।"
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।",
+    "resumeUploadedSuccessfully": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",

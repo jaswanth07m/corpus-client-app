@@ -247,7 +247,16 @@
       "progress": "మొత్తం పురోగతి"
     },
     "previousPage": "మునుపటి పేజీ",
-    "nextPage": "తదుపరి పేజీ"
+    "nextPage": "తదుపరి పేజీ",
+    "storageUploadFailedPleaseContactAdminOrRetryLater": "",
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "",
+    "mobile": {
+      "os": "",
+      "ram": ""
+    },
+    "goBackHome": "",
+    "selectOs": "",
+    "selectRam": ""
   },
   "ui": {
     "failed": {
@@ -440,7 +449,8 @@
     "loadingProfile": "ప్రొఫైల్ లోడ్ అవుతోంది...",
     "profilePictureUpdatedSuccessfully": "ప్రొఫైల్ చిత్రం విజయవంతంగా అప్‌డేట్ అయింది!",
     "loadingPointsData": "పాయింట్ల డేటా లోడ్ అవుతోంది...",
-    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది."
+    "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "మీరు ఈ సెగ్మెంట్‌ల రీడింగ్ ఆర్డర్‌ని అప్‌డేట్ చేయాలనుకుంటున్నారా? ఇది బౌండింగ్ బాక్స్ క్రమాన్ని కూడా అప్‌డేట్ చేస్తుంది.",
+    "resumeUploadedSuccessfully": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",

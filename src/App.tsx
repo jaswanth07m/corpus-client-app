@@ -22,6 +22,7 @@ import RequireAuth from './components/RequireAuth';
 import UploadPage from './pages/UploadPage';
 import Layout from './Layout';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
+import RecordDetails from './pages/RecordDetails';
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,15 @@ const App = () => (
                   element={
                     <RequireAuth>
                       <VideoReviewPage />
+                    </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/records/:recordId"
+                  element={
+                    <RequireAuth>
+                      <RecordDetails />
                     </RequireAuth>
                   }
                 />

@@ -363,7 +363,6 @@ function Profile() {
   // Save preferences handler
   const handleSavePreferences = () => {
     setPreferences({
-      location: localPrefs.location,
       language: localPrefs.language,
       rights: localPrefs.rights,
     });
@@ -1388,73 +1387,6 @@ function Profile() {
               </div>
 
               <div className="space-y-4">
-                {/* Location Section - Same as Upload Page */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">
-                      Location
-                    </span>
-                  </div>
-
-                  {isVerifyingLocation ? (
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Verifying location...</span>
-                    </div>
-                  ) : prefVerifiedLocation ? (
-                    <div>
-                      <div className="flex items-center gap-2 text-green-600">
-                        <Check className="w-4 h-4" />
-                        <span className="text-sm font-medium">
-                          {prefVerifiedLocation.formatted_address}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setPrefLocationCoords(null);
-                          setPrefVerifiedLocation(null);
-                          setLocalPrefs((prev) => ({ ...prev, location: '' }));
-                        }}
-                        className="text-xs text-blue-600 hover:underline mt-1"
-                      >
-                        {t('user.changeLocation')}
-                      </button>
-                    </div>
-                  ) : prefLocationError ? (
-                    <div className="flex items-center gap-2 text-red-600">
-                      <AlertCircle className="w-4 h-4" />
-                      <span className="text-sm">{prefLocationError}</span>
-                    </div>
-                  ) : prefLocationCoords ? (
-                    <div className="flex items-center gap-2 text-orange-600">
-                      <AlertCircle className="w-4 h-4" />
-                      <span className="text-sm">
-                        {t('user.locationCapturedVerifying')}
-                      </span>
-                    </div>
-                  ) : null}
-
-                  {!prefLocationCoords && !prefVerifiedLocation && (
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        onClick={requestPrefLocation}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                      >
-                        <MapPin className="w-3 h-3" />
-                        Use Current Location
-                      </button>
-                      <button
-                        onClick={() => setShowLocationPicker(true)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                      >
-                        <Pencil className="w-3 h-3" />
-                        Pick from Map
-                      </button>
-                    </div>
-                  )}
-                </div>
-
                 <div>
                   <label
                     htmlFor="prefLanguage"
@@ -1512,9 +1444,6 @@ function Profile() {
                   type="button"
                   onClick={() => {
                     setShowPreferencesPanel(false);
-                    setPrefLocationCoords(null);
-                    setPrefVerifiedLocation(null);
-                    setPrefLocationError('');
                   }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
                 >
@@ -1531,19 +1460,6 @@ function Profile() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Location Picker Modal */}
-      {showLocationPicker && (
-        <LocationPicker
-          onLocationSelect={(lat, lng) => {
-            const coords = { lat, lng };
-            setPrefLocationCoords(coords);
-            setPreferences({ locationCoords: coords });
-            setShowLocationPicker(false);
-          }}
-          onClose={() => setShowLocationPicker(false)}
-        />
       )}
     </div>
   );
