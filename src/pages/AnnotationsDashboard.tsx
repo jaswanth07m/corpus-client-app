@@ -18,6 +18,7 @@ import {
   Workflow,
   Tags,
 } from 'lucide-react';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 const AnnotationsDashboard = () => {
   const { t } = useTranslation();
@@ -150,6 +151,7 @@ const AnnotationsDashboard = () => {
                 </h1>
               </div>
             </div>
+            <NetworkStrengthIndicator />
           </div>
         </div>
       </div>

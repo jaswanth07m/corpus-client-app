@@ -1152,6 +1152,7 @@ const Categories: React.FC<CategoriesProps> = ({
                 Logout
               </span>
             </div>
+            <NetworkStrengthIndicator />
           </div>
         </div>
       </div>
