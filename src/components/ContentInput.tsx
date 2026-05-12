@@ -35,6 +35,11 @@ import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
 import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
 import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
+import {
+  formatEstimatedUploadTime,
+  getEstimatedUploadMbps,
+  useNetworkStrength,
+} from '@/hooks/useNetworkStrength';
 
 interface Category {
   id: string;
@@ -137,6 +142,11 @@ const getCategoryIcon = (name: string) => {
   return iconMap[name] || '📂';
 };
 
+const getTextContentSize = (textContent: string) => {
+  if (!textContent) return 0;
+  return new Blob([textContent], { type: 'text/plain' }).size;
+};
+
 const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
@@ -181,6 +191,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   isChunkedUploading = false,
 }) => {
   const { t } = useTranslation();
+  const networkInfo = useNetworkStrength();
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -215,6 +226,48 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Location Picker Modal State
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const hasVerifiedLocation = useRef<string>('');
+
+  const estimatedUploadMbps = getEstimatedUploadMbps(networkInfo);
+  const uploadPayloadSize =
+    selectedFiles.length > 0
+      ? selectedFiles.reduce((total, file) => total + file.size, 0)
+      : selectedFile
+        ? selectedFile.size
+        : uploadMode === 'text'
+          ? getTextContentSize(textContent || '')
+          : 0;
+  const clampedUploadProgress = Math.min(
+    100,
+    Math.max(0, chunkedUploadProgress),
+  );
+
+  const remainingUploadSize = isChunkedUploading
+    ? uploadPayloadSize * (1 - clampedUploadProgress / 100)
+    : uploadPayloadSize;
+
+  const estimatedUploadSeconds =
+    estimatedUploadMbps && remainingUploadSize > 0
+      ? (remainingUploadSize * 8) / (estimatedUploadMbps * 1_000_000)
+      : null;
+
+  const uploadTimeEstimate =
+    estimatedUploadSeconds != null
+      ? formatEstimatedUploadTime(estimatedUploadSeconds)
+      : null;
+
+  const shouldShowUploadEstimate =
+    uploadPayloadSize > 0 &&
+    (!isChunkedUploading || Math.round(clampedUploadProgress) < 100);
+
+  const uploadEstimateLabel = !networkInfo.isOnline
+    ? t('common.UploadUnavailableWhileOffline')
+    : uploadTimeEstimate
+      ? `${
+          isChunkedUploading
+            ? t('common.EstimatedTimeRemaining')
+            : t('common.EstimatedUploadTime')
+        }: ${uploadTimeEstimate}`
+      : t('common.EstimatedUploadTimeUnavailable');
 
   // Location Verification State
   const [verifiedLocation, setVerifiedLocation] =
@@ -837,6 +890,12 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     }}
                   ></div>
                 </div>
+              </div>
+            )}
+
+            {shouldShowUploadEstimate && (
+              <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                {uploadEstimateLabel}
               </div>
             )}
 

@@ -387,7 +387,11 @@
     "retry": "पुनः प्रयास करें",
     "downlink": "डाउनलिंक:",
     "rtt": "RTT:",
-    "apiNotSupported": "API समर्थित नहीं"
+    "apiNotSupported": "API समर्थित नहीं",
+    "UploadUnavailableWhileOffline": "ऑफ़लाइन होने पर अपलोड अनुपलब्ध है",
+    "EstimatedUploadTime": "अनुमानित अपलोड समय",
+    "EstimatedTimeRemaining": "अनुमानित शेष समय",
+    "EstimatedUploadTimeUnavailable": "अनुमानित अपलोड समय उपलब्ध नहीं है"
   },
   "ui": {
     "failed": {

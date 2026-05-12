@@ -16,6 +16,13 @@ export interface NetworkInfo {
   isOnline: boolean;
 }
 
+const FALLBACK_UPLOAD_MBPS: Partial<Record<NetworkStatus, number>> = {
+  Excellent: 10,
+  Good: 3,
+  Poor: 0.7,
+  'Very Poor': 0.15,
+};
+
 type NetworkConnection = {
   effectiveType?: string;
   downlink?: number;
@@ -98,4 +105,40 @@ export function useNetworkStrength(): NetworkInfo {
   }, []);
 
   return networkInfo;
+}
+
+export function getEstimatedUploadMbps(
+  networkInfo: NetworkInfo,
+): number | null {
+  if (!networkInfo.isOnline || networkInfo.status === 'Offline') {
+    return null;
+  }
+
+  if (networkInfo.downlink != null && networkInfo.downlink > 0) {
+    return networkInfo.downlink;
+  }
+
+  return FALLBACK_UPLOAD_MBPS[networkInfo.status] ?? null;
+}
+
+export function formatEstimatedUploadTime(seconds: number): string {
+  const roundedSeconds = Math.max(1, Math.ceil(seconds));
+
+  if (roundedSeconds < 60) {
+    return `~${roundedSeconds} sec`;
+  }
+
+  const minutes = Math.ceil(roundedSeconds / 60);
+  if (minutes < 60) {
+    return `~${minutes} min`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (remainingMinutes === 0) {
+    return `~${hours} hr`;
+  }
+
+  return `~${hours} hr ${remainingMinutes} min`;
 }

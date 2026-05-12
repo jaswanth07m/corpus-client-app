@@ -409,7 +409,11 @@
     },
     "downlink": "Downlink:",
     "rtt": "RTT:",
-    "apiNotSupported": "API not supported"
+    "apiNotSupported": "API not supported",
+    "UploadUnavailableWhileOffline": "Upload unavailable while offline",
+    "EstimatedUploadTime": "Estimated Upload Time",
+    "EstimatedTimeRemaining": "Estimated Time Remaining",
+    "EstimatedUploadTimeUnavailable": "Estimated Upload Time Unavailable"
   },
   "ui": {
     "failed": {
