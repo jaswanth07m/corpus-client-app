@@ -90,37 +90,15 @@ vi.mock('posthog-js', () => ({
 
 // Mock ContentInput component
 vi.mock('../../../src/components/ContentInput', () => ({
-  default: ({
-    uploadMode,
-    onBack,
-    onUpload,
-    requestLocation,
-    handleManualLocationSubmit,
-    handleFileSelect,
-    title,
-    setTitle,
-    textContent,
-    setTextContent,
-    selectedFile,
-    setSelectedFile,
-    location,
-    setLocation,
-    selectedCategory,
-    setSelectedCategory,
-    selectedCategories,
-    setSelectedCategories,
-    description,
-    setDescription,
-    releaseRights,
-    setreleaseRights,
-    selectedLanguage,
-    setSelectedLangugae,
-    creator,
-    setCreator,
-  }: {
+  default: (props: {
     uploadMode: string;
     onBack: () => void;
-    onUpload: () => void;
+    onUpload: (
+      file?: File,
+      description?: string,
+      fileTitle?: string,
+      fileCategories?: Array<{ id: string; name: string }>,
+    ) => void;
     requestLocation?: () => void;
     handleManualLocationSubmit?: () => void;
     handleFileSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -136,10 +114,6 @@ vi.mock('../../../src/components/ContentInput', () => ({
     setSelectedCategory?: (
       category: { id: string; name: string } | null,
     ) => void;
-    selectedCategories?: Array<{ id: string; name: string }>;
-    setSelectedCategories?: (
-      categories: Array<{ id: string; name: string }>,
-    ) => void;
     description?: string;
     setDescription?: (description: string) => void;
     releaseRights?: string;
@@ -149,6 +123,33 @@ vi.mock('../../../src/components/ContentInput', () => ({
     creator?: string;
     setCreator?: (creator: string) => void;
   }) => {
+    const { useState: mockUseState } = require('react');
+    const [mockCategories, setMockCategories] = mockUseState<Array<{ id: string; name: string }>>([]);
+
+    const {
+      uploadMode,
+      onBack,
+      onUpload,
+      requestLocation,
+      handleManualLocationSubmit,
+      handleFileSelect,
+      title,
+      setTitle,
+      textContent,
+      setTextContent,
+      location,
+      setLocation,
+      setSelectedCategory,
+      description,
+      setDescription,
+      releaseRights,
+      setreleaseRights,
+      selectedLanguage,
+      setSelectedLangugae,
+      creator,
+      setCreator,
+    } = props;
+
     // Store onUpload for test access
     if (typeof window !== 'undefined') {
       (window as Record<string, unknown>).__testOnUpload = onUpload;
@@ -157,7 +158,11 @@ vi.mock('../../../src/components/ContentInput', () => ({
       <div data-testid="content-input">
         <div>Upload Mode: {uploadMode}</div>
         <button onClick={onBack}>Back</button>
-        <button onClick={onUpload}>Upload</button>
+        <button
+          onClick={() => onUpload(undefined, undefined, undefined, mockCategories)}
+        >
+          Upload
+        </button>
         <button onClick={requestLocation}>Request Location</button>
         <button onClick={handleManualLocationSubmit}>Submit Location</button>
         <input
@@ -186,7 +191,7 @@ vi.mock('../../../src/components/ContentInput', () => ({
         </button>
         <button
           onClick={() => {
-            setSelectedCategories?.([{ id: '1', name: 'fables' }]);
+            setMockCategories([{ id: '1', name: 'fables' }]);
           }}
           data-testid="select-categories"
         >
@@ -216,6 +221,12 @@ vi.mock('../../../src/components/ContentInput', () => ({
           <option value="downloaded">Downloaded</option>
           <option value="others">Others</option>
         </select>
+        <input
+          type="text"
+          value={creator || ''}
+          onChange={(e) => setCreator?.(e.target.value)}
+          data-testid="creator-input"
+        />
         <select
           value={selectedLanguage || ''}
           onChange={(e) => setSelectedLangugae?.(e.target.value)}
@@ -1813,13 +1824,13 @@ describe('Categories Component', () => {
 
       // Select category and enter title but don't set location
       fireEvent.click(screen.getByTestId('select-category'));
+      fireEvent.click(screen.getByTestId('select-categories'));
       fireEvent.change(screen.getByTestId('title-input'), {
         target: { value: 'Test Title' },
       });
 
       // Click upload
       fireEvent.click(screen.getByText('Upload'));
-
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalled();
       });
@@ -1859,8 +1870,9 @@ describe('Categories Component', () => {
         expect(screen.getByTestId('content-input')).toBeInTheDocument();
       });
 
-      // Set category, title, and location
+      // Set category, categories, title, and location
       fireEvent.click(screen.getByTestId('select-category'));
+      fireEvent.click(screen.getByTestId('select-categories'));
       fireEvent.change(screen.getByTestId('title-input'), {
         target: { value: 'Test Title' },
       });
@@ -1905,8 +1917,9 @@ describe('Categories Component', () => {
         expect(screen.getByTestId('content-input')).toBeInTheDocument();
       });
 
-      // Set category, title, and location
+      // Set category, categories, title, and location
       fireEvent.click(screen.getByTestId('select-category'));
+      fireEvent.click(screen.getByTestId('select-categories'));
       fireEvent.change(screen.getByTestId('title-input'), {
         target: { value: 'Test Title' },
       });
@@ -1949,8 +1962,9 @@ describe('Categories Component', () => {
         expect(screen.getByTestId('content-input')).toBeInTheDocument();
       });
 
-      // Set category, title, location, and release rights to downloaded
+      // Set category, categories, title, location, and release rights to downloaded
       fireEvent.click(screen.getByTestId('select-category'));
+      fireEvent.click(screen.getByTestId('select-categories'));
       fireEvent.change(screen.getByTestId('title-input'), {
         target: { value: 'Test Title' },
       });
@@ -1996,8 +2010,9 @@ describe('Categories Component', () => {
         expect(screen.getByTestId('content-input')).toBeInTheDocument();
       });
 
-      // Set category, title, location, and release rights
+      // Set category, categories, title, location, and release rights
       fireEvent.click(screen.getByTestId('select-category'));
+      fireEvent.click(screen.getByTestId('select-categories'));
       fireEvent.change(screen.getByTestId('title-input'), {
         target: { value: 'Test Title' },
       });
@@ -2045,6 +2060,7 @@ describe('Categories Component', () => {
 
       // Set all required fields but leave text content empty
       fireEvent.click(screen.getByTestId('select-category'));
+      fireEvent.click(screen.getByTestId('select-categories'));
       fireEvent.change(screen.getByTestId('title-input'), {
         target: { value: 'Test Title' },
       });

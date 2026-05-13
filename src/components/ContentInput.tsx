@@ -82,6 +82,7 @@ interface Category {
 interface FileMetadata {
   title: string;
   description: string;
+  categories: Category[];
 }
 
 // Re-added the VerifiedLocation interface for the verification flow
@@ -99,9 +100,6 @@ interface ContentInputProps {
   uploadMode: 'text' | 'audio' | 'video' | 'image' | 'document' | null;
   selectedCategory: Category | null;
   categories?: Category[];
-  setSelectedCategory?: (category: Category | null) => void;
-  selectedCategories?: Category[]; // For multi-selection
-  setSelectedCategories?: (categories: Category[]) => void; // For multi-selection
   title: string;
   setTitle: (title: string) => void;
   textContent: string;
@@ -137,6 +135,7 @@ interface ContentInputProps {
     file: File,
     description: string,
     fileTitle?: string,
+    fileCategories?: Category[],
   ) => Promise<void>;
 
   requestLocation: () => void;
@@ -191,9 +190,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
   categories = [],
-  setSelectedCategory,
-  selectedCategories = [],
-  setSelectedCategories,
   title,
   setTitle,
   textContent,
@@ -281,10 +277,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Per-file title and description state
   const [fileMetadata, setFileMetadata] = useState<FileMetadata[]>([]);
 
-  // Multi-category selection state - fallback to empty array if not provided
-  const [multiSelectedCategories, setMultiSelectedCategories] = useState<
-    Category[]
-  >(selectedCategories || []);
+  // Text mode categories state
+  const [textCategories, setTextCategories] = useState<Category[]>([]);
 
   // Title and Description validation
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -880,7 +874,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         // Initialize metadata for new files
         const newMetadata = [...fileMetadata];
         filesToAdd.forEach(() => {
-          newMetadata.push({ title: '', description: '' });
+          newMetadata.push({ title: '', description: '', categories: [] });
         });
         setFileMetadata(newMetadata);
         if (newFiles.length > 0) {
@@ -898,7 +892,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     // Initialize metadata for new files
     const newMetadata = [...fileMetadata];
     Array.from(files).forEach(() => {
-      newMetadata.push({ title: '', description: '' });
+      newMetadata.push({ title: '', description: '', categories: [] });
     });
     setFileMetadata(newMetadata);
 
@@ -940,13 +934,20 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         setUploadingFiles(false);
         return;
       }
+      if (textCategories.length === 0) {
+        toast.error(
+          'Please select at least one category for your text content.',
+        );
+        setUploadingFiles(false);
+        return;
+      }
       // Create a file from textContent
       const textBlob = new Blob([textContent], { type: 'text/plain' });
       const textFile = new File([textBlob], 'text-content.txt', {
         type: 'text/plain',
       });
       try {
-        await onUpload(textFile, description);
+        await onUpload(textFile, description, undefined, textCategories);
       } catch (err) {
         console.error(t('common.textUploadFailed'), err);
         toast.error('Text upload failed');
@@ -969,7 +970,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       return;
     }
 
-    // Validate that each file has title and description
+    // Validate that each file has title, description, and categories
     for (let i = 0; i < selectedFiles.length; i++) {
       const metadata = fileMetadata[i];
       if (!metadata || !metadata.title || metadata.title.trim().length < 8) {
@@ -986,6 +987,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       ) {
         toast.error(
           `Please provide a description (minimum 32 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+      if (!metadata || metadata.categories.length === 0) {
+        toast.error(
+          `Please select at least one category for file: ${selectedFiles[i].name}`,
         );
         setUploadingFiles(false);
         return;
@@ -996,29 +1004,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     let allUploadsSuccessful = true;
     let failedCount = 0;
     let hasStorageFailure = false;
-
-    // Validate that each file has title and description
-    for (let i = 0; i < selectedFiles.length; i++) {
-      const metadata = fileMetadata[i];
-      if (!metadata || !metadata.title || metadata.title.trim().length < 8) {
-        toast.error(
-          `Please provide a title (minimum 8 characters) for file: ${selectedFiles[i].name}`,
-        );
-        setUploadingFiles(false);
-        return;
-      }
-      if (
-        !metadata ||
-        !metadata.description ||
-        metadata.description.trim().length < 32
-      ) {
-        toast.error(
-          `Please provide a description (minimum 32 characters) for file: ${selectedFiles[i].name}`,
-        );
-        setUploadingFiles(false);
-        return;
-      }
-    }
 
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
@@ -1032,6 +1017,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           file,
           metadata.description,
           metadata.title,
+          metadata.categories,
         );
         console.log(`[Bulk Upload] Upload ${i + 1} result:`, result);
         if (!result || !result.success) {
@@ -1197,6 +1183,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             {/* Media Upload Component - handles all media types */}
             <MediaUploadComponent
               uploadMode={uploadMode}
+              categories={categories}
               selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
               textContent={textContent}
@@ -1317,76 +1304,59 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </div>
             )}
 
-            {/* Multi-Category Selection as Tags */}
-            {categories && categories.length > 0 && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('common.selectCategories')}
-                </label>
-
-                {/* Selected Categories Display */}
-                <div className="flex flex-wrap gap-2 mb-3 min-h-10 max-h-32 overflow-y-auto p-1">
-                  {multiSelectedCategories.map((cat) => (
-                    <div
-                      key={cat.id}
-                      className="flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-500 max-w-xs truncate"
-                    >
-                      <span className="mr-2 truncate max-w-[100px] sm:max-w-[150px]">
-                        {cat.title}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newSelection = multiSelectedCategories.filter(
-                            (c) => c.id !== cat.id,
-                          );
-                          setMultiSelectedCategories(newSelection);
-                          if (setSelectedCategories) {
-                            setSelectedCategories(newSelection);
-                          }
-                        }}
-                        className="text-emerald-800 hover:text-emerald-900 focus:outline-none flex-shrink-0"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Available Categories */}
-                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
-                  {categories
-                    .filter(
-                      (cat) =>
-                        !multiSelectedCategories.some(
-                          (selected) => selected.id === cat.id,
-                        ),
-                    )
-                    .map((cat) => (
+            {/* Categories Selection - visible when no files selected or text mode */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) &&
+              categories &&
+              categories.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.selectCategories')}
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-3 min-h-10 max-h-32 overflow-y-auto p-1">
+                    {textCategories.map((cat) => (
                       <div
                         key={cat.id}
-                        onClick={() => {
-                          const newSelection = [
-                            ...multiSelectedCategories,
-                            cat,
-                          ];
-                          setMultiSelectedCategories(newSelection);
-                          if (setSelectedCategories) {
-                            setSelectedCategories(newSelection);
-                          }
-                        }}
-                        className={`cursor-pointer px-3 py-1.5 rounded-full border transition-all duration-200 text-sm max-w-xs truncate ${
-                          multiSelectedCategories.some((c) => c.id === cat.id)
-                            ? 'bg-emerald-100 border-emerald-500 text-emerald-700'
-                            : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className="flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-500 max-w-xs truncate"
                       >
-                        {cat.title}
+                        <span className="mr-2 truncate max-w-[100px] sm:max-w-[150px]">
+                          {cat.title}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTextCategories(
+                              textCategories.filter((c) => c.id !== cat.id),
+                            );
+                          }}
+                          className="text-emerald-800 hover:text-emerald-900 focus:outline-none flex-shrink-0"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
+                    {categories
+                      .filter(
+                        (cat) =>
+                          !textCategories.some(
+                            (selected) => selected.id === cat.id,
+                          ),
+                      )
+                      .map((cat) => (
+                        <div
+                          key={cat.id}
+                          onClick={() => {
+                            setTextCategories([...textCategories, cat]);
+                          }}
+                          className="cursor-pointer px-3 py-1.5 rounded-full border transition-all duration-200 text-sm max-w-xs truncate bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                        >
+                          {cat.title}
+                        </div>
+                      ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Location Status */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
@@ -1537,12 +1507,12 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 disabled={
                   uploading ||
                   uploadingFiles ||
-                  !verifiedLocation || // <-- Key change: Disable button until location is VERIFIED
+                  !verifiedLocation ||
                   !releaseRights ||
                   releaseRights === 'downloaded' ||
                   !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
-                  // For non-text uploads, check if files are selected
+                  (uploadMode === 'text' && textCategories.length === 0) ||
                   (uploadMode !== 'text' && selectedFiles.length === 0)
                     ? true
                     : false

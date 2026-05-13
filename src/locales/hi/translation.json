@@ -386,14 +386,6 @@
     },
     "reviewedAndVerified": "समीक्षित और सत्यापित",
     "remove": "हटाएं",
-    "normalUser": "सामान्य उपयोगकर्ता",
-    "are": {
-      "you": {
-        "an": {
-          "intern": "क्या आप इंटर्न हैं? *"
-        }
-      }
-    },
     "preferencesSavedSuccessfully": "प्राथमिकताएं सफलतापूर्वक सहेजी गईं",
     "user": {
       "preferences": "उपयोगकर्ता प्राथमिकताएं"
@@ -408,7 +400,8 @@
     "uploadImageFilesMax5Files": "छवि फ़ाइलें अपलोड करें (अधिकतम 5 फ़ाइलें)",
     "startWelcomeTour": "स्वागत टूर शुरू करें",
     "storageUploadFailedPleaseContactAdminOrRetryLater": "स्टोरेज अपलोड विफल। कृपया एडमिन से संपर्क करें या बाद में पुनः प्रयास करें।",
-    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "सभी अपलोड विफल। कृपया अपनी फ़ाइलें जांचें और पुनः प्रयास करें।"
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "सभी अपलोड विफल। कृपया अपनी फ़ाइलें जांचें और पुनः प्रयास करें।",
+    "pleaseSelectAtLeastOneCategoryForYourTextContent": ""
   },
   "ui": {
     "failed": {
