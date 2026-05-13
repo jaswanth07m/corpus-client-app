@@ -39,8 +39,8 @@ vi.mock('react-i18next', () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
         'common.documentUpload': 'Document Upload *',
-        'common.uploadDocumentFilesPdfDocxTxt':
-          'Upload Document Files (PDF, DOCX, TXT)',
+        'common.uploadDocumentFilesPdfDocxTxtMax5Files':
+          'Upload Document Files (PDF, DOCX, TXT) (Max 5 files)',
         'common.selectedFile': 'Selected File:',
         'common.selectedFiles': 'Selected Files:',
         'common.content': 'Content *',
@@ -51,13 +51,13 @@ vi.mock('react-i18next', () => ({
         'media.recordAgain': 'Record Again',
         'media.recordingCompleted': 'Recording completed (',
         'media.recordingPaused': 'Recording paused',
-        'common.uploadAudioFilesSingleFile': 'Upload Audio Files (Single File)',
+        'common.uploadAudioFilesMax5Files': 'Upload Audio Files (Max 5 files)',
         'common.yourBrowserDoesNotSupportTheAudioElement':
           'Your browser does not support the audio element.',
         'media.videoRecording': 'Video Recording *',
         'media.startVideoRecording': 'Start Video Recording',
         'common.switch.to': 'Switch to ',
-        'common.uploadVideoFilesSingleFile': 'Upload Video Files (Single file)',
+        'common.uploadVideoFilesMax5Files': 'Upload Video Files (Max 5 files)',
         'common.yourBrowserDoesNotSupportTheVideoElement':
           'Your browser does not support the video element.',
         'media.photoCapture': 'Photo Capture *',
@@ -66,7 +66,7 @@ vi.mock('react-i18next', () => ({
         'media.stopCamera': 'Stop Camera',
         'media.photoCaptured': 'Photo captured: ',
         'media.capturedPhoto': 'Captured photo',
-        'common.uploadImageFilesSingleFile': 'Upload Image Files (Single file)',
+        'common.uploadImageFilesMax5Files': 'Upload Image Files (Max 5 files)',
         'common.takeAnother': 'Take Another',
         'common.': ')',
       };
@@ -264,7 +264,9 @@ describe('MediaUploadComponent', () => {
 
       expect(screen.getByText('Document Upload *')).toBeInTheDocument();
       expect(
-        screen.getByText('Upload Document Files (PDF, DOCX, TXT)'),
+        screen.getByText(
+          'Upload Document Files (PDF, DOCX, TXT) (Max 5 files)',
+        ),
       ).toBeInTheDocument();
       expect(screen.getByTestId('upload-icon')).toBeInTheDocument();
     });
@@ -286,8 +288,8 @@ describe('MediaUploadComponent', () => {
         <MediaUploadComponent {...defaultProps} selectedFiles={[mockFile]} />,
       );
 
-      expect(screen.getByText('Selected File:')).toBeInTheDocument();
-      expect(screen.getByText('test.pdf')).toBeInTheDocument();
+      expect(screen.getByText('Selected Files:')).toBeInTheDocument();
+      expect(screen.getAllByText('test.pdf').length).toBeGreaterThan(0);
     });
 
     it('displays file size using formatFileSize', () => {
@@ -561,7 +563,7 @@ describe('MediaUploadComponent', () => {
 
       expect(screen.getByText('OR')).toBeInTheDocument();
       expect(
-        screen.getByText('Upload Audio Files (Single File)'),
+        screen.getByText('Upload Audio Files (Max 5 files)'),
       ).toBeInTheDocument();
     });
 
@@ -575,7 +577,7 @@ describe('MediaUploadComponent', () => {
       );
 
       expect(screen.getByText('Selected File:')).toBeInTheDocument();
-      expect(screen.getByText('audio.mp3')).toBeInTheDocument();
+      expect(screen.getAllByText('audio.mp3').length).toBeGreaterThan(0);
     });
 
     it('calls removeFile for uploaded audio file', () => {
@@ -795,7 +797,7 @@ describe('MediaUploadComponent', () => {
       render(<MediaUploadComponent {...defaultProps} />);
 
       expect(
-        screen.getByText('Upload Video Files (Single file)'),
+        screen.getByText('Upload Video Files (Max 5 files)'),
       ).toBeInTheDocument();
     });
 
@@ -809,7 +811,7 @@ describe('MediaUploadComponent', () => {
       );
 
       expect(screen.getByText('Selected Files:')).toBeInTheDocument();
-      expect(screen.getByText('video.mp4')).toBeInTheDocument();
+      expect(screen.getAllByText('video.mp4').length).toBeGreaterThan(0);
     });
 
     it('calls removeFile for uploaded video file', () => {
@@ -989,7 +991,7 @@ describe('MediaUploadComponent', () => {
       render(<MediaUploadComponent {...defaultProps} />);
 
       expect(
-        screen.getByText('Upload Image Files (Single file)'),
+        screen.getByText('Upload Image Files (Max 5 files)'),
       ).toBeInTheDocument();
     });
 
@@ -1003,7 +1005,7 @@ describe('MediaUploadComponent', () => {
       );
 
       expect(screen.getByText('Selected Files:')).toBeInTheDocument();
-      expect(screen.getByText('selected.jpg')).toBeInTheDocument();
+      expect(screen.getAllByText('selected.jpg').length).toBeGreaterThan(0);
     });
 
     it('renders image preview for selected image files', () => {
@@ -1184,9 +1186,9 @@ describe('MediaUploadComponent', () => {
         />,
       );
 
-      expect(screen.getByText('file1.pdf')).toBeInTheDocument();
-      expect(screen.getByText('file2.docx')).toBeInTheDocument();
-      expect(screen.getByText('file3.txt')).toBeInTheDocument();
+      expect(screen.getAllByText('file1.pdf').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('file2.docx').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('file3.txt').length).toBeGreaterThan(0);
     });
 
     it('hides video element when not recording in video mode', () => {

@@ -5,10 +5,21 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { X, LogOut, MessageSquare, Loader2, HelpCircle } from 'lucide-react';
+import {
+  X,
+  LogOut,
+  MessageSquare,
+  Loader2,
+  Globe,
+  HelpCircle,
+  MapPin,
+  Pencil,
+  Check,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
 import { BACKEND_URL } from '@/lib/constants';
 import { formatDuration, formatSizeMB, getISTDate } from '@/lib/utils';
 import { getPointsStats, DailyPoint } from '@/lib/points';
@@ -19,6 +30,7 @@ import CategoryTags from '@/components/CategoryTags';
 import { MediaGridItem } from '@/components/MediaGridItem';
 import { ContributionsList } from '@/components/ContributionsList';
 import UserProfileInfo from '@/components/UserProfileInfo';
+import LocationPicker from '@/components/LocationPicker';
 import {
   Select,
   SelectContent,
@@ -29,6 +41,7 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { isProfileComplete } from '@/lib/profileUtils';
 import {
   MapContainer,
@@ -187,52 +200,6 @@ interface EditHistoryEntry {
   field_changes?: Record<string, FieldChange>;
 }
 
-interface PortalDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  maxWidth?: number | string;
-}
-
-function PortalDialog({
-  isOpen,
-  onClose,
-  children,
-  maxWidth = 480,
-}: PortalDialogProps) {
-  if (!isOpen || typeof document === 'undefined') return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0"
-      style={{ background: 'rgba(0, 0, 0, 0.5)', zIndex: 99998 }}
-      onClick={onClose}
-    >
-      <div
-        className="fixed"
-        style={{
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 99999,
-          background: 'white',
-          borderRadius: '12px',
-          padding: '24px',
-          width: '90vw',
-          maxWidth,
-          maxHeight: '85vh',
-          overflowY: 'auto',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-// ── Inline map helpers ────────────────────────────────────────────────────────
 const GEOJSON_URL = '/telugu_sub_districts.geojson';
 const BOUNDARY_PANE = 'boundaries';
 const MARKER_PANE = 'markers';
@@ -321,99 +288,23 @@ function getSubDistrictStyle(
   };
 }
 
-function getContributionIcon(mediaType?: string) {
-  switch ((mediaType ?? '').toLowerCase()) {
-    case 'audio':
-      return '🎵';
-    case 'video':
-      return '🎬';
-    case 'image':
-      return '🖼';
-    case 'document':
-      return '📄';
-    case 'text':
-      return '📝';
-    default:
-      return '📁';
-  }
-}
-
-function getContributionTitle(contribution: FlatContribution) {
-  return contribution.title || 'Contribution';
-}
-
-function getContributionDate(contribution: FlatContribution) {
-  return contribution.timestamp
-    ? formatContributionDate(contribution.timestamp)
-    : '';
-}
-
-function getContributionsInsideFeature(
-  feature: GeoJsonFeature,
-  userContributions: FlatContribution[],
-) {
-  return userContributions.filter((contribution) =>
-    isPointInFeature(
-      contribution.location.latitude,
-      contribution.location.longitude,
-      feature,
-    ),
-  );
-}
-
-function buildSubDistrictPopupHtml(
-  feature: GeoJsonFeature,
-  userContributions: FlatContribution[],
-) {
-  const subDistrict = getFeatureSubDistrict(feature) || 'Unknown';
-  const district = getFeatureDistrict(feature);
-  const state = getFeatureState(feature);
-  const inside = getContributionsInsideFeature(feature, userContributions);
-
-  const contribHTML =
-    inside.length > 0
-      ? inside
-          .map((contribution) => {
-            const icon = getContributionIcon(contribution.media_type);
-            const title = getContributionTitle(contribution);
-            const date = getContributionDate(contribution);
-            return `
-              <tr>
-                <td style="width:18px;padding:2px 0;font-size:14px">${icon}</td>
-                <td style="padding:2px 8px;font-size:12px">${title}</td>
-                <td style="font-size:11px;color:#666;white-space:nowrap">${date}</td>
-              </tr>
-            `;
-          })
-          .join('')
-      : '<tr><td colspan="3" style="color:#888;font-size:12px;padding:6px 0">No contributions in this area</td></tr>';
-
-  return `
-    <div style="min-width:240px;max-width:290px;font-family:sans-serif">
-      <div style="font-weight:700;font-size:14px;margin-bottom:2px">
-        📍 ${subDistrict}
-      </div>
-      <div style="font-size:11px;color:#666;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:6px">
-        ${district}${state ? `, ${state}` : ''}
-      </div>
-      <div style="font-weight:600;font-size:12px;margin-bottom:6px">
-        Contributions (${inside.length})
-      </div>
-      <div style="max-height:200px;overflow-y:auto;overflow-x:hidden;padding-right:4px">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          ${contribHTML}
-        </table>
-      </div>
-    </div>
-  `;
-}
-
 function MapResizerInline() {
   const map = useMap();
+
   useEffect(() => {
-    const id = setTimeout(() => map.invalidateSize(), 150);
-    return () => clearTimeout(id);
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+
+    window.addEventListener('resize', handleResize);
+    const timeoutId = setTimeout(handleResize, 100);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
   }, [map]);
+
   return null;
 }
 
@@ -447,55 +338,66 @@ function SubDistrictBoundaryLayer({
   contributedSubDistricts: Set<string>;
 }) {
   const map = useMap();
-  const layerRef = useRef<L.GeoJSON | null>(null);
-  const rendererRef = useRef<L.Canvas | null>(null);
 
-  if (!rendererRef.current) {
-    rendererRef.current = L.canvas({ tolerance: 3 });
-  }
+  const layerRef = useRef<L.GeoJSON | null>(null);
 
   useEffect(() => {
+    if (!map || !geojsonData) return;
+
     if (layerRef.current) {
       map.removeLayer(layerRef.current);
-      layerRef.current = null;
     }
 
-    const boundaryLayer = L.geoJSON(geojsonData as GeoJsonObject, {
-      pane: BOUNDARY_PANE,
-      renderer: rendererRef.current ?? undefined,
+    const layer = L.geoJSON(geojsonData as GeoJsonObject, {
       style: (feature) =>
         getSubDistrictStyle(feature as GeoJsonFeature, contributedSubDistricts),
-      onEachFeature: (feature, layer) => {
-        layer.on('click', (event) => {
-          const popupHtml = buildSubDistrictPopupHtml(
-            feature as GeoJsonFeature,
-            userContributions,
-          );
-          layer
-            .bindPopup(popupHtml, {
-              maxWidth: 300,
-              autoPan: true,
-              autoPanPadding: [20, 20],
-            })
-            .openPopup(event.latlng);
-          setTimeout(() => {
-            const popupEl = document.querySelector('.leaflet-popup-content');
-            if (popupEl)
-              L.DomEvent.disableScrollPropagation(popupEl as HTMLElement);
-          }, 50);
-        });
+      onEachFeature: (feature, layerInstance) => {
+        const subDistrict = getFeatureSubDistrict(feature);
+        const district = getFeatureDistrict(feature);
+        const state = getFeatureState(feature);
+
+        const hasContributions = contributedSubDistricts.has(
+          normalizeName(subDistrict),
+        );
+
+        const content = `
+          <div style="font-family: inherit; padding: 2px 0;">
+            ${
+              subDistrict
+                ? `<p style="margin: 0 0 4px; font-weight: 700; font-size: 13px; color: #0f172a;">${subDistrict}</p>`
+                : ''
+            }
+            ${
+              district
+                ? `<p style="margin: 0 0 2px; font-size: 11px; color: #64748b;">District: ${district}</p>`
+                : ''
+            }
+            ${
+              state
+                ? `<p style="margin: 0 0 2px; font-size: 11px; color: #64748b;">State: ${state}</p>`
+                : ''
+            }
+            <p style="margin: 0; font-size: 11px; color: ${
+              hasContributions ? '#16a34a' : '#64748b'
+            };">
+              ${hasContributions ? '✓ Has contributions' : 'No contributions'}
+            </p>
+          </div>
+        `;
+
+        layerInstance.bindPopup(content);
       },
     }).addTo(map);
 
-    layerRef.current = boundaryLayer;
+    layerRef.current = layer;
 
     return () => {
-      map.removeLayer(boundaryLayer);
-      if (layerRef.current === boundaryLayer) {
+      if (layerRef.current && map) {
+        map.removeLayer(layerRef.current);
         layerRef.current = null;
       }
     };
-  }, [map, geojsonData, userContributions, contributedSubDistricts]);
+  }, [map, geojsonData, contributedSubDistricts]);
 
   return null;
 }
@@ -775,12 +677,21 @@ function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
     </div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
+
 function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { logout, user: authUser } = useAuth();
+  const { logout } = useAuth();
   const { startTour } = useWelcomeTour();
+  const { preferences, setPreferences } = useUserPreferences();
+
+  // State for user preferences panel
+  const [showPreferencesPanel, setShowPreferencesPanel] =
+    useState<boolean>(false);
+  const [localPrefs, setLocalPrefs] = useState({
+    language: preferences.language,
+    rights: preferences.rights,
+  });
 
   const handleLogout = () => {
     logout();
@@ -839,8 +750,6 @@ function Profile() {
     useState<boolean>(false);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string>('');
 
-  // State for geo contribution modal
-
   // Effect to hide bottom navigation when any modal is open
   useEffect(() => {
     if (
@@ -866,6 +775,16 @@ function Profile() {
     showProfileInfo,
     showProfilePictureModal,
   ]);
+
+  // Save preferences handler
+  const handleSavePreferences = () => {
+    setPreferences({
+      language: localPrefs.language,
+      rights: localPrefs.rights,
+    });
+    toast.success(t('common.preferencesSavedSuccessfully'));
+    setShowPreferencesPanel(false);
+  };
 
   const getAuthToken = useCallback(() => {
     return localStorage.getItem('token');
@@ -1183,8 +1102,11 @@ function Profile() {
 
       if (response.ok) {
         setIsFollowing(true);
+        // Update the followers count by incrementing it (since target user now has one more follower)
         setFollowersCount((prev) => prev + 1);
-        fetchUserProfile(targetUsername);
+        // Refetch profile to update counts
+        fetchOtherUserProfile(targetUsername);
+        // Refetch followers and following data to keep them updated
         fetchFollowers(targetUsername);
         fetchFollowing(targetUsername);
       } else {
@@ -1220,8 +1142,11 @@ function Profile() {
 
       if (response.ok) {
         setIsFollowing(false);
+        // Update the followers count by decrementing it (since target user now has one less follower)
         setFollowersCount((prev) => Math.max(0, prev - 1));
-        fetchUserProfile(targetUsername);
+        // Refetch profile to update counts
+        fetchOtherUserProfile(targetUsername);
+        // Refetch followers and following data to keep them updated
         fetchFollowers(targetUsername);
         fetchFollowing(targetUsername);
       } else {
@@ -1413,6 +1338,7 @@ function Profile() {
             phone: userData.phone || null,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
+            profile_complete: isProfileComplete(userData),
             streaks: userData.streaks,
             timeline: userData.timeline,
             summary: userData.summary,
@@ -1496,8 +1422,9 @@ function Profile() {
   // Determine if viewing own profile
   const isOwnProfile =
     username && currentUsername ? currentUsername === username : false;
-  // username from URL params is always available immediately — use it first
-  // so the geo hook fires on first render without waiting for async state
+
+  // Geo contribution user identifier - passed to map component
+  // Use a fallback chain so the geo hook fires on first render without waiting for async state
   const geoContributionUserIdentifier =
     username || targetUserIdentifier || currentUserId || '';
 
@@ -1507,22 +1434,21 @@ function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-6 sm:mb-12 pt-4 pb-24">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Enhanced Header Card */}
-        <div className="relative bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 mb-3 overflow-hidden">
           {/* Profile Info Section - Mobile Responsive Layout */}
-          <div className="p-4">
-            {/* Top-right actions stay out of the content flow so they do not push the profile content down. */}
-            <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
+          <div className="p-4 relative">
+            <div className="flex gap-2 absolute right-0 sm:right-5">
               <LanguageSwitcher />
               <button
                 onClick={startTour}
-                className="flex items-center justify-center p-1.5 hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex flex-col items-center gap-1 p-2 hover:bg-blue-50 rounded-lg transition-colors"
                 title={t('common.start.welcome.tour')}
               >
                 <HelpCircle className="w-4 h-4 text-blue-500" />
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4 text-red-500" />
               </button>
@@ -1552,24 +1478,17 @@ function Profile() {
               </div>
 
               {/* User Info & Stats - Stacked on mobile */}
-              <div className="flex-1 min-w-0 text-left">
+              <div className="flex-1 text-left">
                 {/* Name and Username */}
-                <div className="mb-0">
-                  <p className="text-sm sm:text-xl leading-tight mb-1">
-                    {profile?.name}
-                  </p>
-                  <p className="text-slate-500 text-sm leading-tight">
+                <div className="mb-4">
+                  <p className="text-sm sm:text-xl mb-1">{profile?.name}</p>
+                  <p className="text-slate-500 text-sm">
                     @{profile?.username || profile?.id}
                   </p>
-                  {profile?.phone && (
-                    <p className="text-slate-500 text-xs mt-1">
-                      {profile.phone}
-                    </p>
-                  )}
                 </div>
 
                 {/* Stats Row - Side by side with equal width */}
-                <div className="mt-1 flex gap-2">
+                <div className="flex gap-2">
                   {/* Followers Button */}
                   <button
                     onClick={() => {
@@ -1704,28 +1623,32 @@ function Profile() {
           )}
         </div>
 
-        {/* Contribution stats grid — inline, always visible */}
+        {/* Contributions Section - Mobile Responsive Design */}
         <div
           id="tour-contributions-dashboard"
-          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-3 sm:p-4 mb-3"
+          className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3"
         >
-          <ContributionDashboard
-            dailyStats={{
-              uploads_today: calculateUploadsToday(),
-              total_uploads: contributions?.totalContributions || 0,
-              last_upload_date: new Date().toISOString(),
-              streak_days: profile?.streaks?.combined_streak?.current || 0,
-            }}
-            contributions={contributions}
-            loading={contributionsLoading}
-            edits={profile?.summary?.edits?.total_edits}
-            onMediaTypeClick={(mediaType) => {
-              setSelectedMediaType(mediaType);
-              const id = username || currentUserId;
-              if (id) fetchUserContributions(id, mediaType);
-              setShowMediaGrid(true);
-            }}
-          />
+          <div className="mt-1 sm:mt-2">
+            <ContributionDashboard
+              dailyStats={{
+                uploads_today: calculateUploadsToday(),
+                total_uploads: contributions?.totalContributions || 0,
+                last_upload_date: new Date().toISOString(),
+                streak_days: profile?.streaks?.combined_streak?.current || 0,
+              }}
+              contributions={contributions}
+              loading={contributionsLoading}
+              edits={profile?.summary?.edits?.total_edits}
+              onMediaTypeClick={(mediaType) => {
+                setSelectedMediaType(mediaType);
+                const targetUserIdentifier = username || currentUserId;
+                if (targetUserIdentifier) {
+                  fetchUserContributions(targetUserIdentifier, mediaType);
+                }
+                setShowMediaGrid(true); // Show the grid when a media type is clicked
+              }}
+            />
+          </div>
         </div>
 
         {/* Inline Geo Contribution Map */}
@@ -1738,74 +1661,38 @@ function Profile() {
       </div>
 
       {/* Media Grid Overlay - Appears when clicking on media type cards */}
-      {showMediaGrid &&
-        selectedMediaType &&
-        typeof document !== 'undefined' &&
-        createPortal(
-          <>
-            <div
-              aria-hidden="true"
-              className="fixed inset-0"
-              style={{
-                background: 'rgba(0, 0, 0, 0.5)',
-                zIndex: 99998,
-              }}
-              onClick={() => {
-                setShowMediaGrid(false);
-              }}
-            />
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="media-grid-title"
-              className="fixed"
-              style={{
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 99999,
-                background: 'white',
-                borderRadius: '12px',
-                padding: '24px',
-                width: '90vw',
-                maxWidth: '700px',
-                maxHeight: '85vh',
-                overflowY: 'auto',
-              }}
-            >
-              {/* Header */}
-              <div className="flex justify-between items-center border-b pb-4">
-                <h3
-                  id="media-grid-title"
-                  className="text-lg font-semibold capitalize"
-                >
-                  {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowMediaGrid(false);
-                    // Optionally reset selectedMediaType when closing the grid
-                    // setSelectedMediaType(null);
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              {/* Grid Content */}
-              <div className="pt-4">
-                <ContributionsList
-                  contributions={contributions}
-                  selectedMediaType={selectedMediaType}
-                  token={getAuthToken()}
-                  isOwnProfile={isOwnProfile}
-                />
-              </div>
+      {showMediaGrid && selectedMediaType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold capitalize">
+                {t(`media.${selectedMediaType}`)} {t('stats.contributions')}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowMediaGrid(false);
+                  // Optionally reset selectedMediaType when closing the grid
+                  // setSelectedMediaType(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
             </div>
-          </>,
-          document.body,
-        )}
+
+            {/* Grid Content */}
+            <div className="flex-1 overflow-auto p-4">
+              <ContributionsList
+                contributions={contributions}
+                selectedMediaType={selectedMediaType}
+                token={getAuthToken()}
+                isOwnProfile={isOwnProfile}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Followers and Following Modals */}
       <FollowersModal
@@ -1849,72 +1736,254 @@ function Profile() {
       )}
 
       {/* Profile Picture Update Modal */}
-      <PortalDialog
-        isOpen={showProfilePictureModal}
-        onClose={() => {
-          setShowProfilePictureModal(false);
-          setProfilePictureUrl('');
-        }}
-      >
-        <div className="bg-white rounded-xl shadow-xl w-full">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">
-                {t('nav.updateProfilePicture')}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowProfilePictureModal(false);
-                  setProfilePictureUrl('');
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      {showProfilePictureModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {t('nav.updateProfilePicture')}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowProfilePictureModal(false);
+                    setProfilePictureUrl('');
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
 
-            <div className="mb-4">
-              <label
-                htmlFor="profilePictureUrl"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t('media.imageUrl')}
-              </label>
-              <input
-                type="text"
-                id="profilePictureUrl"
-                value={profilePictureUrl}
-                onChange={(e) => setProfilePictureUrl(e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {t('nav.enterAValidImageUrlForYourProfilePicture')}
-              </p>
-            </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="profilePictureUrl"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  {t('media.imageUrl')}
+                </label>
+                <input
+                  type="text"
+                  id="profilePictureUrl"
+                  value={profilePictureUrl}
+                  onChange={(e) => setProfilePictureUrl(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {t('nav.enterAValidImageUrlForYourProfilePicture')}
+                </p>
+              </div>
 
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowProfilePictureModal(false);
-                  setProfilePictureUrl('');
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={updateProfilePicture}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-              >
-                Save
-              </button>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfilePictureModal(false);
+                    setProfilePictureUrl('');
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={updateProfilePicture}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </PortalDialog>
+      )}
+
+      {/* User Preferences Modal */}
+      {showPreferencesPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {t('common.user.preferences')}
+                </h3>
+                <button
+                  onClick={() => setShowPreferencesPanel(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="prefLanguage"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('common.default.language')}
+                  </label>
+                  <select
+                    id="prefLanguage"
+                    value={localPrefs.language}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, language: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Language</option>
+                    {languages.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="prefRights"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('ui.default.release.rights')}
+                  </label>
+                  <select
+                    id="prefRights"
+                    value={localPrefs.rights}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, rights: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Release Rights</option>
+                    <option value="creator">
+                      This work is created by me and anyone is free to use it.
+                    </option>
+                    <option value="others">Others</option>
+                    <option value="downloaded">
+                      I downloaded this from the internet and/or I don't know if
+                      it is free to share.
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreferencesPanel(false);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePreferences}
+                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors"
+                >
+                  {t('common.savePreferences')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Preferences Modal */}
+      {showPreferencesPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {t('common.user.preferences')}
+                </h3>
+                <button
+                  onClick={() => setShowPreferencesPanel(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="prefLanguage"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('common.default.language')}
+                  </label>
+                  <select
+                    id="prefLanguage"
+                    value={localPrefs.language}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, language: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Language</option>
+                    {languages.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="prefRights"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('ui.default.release.rights')}
+                  </label>
+                  <select
+                    id="prefRights"
+                    value={localPrefs.rights}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, rights: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Release Rights</option>
+                    <option value="creator">
+                      This work is created by me and anyone is free to use it.
+                    </option>
+                    <option value="others">Others</option>
+                    <option value="downloaded">
+                      I downloaded this from the internet and/or I don't know if
+                      it is free to share.
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreferencesPanel(false);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePreferences}
+                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors"
+                >
+                  {t('common.savePreferences')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1939,9 +2008,11 @@ const FollowersModal: React.FC<{
   navigate,
   t,
 }) => {
+  if (!isOpen) return null;
+
   return (
-    <PortalDialog isOpen={isOpen} onClose={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">{t('profile.followers')}</h3>
           <button
@@ -1951,7 +2022,7 @@ const FollowersModal: React.FC<{
             <X size={20} />
           </button>
         </div>
-        <div>
+        <div className="overflow-y-auto max-h-80">
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <Loader2 className="animate-spin text-blue-500" size={24} />
@@ -1976,6 +2047,7 @@ const FollowersModal: React.FC<{
                         } else {
                           navigate(`/profile/${username}`);
                         }
+                        // Close the modal after navigation
                         onClose();
                       }
                     }}
@@ -2005,7 +2077,7 @@ const FollowersModal: React.FC<{
           )}
         </div>
       </div>
-    </PortalDialog>
+    </div>
   );
 };
 
@@ -2029,9 +2101,11 @@ const FollowingModal: React.FC<{
   navigate,
   t,
 }) => {
+  if (!isOpen) return null;
+
   return (
-    <PortalDialog isOpen={isOpen} onClose={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b">
           <h3 className="text-lg font-semibold">{t('profile.following')}</h3>
           <button
@@ -2041,7 +2115,7 @@ const FollowingModal: React.FC<{
             <X size={20} />
           </button>
         </div>
-        <div>
+        <div className="overflow-y-auto max-h-80">
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <Loader2 className="animate-spin text-blue-500" size={24} />
@@ -2066,6 +2140,7 @@ const FollowingModal: React.FC<{
                         } else {
                           navigate(`/profile/${username}`);
                         }
+                        // Close the modal after navigation
                         onClose();
                       }
                     }}
@@ -2099,7 +2174,7 @@ const FollowingModal: React.FC<{
           )}
         </div>
       </div>
-    </PortalDialog>
+    </div>
   );
 };
 
