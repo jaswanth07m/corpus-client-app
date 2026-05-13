@@ -8,56 +8,56 @@ import {
 const createNetworkInfo = (
   overrides: Partial<NetworkInfo> = {},
 ): NetworkInfo => ({
-  status: 'Excellent',
-  effectiveType: '4g',
-  downlink: null,
-  rtt: 50,
+  status: 'fast',
+  downloadMbps: 20,
+  connected: true,
   isOnline: true,
+  lastUpdatedAt: Date.now(),
   ...overrides,
 });
 
 describe('useNetworkStrength helpers', () => {
   describe('getEstimatedUploadMbps', () => {
-    it('uses downlink when it is present', () => {
+    it('returns upload estimate based on download Mbps (20% ratio)', () => {
       expect(
-        getEstimatedUploadMbps(createNetworkInfo({ downlink: 12.5 })),
-      ).toBe(12.5);
-    });
-
-    it('uses fallback Mbps values by network status', () => {
+        getEstimatedUploadMbps(createNetworkInfo({ downloadMbps: 10 })),
+      ).toBe(2);
       expect(
-        getEstimatedUploadMbps(createNetworkInfo({ status: 'Excellent' })),
+        getEstimatedUploadMbps(createNetworkInfo({ downloadMbps: 20 })),
+      ).toBe(4);
+      expect(
+        getEstimatedUploadMbps(createNetworkInfo({ downloadMbps: 50 })),
       ).toBe(10);
-      expect(
-        getEstimatedUploadMbps(createNetworkInfo({ status: 'Good' })),
-      ).toBe(3);
-      expect(
-        getEstimatedUploadMbps(createNetworkInfo({ status: 'Poor' })),
-      ).toBe(0.7);
-      expect(
-        getEstimatedUploadMbps(createNetworkInfo({ status: 'Very Poor' })),
-      ).toBe(0.15);
     });
 
-    it('returns no estimate for offline or unknown networks', () => {
+    it('returns null when downloadMbps is not available', () => {
+      expect(
+        getEstimatedUploadMbps(createNetworkInfo({ downloadMbps: null })),
+      ).toBeNull();
+    });
+
+    it('returns null when not connected or offline', () => {
       expect(
         getEstimatedUploadMbps(
-          createNetworkInfo({ status: 'Offline', isOnline: false }),
+          createNetworkInfo({ connected: false, isOnline: false }),
         ),
       ).toBeNull();
       expect(
-        getEstimatedUploadMbps(createNetworkInfo({ status: 'Unknown' })),
+        getEstimatedUploadMbps(createNetworkInfo({ isOnline: false })),
+      ).toBeNull();
+      expect(
+        getEstimatedUploadMbps(createNetworkInfo({ connected: false })),
       ).toBeNull();
     });
   });
 
   describe('formatEstimatedUploadTime', () => {
     it('formats seconds', () => {
-      expect(formatEstimatedUploadTime(44.2)).toBe('~45 sec');
+      expect(formatEstimatedUploadTime(44.2)).toBe('~44 sec');
     });
 
     it('formats minutes', () => {
-      expect(formatEstimatedUploadTime(121)).toBe('~3 min');
+      expect(formatEstimatedUploadTime(121)).toBe('~2 min');
     });
 
     it('formats hours and minutes', () => {

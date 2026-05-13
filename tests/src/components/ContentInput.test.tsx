@@ -31,11 +31,11 @@ global.URL.createObjectURL = mockCreateObjectURL;
 global.URL.revokeObjectURL = mockRevokeObjectURL;
 
 const mockNetworkInfo = vi.hoisted(() => ({
-  status: 'Excellent',
-  effectiveType: '4g',
-  downlink: 8,
-  rtt: 50,
+  status: 'fast',
+  downloadMbps: 40,
+  connected: true,
   isOnline: true,
+  lastUpdatedAt: Date.now(),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -341,11 +341,11 @@ describe('ContentInput', () => {
     mockFetch.mockReset();
     mockCreateObjectURL.mockReset();
     mockRevokeObjectURL.mockReset();
-    mockNetworkInfo.status = 'Excellent';
-    mockNetworkInfo.effectiveType = '4g';
-    mockNetworkInfo.downlink = 8;
-    mockNetworkInfo.rtt = 50;
+    mockNetworkInfo.status = 'fast';
+    mockNetworkInfo.downloadMbps = 40;
+    mockNetworkInfo.connected = true;
     mockNetworkInfo.isOnline = true;
+    mockNetworkInfo.lastUpdatedAt = Date.now();
 
     // Default mock for location verification success
     mockFetch.mockResolvedValue({
@@ -1845,9 +1845,10 @@ describe('ContentInput', () => {
     });
 
     it('shows unavailable copy when upload speed cannot be estimated', () => {
-      mockNetworkInfo.status = 'Unknown';
-      mockNetworkInfo.effectiveType = null;
-      mockNetworkInfo.downlink = null;
+      mockNetworkInfo.status = 'unknown';
+      mockNetworkInfo.downloadMbps = null;
+      mockNetworkInfo.connected = false;
+      mockNetworkInfo.isOnline = true;
 
       const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
         type: 'video/mp4',
@@ -1868,9 +1869,9 @@ describe('ContentInput', () => {
     });
 
     it('shows offline copy when the network is offline', () => {
-      mockNetworkInfo.status = 'Offline';
-      mockNetworkInfo.effectiveType = null;
-      mockNetworkInfo.downlink = null;
+      mockNetworkInfo.status = 'offline';
+      mockNetworkInfo.downloadMbps = null;
+      mockNetworkInfo.connected = false;
       mockNetworkInfo.isOnline = false;
 
       const testFile = new File([new Uint8Array(8_000_000)], 'video.mp4', {
