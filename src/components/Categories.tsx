@@ -95,7 +95,6 @@ const Categories: React.FC<CategoriesProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
-  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [showUploadOptions, setShowUploadOptions] = useState(false);
   const [uploadMode, setUploadMode] = useState<
     'text' | 'audio' | 'video' | 'image' | 'document' | null
@@ -550,24 +549,21 @@ const Categories: React.FC<CategoriesProps> = ({
     filename,
     customTitle,
     customDescription,
+    customCategoryIds,
   }: {
     uploadUuid: string;
     totalChunks: number;
     filename: string;
     customTitle?: string;
     customDescription?: string;
+    customCategoryIds?: string[];
   }): Promise<FinalizeResult> => {
     try {
       const formData = new FormData();
       formData.append('upload_uuid', uploadUuid);
       formData.append('title', customTitle || title);
       formData.append('description', customDescription || description);
-      const categoryIds =
-        selectedCategories && selectedCategories.length > 0
-          ? selectedCategories.map((cat) => cat.id)
-          : selectedCategory
-            ? [selectedCategory.id]
-            : [];
+      const categoryIds = customCategoryIds || [];
       formData.append('category_ids', JSON.stringify(categoryIds));
       formData.append('user_id', userId);
       formData.append('media_type', uploadMode || '');
@@ -700,6 +696,7 @@ const Categories: React.FC<CategoriesProps> = ({
     file?: File,
     description?: string,
     fileTitle?: string,
+    fileCategories?: Category[],
   ): Promise<boolean> => {
     // Use provided parameters or fall back to component state
     const uploadTitle = fileTitle || title;
@@ -708,11 +705,9 @@ const Categories: React.FC<CategoriesProps> = ({
     // Track if this is a multi-file upload (file param provided)
     const isMultiFileUpload = !!file;
 
-    // Validation checks (existing logic)
-    if (
-      (selectedCategories.length === 0 && !selectedCategory) ||
-      !uploadTitle.trim()
-    ) {
+    // Validation checks
+    const categoriesToUse = fileCategories || [];
+    if (categoriesToUse.length === 0 || !uploadTitle.trim()) {
       toast.error(t('common.pleaseSelectAtLeastOneCategoryAndProvideATitle'));
       return false;
     }
@@ -794,6 +789,7 @@ const Categories: React.FC<CategoriesProps> = ({
         filename: fileToUpload!.name,
         customTitle: uploadTitle,
         customDescription: uploadDescription,
+        customCategoryIds: categoriesToUse.map((cat) => cat.id),
       });
 
       if (!finalizeResult.success) {
@@ -819,8 +815,6 @@ const Categories: React.FC<CategoriesProps> = ({
           window.location.href = '/';
         }, 1500);
       }
-
-      return { success: true };
 
       return { success: true };
     } catch (error) {
@@ -871,9 +865,6 @@ const Categories: React.FC<CategoriesProps> = ({
         uploadMode={uploadMode}
         selectedCategory={selectedCategory}
         categories={categories}
-        setSelectedCategory={setSelectedCategory}
-        selectedCategories={selectedCategories}
-        setSelectedCategories={setSelectedCategories}
         title={title}
         setTitle={setTitle}
         textContent={textContent}

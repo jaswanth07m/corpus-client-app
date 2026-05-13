@@ -421,7 +421,8 @@
     "uploadImageFilesMax5Files": "Upload Image Files (Max 5 files)",
     "startWelcomeTour": "Start Welcome Tour",
     "storageUploadFailedPleaseContactAdminOrRetryLater": "Storage upload failed. Please contact admin or retry later.",
-    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again."
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again.",
+    "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content."
   },
   "ui": {
     "failed": {
