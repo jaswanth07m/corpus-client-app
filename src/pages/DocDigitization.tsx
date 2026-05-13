@@ -28,6 +28,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 
 import { BACKEND_URL } from '@/lib/constants';
 import { toast } from 'sonner';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -722,60 +723,63 @@ function DocDigitization() {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <div className="relative">
-          <button
-            onClick={() => setShowRecordPanel(!showRecordPanel)}
-            className="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 font-bold text-sm rounded-lg transition-colors"
-          >
-            Record
-          </button>
+        <div className="flex items-center gap-2">
+          <NetworkStrengthIndicator />
+          <div className="relative">
+            <button
+              onClick={() => setShowRecordPanel(!showRecordPanel)}
+              className="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 font-bold text-sm rounded-lg transition-colors"
+            >
+              Record
+            </button>
 
-          {/* Record Popup Panel */}
-          {showRecordPanel && (
-            <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
-                  {t('media.recordControls')}
-                </h3>
-                <button
-                  onClick={() => setShowRecordPanel(false)}
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4 rotate-90" />
-                </button>
-              </div>
-              <div className="space-y-3">
-                <form onSubmit={handleSearchRecord} className="space-y-2">
-                  <input
-                    type="text"
-                    value={searchRecordId}
-                    onChange={(e) => setSearchRecordId(e.target.value)}
-                    placeholder={t('media.enterRecordId')}
-                    className="w-full px-3 py-2 rounded text-gray-900 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
-                    disabled={isSearching || isLoading}
-                  />
+            {/* Record Popup Panel */}
+            {showRecordPanel && (
+              <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                    {t('media.recordControls')}
+                  </h3>
                   <button
-                    type="submit"
-                    className="w-full bg-purple-600 text-white hover:bg-purple-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
-                    disabled={
-                      isSearching || isLoading || !searchRecordId.trim()
-                    }
+                    onClick={() => setShowRecordPanel(false)}
+                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                   >
-                    {isSearching ? t('common.loading') : 'Search'}
+                    <ArrowLeft className="h-4 w-4 rotate-90" />
                   </button>
-                </form>
-                <button
-                  className="w-full bg-green-600 text-white hover:bg-green-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
-                  onClick={fetchNextRecord}
-                  disabled={isLoading || isSearching}
-                >
-                  {isLoading
-                    ? t('common.loading')
-                    : t('proofreading.getNextRecord')}
-                </button>
+                </div>
+                <div className="space-y-3">
+                  <form onSubmit={handleSearchRecord} className="space-y-2">
+                    <input
+                      type="text"
+                      value={searchRecordId}
+                      onChange={(e) => setSearchRecordId(e.target.value)}
+                      placeholder={t('media.enterRecordId')}
+                      className="w-full px-3 py-2 rounded text-gray-900 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                      disabled={isSearching || isLoading}
+                    />
+                    <button
+                      type="submit"
+                      className="w-full bg-purple-600 text-white hover:bg-purple-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+                      disabled={
+                        isSearching || isLoading || !searchRecordId.trim()
+                      }
+                    >
+                      {isSearching ? t('common.loading') : 'Search'}
+                    </button>
+                  </form>
+                  <button
+                    className="w-full bg-green-600 text-white hover:bg-green-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
+                    onClick={fetchNextRecord}
+                    disabled={isLoading || isSearching}
+                  >
+                    {isLoading
+                      ? t('common.loading')
+                      : t('proofreading.getNextRecord')}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

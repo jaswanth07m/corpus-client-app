@@ -293,6 +293,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Location Picker Modal State
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const hasVerifiedLocation = useRef<string>('');
+  const lastValidEstimateRef = useRef<string | null>(null);
   const networkInfo = useNetworkStrength();
 
   const estimatedUploadMbps = getEstimatedUploadMbps(networkInfo);
@@ -323,19 +324,25 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       ? formatEstimatedUploadTime(estimatedUploadSeconds)
       : null;
 
+  // Update ref with new valid estimate, fallback to previous if current is null
+  const displayedEstimate = uploadTimeEstimate ?? lastValidEstimateRef.current;
+
+  // Update ref only when we have a new valid estimate
+  useEffect(() => {
+    if (uploadTimeEstimate != null) {
+      lastValidEstimateRef.current = uploadTimeEstimate;
+    }
+  }, [uploadTimeEstimate]);
+
   const shouldShowUploadEstimate =
     uploadPayloadSize > 0 &&
     (!isChunkedUploading || Math.round(clampedUploadProgress) < 100);
 
   const uploadEstimateLabel = !networkInfo.isOnline
-    ? t('common.UploadUnavailableWhileOffline')
-    : uploadTimeEstimate
-      ? `${
-          isChunkedUploading
-            ? t('common.EstimatedTimeRemaining')
-            : t('common.EstimatedUploadTime')
-        }: ${uploadTimeEstimate}`
-      : t('common.EstimatedUploadTimeUnavailable');
+    ? 'Upload Unavailable While Offline'
+    : displayedEstimate
+      ? `Estimated Time: ${displayedEstimate}`
+      : 'Estimated Time Unavailable';
 
   // Location Verification State
   const [verifiedLocation, setVerifiedLocation] =

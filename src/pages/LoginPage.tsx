@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { isProfileComplete } from '@/lib/profileUtils';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
 function LoginPage() {
   const { login, token } = useAuth();
@@ -28,7 +29,14 @@ function LoginPage() {
     }
   };
 
-  return <LoginForm onLoginSuccess={handleLoginSuccess} />;
+  return (
+    <div className="relative">
+      <div className="absolute top-3 right-3 z-50">
+        <NetworkStrengthIndicator />
+      </div>
+      <LoginForm onLoginSuccess={handleLoginSuccess} />
+    </div>
+  );
 }
 
 export default LoginPage;
