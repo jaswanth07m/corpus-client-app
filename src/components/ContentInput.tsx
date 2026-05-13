@@ -34,12 +34,38 @@ import MediaUploadComponent from './MediaUploadComponent';
 import { audioRecordingService } from '@/lib/audioRecordingService';
 import { videoRecordingService } from '@/lib/videoRecordingService';
 import { mapAudioErrors, validateAudioFile } from '@/lib/audio-validation';
-import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 import {
-  formatEstimatedUploadTime,
   getEstimatedUploadMbps,
   useNetworkStrength,
+  formatEstimatedUploadTime,
 } from '@/hooks/useNetworkStrength';
+import { NetworkStrengthIndicator } from './NetworkStrengthIndicator';
+
+const languages = [
+  'assamese',
+  'bengali',
+  'bodo',
+  'dogri',
+  'gujarati',
+  'hindi',
+  'kannada',
+  'kashmiri',
+  'konkani',
+  'maithili',
+  'malayalam',
+  'marathi',
+  'meitei',
+  'nepali',
+  'odia',
+  'punjabi',
+  'sanskrit',
+  'santali',
+  'sindhi',
+  'tamil',
+  'telugu',
+  'urdu',
+];
 
 interface Category {
   id: string;
@@ -50,6 +76,13 @@ interface Category {
   rank: number;
   created_at: string;
   updated_at: string;
+}
+
+// Per-file metadata interface
+interface FileMetadata {
+  title: string;
+  description: string;
+  categories: Category[];
 }
 
 // Re-added the VerifiedLocation interface for the verification flow
@@ -67,9 +100,6 @@ interface ContentInputProps {
   uploadMode: 'text' | 'audio' | 'video' | 'image' | 'document' | null;
   selectedCategory: Category | null;
   categories?: Category[];
-  setSelectedCategory?: (category: Category | null) => void;
-  selectedCategories?: Category[]; // For multi-selection
-  setSelectedCategories?: (categories: Category[]) => void; // For multi-selection
   title: string;
   setTitle: (title: string) => void;
   textContent: string;
@@ -101,8 +131,12 @@ interface ContentInputProps {
   setSelectedLangugae: (selectedLanguage: string) => void;
 
   onBack: () => void;
-  onUpload: (file: File, description: string) => Promise<void>;
-  resetUploadState?: () => void;
+  onUpload: (
+    file: File,
+    description: string,
+    fileTitle?: string,
+    fileCategories?: Category[],
+  ) => Promise<void>;
 
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
@@ -110,6 +144,10 @@ interface ContentInputProps {
 
   chunkedUploadProgress: number;
   isChunkedUploading?: boolean;
+
+  // New props for per-file metadata
+  fileMetadata?: FileMetadata[];
+  setFileMetadata?: (metadata: FileMetadata[]) => void;
 }
 
 const countMeaningfulWords = (s: string) => {
@@ -152,9 +190,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   uploadMode,
   selectedCategory,
   categories = [],
-  setSelectedCategory,
-  selectedCategories = [],
-  setSelectedCategories,
   title,
   setTitle,
   textContent,
@@ -193,8 +228,31 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   isChunkedUploading = false,
 }) => {
   const { t } = useTranslation();
-  const networkInfo = useNetworkStrength();
-  // Recording states
+  const { preferences, setPreferences } = useUserPreferences();
+  const [showPreferencesPanel, setShowPreferencesPanel] = useState(false);
+  const [localPrefs, setLocalPrefs] = useState({
+    language: preferences.language,
+    rights: preferences.rights,
+  });
+
+  // Sync local state when global preferences change
+  useEffect(() => {
+    setLocalPrefs({
+      language: preferences.language,
+      rights: preferences.rights,
+    });
+  }, [preferences]);
+
+  // Save preferences handler
+  const handleSavePreferences = () => {
+    setPreferences({
+      language: localPrefs.language,
+      rights: localPrefs.rights,
+    });
+    toast.success(t('common.preferencesSavedSuccessfully'));
+    setShowPreferencesPanel(false);
+  };
+
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -216,10 +274,11 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
-  // Multi-category selection state - fallback to empty array if not provided
-  const [multiSelectedCategories, setMultiSelectedCategories] = useState<
-    Category[]
-  >(selectedCategories || []);
+  // Per-file title and description state
+  const [fileMetadata, setFileMetadata] = useState<FileMetadata[]>([]);
+
+  // Text mode categories state
+  const [textCategories, setTextCategories] = useState<Category[]>([]);
 
   // Title and Description validation
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -228,6 +287,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Location Picker Modal State
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const hasVerifiedLocation = useRef<string>('');
+  const lastValidEstimateRef = useRef<string | null>(null);
+  const networkInfo = useNetworkStrength();
 
   const estimatedUploadMbps = getEstimatedUploadMbps(networkInfo);
   const uploadPayloadSize =
@@ -257,19 +318,25 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       ? formatEstimatedUploadTime(estimatedUploadSeconds)
       : null;
 
+  // Update ref with new valid estimate, fallback to previous if current is null
+  const displayedEstimate = uploadTimeEstimate ?? lastValidEstimateRef.current;
+
+  // Update ref only when we have a new valid estimate
+  useEffect(() => {
+    if (uploadTimeEstimate != null) {
+      lastValidEstimateRef.current = uploadTimeEstimate;
+    }
+  }, [uploadTimeEstimate]);
+
   const shouldShowUploadEstimate =
     uploadPayloadSize > 0 &&
     (!isChunkedUploading || Math.round(clampedUploadProgress) < 100);
 
   const uploadEstimateLabel = !networkInfo.isOnline
-    ? t('common.UploadUnavailableWhileOffline')
-    : uploadTimeEstimate
-      ? `${
-          isChunkedUploading
-            ? t('common.EstimatedTimeRemaining')
-            : t('common.EstimatedUploadTime')
-        }: ${uploadTimeEstimate}`
-      : t('common.EstimatedUploadTimeUnavailable');
+    ? 'Upload Unavailable While Offline'
+    : displayedEstimate
+      ? `Estimated Time: ${displayedEstimate}`
+      : 'Estimated Time Unavailable';
 
   // Location Verification State
   const [verifiedLocation, setVerifiedLocation] =
@@ -324,19 +391,19 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
-  const handleEditLocation = () => {
-    setVerifiedLocation(null);
-    if (setLocation) setLocation(null);
-    if (setLocationError) setLocationError('');
-    if (setShowManualLocation) setShowManualLocation(false);
-    setShowLocationPicker(true); // Open the map to pick a new one
-  };
-
   const handleLocationSelect = (lat: number, lng: number) => {
     if (setLocation) {
       setLocation({ lat, lng });
     }
     setShowLocationPicker(false);
+  };
+
+  const handleEditLocation = () => {
+    setVerifiedLocation(null);
+    if (setLocation) setLocation(null);
+    if (setLocationError) setLocationError('');
+    if (setShowManualLocation) setShowManualLocation(false);
+    setShowLocationPicker(true);
   };
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -794,35 +861,64 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const handleSingleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    //uncomment for audio validations
-    //   if (uploadMode === 'audio') {
-    //   toast.loading('Validating audio...');
-    //   const result = await validateAudioFile(file);
-    //   toast.dismiss();
+    // Check file limit (max 5 files)
+    const currentFileCount = selectedFiles.length;
+    const newFilesCount = files.length;
+    const totalFiles = currentFileCount + newFilesCount;
 
-    //   if (!result.isValid) {
-    //     toast.error('Audio validation failed', {
-    //       description: mapAudioErrors(result.errors),
-    //     });
-    //     return;
-    //   }
-    // }
+    if (totalFiles > 5 || currentFileCount >= 5) {
+      toast.error(
+        `You can only upload a maximum of 5 files. You already have ${currentFileCount} file(s) selected.`,
+      );
+      // Only add up to 5 files
+      const filesToAdd = Array.from(files).slice(0, 5 - currentFileCount);
+      if (filesToAdd.length > 0) {
+        const newFiles = [...selectedFiles, ...filesToAdd];
+        setSelectedFiles(newFiles);
+        // Initialize metadata for new files
+        const newMetadata = [...fileMetadata];
+        filesToAdd.forEach(() => {
+          newMetadata.push({ title: '', description: '', categories: [] });
+        });
+        setFileMetadata(newMetadata);
+        if (newFiles.length > 0) {
+          setSelectedFile(newFiles[0]);
+        }
+      }
+      event.target.value = '';
+      return;
+    }
 
-    setSelectedFile(file);
-    setSelectedFiles([file]); // keep compatibility with existing logic
+    // Add all new files
+    const newFiles = [...selectedFiles, ...Array.from(files)];
+    setSelectedFiles(newFiles);
+
+    // Initialize metadata for new files
+    const newMetadata = [...fileMetadata];
+    Array.from(files).forEach(() => {
+      newMetadata.push({ title: '', description: '', categories: [] });
+    });
+    setFileMetadata(newMetadata);
+
+    if (newFiles.length > 0) {
+      setSelectedFile(newFiles[0]);
+    }
     setRecordedBlob(null);
     setAudioUrl(null);
     setVideoUrl(null);
-    toast.success(`File selected: ${file.name}`);
+    toast.success(`${files.length} file(s) selected`);
     handleFileSelect(event);
   };
 
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
     setSelectedFiles(newFiles);
+    // Also remove the corresponding metadata
+    const newMetadata = fileMetadata.filter((_, i) => i !== index);
+    setFileMetadata(newMetadata);
     if (newFiles.length === 0) {
       setSelectedFile(null);
     } else if (newFiles.length === 1) {
@@ -845,13 +941,20 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         setUploadingFiles(false);
         return;
       }
+      if (textCategories.length === 0) {
+        toast.error(
+          'Please select at least one category for your text content.',
+        );
+        setUploadingFiles(false);
+        return;
+      }
       // Create a file from textContent
       const textBlob = new Blob([textContent], { type: 'text/plain' });
       const textFile = new File([textBlob], 'text-content.txt', {
         type: 'text/plain',
       });
       try {
-        await onUpload(textFile, description);
+        await onUpload(textFile, description, undefined, textCategories);
       } catch (err) {
         console.error(t('common.textUploadFailed'), err);
         toast.error('Text upload failed');
@@ -874,24 +977,113 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       return;
     }
 
-    if (uploadMode === 'audio') {
-      latestAudioFileRef.current = uploadFile;
-      setSelectedFile(uploadFile);
-      setSelectedFiles([uploadFile]);
-      console.debug('Uploading audio file', {
-        fileName: uploadFile.name,
-        fileSize: uploadFile.size,
-      });
+    // Validate that each file has title, description, and categories
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const metadata = fileMetadata[i];
+      if (!metadata || !metadata.title || metadata.title.trim().length < 8) {
+        toast.error(
+          `Please provide a title (minimum 8 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+      if (
+        !metadata ||
+        !metadata.description ||
+        metadata.description.trim().length < 32
+      ) {
+        toast.error(
+          `Please provide a description (minimum 32 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+      if (!metadata || metadata.categories.length === 0) {
+        toast.error(
+          `Please select at least one category for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
     }
 
-    try {
-      await onUpload(uploadFile, description);
-    } catch (err) {
-      console.error('Upload failed for', uploadFile.name, err);
-      toast.error(`Upload failed: ${uploadFile.name}`);
+    // Upload all files with their individual metadata
+    let allUploadsSuccessful = true;
+    let failedCount = 0;
+    let hasStorageFailure = false;
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      const metadata = fileMetadata[i];
+      console.log(
+        `[Bulk Upload] Starting upload ${i + 1}/${selectedFiles.length}:`,
+        file.name,
+      );
+      try {
+        const result = await onUpload(
+          file,
+          metadata.description,
+          metadata.title,
+          metadata.categories,
+        );
+        console.log(`[Bulk Upload] Upload ${i + 1} result:`, result);
+        if (!result || !result.success) {
+          allUploadsSuccessful = false;
+          failedCount++;
+          if (result?.errorType === 'STORAGE_FAILURE') {
+            hasStorageFailure = true;
+          }
+        }
+      } catch (err) {
+        console.error(
+          `[Bulk Upload] Upload ${i + 1} exception for ${file.name}:`,
+          err,
+        );
+        allUploadsSuccessful = false;
+        failedCount++;
+        hasStorageFailure = true;
+      }
     }
 
     setUploadingFiles(false);
+
+    console.log(
+      `[Bulk Upload] Completed. Success: ${allUploadsSuccessful}, Failed: ${failedCount}, StorageError: ${hasStorageFailure}`,
+    );
+
+    // Dismiss any existing toasts first to prevent stacking
+    toast.dismiss();
+
+    // Single centralized toast handling - ONLY ONE toast per result
+    if (allUploadsSuccessful && selectedFiles.length > 0) {
+      toast.success(
+        `${selectedFiles.length} file(s) uploaded successfully! Redirecting to Home...`,
+      );
+      setSelectedFiles([]);
+      setFileMetadata([]);
+      setSelectedFile(null);
+      setTitle('');
+      setDescription('');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+    } else if (hasStorageFailure) {
+      // Storage/API failure - highest priority, show ONLY this toast
+      toast.error(
+        'Storage upload failed. Please contact admin or retry later.',
+      );
+    } else if (failedCount > 0) {
+      // Partial failure without storage error
+      if (failedCount === selectedFiles.length) {
+        toast.error(
+          'All uploads failed. Please check your files and try again.',
+        );
+      } else {
+        toast.error(
+          `${failedCount} of ${selectedFiles.length} uploads failed.`,
+        );
+      }
+    }
   };
 
   return (
@@ -915,7 +1107,32 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </p>
             )}
           </div>
-          <div className="w-10 flex justify-end">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowPreferencesPanel(true)}
+              className="flex flex-col items-center gap-1 p-2 hover:bg-emerald-50 rounded-lg transition-colors"
+              title="User Preferences"
+            >
+              <svg
+                className="w-4 h-4 text-emerald-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </button>
             <NetworkStrengthIndicator />
           </div>
         </div>
@@ -973,6 +1190,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             {/* Media Upload Component - handles all media types */}
             <MediaUploadComponent
               uploadMode={uploadMode}
+              categories={categories}
               selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
               textContent={textContent}
@@ -1018,143 +1236,134 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               formatTime={formatTime}
               formatFileSize={formatFileSize}
               removeFile={removeFile}
+              fileMetadata={fileMetadata}
+              setFileMetadata={setFileMetadata}
             />
 
-            {/* Title Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('common.title')}
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => {
-                  const newTitle = e.target.value;
-                  setTitle(newTitle);
-                  if (newTitle.trim().length < 8) {
-                    setTitleError('Title must be at least 8 characters long.');
-                  } else if (countMeaningfulWords(newTitle) < 2) {
-                    setTitleError(
-                      'Title must contain at least 2 meaningful words.',
-                    );
-                  } else {
-                    setTitleError(null);
-                  }
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                placeholder={t('ui.enter.a.title.for.your.content')}
-              />
-              {titleError && (
-                <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                  {titleError}
-                </div>
-              )}
-            </div>
-
-            {/* Description Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('common.description')}
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => {
-                  const newDescription = e.target.value;
-                  setDescription(newDescription);
-                  if (newDescription.trim().length < 32) {
-                    setDescriptionError(
-                      'Description must be at least 32 characters long.',
-                    );
-                  } else if (countMeaningfulWords(newDescription) < 10) {
-                    setDescriptionError(
-                      'Description must contain at least 10 meaningful words.',
-                    );
-                  } else {
-                    setDescriptionError(null);
-                  }
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
-                placeholder={t(
-                  'ui.provide.a.detailed.description.minimum.32.characters',
-                )}
-              />
-              {descriptionError && (
-                <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                  {descriptionError}
-                </div>
-              )}
-            </div>
-
-            {/* Multi-Category Selection as Tags */}
-            {categories && categories.length > 0 && (
+            {/* Title Input - only show for text mode or when no files are selected */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('common.selectCategories')}
+                  {t('common.title')}
                 </label>
-
-                {/* Selected Categories Display */}
-                <div className="flex flex-wrap gap-2 mb-3 min-h-10 max-h-32 overflow-y-auto p-1">
-                  {multiSelectedCategories.map((cat) => (
-                    <div
-                      key={cat.id}
-                      className="flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-500 max-w-xs truncate"
-                    >
-                      <span className="mr-2 truncate max-w-[100px] sm:max-w-[150px]">
-                        {cat.title}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newSelection = multiSelectedCategories.filter(
-                            (c) => c.id !== cat.id,
-                          );
-                          setMultiSelectedCategories(newSelection);
-                          if (setSelectedCategories) {
-                            setSelectedCategories(newSelection);
-                          }
-                        }}
-                        className="text-emerald-800 hover:text-emerald-900 focus:outline-none flex-shrink-0"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Available Categories */}
-                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
-                  {categories
-                    .filter(
-                      (cat) =>
-                        !multiSelectedCategories.some(
-                          (selected) => selected.id === cat.id,
-                        ),
-                    )
-                    .map((cat) => (
-                      <div
-                        key={cat.id}
-                        onClick={() => {
-                          const newSelection = [
-                            ...multiSelectedCategories,
-                            cat,
-                          ];
-                          setMultiSelectedCategories(newSelection);
-                          if (setSelectedCategories) {
-                            setSelectedCategories(newSelection);
-                          }
-                        }}
-                        className={`cursor-pointer px-3 py-1.5 rounded-full border transition-all duration-200 text-sm max-w-xs truncate ${
-                          multiSelectedCategories.some((c) => c.id === cat.id)
-                            ? 'bg-emerald-100 border-emerald-500 text-emerald-700'
-                            : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {cat.title}
-                      </div>
-                    ))}
-                </div>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    const newTitle = e.target.value;
+                    setTitle(newTitle);
+                    if (newTitle.trim().length < 8) {
+                      setTitleError(
+                        'Title must be at least 8 characters long.',
+                      );
+                    } else if (countMeaningfulWords(newTitle) < 2) {
+                      setTitleError(
+                        'Title must contain at least 2 meaningful words.',
+                      );
+                    } else {
+                      setTitleError(null);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder={t('ui.enter.a.title.for.your.content')}
+                />
+                {titleError && (
+                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                    {titleError}
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Description Input - only show for text mode or when no files are selected */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('common.description')}
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => {
+                    const newDescription = e.target.value;
+                    setDescription(newDescription);
+                    if (newDescription.trim().length < 32) {
+                      setDescriptionError(
+                        'Description must be at least 32 characters long.',
+                      );
+                    } else if (countMeaningfulWords(newDescription) < 10) {
+                      setDescriptionError(
+                        'Description must contain at least 10 meaningful words.',
+                      );
+                    } else {
+                      setDescriptionError(null);
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-vertical"
+                  placeholder={t(
+                    'ui.provide.a.detailed.description.minimum.32.characters',
+                  )}
+                />
+                {descriptionError && (
+                  <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                    {descriptionError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Categories Selection - visible when no files selected or text mode */}
+            {(uploadMode === 'text' || selectedFiles.length === 0) &&
+              categories &&
+              categories.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('common.selectCategories')}
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-3 min-h-10 max-h-32 overflow-y-auto p-1">
+                    {textCategories.map((cat) => (
+                      <div
+                        key={cat.id}
+                        className="flex items-center bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-500 max-w-xs truncate"
+                      >
+                        <span className="mr-2 truncate max-w-[100px] sm:max-w-[150px]">
+                          {cat.title}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTextCategories(
+                              textCategories.filter((c) => c.id !== cat.id),
+                            );
+                          }}
+                          className="text-emerald-800 hover:text-emerald-900 focus:outline-none flex-shrink-0"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
+                    {categories
+                      .filter(
+                        (cat) =>
+                          !textCategories.some(
+                            (selected) => selected.id === cat.id,
+                          ),
+                      )
+                      .map((cat) => (
+                        <div
+                          key={cat.id}
+                          onClick={() => {
+                            setTextCategories([...textCategories, cat]);
+                          }}
+                          className="cursor-pointer px-3 py-1.5 rounded-full border transition-all duration-200 text-sm max-w-xs truncate bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                        >
+                          {cat.title}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
             {/* Location Status */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
@@ -1305,18 +1514,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 disabled={
                   uploading ||
                   uploadingFiles ||
-                  !title ||
-                  !!titleError ||
-                  !description ||
-                  !!descriptionError ||
-                  !verifiedLocation || // <-- Key change: Disable button until location is VERIFIED
+                  !verifiedLocation ||
                   !releaseRights ||
                   releaseRights === 'downloaded' ||
                   !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
-                  (uploadMode !== 'text' &&
-                    !selectedFile &&
-                    selectedFiles.length === 0)
+                  (uploadMode === 'text' && textCategories.length === 0) ||
+                  (uploadMode !== 'text' && selectedFiles.length === 0)
                     ? true
                     : false
                 }
@@ -1341,6 +1545,99 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
       {/* Bottom Navigation */}
       <BottomNav />
+
+      {/* User Preferences Modal */}
+      {showPreferencesPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {t('common.user.preferences')}
+                </h3>
+                <button
+                  onClick={() => setShowPreferencesPanel(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="prefLanguage"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('common.default.language')}
+                  </label>
+                  <select
+                    id="prefLanguage"
+                    value={localPrefs.language}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, language: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Language</option>
+                    {languages.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="prefRights"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('ui.default.release.rights')}
+                  </label>
+                  <select
+                    id="prefRights"
+                    value={localPrefs.rights}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, rights: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Release Rights</option>
+                    <option value="creator">
+                      This work is created by me and anyone is free to use it.
+                    </option>
+                    <option value="others">Others</option>
+                    <option value="downloaded">
+                      I downloaded this from the internet and/or I don't know if
+                      it is free to share.
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreferencesPanel(false);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePreferences}
+                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors"
+                >
+                  {t('common.savePreferences')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -407,13 +407,22 @@
         }
       }
     },
-    "downlink": "Downlink:",
-    "rtt": "RTT:",
-    "apiNotSupported": "API not supported",
-    "UploadUnavailableWhileOffline": "Upload unavailable while offline",
-    "EstimatedUploadTime": "Estimated Upload Time",
-    "EstimatedTimeRemaining": "Estimated Time Remaining",
-    "EstimatedUploadTimeUnavailable": "Estimated Upload Time Unavailable"
+    "preferencesSavedSuccessfully": "Preferences saved successfully",
+    "user": {
+      "preferences": "User Preferences"
+    },
+    "default": {
+      "language": "Default Language"
+    },
+    "savePreferences": "Save Preferences",
+    "uploadDocumentFilesPdfDocxTxtMax5Files": "Upload Document Files (PDF, DOCX, TXT) - Max 5 files",
+    "uploadAudioFilesMax5Files": "Upload Audio Files (Max 5 files)",
+    "uploadVideoFilesMax5Files": "Upload Video Files (Max 5 files)",
+    "uploadImageFilesMax5Files": "Upload Image Files (Max 5 files)",
+    "startWelcomeTour": "Start Welcome Tour",
+    "storageUploadFailedPleaseContactAdminOrRetryLater": "Storage upload failed. Please contact admin or retry later.",
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again.",
+    "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content."
   },
   "ui": {
     "failed": {
@@ -619,6 +628,11 @@
         }
       }
     },
+    "default": {
+      "release": {
+        "rights": "Default Release Rights"
+      }
+    },
     "do": {
       "you": {
         "have": {
@@ -749,6 +763,8 @@
     "profilePictureUpdatedSuccessfully": "Profile picture updated successfully!",
     "loadingPointsData": "Loading points data...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "Are you sure you want to update the reading order of these\n              segments? This will also update the bounding box sequence.",
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Try Again",
     "resumeUploadedSuccessfully": "Resume uploaded successfully",
     "uploadingNewResume": "Uploading new resume...",
     "profileCompletedSuccessfully": "Profile completed successfully!",
@@ -780,6 +796,8 @@
     "shortBio": "Short Bio",
     "profession": "Profession",
     "organisation": "Organisation",
+    "changeLocation": "Change location",
+    "locationCapturedVerifying": "Location captured - verifying...",
     "workLocation": "Work Location",
     "cityState": "City, State",
     "locationDetails": "Location Details",

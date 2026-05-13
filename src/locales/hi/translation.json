@@ -252,106 +252,111 @@
     },
     "previousPage": "पिछला पेज",
     "nextPage": "अगला पेज",
-    "noOptionFound": "",
-    "pleaseUploadAPdfFile": "",
-    "fileSizeMustBeLessThan5mb": "",
-    "authenticationRequiredForUpload": "",
-    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "",
-    "failedToViewResume": "",
-    "selectType": "",
-    "selectDistrict": "",
-    "permanentPostalAddress": "",
-    "enterPermanentPostalAddress": "",
+    "noOptionFound": "कोई विकल्प नहीं मिला।",
+    "pleaseUploadAPdfFile": "कृपया एक PDF फ़ाइल अपलोड करें",
+    "fileSizeMustBeLessThan5mb": "फ़ाइल का आकार 5MB से कम होना चाहिए",
+    "authenticationRequiredForUpload": "अपलोड के लिए प्रमाणीकरण आवश्यक है",
+    "categoriesResumeAndorInternshipNotFoundPleaseContactAnAdmin": "श्रेणियाँ 'resume' और/या 'internship' नहीं मिलीं। कृपया एक एडमिन से संपर्क करें।",
+    "failedToViewResume": "resume देखने में विफल",
+    "selectType": "प्रकार चुनें",
+    "selectDistrict": "जिला चुनें",
+    "permanentPostalAddress": "स्थायी डाक पता",
+    "enterPermanentPostalAddress": "स्थायी डाक पता दर्ज करें",
     "college": {
-      "institution": "",
+      "institution": "कॉलेज / संस्थान",
       "roll": {
-        "number": ""
+        "number": "कॉलेज रोल नंबर"
       }
     },
-    "selectCollege": "",
-    "cantFindYourInstitutionSelectOtherNotInList": "",
-    "selectCategory": "",
+    "selectCollege": "कॉलेज चुनें",
+    "cantFindYourInstitutionSelectOtherNotInList": "अपना संस्थान नहीं मिल रहा? \"अन्य (सूची में नहीं)\" चुनें।",
+    "selectCategory": "श्रेणी चुनें",
     "specific": {
-      "stream": ""
+      "stream": "विशेष धारा"
     },
-    "selectStream": "",
-    "selectYear": "",
+    "selectStream": "धारा चुनें",
+    "selectYear": "वर्ष चुनें",
     "task": {
       "registered": {
-        "id": ""
+        "id": "TASK पंजीकृत आईडी"
       },
-      "id": ""
+      "id": "TASK आईडी"
     },
     "device": {
-      "internet": ""
+      "internet": "डिवाइस और इंटरनेट"
     },
     "has": {
-      "laptop": ""
+      "laptop": "लैपटॉप है?"
     },
     "laptop": {
-      "os": "",
-      "ram": ""
+      "os": "लैपटॉप OS",
+      "ram": "लैपटॉप RAM"
     },
-    "selectOs": "",
-    "selectRam": "",
+    "selectOs": "OS चुनें",
+    "selectRam": "RAM चुनें",
     "mobile": {
-      "os": "",
-      "ram": ""
+      "os": "मोबाइल OS",
+      "ram": "मोबाइल RAM"
     },
     "internet": {
-      "speed": ""
+      "speed": "इंटरनेट स्पीड"
     },
-    "selectSpeed": "",
+    "selectSpeed": "स्पीड चुनें",
     "daily": {
       "data": {
-        "limit": ""
+        "limit": "दैनिक डेटा सीमा"
       }
     },
-    "selectLimit": "",
+    "selectLimit": "सीमा चुनें",
     "list": {
       "your": {
         "ai": {
-          "courses": ""
+          "courses": "अपने AI पाठ्यक्रमों की सूची दें"
         }
       }
     },
     "language": {
-      "proficiency": ""
+      "proficiency": "भाषा दक्षता"
     },
-    "selectYourProficiencyLevelForEachLanguage": "",
+    "selectYourProficiencyLevelForEachLanguage": "प्रत्येक भाषा के लिए अपनी दक्षता स्तर चुनें",
     "rural": {
       "area": {
-        "access": ""
+        "access": "ग्रामीण क्षेत्र पहुँच"
       }
     },
     "completed": {
       "ai": {
-        "courses": ""
+        "courses": "पूर्ण AI पाठ्यक्रम"
       }
     },
-    "gender": "",
+    "gender": "लिंग *",
     "academic": {
-      "details": "",
-      "stream": ""
+      "details": "शैक्षणिक विवरण",
+      "stream": "शैक्षणिक धारा"
     },
     "roll": {
-      "number": ""
+      "number": "रोल नंबर"
     },
-    "whatIsYourPermanentPostalAddress": "",
-    "enterYourCompletePermanentAddress": "",
-    "uploadResumePdfOnlyMax5mb": "",
+    "whatIsYourPermanentPostalAddress": "आपका स्थायी डाक पता क्या है?",
+    "enterYourCompletePermanentAddress": "अपना पूरा स्थायी पता दर्ज करें",
+    "uploadResumeLabel": "resume अपलोड करें (अधिकतम 100 MB) *",
+    "supportedFileTypes": "समर्थित फ़ाइल प्रकार: PDF, DOC, DOCX, ODT, RTF, TXT, TEX, PAGES",
+    "fileTypeNotAllowedForSecurityReasons": "सुरक्षा कारणों से फ़ाइल प्रकार अनुमत नहीं है",
+    "archiveFileTypesAreNotAllowed": "संग्रह फ़ाइल प्रकार अनुमत नहीं हैं",
+    "fileSizeMustBeLessThan100mb": "फ़ाइल का आकार 100MB से कम होना चाहिए",
+    "invalidFilename": "फ़ाइल नाम में अमान्य वर्ण हैं",
     "do": {
       "you": {
         "have": {
           "a": {
-            "laptop": ""
+            "laptop": "क्या आपके पास लैपटॉप है? *"
           }
         }
       }
     },
     "saving": "सहेजा जा रहा है...",
-    "preview": "",
-    "noPreviewAvailable": "",
+    "preview": "पूर्वावलोकन:",
+    "noPreviewAvailable": "कोई पूर्वावलोकन उपलब्ध नहीं है",
     "searchPlaceOrAddress": "स्थान या पता खोजें",
     "searching": "खोज रहे हैं...",
     "failed": {
@@ -380,18 +385,23 @@
       }
     },
     "reviewedAndVerified": "समीक्षित और सत्यापित",
-    "viewContributionsOnMap": "मानचित्र पर योगदान देखें",
-    "couldNotLoadContributions": "योगदान लोड नहीं हो सके.",
-    "noGeotaggedContributionsYet": "अभी तक कोई जियोटैग योगदान नहीं हैं.",
-    "closeMap": "मानचित्र बंद करें",
-    "retry": "पुनः प्रयास करें",
-    "downlink": "डाउनलिंक:",
-    "rtt": "RTT:",
-    "apiNotSupported": "API समर्थित नहीं",
-    "UploadUnavailableWhileOffline": "ऑफ़लाइन होने पर अपलोड अनुपलब्ध है",
-    "EstimatedUploadTime": "अनुमानित अपलोड समय",
-    "EstimatedTimeRemaining": "अनुमानित शेष समय",
-    "EstimatedUploadTimeUnavailable": "अनुमानित अपलोड समय उपलब्ध नहीं है"
+    "remove": "हटाएं",
+    "preferencesSavedSuccessfully": "प्राथमिकताएं सफलतापूर्वक सहेजी गईं",
+    "user": {
+      "preferences": "उपयोगकर्ता प्राथमिकताएं"
+    },
+    "default": {
+      "language": "डिफ़ॉल्ट भाषा"
+    },
+    "savePreferences": "प्राथमिकताएं सहेजें",
+    "uploadDocumentFilesPdfDocxTxtMax5Files": "दस्तावेज़ फ़ाइलें अपलोड करें (PDF, DOCX, TXT) - अधिकतम 5 फ़ाइलें",
+    "uploadAudioFilesMax5Files": "ऑडियो फ़ाइलें अपलोड करें (अधिकतम 5 फ़ाइलें)",
+    "uploadVideoFilesMax5Files": "वीडियो फ़ाइलें अपलोड करें (अधिकतम 5 फ़ाइलें)",
+    "uploadImageFilesMax5Files": "छवि फ़ाइलें अपलोड करें (अधिकतम 5 फ़ाइलें)",
+    "startWelcomeTour": "स्वागत टूर शुरू करें",
+    "storageUploadFailedPleaseContactAdminOrRetryLater": "स्टोरेज अपलोड विफल। कृपया एडमिन से संपर्क करें या बाद में पुनः प्रयास करें।",
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "सभी अपलोड विफल। कृपया अपनी फ़ाइलें जांचें और पुनः प्रयास करें।",
+    "pleaseSelectAtLeastOneCategoryForYourTextContent": ""
   },
   "ui": {
     "failed": {
@@ -453,7 +463,7 @@
       },
       "task": {
         "id": {
-          "optional": ""
+          "optional": "TASK ID दर्ज करें (वैकल्पिक)"
         }
       }
     },
@@ -528,7 +538,7 @@
             "courses": {
               "you": {
                 "have": {
-                  "completed": ""
+                  "completed": "कृपया आपके द्वारा पूर्ण किए गए सभी AI पाठ्यक्रमों की सूची दें"
                 }
               }
             }
@@ -543,7 +553,7 @@
                 "to": {
                   "complete": {
                     "your": {
-                      "registration": ""
+                      "registration": "कृपया अपना पंजीकरण पूरा करने के लिए शेष विवरण भरें।"
                     }
                   }
                 }
@@ -597,6 +607,11 @@
         }
       }
     },
+    "default": {
+      "release": {
+        "rights": "डिफ़ॉल्ट रिलीज़ अधिकार"
+      }
+    },
     "do": {
       "you": {
         "have": {
@@ -605,7 +620,7 @@
               "any": {
                 "rural": {
                   "areas": {
-                    "nearby": ""
+                    "nearby": "क्या आपके पास आसपास के किसी भी ग्रामीण क्षेत्रों तक पहुँच है?"
                   }
                 }
               }
@@ -615,14 +630,14 @@
       }
     },
     "education": {
-      "institution": ""
+      "institution": "शिक्षा और संस्थान"
     },
     "have": {
       "you": {
         "completed": {
           "any": {
             "ai": {
-              "courses": ""
+              "courses": "क्या आपने कोई AI पाठ्यक्रम पूर्ण किए हैं? *"
             }
           }
         }
@@ -632,29 +647,25 @@
       "of": {
         "ai": {
           "courses": {
-            "completed": ""
+            "completed": "पूर्ण AI पाठ्यक्रमों की सूची"
           }
         }
       }
     },
     "resume": {
-      "pdf": {
-        "only": {
-          "max": {
-            "5mb": ""
-          }
-        }
+      "max": {
+        "100mb": "resume (अधिकतम 100MB)"
       }
     },
     "internship": {
       "language": {
-        "proficiency": ""
+        "proficiency": "इंटर्नशिप भाषा दक्षता"
       }
     },
     "task": {
       "registered": {
         "id": {
-          "optional": ""
+          "optional": "TASK पंजीकृत आईडी (वैकल्पिक)"
         }
       }
     },
@@ -663,7 +674,7 @@
         "villages": {
           "shamirpet": {
             "medchal": {
-              "etc": ""
+              "etc": "जैसे, आसपास के गाँव: शामिरपेट, मेडचल, आदि।"
             }
           }
         }
@@ -671,44 +682,45 @@
     },
     "laptop": {
       "operating": {
-        "system": ""
+        "system": "लैपटॉप ऑपरेटिंग सिस्टम"
       }
     },
     "mobile": {
       "operating": {
-        "system": ""
+        "system": "मोबाइल ऑपरेटिंग सिस्टम"
       }
     },
     "internet": {
       "connection": {
         "speed": {
-          "mbps": ""
+          "mbps": "इंटरनेट कनेक्शन स्पीड (Mbps)"
         }
       }
     },
     "daily": {
       "data": {
         "limit": {
-          "quota": ""
+          "quota": "दैनिक डेटा सीमा / कोटा"
         }
       }
     },
     "url": {
       "copied": {
         "to": {
-          "clipboard": ""
+          "clipboard": "URL क्लिपबोर्ड पर कॉपी किया गया"
         }
       }
     },
+    "updateYourProfileDetails": "अपने प्रोफ़ाइल विवरण अपडेट करें",
     "step": {
       "1": {
         "general": {
-          "information": ""
+          "information": "चरण 1: सामान्य जानकारी"
         }
       },
       "2": {
         "academic": {
-          "details": ""
+          "details": "चरण 2: शैक्षणिक विवरण"
         }
       }
     }
@@ -730,18 +742,20 @@
     "profilePictureUpdatedSuccessfully": "प्रोफ़ाइल चित्र सफलतापूर्वक अपडेट हो गया!",
     "loadingPointsData": "पॉइंट्स डेटा लोड हो रहा है...",
     "areYouSureYouWantToUpdateTheReadingOrderOfTheseSegmentsThisWillAlsoUpdateTheBoundingBoxSequence": "क्या आप इन सेगमेंट के रीडिंग ऑर्डर को अपडेट करना चाहते हैं? यह बाउंडिंग बॉक्स सीक्वेंस को भी अपडेट करेगा।",
-    "resumeUploadedSuccessfully": "",
-    "uploadingNewResume": "",
-    "profileCompletedSuccessfully": "",
-    "uploadingResume": "",
-    "loadingCategories": "",
-    "linkCopiedSuccessfully": "",
+    "resumeUploadedSuccessfully": "resume सफलतापूर्वक अपलोड हो गई",
+    "uploadingNewResume": "नया resume अपलोड हो रहा है...",
+    "profileCompletedSuccessfully": "प्रोफ़ाइल सफलतापूर्वक पूर्ण हुई!",
+    "uploadingResume": "resume अपलोड हो रही है...",
+    "loadingCategories": "श्रेणियाँ लोड हो रही हैं...",
+    "linkCopiedSuccessfully": "लिंक सफलतापूर्वक कॉपी की गई!",
     "recordUpdatedSuccessfully": "रिकॉर्ड सफलतापूर्वक अपडेट किया गया!",
-    "error": "",
+    "error": "त्रुटि",
     "saving": "सहेजा जा रहा है...",
     "loadingMap": "मानचित्र लोड हो रहा है...",
     "loadingDistrictBoundariesPleaseWait": "जिला सीमाएँ लोड हो रही हैं... कृपया प्रतीक्षा करें",
-    "loadingDistrictBoundaries": "जिला सीमाएँ लोड हो रही हैं..."
+    "loadingDistrictBoundaries": "जिला सीमाएँ लोड हो रही हैं...",
+    "somethingWentWrong": "कुछ गलत हो गया",
+    "tryAgain": "पुनः प्रयास करें"
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -761,17 +775,19 @@
     "shortBio": "संक्षिप्त परिचय",
     "profession": "व्यवसाय",
     "organisation": "संगठन",
-    "workLocation": "",
-    "cityState": "",
-    "locationDetails": "",
-    "chooseYourWorkLocationForTheInternship": ""
+    "changeLocation": "स्थान बदलें",
+    "locationCapturedVerifying": "स्थान कैप्चर किया गया - सत्यापित हो रहा है...",
+    "workLocation": "कार्य स्थान",
+    "cityState": "शहर, राज्य",
+    "locationDetails": "स्थान विवरण",
+    "chooseYourWorkLocationForTheInternship": "इंटर्नशिप के लिए अपना कार्य स्थान चुनें"
   },
   "validation": {
     "pleaseEnterValidLatitudeAndLongitudeValues": "कृपया मान्य अक्षांश और देशांतर मान दर्ज करें",
     "latitudeMustBeBetween90And90": "अक्षांश -90 और 90 के बीच होना चाहिए",
     "longitudeMustBeBetween180And180": "देशांतर -180 और 180 के बीच होना चाहिए",
     "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें",
-    "authenticationRequired": ""
+    "authenticationRequired": "प्रमाणीकरण आवश्यक है"
   },
   "categories": {
     "chooseACategoryToContributeContent": "सामग्री योगदान देने के लिए एक श्रेणी चुनें",
@@ -779,8 +795,8 @@
     "unsupportedMediaType": "असमर्थित मीडिया प्रकार",
     "sourceLabel": "स्रोत लेबल",
     "type": "प्रकार:",
-    "organisationType": "",
-    "educationCategory": ""
+    "organisationType": "संगठन प्रकार",
+    "educationCategory": "शिक्षा श्रेणी"
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",
@@ -819,8 +835,8 @@
     "imageUrl": "छवि URL",
     "enterRecordId": "रिकॉर्ड आईडी दर्ज करें",
     "recordControls": "रिकॉर्ड नियंत्रण",
-    "resumeRecordId": "",
-    "copyRecordUrl": ""
+    "resumeRecordId": "resume रिकॉर्ड ID:",
+    "copyRecordUrl": "रिकॉर्ड URL कॉपी करें"
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",
@@ -891,7 +907,7 @@
     "loginWithPassword": "पासवर्ड से लॉगिन करें",
     "loginWithOtp": "OTP से लॉगिन करें",
     "enterPassword": "पासवर्ड दर्ज करें",
-    "emailIsRequired": ""
+    "emailIsRequired": "ईमेल आवश्यक है"
   },
   "nav": {
     "preferPasswordLogin": "पासवर्ड लॉगिन पसंद करते हैं?",
@@ -909,12 +925,13 @@
     "settings": "सेटिंग्स",
     "logout": "लॉगआउट",
     "login": "लॉगिन",
-    "internshipProfile": "",
-    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "",
-    "profileIncompletePleaseCompleteIt": "",
-    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "",
-    "completeProfile": "",
-    "completeYourProfile": ""
+    "internshipProfile": "इंटर्नशिप प्रोफ़ाइल",
+    "mentionPlacesAroundYourHometownOrCurrentLocationWhereYouHaveAccessToRuralAreas": "अपने गृहनगर या वर्तमान स्थान के आसपास के ऐसे स्थानों का उल्लेख करें जहाँ आपके पास ग्रामीण क्षेत्रों तक पहुँच है",
+    "profileIncompletePleaseCompleteIt": "प्रोफ़ाइल अपूर्ण है, कृपया इसे पूरा करें।",
+    "someFeaturesMayBeLimitedUntilYouFinishYourProfile": "जब तक आप अपनी प्रोफ़ाइल पूरी नहीं कर लेते, कुछ सुविधाएँ सीमित हो सकती हैं।",
+    "completeProfile": "प्रोफ़ाइल पूरी करें",
+    "completeYourProfile": "अपनी प्रोफ़ाइल पूरी करें",
+    "editProfile": "प्रोफ़ाइल संपादित करें"
   },
   "profile": {
     "setLocation": "स्थान सेट करें",

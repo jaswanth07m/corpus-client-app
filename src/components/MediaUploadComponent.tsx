@@ -17,6 +17,23 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface Category {
+  id: string;
+  name: string;
+  title: string;
+  description: string;
+  published: boolean;
+  rank: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface FileMetadata {
+  title: string;
+  description: string;
+  categories: Category[];
+}
+
 interface MediaUploadComponentProps {
   uploadMode: 'text' | 'audio' | 'video' | 'image' | 'document' | null;
   selectedFile: File | null;
@@ -69,6 +86,11 @@ interface MediaUploadComponentProps {
   formatTime?: (seconds: number) => string;
   formatFileSize: (bytes: number) => string;
   removeFile: (index: number) => void;
+  // Categories list from parent
+  categories?: Category[];
+  // Per-file metadata props
+  fileMetadata?: FileMetadata[];
+  setFileMetadata?: (metadata: FileMetadata[]) => void;
 }
 
 const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
@@ -118,8 +140,96 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
   formatTime,
   formatFileSize,
   removeFile,
+  categories = [],
+  fileMetadata = [],
+  setFileMetadata,
 }) => {
   const { t } = useTranslation();
+
+  // Handler to update file metadata (title/description)
+  const updateFileMetadata = (
+    index: number,
+    field: 'title' | 'description',
+    value: string,
+  ) => {
+    if (setFileMetadata) {
+      const newMetadata = [...fileMetadata];
+      if (newMetadata[index]) {
+        newMetadata[index] = { ...newMetadata[index], [field]: value };
+      } else {
+        newMetadata[index] = { title: '', description: '', categories: [] };
+        newMetadata[index][field] = value;
+      }
+      setFileMetadata(newMetadata);
+    }
+  };
+
+  const toggleFileCategory = (index: number, cat: Category) => {
+    if (setFileMetadata) {
+      const newMetadata = [...fileMetadata];
+      if (!newMetadata[index]) {
+        newMetadata[index] = { title: '', description: '', categories: [] };
+      }
+      const current = newMetadata[index].categories;
+      const exists = current.some((c) => c.id === cat.id);
+      newMetadata[index] = {
+        ...newMetadata[index],
+        categories: exists
+          ? current.filter((c) => c.id !== cat.id)
+          : [...current, cat],
+      };
+      setFileMetadata(newMetadata);
+    }
+  };
+
+  const CategorySelector = ({
+    fileIndex,
+    categories,
+    selected,
+    onToggle,
+  }: {
+    fileIndex: number;
+    categories: Category[];
+    selected: Category[];
+    onToggle: (index: number, cat: Category) => void;
+  }) => {
+    const unselected = categories.filter(
+      (cat) => !selected.some((s) => s.id === cat.id),
+    );
+    return (
+      <div className="mb-2">
+        <div className="flex flex-wrap gap-1.5 mb-1.5 max-h-28 overflow-y-auto p-1">
+          {selected.map((cat) => (
+            <div
+              key={cat.id}
+              className="flex items-center bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-500 text-xs max-w-[140px] truncate"
+            >
+              <span className="mr-1 truncate max-w-[100px]">{cat.title}</span>
+              <button
+                type="button"
+                onClick={() => onToggle(fileIndex, cat)}
+                className="text-emerald-800 hover:text-emerald-900 focus:outline-none flex-shrink-0"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">
+          {unselected.map((cat) => (
+            <div
+              key={cat.id}
+              onClick={() => onToggle(fileIndex, cat)}
+              className="cursor-pointer px-2 py-0.5 rounded-full border transition-all duration-200 text-xs max-w-[140px] truncate bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+            >
+              {cat.title}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   if (!uploadMode) return null;
 
   // Document upload component - should be first to maintain consistent order
@@ -134,13 +244,14 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
             ref={fileInputRef}
             type="file"
             accept=".pdf,.doc,.docx,.txt"
+            multiple
             onChange={handleFileSelectInternal}
             className="hidden"
           />
           <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
             <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
             <span className="text-gray-600 text-sm sm:text-base">
-              {t('common.uploadDocumentFilesPdfDocxTxt')}
+              {t('common.uploadDocumentFilesPdfDocxTxtMax5Files')}
             </span>
           </div>
         </label>
@@ -148,9 +259,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
         {/* Selected Files List */}
         {selectedFiles.length > 0 && (
           <div className="mt-4 space-y-2">
-            <h4 className="font-medium text-gray-700">
-              {t('common.selectedFile')}
-            </h4>
+            <h4 className="font-medium text-gray-700">Selected Files:</h4>
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
@@ -177,6 +286,50 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                 </Button>
               </div>
             ))}
+            {/* Per-file title, description, and categories inputs */}
+            {selectedFiles.map((file, index) => {
+              const meta = fileMetadata[index] || {
+                title: '',
+                description: '',
+                categories: [],
+              };
+              return (
+                <div
+                  key={`metadata-${index}`}
+                  className="p-3 bg-white border rounded-lg space-y-2"
+                >
+                  <div className="text-sm font-medium text-gray-700 truncate">
+                    {file.name}
+                  </div>
+                  <input
+                    type="text"
+                    value={meta.title}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'title', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder={`Title for ${file.name}`}
+                  />
+                  <textarea
+                    value={meta.description}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'description', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
+                    placeholder={`Description for ${file.name}`}
+                  />
+                  <label className="block text-xs font-medium text-gray-700">
+                    Categories
+                  </label>
+                  <CategorySelector
+                    fileIndex={index}
+                    categories={categories}
+                    selected={meta.categories}
+                    onToggle={toggleFileCategory}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -290,13 +443,14 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               ref={fileInputRef}
               type="file"
               accept="audio/*"
+              multiple
               onChange={handleFileSelectInternal}
               className="hidden"
             />
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600">
-                {t('common.uploadAudioFilesSingleFile')}
+                {t('common.uploadAudioFilesMax5Files')}
               </span>
             </div>
           </label>
@@ -330,6 +484,50 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                 </Button>
               </div>
             ))}
+            {/* Per-file title, description, and categories inputs */}
+            {selectedFiles.map((file, index) => {
+              const meta = fileMetadata[index] || {
+                title: '',
+                description: '',
+                categories: [],
+              };
+              return (
+                <div
+                  key={`metadata-${index}`}
+                  className="p-3 bg-white border rounded-lg space-y-2"
+                >
+                  <div className="text-sm font-medium text-gray-700 truncate">
+                    {file.name}
+                  </div>
+                  <input
+                    type="text"
+                    value={meta.title}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'title', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder={`Title for ${file.name}`}
+                  />
+                  <textarea
+                    value={meta.description}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'description', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
+                    placeholder={`Description for ${file.name}`}
+                  />
+                  <label className="block text-xs font-medium text-gray-700">
+                    Categories
+                  </label>
+                  <CategorySelector
+                    fileIndex={index}
+                    categories={categories}
+                    selected={meta.categories}
+                    onToggle={toggleFileCategory}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -455,13 +653,14 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               ref={fileInputRef}
               type="file"
               accept="video/*"
+              multiple
               onChange={handleFileSelectInternal}
               className="hidden"
             />
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600 text-sm sm:text-base">
-                {t('common.uploadVideoFilesSingleFile')}
+                {t('common.uploadVideoFilesMax5Files')}
               </span>
             </div>
           </label>
@@ -497,6 +696,50 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                 </Button>
               </div>
             ))}
+            {/* Per-file title, description, and categories inputs */}
+            {selectedFiles.map((file, index) => {
+              const meta = fileMetadata[index] || {
+                title: '',
+                description: '',
+                categories: [],
+              };
+              return (
+                <div
+                  key={`metadata-${index}`}
+                  className="p-3 bg-white border rounded-lg space-y-2"
+                >
+                  <div className="text-sm font-medium text-gray-700 truncate">
+                    {file.name}
+                  </div>
+                  <input
+                    type="text"
+                    value={meta.title}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'title', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder={`Title for ${file.name}`}
+                  />
+                  <textarea
+                    value={meta.description}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'description', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
+                    placeholder={`Description for ${file.name}`}
+                  />
+                  <label className="block text-xs font-medium text-gray-700">
+                    Categories
+                  </label>
+                  <CategorySelector
+                    fileIndex={index}
+                    categories={categories}
+                    selected={meta.categories}
+                    onToggle={toggleFileCategory}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -608,20 +851,21 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               onChange={handleFileSelectInternal}
               className="hidden"
             />
             <div className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors">
               <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
               <span className="text-gray-600 text-sm sm:text-base">
-                {t('common.uploadImageFilesSingleFile')}
+                {t('common.uploadImageFilesMax5Files')}
               </span>
             </div>
           </label>
         </div>
 
         {/* Selected Files List */}
-        {selectedFiles.length > 0 && !selectedFile && (
+        {selectedFiles.length > 0 && (
           <div className="mt-4 space-y-3">
             <h4 className="font-medium text-gray-700">Selected Files:</h4>
             {selectedFiles.map((file, index) => (
@@ -659,6 +903,38 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     </div>
                   </div>
                 )}
+                {/* Per-file title, description, and categories inputs */}
+                <div className="p-3 bg-white border rounded-lg space-y-2">
+                  <div className="text-sm font-medium text-gray-700 truncate">
+                    {file.name}
+                  </div>
+                  <input
+                    type="text"
+                    value={fileMetadata[index]?.title || ''}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'title', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder={`Title for ${file.name}`}
+                  />
+                  <textarea
+                    value={fileMetadata[index]?.description || ''}
+                    onChange={(e) =>
+                      updateFileMetadata(index, 'description', e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
+                    placeholder={`Description for ${file.name}`}
+                  />
+                  <label className="block text-xs font-medium text-gray-700">
+                    Categories
+                  </label>
+                  <CategorySelector
+                    fileIndex={index}
+                    categories={categories}
+                    selected={fileMetadata[index]?.categories || []}
+                    onToggle={toggleFileCategory}
+                  />
+                </div>
               </div>
             ))}
           </div>

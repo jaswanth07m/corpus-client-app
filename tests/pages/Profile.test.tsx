@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Profile from '../../src/pages/Profile';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { UserPreferencesProvider } from '../../src/context/UserPreferencesContext';
 
 // Mock useAuth hook
 const useAuthMock = vi.fn(() => ({
@@ -195,11 +196,13 @@ const renderWithRouter = (
 
   const wrap = (ui: React.ReactElement) => (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={initialEntries}>
-        <Routes>
-          <Route path="/profile/:username?" element={ui} />
-        </Routes>
-      </MemoryRouter>
+      <UserPreferencesProvider>
+        <MemoryRouter initialEntries={initialEntries}>
+          <Routes>
+            <Route path="/profile/:username?" element={ui} />
+          </Routes>
+        </MemoryRouter>
+      </UserPreferencesProvider>
     </QueryClientProvider>
   );
 
