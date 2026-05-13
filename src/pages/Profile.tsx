@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -36,6 +42,25 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { isProfileComplete } from '@/lib/profileUtils';
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  useMap,
+} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import * as turf from '@turf/turf';
+import { useContributionGeo } from '@/hooks/useContributionGeo';
+import type { FlatContribution } from '@/types/geo';
+import type { GeoJsonObject, GeometryObject } from 'geojson';
+import {
+  MEDIA_TYPE_COLORS,
+  MEDIA_TYPE_LABELS,
+  formatContributionDate,
+} from '@/lib/geoUtils';
 
 const languages = [
   'assamese',
@@ -71,8 +96,10 @@ interface UserProfileData {
   id: string;
   name: string;
   username?: string;
+  phone?: string | null;
   profile_picture_path?: string | null;
   short_bio?: string | null;
+  profile_complete?: boolean;
   streaks: {
     combined_streak: {
       current: number;
@@ -171,6 +198,484 @@ interface EditHistoryEntry {
   change_type?: string;
   change_source?: string;
   field_changes?: Record<string, FieldChange>;
+}
+
+const GEOJSON_URL = '/telugu_sub_districts.geojson';
+const BOUNDARY_PANE = 'boundaries';
+const MARKER_PANE = 'markers';
+
+type GeoJsonFeature = {
+  type?: string;
+  properties?: Record<string, string | number | null | undefined>;
+  geometry?: GeometryObject;
+};
+
+type GeoJsonFeatureCollection = {
+  type: 'FeatureCollection';
+  features: GeoJsonFeature[];
+};
+
+function normalizeName(value?: string | null) {
+  return value?.trim().toLowerCase() ?? '';
+}
+
+function getFeatureSubDistrict(feature: GeoJsonFeature | undefined) {
+  if (!feature?.properties) return '';
+  return (
+    feature.properties.subdistrict ??
+    feature.properties.SUB_DISTRICT ??
+    feature.properties.Subdistrict ??
+    feature.properties.SUBDISTRICT ??
+    feature.properties.Sub_dist ??
+    feature.properties.mandal ??
+    feature.properties.MANDAL ??
+    feature.properties.name ??
+    feature.properties.NAME ??
+    feature.properties.taluk ??
+    feature.properties.TALUK ??
+    ''
+  )
+    .toString()
+    .trim();
+}
+
+function getFeatureDistrict(feature: GeoJsonFeature | undefined) {
+  if (!feature?.properties) return '';
+  return (
+    feature.properties.district ??
+    feature.properties.DISTRICT ??
+    feature.properties.District ??
+    feature.properties.taluk ??
+    ''
+  )
+    .toString()
+    .trim();
+}
+
+function getFeatureState(feature: GeoJsonFeature | undefined) {
+  if (!feature?.properties) return '';
+  return (
+    feature.properties.state ??
+    feature.properties.STATE ??
+    feature.properties.State ??
+    feature.properties.STATE_UT ??
+    ''
+  )
+    .toString()
+    .trim();
+}
+
+function isPointInFeature(lat: number, lng: number, feature: GeoJsonFeature) {
+  if (!feature?.geometry) return false;
+  const point = turf.point([lng, lat]);
+  const polygon = turf.feature(feature.geometry);
+  return turf.booleanPointInPolygon(point, polygon);
+}
+
+function getSubDistrictStyle(
+  feature: GeoJsonFeature,
+  contributedSubDistricts: Set<string>,
+) {
+  const featureName = normalizeName(getFeatureSubDistrict(feature));
+  const hasContribution = contributedSubDistricts.has(featureName);
+
+  return {
+    fillColor: hasContribution ? '#4ade80' : '#93c5fd',
+    fillOpacity: 0.4,
+    color: '#1d4ed8',
+    weight: 0.6,
+    opacity: 0.8,
+  };
+}
+
+function MapResizerInline() {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+
+    window.addEventListener('resize', handleResize);
+    const timeoutId = setTimeout(handleResize, 100);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, [map]);
+
+  return null;
+}
+
+function MapPaneSetupInline() {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map.getPane(BOUNDARY_PANE)) {
+      const pane = map.createPane(BOUNDARY_PANE);
+      pane.style.zIndex = '400';
+      pane.style.pointerEvents = 'auto';
+    }
+
+    if (!map.getPane(MARKER_PANE)) {
+      const pane = map.createPane(MARKER_PANE);
+      pane.style.zIndex = '450';
+      pane.style.pointerEvents = 'auto';
+    }
+  }, [map]);
+
+  return null;
+}
+
+function SubDistrictBoundaryLayer({
+  geojsonData,
+  userContributions,
+  contributedSubDistricts,
+}: {
+  geojsonData: GeoJsonFeatureCollection;
+  userContributions: FlatContribution[];
+  contributedSubDistricts: Set<string>;
+}) {
+  const map = useMap();
+
+  const layerRef = useRef<L.GeoJSON | null>(null);
+
+  useEffect(() => {
+    if (!map || !geojsonData) return;
+
+    if (layerRef.current) {
+      map.removeLayer(layerRef.current);
+    }
+
+    const layer = L.geoJSON(geojsonData as GeoJsonObject, {
+      style: (feature) =>
+        getSubDistrictStyle(feature as GeoJsonFeature, contributedSubDistricts),
+      onEachFeature: (feature, layerInstance) => {
+        const subDistrict = getFeatureSubDistrict(feature);
+        const district = getFeatureDistrict(feature);
+        const state = getFeatureState(feature);
+
+        const hasContributions = contributedSubDistricts.has(
+          normalizeName(subDistrict),
+        );
+
+        const content = `
+          <div style="font-family: inherit; padding: 2px 0;">
+            ${
+              subDistrict
+                ? `<p style="margin: 0 0 4px; font-weight: 700; font-size: 13px; color: #0f172a;">${subDistrict}</p>`
+                : ''
+            }
+            ${
+              district
+                ? `<p style="margin: 0 0 2px; font-size: 11px; color: #64748b;">District: ${district}</p>`
+                : ''
+            }
+            ${
+              state
+                ? `<p style="margin: 0 0 2px; font-size: 11px; color: #64748b;">State: ${state}</p>`
+                : ''
+            }
+            <p style="margin: 0; font-size: 11px; color: ${
+              hasContributions ? '#16a34a' : '#64748b'
+            };">
+              ${hasContributions ? '✓ Has contributions' : 'No contributions'}
+            </p>
+          </div>
+        `;
+
+        layerInstance.bindPopup(content);
+      },
+    }).addTo(map);
+
+    layerRef.current = layer;
+
+    return () => {
+      if (layerRef.current && map) {
+        map.removeLayer(layerRef.current);
+        layerRef.current = null;
+      }
+    };
+  }, [map, geojsonData, contributedSubDistricts]);
+
+  return null;
+}
+
+function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
+  const { t } = useTranslation();
+  const { data, isLoading, isError, refetch } =
+    useContributionGeo(userIdentifier);
+  const [boundaryData, setBoundaryData] =
+    useState<GeoJsonFeatureCollection | null>(null);
+  const [boundaryLoading, setBoundaryLoading] = useState(true);
+  const [boundaryError, setBoundaryError] = useState<string | null>(null);
+  const [boundaryReloadKey, setBoundaryReloadKey] = useState(0);
+  const contributions = useMemo(() => data ?? [], [data]);
+  const contributedSubDistricts = useMemo(() => {
+    const next = new Set<string>();
+
+    if (!boundaryData?.features?.length || !contributions.length) {
+      return next;
+    }
+
+    boundaryData.features.forEach((feature) => {
+      const featureName = normalizeName(getFeatureSubDistrict(feature));
+      if (!featureName) return;
+
+      const hasContribution = contributions.some((contribution) => {
+        if (!contribution.location) return false;
+        try {
+          return isPointInFeature(
+            contribution.location.latitude,
+            contribution.location.longitude,
+            feature,
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      if (hasContribution) {
+        next.add(featureName);
+      }
+    });
+
+    return next;
+  }, [boundaryData, contributions]);
+
+  useEffect(() => {
+    let isActive = true;
+    const controller = new AbortController();
+
+    setBoundaryLoading(true);
+    setBoundaryError(null);
+
+    fetch(GEOJSON_URL, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(
+            `Failed to fetch sub-district boundaries: ${res.status}`,
+          );
+        }
+        return res.json();
+      })
+      .then((geojsonData: GeoJsonFeatureCollection) => {
+        if (!isActive) return;
+        try {
+          const simplified = turf.simplify(geojsonData as GeoJsonObject, {
+            tolerance: 0.001,
+            highQuality: false,
+          }) as GeoJsonFeatureCollection;
+          setBoundaryData(simplified);
+        } catch (simplifyError) {
+          console.error(
+            'Error simplifying sub-district boundaries:',
+            simplifyError,
+          );
+          setBoundaryData(geojsonData);
+        }
+        setBoundaryLoading(false);
+      })
+      .catch((error) => {
+        if (!isActive || controller.signal.aborted) return;
+        console.error('Error loading sub-district boundaries:', error);
+        setBoundaryData(null);
+        setBoundaryError('Failed to load boundaries');
+        setBoundaryLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [boundaryReloadKey]);
+
+  const boundaryBounds = React.useMemo(() => {
+    if (!boundaryData?.features?.length) return undefined;
+
+    const bounds = L.geoJSON(boundaryData as GeoJsonObject).getBounds();
+    if (!bounds.isValid()) return undefined;
+    return bounds;
+  }, [boundaryData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] items-center justify-center rounded-xl bg-slate-100">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] flex-col items-center justify-center gap-2 rounded-xl bg-slate-100">
+        <p className="text-xs text-slate-500">
+          {t('common.couldNotLoadContributions')}
+        </p>
+        <button
+          onClick={() => refetch()}
+          className="text-xs text-blue-600 underline"
+        >
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (boundaryLoading && !boundaryData) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] flex-col items-center justify-center gap-2 rounded-xl bg-slate-100">
+        <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+        <p className="text-xs text-slate-500">
+          Loading district boundaries... please wait
+        </p>
+      </div>
+    );
+  }
+
+  if (!boundaryData || !boundaryBounds) {
+    return (
+      <div className="flex h-[220px] sm:h-[300px] flex-col items-center justify-center gap-2 rounded-xl bg-slate-100">
+        <p className="text-xs text-slate-500">
+          {boundaryError ?? 'Failed to load boundaries'}
+        </p>
+        <button
+          onClick={() => setBoundaryReloadKey((value) => value + 1)}
+          className="text-xs text-blue-600 underline"
+        >
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative z-0 mb-6 overflow-hidden rounded-xl border border-slate-200">
+      <style>{`
+        .leaflet-popup-content { max-height: 320px !important; overflow-y: auto !important; overflow-x: hidden !important; margin: 12px 16px !important; }
+        .leaflet-popup-content-wrapper { overflow: hidden !important; border-radius: 10px !important; }
+      `}</style>
+      <div className="relative h-[220px] sm:h-[300px]">
+        <MapContainer
+          bounds={boundaryBounds}
+          boundsOptions={{ padding: [10, 10] }}
+          dragging
+          scrollWheelZoom
+          doubleClickZoom
+          touchZoom
+          className="h-full w-full geo-map-container"
+        >
+          <MapPaneSetupInline />
+          <MapResizerInline />
+          <SubDistrictBoundaryLayer
+            geojsonData={boundaryData}
+            userContributions={contributions}
+            contributedSubDistricts={contributedSubDistricts}
+          />
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {contributions.map((c) => {
+            const color = MEDIA_TYPE_COLORS[c.media_type] ?? '#666';
+            const label = MEDIA_TYPE_LABELS[c.media_type] ?? c.media_type;
+            const date = formatContributionDate(c.timestamp);
+            return (
+              <CircleMarker
+                key={c.id}
+                center={[c.location.latitude, c.location.longitude]}
+                radius={10}
+                fillOpacity={0.85}
+                pane={MARKER_PANE}
+                pathOptions={{ color: '#ffffff', weight: 2, fillColor: color }}
+              >
+                <Popup>
+                  <div style={{ fontFamily: 'inherit', padding: '2px 0' }}>
+                    <p
+                      style={{
+                        margin: '0 0 4px',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        color: '#0f172a',
+                      }}
+                    >
+                      {c.title}
+                    </p>
+                    <p
+                      style={{
+                        margin: '0 0 2px',
+                        fontSize: 11,
+                        color: '#64748b',
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: color,
+                          marginRight: 4,
+                          verticalAlign: 'middle',
+                        }}
+                      />
+                      Type: {label}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>
+                      Date: {date}
+                    </p>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            );
+          })}
+        </MapContainer>
+        {boundaryLoading && (
+          <div className="pointer-events-none absolute left-3 top-3 z-[650] rounded-md bg-white/85 px-2.5 py-1 text-[11px] text-slate-600 shadow-sm backdrop-blur">
+            Loading district boundaries...
+          </div>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-3 border-t border-slate-200 bg-white px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="h-2.5 w-2.5 rounded-sm border"
+            style={{ borderColor: '#1d4ed8', backgroundColor: '#93c5fd' }}
+          />
+          <span className="text-xs text-slate-500">
+            {t(
+              'stats.subDistrictNoContributions',
+              'Sub-district (no contributions)',
+            )}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="h-2.5 w-2.5 rounded-sm border"
+            style={{ borderColor: '#1d4ed8', backgroundColor: '#4ade80' }}
+          />
+          <span className="text-xs text-slate-500">
+            {t(
+              'stats.subDistrictWithContributions',
+              'Sub-district (with contributions)',
+            )}
+          </span>
+        </div>
+        {Object.keys(MEDIA_TYPE_COLORS).map((type) => (
+          <div key={type} className="flex items-center gap-1.5">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: MEDIA_TYPE_COLORS[type] }}
+            />
+            <span className="text-xs text-slate-500">
+              {MEDIA_TYPE_LABELS[type]}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function Profile() {
@@ -865,8 +1370,10 @@ function Profile() {
             id: userData.id,
             name: userData.name || userData.username || 'Unknown User',
             username: userData.username,
+            phone: userData.phone || null,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
+            profile_complete: isProfileComplete(userData),
             streaks: {
               combined_streak: {
                 current: userData.streak_days || 0,
@@ -926,8 +1433,10 @@ function Profile() {
             id: userData.user_id,
             name: userData.user_name || 'Unknown User',
             username: userData.username,
+            phone: userData.phone || null,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
+            profile_complete: isProfileComplete(userData),
             streaks: userData.streaks,
             timeline: userData.timeline,
             summary: userData.summary,
@@ -1011,6 +1520,11 @@ function Profile() {
   // Determine if viewing own profile
   const isOwnProfile =
     username && currentUsername ? currentUsername === username : false;
+
+  // Geo contribution user identifier - passed to map component
+  // Use a fallback chain so the geo hook fires on first render without waiting for async state
+  const geoContributionUserIdentifier =
+    username || targetUserIdentifier || currentUserId || '';
 
   console.log(profile);
 
@@ -1180,6 +1694,28 @@ function Profile() {
           </div>
         </div>
 
+        {/* Incomplete Profile Alert - Only for own profile */}
+        {isOwnProfile && profile?.profile_complete === false && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl shadow-lg p-4 sm:p-6 mb-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-red-700 font-semibold">
+                  {t('nav.profileIncompletePleaseCompleteIt')}
+                </p>
+                <p className="text-red-600 text-sm mt-1">
+                  {t('nav.someFeaturesMayBeLimitedUntilYouFinishYourProfile')}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/complete-profile/step-2')}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-md"
+              >
+                {t('nav.completeProfile')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Bio Section - Visible for all user profiles */}
         {profile?.short_bio && (
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-3">
@@ -1236,6 +1772,14 @@ function Profile() {
               }}
             />
           </div>
+        </div>
+
+        {/* Inline Geo Contribution Map */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-5 mb-3">
+          <p className="text-sm font-semibold text-slate-700 mb-3">
+            {t('stats.myContributionsOnTheMap')}
+          </p>
+          <InlineGeoMap userIdentifier={geoContributionUserIdentifier} />
         </div>
       </div>
 
