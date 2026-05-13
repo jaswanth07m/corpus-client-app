@@ -14,6 +14,8 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: true,
+    pool: 'forks',
+    poolInline: 'forks',
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'cobertura'],

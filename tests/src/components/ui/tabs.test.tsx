@@ -1,7 +1,12 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
 describe('Tabs', () => {
   describe('Tabs (Root)', () => {

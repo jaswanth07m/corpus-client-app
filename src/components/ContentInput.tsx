@@ -41,6 +41,32 @@ import {
   formatEstimatedUploadTime,
 } from '@/hooks/useNetworkStrength';
 import { NetworkStrengthIndicator } from './NetworkStrengthIndicator';
+
+const languages = [
+  'assamese',
+  'bengali',
+  'bodo',
+  'dogri',
+  'gujarati',
+  'hindi',
+  'kannada',
+  'kashmiri',
+  'konkani',
+  'maithili',
+  'malayalam',
+  'marathi',
+  'meitei',
+  'nepali',
+  'odia',
+  'punjabi',
+  'sanskrit',
+  'santali',
+  'sindhi',
+  'tamil',
+  'telugu',
+  'urdu',
+];
+
 interface Category {
   id: string;
   name: string;
@@ -206,7 +232,31 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   isChunkedUploading = false,
 }) => {
   const { t } = useTranslation();
-  const { preferences } = useUserPreferences();
+  const { preferences, setPreferences } = useUserPreferences();
+  const [showPreferencesPanel, setShowPreferencesPanel] = useState(false);
+  const [localPrefs, setLocalPrefs] = useState({
+    language: preferences.language,
+    rights: preferences.rights,
+  });
+
+  // Sync local state when global preferences change
+  useEffect(() => {
+    setLocalPrefs({
+      language: preferences.language,
+      rights: preferences.rights,
+    });
+  }, [preferences]);
+
+  // Save preferences handler
+  const handleSavePreferences = () => {
+    setPreferences({
+      language: localPrefs.language,
+      rights: localPrefs.rights,
+    });
+    toast.success(t('common.preferencesSavedSuccessfully'));
+    setShowPreferencesPanel(false);
+  };
+
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -1064,7 +1114,32 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
               </p>
             )}
           </div>
-          <div className="w-10 flex justify-end">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowPreferencesPanel(true)}
+              className="flex flex-col items-center gap-1 p-2 hover:bg-emerald-50 rounded-lg transition-colors"
+              title="User Preferences"
+            >
+              <svg
+                className="w-4 h-4 text-emerald-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </button>
             <NetworkStrengthIndicator />
           </div>
         </div>
@@ -1493,6 +1568,99 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
       {/* Bottom Navigation */}
       <BottomNav />
+
+      {/* User Preferences Modal */}
+      {showPreferencesPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {t('common.user.preferences')}
+                </h3>
+                <button
+                  onClick={() => setShowPreferencesPanel(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="prefLanguage"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('common.default.language')}
+                  </label>
+                  <select
+                    id="prefLanguage"
+                    value={localPrefs.language}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, language: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Language</option>
+                    {languages.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="prefRights"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('ui.default.release.rights')}
+                  </label>
+                  <select
+                    id="prefRights"
+                    value={localPrefs.rights}
+                    onChange={(e) =>
+                      setLocalPrefs({ ...localPrefs, rights: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="">Select Release Rights</option>
+                    <option value="creator">
+                      This work is created by me and anyone is free to use it.
+                    </option>
+                    <option value="others">Others</option>
+                    <option value="downloaded">
+                      I downloaded this from the internet and/or I don't know if
+                      it is free to share.
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreferencesPanel(false);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePreferences}
+                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors"
+                >
+                  {t('common.savePreferences')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
