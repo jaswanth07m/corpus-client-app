@@ -136,8 +136,9 @@ interface ContentInputProps {
     description: string,
     fileTitle?: string,
     fileCategories?: Category[],
-  ) => Promise<void>;
+  ) => Promise<{ success?: boolean; errorType?: string } | boolean | void>;
 
+  resetUploadState?: () => void;
   requestLocation: () => void;
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -1044,10 +1045,18 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           metadata.categories,
         );
         console.log(`[Bulk Upload] Upload ${i + 1} result:`, result);
-        if (!result || !result.success) {
+        const uploadSuccessful =
+          result === undefined ||
+          result === true ||
+          (typeof result === 'object' && result?.success === true);
+
+        if (!uploadSuccessful) {
           allUploadsSuccessful = false;
           failedCount++;
-          if (result?.errorType === 'STORAGE_FAILURE') {
+          if (
+            typeof result === 'object' &&
+            result?.errorType === 'STORAGE_FAILURE'
+          ) {
             hasStorageFailure = true;
           }
         }

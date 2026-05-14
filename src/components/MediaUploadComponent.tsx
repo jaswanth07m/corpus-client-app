@@ -301,6 +301,86 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
     );
   };
 
+  const renderFileCard = (
+    file: File,
+    index: number,
+    icon: React.ReactNode,
+    preview: React.ReactNode | null = null,
+  ) => {
+    const meta = fileMetadata[index] || {
+      title: '',
+      description: '',
+      categories: [],
+    };
+
+    return (
+      <div key={`${file.name}-${index}`} className="space-y-3">
+        <div className="flex flex-col sm:flex-row items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              {icon}
+            </div>
+            <div className="min-w-0">
+              <div className="font-medium text-sm truncate">{file.name}</div>
+              <div className="text-xs text-gray-500">
+                {formatFileSize(file.size)}
+              </div>
+            </div>
+          </div>
+          <Button
+            onClick={() => removeFile(index)}
+            variant="ghost"
+            size="sm"
+            className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+        {preview}
+        <div className="p-3 bg-white border rounded-lg space-y-2">
+          <div className="text-sm font-medium text-gray-700 truncate">
+            {file.name}
+          </div>
+          <input
+            type="text"
+            value={meta.title}
+            onChange={(e) => updateFileMetadata(index, 'title', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            placeholder={`Title for ${file.name}`}
+          />
+          {fileTouched[index]?.title && fileErrors[index]?.titleError && (
+            <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+              {fileErrors[index].titleError}
+            </div>
+          )}
+          <textarea
+            value={meta.description}
+            onChange={(e) =>
+              updateFileMetadata(index, 'description', e.target.value)
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
+            placeholder={`Description for ${file.name}`}
+          />
+          {fileTouched[index]?.description &&
+            fileErrors[index]?.descriptionError && (
+              <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                {fileErrors[index].descriptionError}
+              </div>
+            )}
+          <label className="block text-xs font-medium text-gray-700">
+            Categories
+          </label>
+          <CategorySelector
+            fileIndex={index}
+            categories={categories}
+            selected={meta.categories}
+            onToggle={toggleFileCategory}
+          />
+        </div>
+      </div>
+    );
+  };
+
   if (!uploadMode) return null;
 
   // Document upload component - should be first to maintain consistent order
@@ -327,92 +407,13 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
           </div>
         </label>
 
-        {/* Selected Files List */}
+        {/* Selected Files and Metadata Cards */}
         {selectedFiles.length > 0 && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-4">
             <h4 className="font-medium text-gray-700">Selected Files:</h4>
-            {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex flex-col sm:flex-row items-center justify-between p-3 bg-gray-50 rounded-lg gap-2"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <div className="min-w-0">
-                    <div className="font-medium text-sm truncate">
-                      {file.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {formatFileSize(file.size)}
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => removeFile(index)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-            {/* Per-file title, description, and categories inputs */}
-            {selectedFiles.map((file, index) => {
-              const meta = fileMetadata[index] || {
-                title: '',
-                description: '',
-                categories: [],
-              };
-              return (
-                <div
-                  key={`metadata-${index}`}
-                  className="p-3 bg-white border rounded-lg space-y-2"
-                >
-                  <div className="text-sm font-medium text-gray-700 truncate">
-                    {file.name}
-                  </div>
-                  <input
-                    type="text"
-                    value={meta.title}
-                    onChange={(e) =>
-                      updateFileMetadata(index, 'title', e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder={`Title for ${file.name}`}
-                  />
-                  {fileTouched[index]?.title &&
-                    fileErrors[index]?.titleError && (
-                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                        {fileErrors[index].titleError}
-                      </div>
-                    )}
-                  <textarea
-                    value={meta.description}
-                    onChange={(e) =>
-                      updateFileMetadata(index, 'description', e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
-                    placeholder={`Description for ${file.name}`}
-                  />
-                  {fileTouched[index]?.description &&
-                    fileErrors[index]?.descriptionError && (
-                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                        {fileErrors[index].descriptionError}
-                      </div>
-                    )}
-                  <label className="block text-xs font-medium text-gray-700">
-                    Categories
-                  </label>
-                  <CategorySelector
-                    fileIndex={index}
-                    categories={categories}
-                    selected={meta.categories}
-                    onToggle={toggleFileCategory}
-                  />
-                </div>
-              );
-            })}
+            {selectedFiles.map((file, index) =>
+              renderFileCard(file, index, <FileText className="w-5 h-5" />),
+            )}
           </div>
         )}
       </div>
@@ -539,90 +540,13 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
           </label>
         </div>
 
-        {/* Selected Files List */}
+        {/* Selected Files and Metadata Cards */}
         {selectedFiles.length > 0 && (
-          <div className="mt-4 space-y-2">
-            <h4 className="font-medium text-gray-700">Selected File:</h4>
-            {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <Mic className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-sm">{file.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {formatFileSize(file.size)}
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => removeFile(index)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-            {/* Per-file title, description, and categories inputs */}
-            {selectedFiles.map((file, index) => {
-              const meta = fileMetadata[index] || {
-                title: '',
-                description: '',
-                categories: [],
-              };
-              return (
-                <div
-                  key={`metadata-${index}`}
-                  className="p-3 bg-white border rounded-lg space-y-2"
-                >
-                  <div className="text-sm font-medium text-gray-700 truncate">
-                    {file.name}
-                  </div>
-                  <input
-                    type="text"
-                    value={meta.title}
-                    onChange={(e) =>
-                      updateFileMetadata(index, 'title', e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder={`Title for ${file.name}`}
-                  />
-                  {fileTouched[index]?.title &&
-                    fileErrors[index]?.titleError && (
-                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                        {fileErrors[index].titleError}
-                      </div>
-                    )}
-                  <textarea
-                    value={meta.description}
-                    onChange={(e) =>
-                      updateFileMetadata(index, 'description', e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
-                    placeholder={`Description for ${file.name}`}
-                  />
-                  {fileTouched[index]?.description &&
-                    fileErrors[index]?.descriptionError && (
-                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                        {fileErrors[index].descriptionError}
-                      </div>
-                    )}
-                  <label className="block text-xs font-medium text-gray-700">
-                    Categories
-                  </label>
-                  <CategorySelector
-                    fileIndex={index}
-                    categories={categories}
-                    selected={meta.categories}
-                    onToggle={toggleFileCategory}
-                  />
-                </div>
-              );
-            })}
+          <div className="mt-4 space-y-4">
+            <h4 className="font-medium text-gray-700">Selected Files:</h4>
+            {selectedFiles.map((file, index) =>
+              renderFileCard(file, index, <Mic className="w-5 h-5" />),
+            )}
           </div>
         )}
       </div>
@@ -761,92 +685,15 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
           </label>
         </div>
 
-        {/* Selected Files List */}
+        {/* Selected Files and Metadata Cards */}
         {selectedFiles.length > 0 && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-4">
             <h4 className="font-medium text-gray-700">
               {t('common.selectedFiles')}
             </h4>
-            {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <Video className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-sm">{file.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {formatFileSize(file.size)}
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => removeFile(index)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-            {/* Per-file title, description, and categories inputs */}
-            {selectedFiles.map((file, index) => {
-              const meta = fileMetadata[index] || {
-                title: '',
-                description: '',
-                categories: [],
-              };
-              return (
-                <div
-                  key={`metadata-${index}`}
-                  className="p-3 bg-white border rounded-lg space-y-2"
-                >
-                  <div className="text-sm font-medium text-gray-700 truncate">
-                    {file.name}
-                  </div>
-                  <input
-                    type="text"
-                    value={meta.title}
-                    onChange={(e) =>
-                      updateFileMetadata(index, 'title', e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder={`Title for ${file.name}`}
-                  />
-                  {fileTouched[index]?.title &&
-                    fileErrors[index]?.titleError && (
-                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                        {fileErrors[index].titleError}
-                      </div>
-                    )}
-                  <textarea
-                    value={meta.description}
-                    onChange={(e) =>
-                      updateFileMetadata(index, 'description', e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
-                    placeholder={`Description for ${file.name}`}
-                  />
-                  {fileTouched[index]?.description &&
-                    fileErrors[index]?.descriptionError && (
-                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
-                        {fileErrors[index].descriptionError}
-                      </div>
-                    )}
-                  <label className="block text-xs font-medium text-gray-700">
-                    Categories
-                  </label>
-                  <CategorySelector
-                    fileIndex={index}
-                    categories={categories}
-                    selected={meta.categories}
-                    onToggle={toggleFileCategory}
-                  />
-                </div>
-              );
-            })}
+            {selectedFiles.map((file, index) =>
+              renderFileCard(file, index, <Video className="w-5 h-5" />),
+            )}
           </div>
         )}
       </div>

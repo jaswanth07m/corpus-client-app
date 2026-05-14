@@ -576,7 +576,7 @@ describe('MediaUploadComponent', () => {
         <MediaUploadComponent {...defaultProps} selectedFiles={[mockFile]} />,
       );
 
-      expect(screen.getByText('Selected File:')).toBeInTheDocument();
+      expect(screen.getByText('Selected Files:')).toBeInTheDocument();
       expect(screen.getAllByText('audio.mp3').length).toBeGreaterThan(0);
     });
 
