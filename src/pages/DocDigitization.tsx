@@ -266,7 +266,11 @@ function DocDigitization() {
   >('hidden');
   const [showRecordPanel, setShowRecordPanel] = useState(false);
 
-  const { value, suggestions, inputProps, setValue } = useTeluguTyping();
+  const { value, suggestions, inputProps, setValue } = useTeluguTyping(
+    editingSegmentIndex !== null
+      ? (newValue) => handleSegmentChange(editingSegmentIndex, newValue)
+      : undefined,
+  );
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
   const [hintsVisible, setHintsVisible] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -306,43 +310,6 @@ function DocDigitization() {
   const getCurrentPageSegments = (): Segment[] => {
     return segmentsByPage.get(pageNumber) || [];
   };
-
-  // Sync Telugu Typing value with the currently editing segment
-  useEffect(() => {
-    if (editingSegmentIndex !== null) {
-      const pageSegments = segmentsByPage.get(pageNumber) || [];
-      const segmentText = pageSegments[editingSegmentIndex]?.text || '';
-      if (value !== segmentText) {
-        setValue(segmentText);
-      }
-    } else {
-      setValue('');
-    }
-  }, [editingSegmentIndex, pageNumber, setValue]);
-
-  // Propagate Telugu Typing value back to the segment state
-  useEffect(() => {
-    if (isTeluguTypingEnabled && editingSegmentIndex !== null) {
-      const pageSegments = segmentsByPage.get(pageNumber) || [];
-      const currentSegmentText = pageSegments[editingSegmentIndex]?.text || '';
-
-      if (value !== currentSegmentText) {
-        setSegmentsByPage((prevMap) => {
-          const newMap = new Map(prevMap);
-          const segments = newMap.get(pageNumber);
-          if (segments && editingSegmentIndex < segments.length) {
-            const updatedSegments = [...segments];
-            updatedSegments[editingSegmentIndex] = {
-              ...updatedSegments[editingSegmentIndex],
-              text: value,
-            };
-            newMap.set(pageNumber, updatedSegments);
-          }
-          return newMap;
-        });
-      }
-    }
-  }, [value, isTeluguTypingEnabled, editingSegmentIndex, pageNumber]);
 
   const handleSegmentChange = (segmentIndex: number, newValue: string) => {
     setValue(newValue);
