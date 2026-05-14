@@ -85,6 +85,11 @@ interface FileMetadata {
   categories: Category[];
 }
 
+interface UploadState {
+  uploadUuid: string;
+  uploadedChunks: Set<number>;
+}
+
 // Re-added the VerifiedLocation interface for the verification flow
 interface VerifiedLocation {
   formatted_address: string;
@@ -136,6 +141,7 @@ interface ContentInputProps {
     description: string,
     fileTitle?: string,
     fileCategories?: Category[],
+    uploadState?: UploadState,
   ) => Promise<{ success?: boolean; errorType?: string } | boolean | void>;
 
   resetUploadState?: () => void;
@@ -964,8 +970,18 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       const textFile = new File([textBlob], 'text-content.txt', {
         type: 'text/plain',
       });
+      const uploadState: UploadState = {
+        uploadUuid: crypto.randomUUID(),
+        uploadedChunks: new Set<number>(),
+      };
       try {
-        await onUpload(textFile, description, undefined, textCategories);
+        await onUpload(
+          textFile,
+          description,
+          undefined,
+          textCategories,
+          uploadState,
+        );
       } catch (err) {
         console.error(t('common.textUploadFailed'), err);
         toast.error('Text upload failed');
@@ -1044,12 +1060,17 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         `[Bulk Upload] Starting upload ${i + 1}/${selectedFiles.length}:`,
         file.name,
       );
+      const uploadState: UploadState = {
+        uploadUuid: crypto.randomUUID(),
+        uploadedChunks: new Set<number>(),
+      };
       try {
         const result = await onUpload(
           file,
           metadata.description,
           metadata.title,
           metadata.categories,
+          uploadState,
         );
         console.log(`[Bulk Upload] Upload ${i + 1} result:`, result);
         const uploadSuccessful =

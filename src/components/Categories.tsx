@@ -58,6 +58,11 @@ interface Category {
   updated_at: string;
 }
 
+interface UploadState {
+  uploadUuid: string;
+  uploadedChunks: Set<number>;
+}
+
 interface CategoriesProps {
   token: string;
   onBack: () => void;
@@ -466,8 +471,7 @@ const Categories: React.FC<CategoriesProps> = ({
     while (attempt < maxRetries) {
       try {
         const formData = new FormData();
-        // Give the chunk a generic name 'chunk' but ensure it has the correct type
-        formData.append('chunk', chunk, 'chunk');
+        formData.append('chunk', chunk);
         formData.append('filename', filename);
         formData.append('chunk_index', chunkIndex.toString());
         formData.append('total_chunks', totalChunks.toString());
@@ -696,6 +700,7 @@ const Categories: React.FC<CategoriesProps> = ({
     description?: string,
     fileTitle?: string,
     fileCategories?: Category[],
+    uploadState?: UploadState,
   ): Promise<
     | boolean
     | { success: boolean; errorType?: 'STORAGE_FAILURE' | 'GENERIC_FAILURE' }
@@ -765,14 +770,14 @@ const Categories: React.FC<CategoriesProps> = ({
       return false;
     }
 
-    // Initialize fresh upload state for this specific file
-    // For bulk uploads (when 'file' is passed), we ALWAYS want a fresh UUID and clean chunk set
-    const currentUploadUuid = file
-      ? crypto.randomUUID()
-      : uploadUuid || crypto.randomUUID();
-    const currentUploadedChunks = file
-      ? new Set<number>()
-      : new Set(uploadedChunks);
+    // Read upload state from params (initialized in ContentInput.tsx)
+    // STRICT: Must have uploadState - no fallbacks, no regeneration
+    if (!uploadState?.uploadUuid || !uploadState?.uploadedChunks) {
+      console.error('[handleUpload] Missing uploadState - cannot proceed');
+      return { success: false, errorType: 'GENERIC_FAILURE' };
+    }
+    const currentUploadUuid = uploadState.uploadUuid;
+    const currentUploadedChunks = uploadState.uploadedChunks;
 
     // Sync to state for UI visibility
     setUploadUuid(currentUploadUuid);
