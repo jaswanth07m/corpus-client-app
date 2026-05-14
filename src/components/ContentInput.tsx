@@ -685,6 +685,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setRecordedBlob(result.file);
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
+          setFileMetadata([{ title: '', description: '', categories: [] }]);
           setAudioUrl(URL.createObjectURL(result.file));
           resetUploadState?.();
           setIsRecording(false);
@@ -706,6 +707,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setRecordedBlob(result.file);
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
+          setFileMetadata([{ title: '', description: '', categories: [] }]);
           setVideoUrl(URL.createObjectURL(result.file));
           resetUploadState?.();
           setIsRecording(false);
@@ -838,6 +840,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setRecordedBlob(null);
     setSelectedFile(null);
     setSelectedFiles([]);
+    setFileMetadata([]);
     setRecordingTime(0);
     setAudioUrl(null);
     setVideoUrl(null);
@@ -987,6 +990,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         setUploadingFiles(false);
         return;
       }
+      if (countMeaningfulWords(metadata.title) < 2) {
+        toast.error(
+          `Please provide a title with at least 2 meaningful words for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
       if (
         !metadata ||
         !metadata.description ||
@@ -994,6 +1004,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       ) {
         toast.error(
           `Please provide a description (minimum 32 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+      if (countMeaningfulWords(metadata.description) < 10) {
+        toast.error(
+          `Please provide a description with at least 10 meaningful words for file: ${selectedFiles[i].name}`,
         );
         setUploadingFiles(false);
         return;
@@ -1520,7 +1537,17 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode === 'text' && textCategories.length === 0) ||
-                  (uploadMode !== 'text' && selectedFiles.length === 0)
+                  (uploadMode !== 'text' && selectedFiles.length === 0) ||
+                  (selectedFiles.length > 0 &&
+                    fileMetadata.some(
+                      (m) =>
+                        !m.title ||
+                        m.title.trim().length < 8 ||
+                        countMeaningfulWords(m.title) < 2 ||
+                        !m.description ||
+                        m.description.trim().length < 32 ||
+                        countMeaningfulWords(m.description) < 10,
+                    ))
                     ? true
                     : false
                 }

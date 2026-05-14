@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '@/lib/constants';
@@ -42,8 +42,12 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  // Auto-load media URL for all media types on mount
+  // Track mount state to prevent state updates after unmount
+  const mountedRef = useRef(true);
+
   useEffect(() => {
+    mountedRef.current = true;
+
     const fetchMediaUrl = async () => {
       setLoading(true);
       try {
@@ -63,18 +67,26 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = ({
         }
 
         const data = await response.json();
+        if (!mountedRef.current) return;
         if (data.record_url) {
           setMediaUrl(data.record_url);
         }
       } catch (err) {
+        if (!mountedRef.current) return;
         console.error('Error fetching media:', err);
         setError(true);
       } finally {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchMediaUrl();
+
+    return () => {
+      mountedRef.current = false;
+    };
   }, [item.id, token]);
 
   const getMediaPreview = () => {
