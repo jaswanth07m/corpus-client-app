@@ -683,13 +683,17 @@ const Categories: React.FC<CategoriesProps> = ({
     description?: string,
     fileTitle?: string,
     fileCategories?: Category[],
-  ): Promise<boolean> => {
+  ): Promise<
+    | boolean
+    | { success: boolean; errorType?: 'STORAGE_FAILURE' | 'GENERIC_FAILURE' }
+  > => {
     // Use provided parameters or fall back to component state
     const uploadTitle = fileTitle || title;
     const uploadDescription = description || '';
 
-    // Track if this is a multi-file upload (file param provided)
-    const isMultiFileUpload = !!file;
+    // Track if this is a multi-file upload.
+    // Text uploads create a temporary File object locally, but should still be treated as a single upload.
+    const isMultiFileUpload = !!file && uploadMode !== 'text';
 
     // Validation checks
     const categoriesToUse = fileCategories || [];
