@@ -854,6 +854,14 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setIsCameraActive(false);
     setIsVideoInitialized(false);
 
+    // Ensure video recording service is destroyed when resetting
+    videoRecordingService.destroy().catch((error) => {
+      console.error(
+        'Error destroying video recording service during reset:',
+        error,
+      );
+    });
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -914,7 +922,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setAudioUrl(null);
     setVideoUrl(null);
     toast.success(`${files.length} file(s) selected`);
-    handleFileSelect(event);
   };
 
   const removeFile = (index: number) => {

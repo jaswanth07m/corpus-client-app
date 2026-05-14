@@ -464,12 +464,10 @@ const Categories: React.FC<CategoriesProps> = ({
     let attempt = 0;
 
     while (attempt < maxRetries) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, attempt * 1.1 ** attempt * 1000),
-      );
       try {
         const formData = new FormData();
-        formData.append('chunk', chunk);
+        // Give the chunk a generic name 'chunk' but ensure it has the correct type
+        formData.append('chunk', chunk, 'chunk');
         formData.append('filename', filename);
         formData.append('chunk_index', chunkIndex.toString());
         formData.append('total_chunks', totalChunks.toString());
@@ -503,7 +501,7 @@ const Categories: React.FC<CategoriesProps> = ({
       attempt++;
       if (attempt < maxRetries) {
         // Exponential backoff
-        const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        const delay = RETRY_DELAY_MS * Math.pow(1.5, attempt - 1);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -515,7 +513,8 @@ const Categories: React.FC<CategoriesProps> = ({
   const readChunk = async (file: File, chunkIndex: number): Promise<Blob> => {
     const start = chunkIndex * CHUNK_SIZE;
     const end = Math.min(start + CHUNK_SIZE, file.size);
-    return file.slice(start, end);
+    // Ensure the sliced blob retains the file's mime type
+    return file.slice(start, end, file.type);
   };
 
   const getTotalChunks = (file: File): number => {
@@ -574,11 +573,12 @@ const Categories: React.FC<CategoriesProps> = ({
 
       if (response.ok) {
         const result = await response.json();
-        console.log('[Upload Finalize] Response:', result);
+        console.log('[Upload Finalize] Response (OK):', result);
         if (result.success === false || result.error) {
           console.error(
-            '[Upload Finalize] Backend returned error:',
+            '[Upload Finalize] Backend returned error status in JSON:',
             result.error || 'Unknown error',
+            result,
           );
           return {
             success: false,
@@ -588,7 +588,7 @@ const Categories: React.FC<CategoriesProps> = ({
         }
         if (!result.file_url) {
           console.error(
-            '[Upload Finalize] Missing file_url in response:',
+            '[Upload Finalize] Missing file_url in successful response:',
             result,
           );
           return {
@@ -600,8 +600,13 @@ const Categories: React.FC<CategoriesProps> = ({
         console.log('[Upload Finalize] Success - file_url:', result.file_url);
         return { success: true };
       } else {
+        const errorText = await response.text().catch(() => 'N/A');
+        console.error('[Upload Finalize] HTTP Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText,
+        });
         const status = response.status;
-        console.error('[Upload Finalize] HTTP Error, status:', status);
         if (status >= 500 || status === 403 || status === 401) {
           return {
             success: false,
@@ -612,7 +617,10 @@ const Categories: React.FC<CategoriesProps> = ({
         return { success: false, errorType: 'GENERIC_FAILURE' };
       }
     } catch (error) {
-      console.error('[Upload Finalize] Exception:', error);
+      console.error(
+        '[Upload Finalize] Exception during fetch or JSON parsing:',
+        error,
+      );
       return {
         success: false,
         errorType: 'STORAGE_FAILURE',
@@ -625,13 +633,14 @@ const Categories: React.FC<CategoriesProps> = ({
   const uploadChunksSequentially = async (
     file: File,
     uploadUuid: string,
+    currentUploadedChunks: Set<number>,
   ): Promise<boolean> => {
     const totalChunks = getTotalChunks(file);
     let allChunksSuccessful = true;
 
     for (let i = 0; i < totalChunks; i++) {
-      // Skip already uploaded chunks
-      if (uploadedChunks.has(i)) {
+      // Skip already uploaded chunks in the current session
+      if (currentUploadedChunks.has(i)) {
         const progress = ((i + 1) / totalChunks) * 100;
         setUploadProgress(progress);
         continue;
@@ -649,7 +658,11 @@ const Categories: React.FC<CategoriesProps> = ({
       );
 
       if (success) {
-        setUploadedChunks((prev) => new Set([...prev, i]));
+        // We still update the set for potential retries within this session
+        currentUploadedChunks.add(i);
+        // And update the state for UI feedback
+        setUploadedChunks(new Set(currentUploadedChunks));
+
         // Update progress state
         const progress = ((i + 1) / totalChunks) * 100;
         setUploadProgress(progress);
@@ -752,9 +765,18 @@ const Categories: React.FC<CategoriesProps> = ({
       return false;
     }
 
-    // Initialize upload state
-    const newUploadUuid = uploadUuid || crypto.randomUUID();
-    setUploadUuid(newUploadUuid);
+    // Initialize fresh upload state for this specific file
+    // For bulk uploads (when 'file' is passed), we ALWAYS want a fresh UUID and clean chunk set
+    const currentUploadUuid = file
+      ? crypto.randomUUID()
+      : uploadUuid || crypto.randomUUID();
+    const currentUploadedChunks = file
+      ? new Set<number>()
+      : new Set(uploadedChunks);
+
+    // Sync to state for UI visibility
+    setUploadUuid(currentUploadUuid);
+    setUploadedChunks(currentUploadedChunks);
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -762,7 +784,8 @@ const Categories: React.FC<CategoriesProps> = ({
       // Upload chunks sequentially with lazy reading
       const success = await uploadChunksSequentially(
         fileToUpload!,
-        newUploadUuid,
+        currentUploadUuid,
+        currentUploadedChunks,
       );
 
       if (!success) {
@@ -774,7 +797,7 @@ const Categories: React.FC<CategoriesProps> = ({
       const totalChunks = getTotalChunks(fileToUpload!);
       // Finalize upload
       const finalizeResult = await finalizeUpload({
-        uploadUuid: newUploadUuid,
+        uploadUuid: currentUploadUuid,
         totalChunks: totalChunks,
         filename: fileToUpload!.name,
         customTitle: uploadTitle,
@@ -791,7 +814,10 @@ const Categories: React.FC<CategoriesProps> = ({
         return { success: false, errorType: 'GENERIC_FAILURE' };
       }
 
-      // Only redirect for single file uploads
+      // Handle successful completion
+      // For both single and multi-file uploads, we want to clear the state
+      // but only redirect here for non-multi-file uploads (legacy flow)
+      // Multi-file uploads are handled by ContentInput.tsx
       if (!isMultiFileUpload) {
         toast.success(
           'Content uploaded successfully! Redirecting to Landing...',
@@ -804,6 +830,9 @@ const Categories: React.FC<CategoriesProps> = ({
         setTimeout(() => {
           window.location.href = '/';
         }, 1500);
+      } else {
+        // For multi-file, we still reset state between files
+        resetUploadState();
       }
 
       return { success: true };

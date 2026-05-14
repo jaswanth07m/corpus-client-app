@@ -259,7 +259,7 @@ class VideoRecordingService {
           const timestamp = new Date().toISOString().replace(/[:.]/g, '_');
 
           file = new File([blob], `video-recording-${timestamp}.mp4`, {
-            type: 'video/mp4',
+            type: blob.type || 'video/mp4',
           });
         }
       }
