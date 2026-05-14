@@ -855,7 +855,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setIsVideoInitialized(false);
 
     // Ensure video recording service is destroyed when resetting
-    videoRecordingService.destroy().catch((error) => {
+    Promise.resolve(videoRecordingService.destroy()).catch((error) => {
       console.error(
         'Error destroying video recording service during reset:',
         error,
