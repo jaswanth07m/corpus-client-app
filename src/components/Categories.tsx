@@ -212,30 +212,16 @@ const Categories: React.FC<CategoriesProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preSelectedMediaType]);
 
-  // Apply preferences when entering upload mode
+  // Sync preferences to form fields whenever they change
   useEffect(() => {
     if (uploadMode) {
-      if (preferences.language && !selectedLanguage) {
+      if (preferences.language) {
         setSelectedLangugae(preferences.language);
       }
-      if (preferences.rights && !releaseRights) {
+      if (preferences.rights) {
         setreleaseRights(preferences.rights);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uploadMode, preferences]);
-
-  // Apply preferences when entering upload mode
-  useEffect(() => {
-    if (uploadMode) {
-      if (preferences.language && !selectedLanguage) {
-        setSelectedLangugae(preferences.language);
-      }
-      if (preferences.rights && !releaseRights) {
-        setreleaseRights(preferences.rights);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadMode, preferences]);
 
   // REPLACE YOUR EXISTING fetchUserProfile FUNCTION WITH THIS

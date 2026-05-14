@@ -685,6 +685,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setRecordedBlob(result.file);
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
+          setFileMetadata([{ title: '', description: '', categories: [] }]);
           setAudioUrl(URL.createObjectURL(result.file));
           resetUploadState?.();
           setIsRecording(false);
@@ -706,6 +707,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setRecordedBlob(result.file);
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
+          setFileMetadata([{ title: '', description: '', categories: [] }]);
           setVideoUrl(URL.createObjectURL(result.file));
           resetUploadState?.();
           setIsRecording(false);
@@ -838,6 +840,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setRecordedBlob(null);
     setSelectedFile(null);
     setSelectedFiles([]);
+    setFileMetadata([]);
     setRecordingTime(0);
     setAudioUrl(null);
     setVideoUrl(null);

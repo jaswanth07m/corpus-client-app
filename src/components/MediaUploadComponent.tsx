@@ -540,7 +540,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
         </div>
 
         {/* Selected Files List */}
-        {selectedFiles.length > 0 && !recordedBlob && (
+        {selectedFiles.length > 0 && (
           <div className="mt-4 space-y-2">
             <h4 className="font-medium text-gray-700">Selected File:</h4>
             {selectedFiles.map((file, index) => (
@@ -762,7 +762,7 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
         </div>
 
         {/* Selected Files List */}
-        {selectedFiles.length > 0 && !recordedBlob && (
+        {selectedFiles.length > 0 && (
           <div className="mt-4 space-y-2">
             <h4 className="font-medium text-gray-700">
               {t('common.selectedFiles')}
