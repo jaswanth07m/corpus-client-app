@@ -93,6 +93,30 @@ interface MediaUploadComponentProps {
   setFileMetadata?: (metadata: FileMetadata[]) => void;
 }
 
+const countMeaningfulWords = (s: string) => {
+  return s.split(' ').filter((w) => w.length > 2).length;
+};
+
+const validateFileTitle = (value: string): string | null => {
+  if (!value || value.trim().length < 8) {
+    return 'Title must be at least 8 characters long.';
+  }
+  if (countMeaningfulWords(value) < 2) {
+    return 'Title must contain at least 2 meaningful words.';
+  }
+  return null;
+};
+
+const validateFileDescription = (value: string): string | null => {
+  if (!value || value.trim().length < 32) {
+    return 'Description must be at least 32 characters long.';
+  }
+  if (countMeaningfulWords(value) < 10) {
+    return 'Description must contain at least 10 meaningful words.';
+  }
+  return null;
+};
+
 const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
   uploadMode,
   selectedFile,
@@ -146,6 +170,31 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  const [fileErrors, setFileErrors] = useState<
+    { titleError: string | null; descriptionError: string | null }[]
+  >([]);
+
+  // Track which fields the user has interacted with per file
+  const [fileTouched, setFileTouched] = useState<
+    { title: boolean; description: boolean }[]
+  >([]);
+
+  // Keep errors/touched arrays sized to match fileMetadata when parent adds/removes files
+  useEffect(() => {
+    setFileErrors((prev) => {
+      if (prev.length === fileMetadata.length) return prev;
+      return fileMetadata.map(
+        (_, i) => prev[i] ?? { titleError: null, descriptionError: null },
+      );
+    });
+    setFileTouched((prev) => {
+      if (prev.length === fileMetadata.length) return prev;
+      return fileMetadata.map(
+        (_, i) => prev[i] ?? { title: false, description: false },
+      );
+    });
+  }, [fileMetadata]);
+
   // Handler to update file metadata (title/description)
   const updateFileMetadata = (
     index: number,
@@ -161,6 +210,28 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
         newMetadata[index][field] = value;
       }
       setFileMetadata(newMetadata);
+      // Mark field as touched and compute error
+      setFileTouched((prev) => {
+        const next = [...prev];
+        if (!next[index]) next[index] = { title: false, description: false };
+        next[index] = { ...next[index], [field]: true };
+        return next;
+      });
+      const error =
+        field === 'title'
+          ? validateFileTitle(value)
+          : validateFileDescription(value);
+      setFileErrors((prev) => {
+        const next = [...prev];
+        if (!next[index])
+          next[index] = { titleError: null, descriptionError: null };
+        if (field === 'title') {
+          next[index] = { ...next[index], titleError: error };
+        } else {
+          next[index] = { ...next[index], descriptionError: error };
+        }
+        return next;
+      });
     }
   };
 
@@ -310,6 +381,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder={`Title for ${file.name}`}
                   />
+                  {fileTouched[index]?.title &&
+                    fileErrors[index]?.titleError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].titleError}
+                      </div>
+                    )}
                   <textarea
                     value={meta.description}
                     onChange={(e) =>
@@ -318,6 +395,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
                     placeholder={`Description for ${file.name}`}
                   />
+                  {fileTouched[index]?.description &&
+                    fileErrors[index]?.descriptionError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].descriptionError}
+                      </div>
+                    )}
                   <label className="block text-xs font-medium text-gray-700">
                     Categories
                   </label>
@@ -508,6 +591,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder={`Title for ${file.name}`}
                   />
+                  {fileTouched[index]?.title &&
+                    fileErrors[index]?.titleError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].titleError}
+                      </div>
+                    )}
                   <textarea
                     value={meta.description}
                     onChange={(e) =>
@@ -516,6 +605,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
                     placeholder={`Description for ${file.name}`}
                   />
+                  {fileTouched[index]?.description &&
+                    fileErrors[index]?.descriptionError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].descriptionError}
+                      </div>
+                    )}
                   <label className="block text-xs font-medium text-gray-700">
                     Categories
                   </label>
@@ -720,6 +815,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder={`Title for ${file.name}`}
                   />
+                  {fileTouched[index]?.title &&
+                    fileErrors[index]?.titleError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].titleError}
+                      </div>
+                    )}
                   <textarea
                     value={meta.description}
                     onChange={(e) =>
@@ -728,6 +829,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
                     placeholder={`Description for ${file.name}`}
                   />
+                  {fileTouched[index]?.description &&
+                    fileErrors[index]?.descriptionError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].descriptionError}
+                      </div>
+                    )}
                   <label className="block text-xs font-medium text-gray-700">
                     Categories
                   </label>
@@ -917,6 +1024,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder={`Title for ${file.name}`}
                   />
+                  {fileTouched[index]?.title &&
+                    fileErrors[index]?.titleError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].titleError}
+                      </div>
+                    )}
                   <textarea
                     value={fileMetadata[index]?.description || ''}
                     onChange={(e) =>
@@ -925,6 +1038,12 @@ const MediaUploadComponent: React.FC<MediaUploadComponentProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
                     placeholder={`Description for ${file.name}`}
                   />
+                  {fileTouched[index]?.description &&
+                    fileErrors[index]?.descriptionError && (
+                      <div className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                        {fileErrors[index].descriptionError}
+                      </div>
+                    )}
                   <label className="block text-xs font-medium text-gray-700">
                     Categories
                   </label>
