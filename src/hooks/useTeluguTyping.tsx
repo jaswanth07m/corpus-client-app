@@ -27,7 +27,9 @@ export interface UseTeluguTypingReturn {
   };
 }
 
-export function useTeluguTyping(): UseTeluguTypingReturn {
+export function useTeluguTyping(
+  onChange?: (value: string) => void,
+): UseTeluguTypingReturn {
   const [value, setValue] = useState<string>('');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
@@ -36,15 +38,31 @@ export function useTeluguTyping(): UseTeluguTypingReturn {
     prevLen: 0,
   }).current;
 
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const nextCursorPos = useRef<number | null>(null);
+
   useEffect(() => {
     initialize();
   }, []);
 
+  useEffect(() => {
+    if (nextCursorPos.current !== null && textareaRef.current) {
+      const pos = nextCursorPos.current;
+      textareaRef.current.selectionStart = pos;
+      textareaRef.current.selectionEnd = pos;
+      nextCursorPos.current = null;
+    }
+  }, [value]);
+
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
+    textareaRef.current = e.target;
     setValue(e.target.value);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
+    const target = e.target as HTMLTextAreaElement;
+    textareaRef.current = target;
+
     if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) {
       engineState.prevChar = '';
       engineState.prevLen = 0;
@@ -58,8 +76,10 @@ export function useTeluguTyping(): UseTeluguTypingReturn {
     const result = transliterate(str);
     const convertedChar = result.str;
 
-    const target = e.target as HTMLTextAreaElement;
-    const { selectionStart, selectionEnd } = target;
+    // Capture these synchronously RIGHT NOW before any state changes
+    const selectionStart = target.selectionStart ?? target.value.length;
+    const selectionEnd = target.selectionEnd ?? target.value.length;
+
     const textBefore = target.value.substring(
       0,
       selectionStart - engineState.prevLen,
@@ -67,12 +87,20 @@ export function useTeluguTyping(): UseTeluguTypingReturn {
     const textAfter = target.value.substring(selectionEnd);
 
     const newValue = textBefore + convertedChar + textAfter;
-    setValue(newValue);
+    const newCursorPos = textBefore.length + convertedChar.length;
 
-    setTimeout(() => {
-      target.selectionStart = target.selectionEnd =
-        textBefore.length + convertedChar.length;
-    }, 0);
+    nextCursorPos.current = newCursorPos;
+
+    // Immediately set cursor on the live element before React re-renders
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        textareaRef.current.selectionStart = newCursorPos;
+        textareaRef.current.selectionEnd = newCursorPos;
+      }
+    });
+
+    setValue(newValue);
+    onChange?.(newValue);
 
     engineState.prevChar = str.substring(result.freezpos);
     engineState.prevLen = result.indic.length;
@@ -84,16 +112,14 @@ export function useTeluguTyping(): UseTeluguTypingReturn {
     }
 
     const finalSuggestions: Suggestion[] = [];
-    const prefixSuggestions = getSuggestions(currentSequence);
-    finalSuggestions.push(...prefixSuggestions);
+    finalSuggestions.push(...getSuggestions(currentSequence));
 
     const baseConsonant = findBaseConsonant(currentSequence);
     if (baseConsonant) {
       const allCombinations = getVowelCombinations(baseConsonant);
-      const filteredCombinations = allCombinations.filter((s) =>
-        s.eng.startsWith(currentSequence),
+      finalSuggestions.push(
+        ...allCombinations.filter((s) => s.eng.startsWith(currentSequence)),
       );
-      finalSuggestions.push(...filteredCombinations);
     }
 
     const uniqueSuggestions = Array.from(
