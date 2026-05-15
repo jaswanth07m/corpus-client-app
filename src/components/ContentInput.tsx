@@ -42,6 +42,10 @@ import {
 } from '@/hooks/useNetworkStrength';
 import { NetworkStrengthIndicator } from './NetworkStrengthIndicator';
 
+const CHUNK_SIZE = 5 * 1024 * 1024;
+const MAX_RETRY_ATTEMPTS = 5;
+const RETRY_DELAY_MS = 1000;
+
 const languages = [
   'assamese',
   'bengali',
@@ -83,6 +87,11 @@ interface FileMetadata {
   title: string;
   description: string;
   categories: Category[];
+}
+
+interface UploadState {
+  uploadUuid: string;
+  uploadedChunks: Set<number>;
 }
 
 // Re-added the VerifiedLocation interface for the verification flow
@@ -131,19 +140,9 @@ interface ContentInputProps {
   setSelectedLangugae: (selectedLanguage: string) => void;
 
   onBack: () => void;
-  onUpload: (
-    file: File,
-    description: string,
-    fileTitle?: string,
-    fileCategories?: Category[],
-  ) => Promise<void>;
-
-  requestLocation: () => void;
+  requestLocation?: () => void;
   handleManualLocationSubmit: () => void;
   handleFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
-
-  chunkedUploadProgress: number;
-  isChunkedUploading?: boolean;
 
   // New props for per-file metadata
   fileMetadata?: FileMetadata[];
@@ -209,6 +208,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   manualLng,
   setManualLng,
   uploading,
+  token,
+  userId,
 
   releaseRights,
   setreleaseRights,
@@ -218,14 +219,8 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   setSelectedLangugae,
 
   onBack,
-  onUpload,
-  resetUploadState,
   requestLocation,
   handleManualLocationSubmit,
-  handleFileSelect,
-  // Phase 4: Chunked upload progress props
-  chunkedUploadProgress = 0,
-  isChunkedUploading = false,
 }) => {
   const { t } = useTranslation();
   const { preferences, setPreferences } = useUserPreferences();
@@ -287,6 +282,16 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   // Location Picker Modal State
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const hasVerifiedLocation = useRef<string>('');
+  // Upload state for chunk uploads - must be declared before usage
+  const [uploadUuid, setUploadUuid] = useState<string>('');
+  const [uploadedChunks, setUploadedChunks] = useState<Set<number>>(new Set());
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  // Bulk upload progress state
+  const [bulkUploadCurrent, setBulkUploadCurrent] = useState<number>(0);
+  const [bulkUploadTotal, setBulkUploadTotal] = useState<number>(0);
+
   const lastValidEstimateRef = useRef<string | null>(null);
   const networkInfo = useNetworkStrength();
 
@@ -299,12 +304,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         : uploadMode === 'text'
           ? getTextContentSize(textContent || '')
           : 0;
-  const clampedUploadProgress = Math.min(
-    100,
-    Math.max(0, chunkedUploadProgress),
-  );
+  const clampedUploadProgress = Math.min(100, Math.max(0, uploadProgress));
 
-  const remainingUploadSize = isChunkedUploading
+  const remainingUploadSize = isUploading
     ? uploadPayloadSize * (1 - clampedUploadProgress / 100)
     : uploadPayloadSize;
 
@@ -330,7 +332,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
 
   const shouldShowUploadEstimate =
     uploadPayloadSize > 0 &&
-    (!isChunkedUploading || Math.round(clampedUploadProgress) < 100);
+    (!isUploading || Math.round(clampedUploadProgress) < 100);
 
   const uploadEstimateLabel = !networkInfo.isOnline
     ? 'Upload Unavailable While Offline'
@@ -685,6 +687,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setRecordedBlob(result.file);
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
+          setFileMetadata([{ title: '', description: '', categories: [] }]);
           setAudioUrl(URL.createObjectURL(result.file));
           resetUploadState?.();
           setIsRecording(false);
@@ -706,6 +709,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           setRecordedBlob(result.file);
           setSelectedFile(result.file);
           setSelectedFiles([result.file]);
+          setFileMetadata([{ title: '', description: '', categories: [] }]);
           setVideoUrl(URL.createObjectURL(result.file));
           resetUploadState?.();
           setIsRecording(false);
@@ -814,6 +818,360 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     }
   };
 
+  const uploadChunk = async (
+    chunk: Blob,
+    chunkIndex: number,
+    totalChunks: number,
+    uploadUuidParam: string,
+    filename: string,
+  ): Promise<boolean> => {
+    const maxRetries = MAX_RETRY_ATTEMPTS;
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+      try {
+        const formData = new FormData();
+        formData.append('chunk', chunk);
+        formData.append('filename', filename);
+        formData.append('chunk_index', chunkIndex.toString());
+        formData.append('total_chunks', totalChunks.toString());
+        formData.append('upload_uuid', uploadUuidParam);
+
+        const response = await fetch(`${BACKEND_URL}/records/upload/chunk`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (response.ok) {
+          return true;
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error(`Upload failed (attempt ${attempt + 1}):`, errorData);
+        }
+      } catch (error) {
+        console.error(`Upload error (attempt ${attempt + 1}):`, error);
+      }
+
+      attempt++;
+      if (attempt < maxRetries) {
+        const delay = RETRY_DELAY_MS * Math.pow(1.5, attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    return false;
+  };
+
+  const readChunk = async (file: File, chunkIndex: number): Promise<Blob> => {
+    const start = chunkIndex * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
+    return file.slice(start, end, file.type);
+  };
+
+  const getTotalChunks = (file: File): number => {
+    return Math.ceil(file.size / CHUNK_SIZE);
+  };
+
+  interface FinalizeResult {
+    success: boolean;
+    errorType?: 'STORAGE_FAILURE' | 'GENERIC_FAILURE';
+    errorMessage?: string;
+  }
+
+  const finalizeUpload = async ({
+    uploadUuid: finalizeUuid,
+    totalChunks,
+    filename,
+    customTitle,
+    customDescription,
+    customCategoryIds,
+  }: {
+    uploadUuid: string;
+    totalChunks: number;
+    filename: string;
+    customTitle?: string;
+    customDescription?: string;
+    customCategoryIds?: string[];
+  }): Promise<FinalizeResult> => {
+    try {
+      const formData = new FormData();
+      formData.append('upload_uuid', finalizeUuid);
+      formData.append('title', customTitle || title);
+      formData.append('description', customDescription || description);
+      const categoryIds = customCategoryIds || [];
+      formData.append('category_ids', JSON.stringify(categoryIds));
+      formData.append('user_id', userId);
+      formData.append('media_type', uploadMode || '');
+      formData.append('latitude', location!.lat.toString());
+      formData.append('longitude', location!.lng.toString());
+      formData.append('use_uid_filename', 'false');
+      formData.append('total_chunks', totalChunks.toString());
+      formData.append('filename', filename);
+      formData.append('release_rights', releaseRights);
+      if (releaseRights === 'others') {
+        formData.append('creator', creator);
+      }
+      formData.append('language', selectedLanguage);
+
+      const response = await fetch(`${BACKEND_URL}/records/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('[Upload Finalize] Response (OK):', result);
+        if (result.success === false || result.error) {
+          console.error(
+            '[Upload Finalize] Backend returned error status in JSON:',
+            result.error || 'Unknown error',
+            result,
+          );
+          return {
+            success: false,
+            errorType: 'STORAGE_FAILURE',
+            errorMessage: result.error,
+          };
+        }
+        if (!result.file_url) {
+          console.error(
+            '[Upload Finalize] Missing file_url in successful response:',
+            result,
+          );
+          return {
+            success: false,
+            errorType: 'STORAGE_FAILURE',
+            errorMessage: 'Server did not return file URL',
+          };
+        }
+        console.log('[Upload Finalize] Success - file_url:', result.file_url);
+        return { success: true };
+      } else {
+        const errorText = await response.text().catch(() => 'N/A');
+        console.error('[Upload Finalize] HTTP Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText,
+        });
+        const status = response.status;
+        if (status >= 500 || status === 403 || status === 401) {
+          return {
+            success: false,
+            errorType: 'STORAGE_FAILURE',
+            errorMessage: 'Storage upload failed',
+          };
+        }
+        return { success: false, errorType: 'GENERIC_FAILURE' };
+      }
+    } catch (error) {
+      console.error(
+        '[Upload Finalize] Exception during fetch or JSON parsing:',
+        error,
+      );
+      return {
+        success: false,
+        errorType: 'STORAGE_FAILURE',
+        errorMessage: 'Upload failed due to server error',
+      };
+    }
+  };
+
+  const uploadChunksSequentially = async (
+    file: File,
+    uploadUuidParam: string,
+    currentUploadedChunks: Set<number>,
+  ): Promise<boolean> => {
+    const totalChunks = getTotalChunks(file);
+    let allChunksSuccessful = true;
+
+    for (let i = 0; i < totalChunks; i++) {
+      if (currentUploadedChunks.has(i)) {
+        const progress = ((i + 1) / totalChunks) * 100;
+        setUploadProgress(progress);
+        continue;
+      }
+
+      const chunk = await readChunk(file, i);
+
+      const success = await uploadChunk(
+        chunk,
+        i,
+        totalChunks,
+        uploadUuidParam,
+        file.name,
+      );
+
+      if (success) {
+        currentUploadedChunks.add(i);
+        setUploadedChunks(new Set(currentUploadedChunks));
+
+        const progress = ((i + 1) / totalChunks) * 100;
+        setUploadProgress(progress);
+      } else {
+        allChunksSuccessful = false;
+        break;
+      }
+    }
+
+    return allChunksSuccessful;
+  };
+
+  const resetUploadState = () => {
+    setUploadUuid('');
+    setUploadedChunks(new Set());
+    setUploadProgress(0);
+    setIsUploading(false);
+  };
+
+  const partialResetUploadState = () => {
+    setUploadProgress(0);
+    setIsUploading(false);
+  };
+
+  const handleUpload = async (
+    file?: File,
+    description?: string,
+    fileTitle?: string,
+    fileCategories?: Category[],
+    uploadState?: UploadState,
+  ): Promise<
+    | boolean
+    | { success: boolean; errorType?: 'STORAGE_FAILURE' | 'GENERIC_FAILURE' }
+  > => {
+    const uploadTitle = fileTitle || title;
+    const uploadDescription = description || '';
+
+    const isMultiFileUpload = !!file && uploadMode !== 'text';
+
+    const categoriesToUse = fileCategories || [];
+    if (categoriesToUse.length === 0 || !uploadTitle.trim()) {
+      toast.error(t('common.pleaseSelectAtLeastOneCategoryAndProvideATitle'));
+      return false;
+    }
+
+    if (!location) {
+      toast.error(
+        t('user.locationIsRequiredPleaseEnableLocationAccessOrEnterManually'),
+      );
+      return false;
+    }
+
+    if (!userId) {
+      toast.error('User ID not found. Please try logging in again.');
+      return false;
+    }
+
+    if (!releaseRights) {
+      toast.error(t('common.releaseRightsNotFoundCheckForReleaseRights'));
+      return false;
+    }
+
+    if (releaseRights == 'downloaded') {
+      toast.error(
+        t(
+          'common.uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission',
+        ),
+      );
+      return false;
+    }
+
+    if (!selectedLanguage) {
+      toast.error(t('common.selectALangauge'));
+      return false;
+    }
+
+    let fileToUpload = file || selectedFile;
+    if (uploadMode === 'text') {
+      if (!textContent.trim()) {
+        toast.error(t('validation.pleaseEnterTextContent'));
+        return false;
+      }
+      const textBlob = new Blob([textContent], { type: 'text/plain' });
+      fileToUpload = new File([textBlob], 'text-content.txt', {
+        type: 'text/plain',
+      });
+    } else if (!fileToUpload) {
+      toast.error('Please select a file');
+      return false;
+    }
+
+    if (!uploadState?.uploadUuid || !uploadState?.uploadedChunks) {
+      console.error('[handleUpload] Missing uploadState - cannot proceed');
+      return { success: false, errorType: 'GENERIC_FAILURE' };
+    }
+    const currentUploadUuid = uploadState.uploadUuid;
+    const currentUploadedChunks = uploadState.uploadedChunks;
+
+    setUploadUuid(currentUploadUuid);
+    setUploadedChunks(currentUploadedChunks);
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const success = await uploadChunksSequentially(
+        fileToUpload!,
+        currentUploadUuid,
+        currentUploadedChunks,
+      );
+
+      if (!success) {
+        partialResetUploadState();
+        setIsUploading(false);
+        return false;
+      }
+
+      const totalChunks = getTotalChunks(fileToUpload!);
+      const finalizeResult = await finalizeUpload({
+        uploadUuid: currentUploadUuid,
+        totalChunks: totalChunks,
+        filename: fileToUpload!.name,
+        customTitle: uploadTitle,
+        customDescription: uploadDescription,
+        customCategoryIds: categoriesToUse.map((cat) => cat.id),
+      });
+
+      if (!finalizeResult.success) {
+        partialResetUploadState();
+        setIsUploading(false);
+        if (finalizeResult.errorType === 'STORAGE_FAILURE') {
+          return { success: false, errorType: 'STORAGE_FAILURE' };
+        }
+        return { success: false, errorType: 'GENERIC_FAILURE' };
+      }
+
+      if (!isMultiFileUpload) {
+        toast.success(
+          'Content uploaded successfully! Redirecting to Landing...',
+        );
+        resetUploadState();
+        setPreferences({
+          language: selectedLanguage,
+          rights: releaseRights,
+        });
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      } else {
+        resetUploadState();
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Upload error:', error);
+      partialResetUploadState();
+      setIsUploading(false);
+      return { success: false, errorType: 'STORAGE_FAILURE' };
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -838,6 +1196,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setRecordedBlob(null);
     setSelectedFile(null);
     setSelectedFiles([]);
+    setFileMetadata([]);
     setRecordingTime(0);
     setAudioUrl(null);
     setVideoUrl(null);
@@ -849,6 +1208,14 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setCameraStream(null);
     setIsCameraActive(false);
     setIsVideoInitialized(false);
+
+    // Ensure video recording service is destroyed when resetting
+    Promise.resolve(videoRecordingService.destroy()).catch((error) => {
+      console.error(
+        'Error destroying video recording service during reset:',
+        error,
+      );
+    });
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -910,7 +1277,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
     setAudioUrl(null);
     setVideoUrl(null);
     toast.success(`${files.length} file(s) selected`);
-    handleFileSelect(event);
   };
 
   const removeFile = (index: number) => {
@@ -936,9 +1302,18 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   const handleUploadWithProgress = async () => {
     setUploadingFiles(true);
 
+    // Reset upload state for new upload
+    setUploadProgress(0);
+    setIsUploading(true);
+    setBulkUploadCurrent(1);
+    setBulkUploadTotal(1);
+
     if (uploadMode === 'text') {
       if (!textContent || !description) {
         setUploadingFiles(false);
+        setIsUploading(false);
+        setBulkUploadCurrent(0);
+        setBulkUploadTotal(0);
         return;
       }
       if (textCategories.length === 0) {
@@ -946,24 +1321,41 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
           'Please select at least one category for your text content.',
         );
         setUploadingFiles(false);
+        setIsUploading(false);
+        setBulkUploadCurrent(0);
+        setBulkUploadTotal(0);
         return;
       }
-      // Create a file from textContent
       const textBlob = new Blob([textContent], { type: 'text/plain' });
       const textFile = new File([textBlob], 'text-content.txt', {
         type: 'text/plain',
       });
+      const uploadState: UploadState = {
+        uploadUuid: crypto.randomUUID(),
+        uploadedChunks: new Set<number>(),
+      };
       try {
-        await onUpload(textFile, description, undefined, textCategories);
+        const result = await handleUpload(
+          textFile,
+          description,
+          undefined,
+          textCategories,
+          uploadState,
+        );
+        if (result && typeof result === 'object' && result.success === false) {
+          throw new Error('Upload failed');
+        }
       } catch (err) {
         console.error(t('common.textUploadFailed'), err);
         toast.error('Text upload failed');
       }
       setUploadingFiles(false);
+      setIsUploading(false);
+      setBulkUploadCurrent(0);
+      setBulkUploadTotal(0);
       return;
     }
 
-    // For other modes, upload selected files
     const uploadFile =
       uploadMode === 'audio'
         ? (latestAudioFileRef.current ??
@@ -977,12 +1369,18 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       return;
     }
 
-    // Validate that each file has title, description, and categories
     for (let i = 0; i < selectedFiles.length; i++) {
       const metadata = fileMetadata[i];
       if (!metadata || !metadata.title || metadata.title.trim().length < 8) {
         toast.error(
           `Please provide a title (minimum 8 characters) for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
+      if (countMeaningfulWords(metadata.title) < 2) {
+        toast.error(
+          `Please provide a title with at least 2 meaningful words for file: ${selectedFiles[i].name}`,
         );
         setUploadingFiles(false);
         return;
@@ -998,6 +1396,13 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         setUploadingFiles(false);
         return;
       }
+      if (countMeaningfulWords(metadata.description) < 10) {
+        toast.error(
+          `Please provide a description with at least 10 meaningful words for file: ${selectedFiles[i].name}`,
+        );
+        setUploadingFiles(false);
+        return;
+      }
       if (!metadata || metadata.categories.length === 0) {
         toast.error(
           `Please select at least one category for file: ${selectedFiles[i].name}`,
@@ -1007,30 +1412,50 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       }
     }
 
-    // Upload all files with their individual metadata
     let allUploadsSuccessful = true;
     let failedCount = 0;
     let hasStorageFailure = false;
 
+    // Set bulk upload total for progress display
+    const totalFiles = selectedFiles.length;
+    setBulkUploadTotal(totalFiles);
+
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
       const metadata = fileMetadata[i];
+
+      // Update current file progress
+      setBulkUploadCurrent(i + 1);
+
       console.log(
-        `[Bulk Upload] Starting upload ${i + 1}/${selectedFiles.length}:`,
+        `[Bulk Upload] Starting upload ${i + 1}/${totalFiles}:`,
         file.name,
       );
+      const uploadState: UploadState = {
+        uploadUuid: crypto.randomUUID(),
+        uploadedChunks: new Set<number>(),
+      };
       try {
-        const result = await onUpload(
+        const result = await handleUpload(
           file,
           metadata.description,
           metadata.title,
           metadata.categories,
+          uploadState,
         );
         console.log(`[Bulk Upload] Upload ${i + 1} result:`, result);
-        if (!result || !result.success) {
+        const uploadSuccessful =
+          result === undefined ||
+          result === true ||
+          (typeof result === 'object' && result?.success === true);
+
+        if (!uploadSuccessful) {
           allUploadsSuccessful = false;
           failedCount++;
-          if (result?.errorType === 'STORAGE_FAILURE') {
+          if (
+            typeof result === 'object' &&
+            result?.errorType === 'STORAGE_FAILURE'
+          ) {
             hasStorageFailure = true;
           }
         }
@@ -1045,16 +1470,18 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       }
     }
 
+    // Reset bulk upload progress state
+    setBulkUploadCurrent(0);
+    setBulkUploadTotal(0);
+
     setUploadingFiles(false);
 
     console.log(
       `[Bulk Upload] Completed. Success: ${allUploadsSuccessful}, Failed: ${failedCount}, StorageError: ${hasStorageFailure}`,
     );
 
-    // Dismiss any existing toasts first to prevent stacking
     toast.dismiss();
 
-    // Single centralized toast handling - ONLY ONE toast per result
     if (allUploadsSuccessful && selectedFiles.length > 0) {
       toast.success(
         `${selectedFiles.length} file(s) uploaded successfully! Redirecting to Home...`,
@@ -1068,12 +1495,10 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
         window.location.href = '/';
       }, 1500);
     } else if (hasStorageFailure) {
-      // Storage/API failure - highest priority, show ONLY this toast
       toast.error(
         'Storage upload failed. Please contact admin or retry later.',
       );
     } else if (failedCount > 0) {
-      // Partial failure without storage error
       if (failedCount === selectedFiles.length) {
         toast.error(
           'All uploads failed. Please check your files and try again.',
@@ -1158,23 +1583,25 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
             </div>
 
             {/* Upload Progress Bar */}
-            {isChunkedUploading && (
+            {isUploading && (
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">
-                    {Math.round(chunkedUploadProgress) === 100
-                      ? 'Uploaded. Analyzing your upload...'
-                      : 'Uploading...'}
+                    {Math.round(uploadProgress) === 100
+                      ? 'Uploaded. Finalizing...'
+                      : bulkUploadTotal > 1
+                        ? `Uploading file ${bulkUploadCurrent} of ${bulkUploadTotal}...`
+                        : 'Uploading...'}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {Math.round(chunkedUploadProgress)}%
+                    {Math.round(uploadProgress)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
                     style={{
-                      width: `${chunkedUploadProgress}%`,
+                      width: `${uploadProgress}%`,
                     }}
                   ></div>
                 </div>
@@ -1520,7 +1947,17 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                   !selectedLanguage ||
                   (uploadMode === 'text' && !textContent) ||
                   (uploadMode === 'text' && textCategories.length === 0) ||
-                  (uploadMode !== 'text' && selectedFiles.length === 0)
+                  (uploadMode !== 'text' && selectedFiles.length === 0) ||
+                  (selectedFiles.length > 0 &&
+                    fileMetadata.some(
+                      (m) =>
+                        !m.title ||
+                        m.title.trim().length < 8 ||
+                        countMeaningfulWords(m.title) < 2 ||
+                        !m.description ||
+                        m.description.trim().length < 32 ||
+                        countMeaningfulWords(m.description) < 10,
+                    ))
                     ? true
                     : false
                 }

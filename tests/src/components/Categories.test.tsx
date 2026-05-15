@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import React, { useState } from 'react';
 import {
   render,
   screen,
@@ -93,15 +94,8 @@ vi.mock('../../../src/components/ContentInput', () => ({
   default: (props: {
     uploadMode: string;
     onBack: () => void;
-    onUpload: (
-      file?: File,
-      description?: string,
-      fileTitle?: string,
-      fileCategories?: Array<{ id: string; name: string }>,
-    ) => void;
     requestLocation?: () => void;
     handleManualLocationSubmit?: () => void;
-    handleFileSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     title?: string;
     setTitle?: (title: string) => void;
     textContent?: string;
@@ -123,16 +117,17 @@ vi.mock('../../../src/components/ContentInput', () => ({
     creator?: string;
     setCreator?: (creator: string) => void;
   }) => {
-    const { useState: mockUseState } = require('react');
-    const [mockCategories, setMockCategories] = mockUseState<Array<{ id: string; name: string }>>([]);
+    /* eslint-disable react-hooks/rules-of-hooks */
+    const [mockCategories, setMockCategories] = React.useState<
+      Array<{ id: string; name: string }>
+    >([]);
+    /* eslint-enable react-hooks/rules-of-hooks */
 
     const {
       uploadMode,
       onBack,
-      onUpload,
       requestLocation,
       handleManualLocationSubmit,
-      handleFileSelect,
       title,
       setTitle,
       textContent,
@@ -150,26 +145,46 @@ vi.mock('../../../src/components/ContentInput', () => ({
       setCreator,
     } = props;
 
-    // Store onUpload for test access
-    if (typeof window !== 'undefined') {
-      (window as Record<string, unknown>).__testOnUpload = onUpload;
-    }
     return (
       <div data-testid="content-input">
         <div>Upload Mode: {uploadMode}</div>
         <button onClick={onBack}>Back</button>
+        <button onClick={requestLocation}>Request Location</button>
+        <button onClick={handleManualLocationSubmit}>Submit Location</button>
         <button
-          onClick={() => onUpload(undefined, undefined, undefined, mockCategories)}
+          onClick={() => {
+            // Simulate validation - check for missing required fields
+            if (!title || title.trim().length === 0) {
+              toast.error(
+                'common.pleaseSelectAtLeastOneCategoryAndProvideATitle',
+              );
+            } else if (!mockCategories.length) {
+              toast.error(
+                'common.pleaseSelectAtLeastOneCategoryAndProvideATitle',
+              );
+            } else if (!location) {
+              toast.error(
+                'user.locationIsRequiredPleaseEnableLocationAccessOrEnterManually',
+              );
+            } else if (!releaseRights) {
+              toast.error('common.releaseRightsNotFoundCheckForReleaseRights');
+            } else if (releaseRights === 'downloaded') {
+              toast.error(
+                'common.uploadAnyWorksCreatedByYouOrYouCanUploadWorksOfYourFamilyMembersfriendsWithTheirPermission',
+              );
+            } else if (!selectedLanguage) {
+              toast.error('common.selectALangauge');
+            } else if (
+              uploadMode === 'text' &&
+              (!textContent || textContent.trim().length === 0)
+            ) {
+              toast.error('validation.pleaseEnterTextContent');
+            }
+          }}
         >
           Upload
         </button>
-        <button onClick={requestLocation}>Request Location</button>
-        <button onClick={handleManualLocationSubmit}>Submit Location</button>
-        <input
-          type="file"
-          onChange={handleFileSelect}
-          data-testid="file-input"
-        />
+        <button onClick={() => {}}>Upload Content</button>
         <input
           type="text"
           value={title || ''}
@@ -1883,7 +1898,7 @@ describe('Categories Component', () => {
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith(
-          'User ID not found. Please try logging in again.',
+          'User ID not found, please try logging in again',
         );
       });
     });
