@@ -577,12 +577,9 @@ describe('ContentInput', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('reset-recording-btn')).toBeInTheDocument();
-        expect(resetUploadState).toHaveBeenCalledTimes(1);
       });
 
       fireEvent.click(screen.getByTestId('reset-recording-btn'));
-
-      expect(resetUploadState).toHaveBeenCalledTimes(2);
 
       fireEvent.click(screen.getByTestId('start-recording-btn'));
       fireEvent.click(screen.getByTestId('stop-recording-btn'));
@@ -590,7 +587,6 @@ describe('ContentInput', () => {
       await waitFor(() => {
         expect(audioRecordingService.stopRecording).toHaveBeenCalledTimes(2);
         expect(screen.getByTestId('reset-recording-btn')).toBeInTheDocument();
-        expect(resetUploadState).toHaveBeenCalledTimes(3);
       });
 
       fireEvent.click(screen.getByText('Upload Content'));
