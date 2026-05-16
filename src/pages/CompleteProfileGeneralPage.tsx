@@ -25,6 +25,7 @@ import {
   internetSpeeds,
   dailyDataLimits,
 } from '@/lib/profileConstants';
+import { LANGUAGE_OPTIONS } from '@/lib/languages';
 import LocationPicker from '@/components/LocationPicker';
 import {
   Globe,
@@ -102,32 +103,6 @@ const PROFICIENCY_OPTIONS = [
   { value: 'basic', label: 'Basic' },
   { value: 'intermediate', label: 'Intermediate' },
   { value: 'proficient', label: 'Proficient' },
-];
-
-const LANGUAGE_OPTIONS = [
-  { value: 'assamese', label: 'Assamese' },
-  { value: 'bengali', label: 'Bengali' },
-  { value: 'bodo', label: 'Bodo' },
-  { value: 'dogri', label: 'Dogri' },
-  { value: 'english', label: 'English' },
-  { value: 'gujarati', label: 'Gujarati' },
-  { value: 'hindi', label: 'Hindi' },
-  { value: 'kannada', label: 'Kannada' },
-  { value: 'kashmiri', label: 'Kashmiri' },
-  { value: 'konkani', label: 'Konkani' },
-  { value: 'maithili', label: 'Maithili' },
-  { value: 'malayalam', label: 'Malayalam' },
-  { value: 'marathi', label: 'Marathi' },
-  { value: 'meitei', label: 'Meitei' },
-  { value: 'nepali', label: 'Nepali' },
-  { value: 'odia', label: 'Odia' },
-  { value: 'punjabi', label: 'Punjabi' },
-  { value: 'sanskrit', label: 'Sanskrit' },
-  { value: 'santali', label: 'Santali' },
-  { value: 'sindhi', label: 'Sindhi' },
-  { value: 'tamil', label: 'Tamil' },
-  { value: 'telugu', label: 'Telugu' },
-  { value: 'urdu', label: 'Urdu' },
 ];
 
 const SOCIAL_MEDIA_PLATFORMS = [
