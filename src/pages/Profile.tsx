@@ -43,6 +43,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { isProfileComplete } from '@/lib/profileUtils';
+import { LANGUAGES } from '@/lib/languages';
 import {
   MapContainer,
   TileLayer,
@@ -61,31 +62,6 @@ import {
   MEDIA_TYPE_LABELS,
   formatContributionDate,
 } from '@/lib/geoUtils';
-
-const languages = [
-  'assamese',
-  'bengali',
-  'bodo',
-  'dogri',
-  'gujarati',
-  'hindi',
-  'kannada',
-  'kashmiri',
-  'konkani',
-  'maithili',
-  'malayalam',
-  'marathi',
-  'meitei',
-  'nepali',
-  'odia',
-  'punjabi',
-  'sanskrit',
-  'santali',
-  'sindhi',
-  'tamil',
-  'telugu',
-  'urdu',
-];
 
 interface FollowedUser {
   id?: string;
@@ -1833,7 +1809,7 @@ function Profile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {languages.map((lang) => (
+                    {LANGUAGES.map((lang) => (
                       <option key={lang} value={lang}>
                         {lang}
                       </option>
@@ -1926,7 +1902,7 @@ function Profile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {languages.map((lang) => (
+                    {LANGUAGES.map((lang) => (
                       <option key={lang} value={lang}>
                         {lang}
                       </option>

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { BACKEND_URL } from '@/lib/constants';
+import { LANGUAGES } from '@/lib/languages';
 
 interface PeerReviewCardProps {
   user_id: string;
@@ -45,31 +46,6 @@ interface HistoryEntry {
   change_source: string;
   field_changes: Record<string, { old_value: unknown; new_value: unknown }>;
 }
-
-const languages = [
-  'assamese',
-  'bengali',
-  'bodo',
-  'dogri',
-  'gujarati',
-  'hindi',
-  'kannada',
-  'kashmiri',
-  'konkani',
-  'maithili',
-  'malayalam',
-  'marathi',
-  'meitei',
-  'nepali',
-  'odia',
-  'punjabi',
-  'sanskrit',
-  'santali',
-  'sindhi',
-  'tamil',
-  'telugu',
-  'urdu',
-];
 
 const releaseOptions = [
   { key: 'creator', value: 'This work is created by Author' },
@@ -681,7 +657,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 />
               </SelectTrigger>
               <SelectContent>
-                {languages.map((lang) => (
+                {LANGUAGES.map((lang) => (
                   <SelectItem key={lang} value={lang}>
                     {lang}
                   </SelectItem>
