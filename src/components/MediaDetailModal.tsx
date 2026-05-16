@@ -20,31 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-
-const languages = [
-  'assamese',
-  'bengali',
-  'bodo',
-  'dogri',
-  'gujarati',
-  'hindi',
-  'kannada',
-  'kashmiri',
-  'konkani',
-  'maithili',
-  'malayalam',
-  'marathi',
-  'meitei',
-  'nepali',
-  'odia',
-  'punjabi',
-  'sanskrit',
-  'santali',
-  'sindhi',
-  'tamil',
-  'telugu',
-  'urdu',
-];
+import { LANGUAGES } from '@/lib/languages';
 
 const releaseOptions = [
   { key: 'creator', value: 'This work is created by Author' },
@@ -949,7 +925,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {languages.map((lang) => (
+                        {LANGUAGES.map((lang) => (
                           <SelectItem key={lang} value={lang}>
                             {lang}
                           </SelectItem>

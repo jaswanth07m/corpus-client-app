@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import CopyUrlButton from '@/components/CopyUrlButton';
 import { ContributionItem } from '@/components/MediaDetailModal';
 import CategoryTags from '@/components/CategoryTags';
+import { LANGUAGES } from '@/lib/languages';
 
 const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
   isSharedView = false,
@@ -673,30 +674,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                           <option value="">
                             {t('common.SelectALanguage')}
                           </option>
-                          {[
-                            'assamese',
-                            'bengali',
-                            'bodo',
-                            'dogri',
-                            'gujarati',
-                            'hindi',
-                            'kannada',
-                            'kashmiri',
-                            'konkani',
-                            'maithili',
-                            'malayalam',
-                            'marathi',
-                            'meitei',
-                            'nepali',
-                            'odia',
-                            'punjabi',
-                            'sanskrit',
-                            'santali',
-                            'sindhi',
-                            'tamil',
-                            'telugu',
-                            'urdu',
-                          ].map((lang) => (
+                          {LANGUAGES.map((lang) => (
                             <option key={lang} value={lang}>
                               {lang}
                             </option>

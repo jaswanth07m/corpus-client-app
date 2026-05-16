@@ -41,35 +41,11 @@ import {
   formatEstimatedUploadTime,
 } from '@/hooks/useNetworkStrength';
 import { NetworkStrengthIndicator } from './NetworkStrengthIndicator';
+import { LANGUAGES } from '@/lib/languages';
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_RETRY_ATTEMPTS = 5;
 const RETRY_DELAY_MS = 1000;
-
-const languages = [
-  'assamese',
-  'bengali',
-  'bodo',
-  'dogri',
-  'gujarati',
-  'hindi',
-  'kannada',
-  'kashmiri',
-  'konkani',
-  'maithili',
-  'malayalam',
-  'marathi',
-  'meitei',
-  'nepali',
-  'odia',
-  'punjabi',
-  'sanskrit',
-  'santali',
-  'sindhi',
-  'tamil',
-  'telugu',
-  'urdu',
-];
 
 interface Category {
   id: string;
@@ -452,31 +428,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
       description: 'Upload document files (PDF, DOCX, etc.)',
       accept: '.pdf,.doc,.docx,.txt',
     },
-  ];
-
-  const languages = [
-    'assamese',
-    'bengali',
-    'bodo',
-    'dogri',
-    'gujarati',
-    'hindi',
-    'kannada',
-    'kashmiri',
-    'konkani',
-    'maithili',
-    'malayalam',
-    'marathi',
-    'meitei',
-    'nepali',
-    'odia',
-    'punjabi',
-    'sanskrit',
-    'santali',
-    'sindhi',
-    'tamil',
-    'telugu',
-    'urdu',
   ];
 
   useEffect(() => {
@@ -1875,7 +1826,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 onChange={(e) => setSelectedLangugae(e.target.value)}
               >
                 <option value="">{t('common.SelectALanguage')}</option>
-                {languages.map((lang) => (
+                {LANGUAGES.map((lang) => (
                   <option key={lang} value={lang}>
                     {lang}
                   </option>
@@ -2017,7 +1968,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {languages.map((lang) => (
+                    {LANGUAGES.map((lang) => (
                       <option key={lang} value={lang}>
                         {lang}
                       </option>
