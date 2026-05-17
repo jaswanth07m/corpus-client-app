@@ -24,11 +24,12 @@ import { toast } from 'sonner';
 import CopyUrlButton from '@/components/CopyUrlButton';
 import { ContributionItem } from '@/components/MediaDetailModal';
 import CategoryTags from '@/components/CategoryTags';
-import { LANGUAGES } from '@/lib/languages';
+import { useLanguages } from '@/lib/languages';
 
 const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
   isSharedView = false,
 }) => {
+  const { languages } = useLanguages();
   const { t } = useTranslation();
   const { recordId } = useParams<{ recordId: string }>();
   const [record, setRecord] = useState<ContributionItem | null>(null);
@@ -674,7 +675,7 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                           <option value="">
                             {t('common.SelectALanguage')}
                           </option>
-                          {LANGUAGES.map((lang) => (
+                          {languages.map((lang) => (
                             <option key={lang} value={lang}>
                               {lang}
                             </option>
