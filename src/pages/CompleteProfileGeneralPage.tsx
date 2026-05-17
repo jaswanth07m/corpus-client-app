@@ -25,7 +25,7 @@ import {
   internetSpeeds,
   dailyDataLimits,
 } from '@/lib/profileConstants';
-import { LANGUAGE_OPTIONS } from '@/lib/languages';
+import { DEFAULT_PROFILE_LANGUAGES, useLanguages } from '@/lib/languages';
 import LocationPicker from '@/components/LocationPicker';
 import {
   Globe,
@@ -97,8 +97,6 @@ interface UserProfile {
   is_intern?: boolean;
 }
 
-const INTERNSHIP_LANGUAGES = ['Telugu', 'Hindi', 'English', 'Urdu'];
-
 const PROFICIENCY_OPTIONS = [
   { value: 'basic', label: 'Basic' },
   { value: 'intermediate', label: 'Intermediate' },
@@ -121,6 +119,7 @@ const PRIVACY_OPTIONS = [
 ];
 
 const CompleteProfileGeneralPage: React.FC = () => {
+  const { languageOptions } = useLanguages();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -180,8 +179,8 @@ const CompleteProfileGeneralPage: React.FC = () => {
   const [languageProficiencies, setLanguageProficiencies] = useState<
     LanguageProficiency[]
   >(
-    INTERNSHIP_LANGUAGES.map((lang) => ({
-      language: lang.toLowerCase(),
+    DEFAULT_PROFILE_LANGUAGES.map((lang) => ({
+      language: lang,
       proficiency: '',
     })),
   );
@@ -1151,7 +1150,7 @@ const CompleteProfileGeneralPage: React.FC = () => {
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          {LANGUAGE_OPTIONS.map((option) => (
+                          {languageOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
                             </SelectItem>
