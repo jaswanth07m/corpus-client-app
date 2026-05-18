@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { BACKEND_URL } from '@/lib/constants';
-import { LANGUAGES } from '@/lib/languages';
+import { useLanguages } from '@/lib/languages';
 
 interface PeerReviewCardProps {
   user_id: string;
@@ -77,6 +77,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   language: propLanguage,
   category,
 }) => {
+  const { languages } = useLanguages();
   const recordUrl = `${window.location.origin}/records/${record_id}`;
   const [changed, setChanged] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -657,7 +658,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 />
               </SelectTrigger>
               <SelectContent>
-                {LANGUAGES.map((lang) => (
+                {languages.map((lang) => (
                   <SelectItem key={lang} value={lang}>
                     {lang}
                   </SelectItem>
