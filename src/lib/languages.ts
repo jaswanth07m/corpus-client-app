@@ -6,41 +6,6 @@ export interface LanguageOption {
   label: string;
 }
 
-export const BUILTIN_LANGUAGES = [
-  'assamese',
-  'bengali',
-  'bhili',
-  'bodo',
-  'dogri',
-  'english',
-  'garo',
-  'gujarati',
-  'gondi',
-  'hindi',
-  'ho',
-  'kannada',
-  'khandeshi',
-  'kashmiri',
-  'khasi',
-  'konkani',
-  'kurukh',
-  'maithili',
-  'malayalam',
-  'marathi',
-  'mundari',
-  'meitei',
-  'nepali',
-  'odia',
-  'punjabi',
-  'sanskrit',
-  'santali',
-  'sindhi',
-  'tamil',
-  'telugu',
-  'tulu',
-  'urdu',
-];
-
 export const DEFAULT_PROFILE_LANGUAGES = ['telugu', 'hindi', 'english', 'urdu'];
 
 export function formatLanguageLabel(language: string): string {
@@ -54,7 +19,7 @@ export function toLanguageOptions(languages: string[]): LanguageOption[] {
   }));
 }
 
-let cachedLanguages: string[] | null = BUILTIN_LANGUAGES;
+let cachedLanguages: string[] | null = null;
 let inFlightLanguagesRequest: Promise<string[]> | null = null;
 
 export async function fetchLanguages(): Promise<string[]> {
@@ -69,8 +34,11 @@ export async function fetchLanguages(): Promise<string[]> {
   inFlightLanguagesRequest = axiosInstance
     .get<string[]>('/languages')
     .then((response) => {
-      cachedLanguages = response.data;
-      return response.data;
+      const filtered = response.data.filter(
+        (lang) => lang.toLowerCase() !== 'na',
+      );
+      cachedLanguages = filtered;
+      return filtered;
     })
     .finally(() => {
       inFlightLanguagesRequest = null;
