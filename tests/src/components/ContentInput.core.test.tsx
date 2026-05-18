@@ -46,6 +46,54 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
+const mockLanguages = vi.hoisted(() => [
+  'assamese',
+  'bengali',
+  'bhili',
+  'bodo',
+  'dogri',
+  'english',
+  'garo',
+  'gujarati',
+  'gondi',
+  'hindi',
+  'ho',
+  'kannada',
+  'khandeshi',
+  'kashmiri',
+  'khasi',
+  'konkani',
+  'kurukh',
+  'maithili',
+  'malayalam',
+  'marathi',
+  'mundari',
+  'meitei',
+  'nepali',
+  'odia',
+  'punjabi',
+  'sanskrit',
+  'santali',
+  'sindhi',
+  'tamil',
+  'telugu',
+  'tulu',
+  'urdu',
+]);
+
+vi.mock('@/lib/languages', () => ({
+  useLanguages: () => ({
+    languages: mockLanguages,
+    languageOptions: mockLanguages.map((l: string) => ({
+      value: l,
+      label: l.charAt(0).toUpperCase() + l.slice(1),
+    })),
+    isLoading: false,
+    error: null,
+  }),
+  DEFAULT_PROFILE_LANGUAGES: ['telugu', 'hindi', 'english', 'urdu'],
+}));
+
 vi.mock('@/hooks/useNetworkStrength', () => ({
   useNetworkStrength: () => mockNetworkInfo,
   getEstimatedUploadMbps: (info: {

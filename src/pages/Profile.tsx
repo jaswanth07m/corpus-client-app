@@ -43,7 +43,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWelcomeTour } from '@/hooks/useWelcomeTour';
 import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { isProfileComplete } from '@/lib/profileUtils';
-import { LANGUAGES } from '@/lib/languages';
+import { useLanguages } from '@/lib/languages';
 import {
   MapContainer,
   TileLayer,
@@ -655,6 +655,7 @@ function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
 }
 
 function Profile() {
+  const { languages } = useLanguages();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -1809,7 +1810,7 @@ function Profile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {LANGUAGES.map((lang) => (
+                    {languages.map((lang) => (
                       <option key={lang} value={lang}>
                         {lang}
                       </option>
@@ -1902,7 +1903,7 @@ function Profile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {LANGUAGES.map((lang) => (
+                    {languages.map((lang) => (
                       <option key={lang} value={lang}>
                         {lang}
                       </option>
