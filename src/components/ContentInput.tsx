@@ -41,7 +41,7 @@ import {
   formatEstimatedUploadTime,
 } from '@/hooks/useNetworkStrength';
 import { NetworkStrengthIndicator } from './NetworkStrengthIndicator';
-import { useLanguages } from '@/lib/languages';
+import { LANGUAGES } from '@/lib/languages';
 
 const CHUNK_SIZE = 5 * 1024 * 1024;
 const MAX_RETRY_ATTEMPTS = 5;
@@ -199,7 +199,6 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   handleManualLocationSubmit,
 }) => {
   const { t } = useTranslation();
-  const { languages } = useLanguages();
   const { preferences, setPreferences } = useUserPreferences();
   const [showPreferencesPanel, setShowPreferencesPanel] = useState(false);
   const [localPrefs, setLocalPrefs] = useState({
@@ -1827,7 +1826,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 onChange={(e) => setSelectedLangugae(e.target.value)}
               >
                 <option value="">{t('common.SelectALanguage')}</option>
-                {languages.map((lang) => (
+                {LANGUAGES.map((lang) => (
                   <option key={lang} value={lang}>
                     {lang}
                   </option>
@@ -1969,7 +1968,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {languages.map((lang) => (
+                    {LANGUAGES.map((lang) => (
                       <option key={lang} value={lang}>
                         {lang}
                       </option>

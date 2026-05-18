@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useLanguages } from '@/lib/languages';
+import { LANGUAGES } from '@/lib/languages';
 
 const releaseOptions = [
   { key: 'creator', value: 'This work is created by Author' },
@@ -88,7 +88,6 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   onClose,
   isOwnProfile,
 }) => {
-  const { languages } = useLanguages();
   const [showHistory, setShowHistory] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -926,7 +925,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {languages.map((lang) => (
+                        {LANGUAGES.map((lang) => (
                           <SelectItem key={lang} value={lang}>
                             {lang}
                           </SelectItem>
