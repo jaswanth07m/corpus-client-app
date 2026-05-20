@@ -4,6 +4,7 @@
 stages:
   - test
   - build
+  - build-apk
 
 test:
   stage: test
@@ -56,4 +57,45 @@ build-job:
   artifacts:
     paths:
       - dist/
+    expire_in: 1 week
+
+build-apk:
+  stage: build-apk
+  image: node:22-alpine
+  needs: []
+  before_script:
+    # Install Java and essential tools
+    - apk add --no-cache openjdk21 curl unzip git bash
+    - mkdir -p /opt/android-sdk
+    - export ANDROID_SDK_ROOT=/opt/android-sdk
+    - export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
+    - export GRADLE_OPTS="-Xmx4096m -XX:+UseG1GC"
+    - |
+      if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
+        echo "Downloading Android SDK cmdline-tools..."
+        curl -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+        unzip -q /tmp/cmdline-tools.zip -d /tmp/
+        mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+        mv /tmp/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
+        rm /tmp/cmdline-tools.zip
+      fi
+    # Accept SDK licenses
+    - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+    # Install required SDK components
+    - sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125" > /dev/null 2>&1
+    - npm ci
+  script:
+    - echo "Building React application..."
+    - npm run build
+    - echo ""
+    - echo "Syncing Capacitor..."
+    - npx cap sync
+    - echo ""
+    - echo "Building debug APK..."
+    - export GRADLE_OPTS="-Xmx4096m -XX:+UseG1GC"
+    - cd android && ./gradlew assembleDebug && cd ..
+    - echo "APK build completed successfully."
+  artifacts:
+    paths:
+      - android/app/build/outputs/apk/debug/
     expire_in: 1 week
