@@ -13,6 +13,13 @@ vi.mock('@/lib/constants', () => ({
   BACKEND_URL: 'http://test-api.com',
 }));
 
+vi.mock('@/hooks/useToolEventFilters', () => ({
+  useToolEventFilters: (fallbackFilters: unknown) => ({
+    reviewFilters: fallbackFilters,
+    isReady: true,
+  }),
+}));
+
 vi.mock('@/components/PeerReviewCard', () => ({
   default: ({ title }: { title: string }) => (
     <div data-testid="peer-review-card">{title}</div>

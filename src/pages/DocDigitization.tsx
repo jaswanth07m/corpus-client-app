@@ -1,5 +1,6 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
 import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
+import { useToolEventFilters } from '@/hooks/useToolEventFilters';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -230,6 +231,12 @@ function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
 
 function DocDigitization() {
   const { t } = useTranslation();
+  const fallbackFilters = useMemo(
+    () => ({ media_type: ['document'], is_fully_proofread: false }),
+    [],
+  );
+  const { reviewFilters, isReady: areReviewFiltersReady } =
+    useToolEventFilters(fallbackFilters);
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [recordId, setRecordId] = useState<string | null>(null);
   const [fullRecordData, setFullRecordData] = useState<RecordDetails | null>(
@@ -484,6 +491,10 @@ function DocDigitization() {
   };
 
   async function fetchNextRecord() {
+    if (!areReviewFiltersReady) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setBookData(null);
@@ -505,7 +516,7 @@ function DocDigitization() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            filters: { media_type: ['document'], is_fully_proofread: false },
+            filters: reviewFilters,
             limit: 1,
           }),
         },
@@ -737,7 +748,9 @@ function DocDigitization() {
                   <button
                     className="w-full bg-green-600 text-white hover:bg-green-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
                     onClick={fetchNextRecord}
-                    disabled={isLoading || isSearching}
+                    disabled={
+                      isLoading || isSearching || !areReviewFiltersReady
+                    }
                   >
                     {isLoading
                       ? t('common.loading')

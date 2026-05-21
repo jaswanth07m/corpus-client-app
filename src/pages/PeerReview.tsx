@@ -1,5 +1,6 @@
 import PeerReviewCard from '@/components/PeerReviewCard';
 import UserSearchResults from '@/components/UserSearchResults';
+import { useToolEventFilters } from '@/hooks/useToolEventFilters';
 import { BACKEND_URL } from '@/lib/constants';
 import {
   ArrowLeft,
@@ -8,7 +9,7 @@ import {
   LogOut,
   Search,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import BottomNav from '@/components/BottomNav';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +43,12 @@ const PeerReview: React.FC = () => {
   const numberOfRecordsRemoved = 5;
   const pageTitle = t('common.peerReview');
   const pageDescription = t('common.reviewCommunityContributions');
+  const fallbackFilters = useMemo(
+    () => ({ media_type: ['audio', 'video', 'image'] }),
+    [],
+  );
+  const { reviewFilters, isReady: areReviewFiltersReady } =
+    useToolEventFilters(fallbackFilters);
 
   const [recordIdList, setRecordIdList] = useState<PeerReviewCardProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -74,36 +81,50 @@ const PeerReview: React.FC = () => {
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
-  // Fetch categories
-  const fetchCategories = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      setCategoriesLoading(true);
-      setCategoriesError(null);
-      const response = await fetch(`${BACKEND_URL}/categories/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
-
-      const data = await response.json();
-      setCategories(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setCategoriesError(
-        err instanceof Error ? err.message : 'Error fetching categories',
-      );
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchCategories();
+    let isActive = true;
+    const token = localStorage.getItem('token');
+
+    async function fetchCategories() {
+      try {
+        if (!isActive) {
+          return;
+        }
+        setCategoriesLoading(true);
+        setCategoriesError(null);
+        const response = await fetch(`${BACKEND_URL}/categories/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+
+        const data = await response.json();
+        if (isActive) {
+          setCategories(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        if (isActive) {
+          setCategoriesError(
+            err instanceof Error ? err.message : 'Error fetching categories',
+          );
+        }
+      } finally {
+        if (isActive) {
+          setCategoriesLoading(false);
+        }
+      }
+    }
+
+    void fetchCategories();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   // Handle category tag click
@@ -151,9 +172,9 @@ const PeerReview: React.FC = () => {
       })
     : recordIdList;
 
-  async function fetchMoreData() {
+  const fetchMoreData = useCallback(async () => {
     // Don't fetch more data if user is searching
-    if (isFetching || !hasMore) return;
+    if (!areReviewFiltersReady || isFetching || !hasMore) return;
 
     setIsFetching(true);
 
@@ -171,9 +192,7 @@ const PeerReview: React.FC = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            filters: {
-              media_type: ['audio', 'video', 'image'],
-            },
+            filters: reviewFilters,
             limit: numberOfRecordsFetched,
           }),
         },
@@ -261,7 +280,13 @@ const PeerReview: React.FC = () => {
     } finally {
       setIsFetching(false);
     }
-  }
+  }, [
+    areReviewFiltersReady,
+    hasMore,
+    isFetching,
+    numberOfRecordsFetched,
+    reviewFilters,
+  ]);
 
   async function searchRecords(query: string) {
     const token = localStorage.getItem('token');
@@ -422,116 +447,10 @@ const PeerReview: React.FC = () => {
   };
 
   useEffect(() => {
-    // Load initial records on component mount
-    const init = async () => {
-      // Don't fetch more data if user is searching
-      if (isFetching || !hasMore) return;
-
-      setIsFetching(true);
-
-      const token = localStorage.getItem('token');
-
-      try {
-        const nextRecordResponse = await fetch(
-          `${BACKEND_URL}/records/for-review`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              filters: {
-                media_type: ['audio', 'video', 'image'],
-              },
-              limit: numberOfRecordsFetched,
-            }),
-          },
-        );
-
-        if (!nextRecordResponse.ok) {
-          const errorData = await nextRecordResponse.json();
-          throw new Error(errorData.message || 'Error in fetching');
-        }
-
-        const responseBody = await nextRecordResponse.json();
-        const responseArray = responseBody.record_ids;
-
-        if (!Array.isArray(responseArray) || responseArray.length === 0) {
-          setHasMore(false);
-          return;
-        }
-
-        for (const item of responseArray) {
-          const { record_id } = item;
-          try {
-            const [recordDetailsResponse, recordUrlResponse] =
-              await Promise.all([
-                fetch(`${BACKEND_URL}/records/${record_id}`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                }),
-                fetch(`${BACKEND_URL}/records/${record_id}/record-url`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                }),
-              ]);
-
-            if (!recordDetailsResponse.ok || !recordUrlResponse.ok) {
-              continue;
-            }
-
-            const recordDetails = await recordDetailsResponse
-              .json()
-              .catch(() => null);
-            const urlData = await recordUrlResponse.json().catch(() => null);
-
-            if (!recordDetails || !urlData) {
-              continue;
-            }
-
-            const successfull: PeerReviewCardProps = {
-              user_id: recordDetails.user_id,
-              username:
-                recordDetails.user_name ||
-                recordDetails.username ||
-                recordDetails.userName ||
-                `user_${recordDetails.user_id}`,
-              record_id: record_id,
-              title: recordDetails.title,
-              description: recordDetails.description,
-              media_type: recordDetails.media_type,
-              release_rights: recordDetails.release_rights,
-              language: recordDetails.language,
-              dataUrl: urlData.record_url,
-              category:
-                recordDetails.category_name ||
-                recordDetails.category ||
-                recordDetails.category_id ||
-                (recordDetails.categories &&
-                  Array.isArray(recordDetails.categories) &&
-                  recordDetails.categories[0]?.title) ||
-                (recordDetails.category_ids &&
-                Array.isArray(recordDetails.category_ids) &&
-                recordDetails.category_ids.length > 0
-                  ? recordDetails.category_ids[0]
-                  : undefined),
-            };
-
-            setRecordIdList((prev) => [...prev, successfull]);
-          } catch (err) {
-            continue;
-          }
-        }
-      } catch (err) {
-        const error = err as Error;
-        setError(error.message);
-        setHasMore(false);
-      } finally {
-        setIsFetching(false);
-      }
-    };
-
-    init();
-  }, [numberOfRecordsFetched, hasMore, isFetching]);
+    if (areReviewFiltersReady) {
+      void fetchMoreData();
+    }
+  }, [areReviewFiltersReady, fetchMoreData]);
 
   // Effect to disable scrolling when user search modal is open
   useEffect(() => {
