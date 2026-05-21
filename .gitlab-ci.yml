@@ -84,6 +84,9 @@ build-apk:
     # Install required SDK components
     - sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125" > /dev/null 2>&1
     - npm ci
+    # Disable AAPT2 daemon for CI environment
+    - mkdir -p ~/.gradle
+    - echo "android.enableAapt2Daemon=false" >> ~/.gradle/gradle.properties
   script:
     - echo "Building React application..."
     - npm run build
