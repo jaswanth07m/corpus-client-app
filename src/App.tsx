@@ -33,13 +33,13 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-      <NetworkProvider>
+        <NetworkProvider>
           <Toaster />
           <Sonner position="top-center" />
           <BrowserRouter>
             <AuthProvider>
               <UserPreferencesProvider>
-              <Routes>
+                <Routes>
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route
@@ -108,7 +108,9 @@ const App = () => (
                     />
                     <Route
                       path="/complete-profile"
-                      element={<Navigate to="/complete-profile/step-2" replace />}
+                      element={
+                        <Navigate to="/complete-profile/step-2" replace />
+                      }
                     />
                     <Route
                       path="/complete-profile/step-2"
@@ -184,21 +186,21 @@ const App = () => (
                     }
                   />
 
-                <Route
-                  path="/records/:recordId"
-                  element={
-                    <RequireAuth>
-                      <RecordDetails />
-                    </RequireAuth>
-                  }
-                />
+                  <Route
+                    path="/records/:recordId"
+                    element={
+                      <RequireAuth>
+                        <RecordDetails />
+                      </RequireAuth>
+                    }
+                  />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </UserPreferencesProvider>
-          </AuthProvider>
+            </AuthProvider>
           </BrowserRouter>
-      </NetworkProvider>
+        </NetworkProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
