@@ -72,6 +72,7 @@ vi.mock('@/components/ContributionDashboard', () => ({
       <span data-testid="uploads-today">{dailyStats.uploads_today}</span>
       <span data-testid="total-uploads">{dailyStats.total_uploads}</span>
       <span data-testid="streak-days">{dailyStats.streak_days}</span>
+      <span data-testid="edits-count">{edits}</span>
       <button
         data-testid="media-type-button-text"
         onClick={() => onMediaTypeClick('text')}
@@ -402,6 +403,69 @@ describe('Profile Page', () => {
       // Verify the avatar's parent container has cursor-pointer class (indicating it's clickable)
       const avatarContainer = avatar.parentElement;
       expect(avatarContainer).toHaveClass('cursor-pointer');
+    });
+  });
+
+  it('hydrates own-profile edits from detailed summary response', async () => {
+    mockLocalStorage.getItem.mockImplementation((key: string) => {
+      if (key === 'token') return 'mock-token-12345';
+      if (key === 'username') return 'testuser';
+      if (key === 'currentPath') return '/profile/testuser';
+      return null;
+    });
+
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: 'user-123',
+          name: 'Test User',
+          username: 'testuser',
+          streak_days: 1,
+          total_contributions: 0,
+          total_edits: 0,
+          total_activities: 0,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          user_name: 'Detailed User',
+          streaks: {
+            combined_streak: {
+              current: 7,
+              longest: 12,
+              total_active_days: 25,
+            },
+          },
+          summary: {
+            contributions: {
+              total_contributions: 2,
+              contributions_by_media_type: {
+                text: 1,
+                audio: 0,
+                image: 1,
+                video: 0,
+                document: 0,
+              },
+            },
+            edits: {
+              total_edits: 5,
+            },
+            overall: {
+              total_activities: 7,
+            },
+          },
+          timeline: { sample: [] },
+        }),
+      });
+
+    renderWithRouter(<Profile />, ['/profile/testuser']);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('edits-count')).toHaveTextContent('5');
     });
   });
 
