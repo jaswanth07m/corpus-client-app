@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { latLngBounds } from 'leaflet';
 import { X, MapPin, AlertCircle, RefreshCw } from 'lucide-react';
 import {
   MapContainer,
@@ -39,11 +40,10 @@ function FitBounds({ data }: { data: FlatContribution[] }) {
       map.setView([17.385044, 78.486671], 10);
       return;
     }
-    const L = (window as any).L ?? require('leaflet');
     const bounds = data.map(
       (c) => [c.location.latitude, c.location.longitude] as [number, number],
     );
-    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 10 });
+    map.fitBounds(latLngBounds(bounds), { padding: [60, 60], maxZoom: 10 });
   }, [map, data]);
   return null;
 }

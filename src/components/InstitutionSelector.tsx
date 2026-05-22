@@ -89,7 +89,6 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         setCollegesLoading(false);
       }
     },
-    [],
     [academicStream],
   );
 
@@ -168,7 +167,7 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     setInstitutions([]);
     onChange('');
     doFetchUniversities('');
-  }, [academicStream]);
+  }, [academicStream, doFetchUniversities, initialLoadDone, onChange]);
 
   function handleUniversitySearchChange(value: string) {
     setUniversitySearch(value);
