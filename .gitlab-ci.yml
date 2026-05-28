@@ -69,7 +69,6 @@ build-apk:
     - mkdir -p /opt/android-sdk
     - export ANDROID_SDK_ROOT=/opt/android-sdk
     - export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
-    - export GRADLE_OPTS="-Xmx4096m -XX:+UseG1GC"
     - |
       if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
         echo "Downloading Android SDK cmdline-tools..."
@@ -84,9 +83,17 @@ build-apk:
     # Install required SDK components
     - sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125" > /dev/null 2>&1
     - npm ci
-    # Disable AAPT2 daemon for CI environment
+    # Optimize Gradle for CI environment with limited RAM
     - mkdir -p ~/.gradle
-    - echo "android.enableAapt2Daemon=false" >> ~/.gradle/gradle.properties
+    - |
+      cat >> ~/.gradle/gradle.properties << EOF
+      org.gradle.jvmargs=-Xmx2048m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      org.gradle.parallel=true
+      org.gradle.workers.max=4
+      org.gradle.caching=true
+      org.gradle.daemon=false
+      android.enableAapt2Daemon=false
+      EOF
   script:
     - echo "Building React application..."
     - npm run build
@@ -94,9 +101,8 @@ build-apk:
     - echo "Syncing Capacitor..."
     - npx cap sync
     - echo ""
-    - echo "Building debug APK..."
-    - export GRADLE_OPTS="-Xmx4096m -XX:+UseG1GC"
-    - cd android && ./gradlew assembleDebug && cd ..
+    - echo "Building debug APK (memory optimized)..."
+    - cd android && ./gradlew assembleDebug --no-daemon --build-cache && cd ..
     - echo "APK build completed successfully."
   artifacts:
     paths:
