@@ -208,13 +208,20 @@ function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
   const pageMap = new Map<number, Segment[]>();
 
   segments.forEach((segment, index) => {
-    const pageNum = segment.start + 1;
     const segmentWithIndex = { ...segment, originalIndex: index };
 
-    if (!pageMap.has(pageNum)) {
-      pageMap.set(pageNum, []);
+    const startPage = segment.start + 1;
+    const endPage = segment.end;
+
+    if (segment.end - segment.start > 1) {
+      for (let p = startPage; p <= endPage; p++) {
+        if (!pageMap.has(p)) pageMap.set(p, []);
+        pageMap.get(p)!.push(segmentWithIndex);
+      }
+    } else {
+      if (!pageMap.has(startPage)) pageMap.set(startPage, []);
+      pageMap.get(startPage)!.push(segmentWithIndex);
     }
-    pageMap.get(pageNum)!.push(segmentWithIndex);
   });
 
   pageMap.forEach((pageSegments) => {
@@ -617,9 +624,15 @@ function DocDigitization() {
     setError(null);
     const token = localStorage.getItem('token');
 
+    const seenIndices = new Set<number>();
     const allSegments: Segment[] = [];
     segmentsByPage.forEach((pageSegments) => {
-      allSegments.push(...pageSegments);
+      pageSegments.forEach((seg) => {
+        if (!seenIndices.has(seg.originalIndex!)) {
+          seenIndices.add(seg.originalIndex!);
+          allSegments.push(seg);
+        }
+      });
     });
     allSegments.sort((a, b) => {
       if (a.start !== b.start) return a.start - b.start;
