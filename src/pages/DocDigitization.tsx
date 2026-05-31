@@ -387,6 +387,14 @@ function DocDigitization() {
     [segmentsByPage],
   );
 
+  const pageRangeLabel = useMemo(() => {
+    if (currentPageSegments.length === 0) return '';
+    const pages = currentPageSegments.map((s) => s.start + 1);
+    const minP = Math.min(...pages);
+    const maxP = Math.max(...currentPageSegments.map((s) => s.end));
+    return minP === maxP ? `Page ${minP}` : `Pages ${minP}-${maxP}`;
+  }, [currentPageSegments]);
+
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
       setPageNumber(validPages[0]);
@@ -1004,7 +1012,8 @@ function DocDigitization() {
             </h2>
             {currentPageSegments.length > 0 && (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Page {pageNumber} - {currentPageSegments.length} segments
+                {pageRangeLabel} - {currentPageSegments.length} segment
+                {currentPageSegments.length > 1 ? 's' : ''}
               </p>
             )}
           </div>
@@ -1431,7 +1440,7 @@ function DocDigitization() {
                     </h2>
                     {currentPageSegments.length > 0 && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Page {pageNumber} - {currentPageSegments.length} segment
+                        {pageRangeLabel} - {currentPageSegments.length} segment
                         {currentPageSegments.length > 1 ? 's' : ''}
                       </p>
                     )}
