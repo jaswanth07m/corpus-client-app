@@ -382,6 +382,16 @@ function DocDigitization() {
   };
 
   const currentPageSegments = getCurrentPageSegments();
+  const validPages = useMemo(
+    () => [...segmentsByPage.keys()].sort((a, b) => a - b),
+    [segmentsByPage],
+  );
+
+  useEffect(() => {
+    if (validPages.length > 0 && !validPages.includes(pageNumber)) {
+      setPageNumber(validPages[0]);
+    }
+  }, [validPages, pageNumber]);
 
   // Compute the reference dimensions for bbox overlay positioning.
   // Uses inferred OCR image dimensions when bbox coords are in pixel space,
@@ -688,8 +698,9 @@ function DocDigitization() {
       toast.success(`Page ${pageNumber} submitted successfully!`);
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
 
-      if (numPages && pageNumber < numPages) {
-        setPageNumber(pageNumber + 1);
+      const currentIdx = validPages.indexOf(pageNumber);
+      if (currentIdx < validPages.length - 1) {
+        setPageNumber(validPages[currentIdx + 1]);
       } else {
         await fetchNextRecord();
       }
@@ -805,8 +816,11 @@ function DocDigitization() {
                   {/* Navigation Arrows & Dropdown */}
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
-                      disabled={pageNumber <= 1}
+                      onClick={() => {
+                        const idx = validPages.indexOf(pageNumber);
+                        if (idx > 0) setPageNumber(validPages[idx - 1]);
+                      }}
+                      disabled={validPages.indexOf(pageNumber) <= 0}
                       className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4" />
@@ -817,10 +831,7 @@ function DocDigitization() {
                         onChange={(e) => setPageNumber(Number(e.target.value))}
                         className="appearance-none bg-white/10 dark:bg-gray-700 border border-white/20 dark:border-gray-600 text-gray-900 dark:text-gray-300 text-[10px] font-black py-1 pl-2 pr-6 rounded focus:outline-none cursor-pointer"
                       >
-                        {Array.from(
-                          { length: Math.max(0, Math.floor(numPages || 0)) },
-                          (_, i) => i + 1,
-                        ).map((p) => (
+                        {validPages.map((p) => (
                           <option
                             key={`mobile_zoom_page_opt_${p}`}
                             value={p}
@@ -839,10 +850,14 @@ function DocDigitization() {
                       </div>
                     </div>
                     <button
-                      onClick={() =>
-                        setPageNumber(Math.min(numPages, pageNumber + 1))
+                      onClick={() => {
+                        const idx = validPages.indexOf(pageNumber);
+                        if (idx < validPages.length - 1)
+                          setPageNumber(validPages[idx + 1]);
+                      }}
+                      disabled={
+                        validPages.indexOf(pageNumber) >= validPages.length - 1
                       }
-                      disabled={pageNumber >= numPages}
                       className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
                     >
                       <ArrowLeft className="h-4 w-4" />
@@ -1214,10 +1229,11 @@ function DocDigitization() {
                       {/* Navigation Arrows */}
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() =>
-                            setPageNumber(Math.max(1, pageNumber - 1))
-                          }
-                          disabled={pageNumber <= 1}
+                          onClick={() => {
+                            const idx = validPages.indexOf(pageNumber);
+                            if (idx > 0) setPageNumber(validPages[idx - 1]);
+                          }}
+                          disabled={validPages.indexOf(pageNumber) <= 0}
                           className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
                           title={t('common.previousPage')}
                         >
@@ -1231,12 +1247,7 @@ function DocDigitization() {
                             }
                             className="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-[9px] font-black py-1 pl-2 pr-7 rounded uppercase tracking-tighter focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer transition-colors"
                           >
-                            {Array.from(
-                              {
-                                length: Math.max(0, Math.floor(numPages || 0)),
-                              },
-                              (_, i) => i + 1,
-                            ).map((p) => (
+                            {validPages.map((p) => (
                               <option
                                 key={`desktop_page_opt_${p}`}
                                 value={p}
@@ -1255,10 +1266,15 @@ function DocDigitization() {
                           </div>
                         </div>
                         <button
-                          onClick={() =>
-                            setPageNumber(Math.min(numPages, pageNumber + 1))
+                          onClick={() => {
+                            const idx = validPages.indexOf(pageNumber);
+                            if (idx < validPages.length - 1)
+                              setPageNumber(validPages[idx + 1]);
+                          }}
+                          disabled={
+                            validPages.indexOf(pageNumber) >=
+                            validPages.length - 1
                           }
-                          disabled={pageNumber >= numPages}
                           className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
                           title={t('common.nextPage')}
                         >
@@ -1594,7 +1610,9 @@ function DocDigitization() {
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => {
               setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
-              setPageNumber(Math.min(numPages, pageNumber + 1));
+              const idx = validPages.indexOf(pageNumber);
+              if (idx < validPages.length - 1)
+                setPageNumber(validPages[idx + 1]);
             }}
             disabled={isSubmitting}
           >
@@ -1605,13 +1623,13 @@ function DocDigitization() {
             onClick={handleSubmitPage}
             disabled={
               isSubmitting ||
-              !numPages ||
-              Object.keys(submittedPages).length < numPages
+              validPages.length === 0 ||
+              Object.keys(submittedPages).length < validPages.length
             }
           >
             {isSubmitting
               ? 'Submitting...'
-              : Object.keys(submittedPages).length === numPages
+              : Object.keys(submittedPages).length === validPages.length
                 ? 'Submit Complete Record'
                 : 'Submit all pages to enable'}
           </button>
