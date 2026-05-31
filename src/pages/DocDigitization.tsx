@@ -23,7 +23,7 @@ import {
   Draggable,
   DropResult,
 } from '@hello-pangea/dnd';
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, RotateCw } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -44,6 +44,8 @@ type Segment = {
   type?: string;
   reading_order?: number;
   originalIndex?: number;
+  extraction_metadata?: Record<string, unknown>;
+  named_entities?: Record<string, unknown>;
 };
 
 type ExtractedTextResponse = {
@@ -274,6 +276,12 @@ function DocDigitization() {
   const [editingSegmentIndex, setEditingSegmentIndex] = useState<number | null>(
     null,
   );
+  const [flippedSegmentIndex, setFlippedSegmentIndex] = useState<number | null>(
+    null,
+  );
+  const [metadataEditingIndex, setMetadataEditingIndex] = useState<
+    number | null
+  >(null);
   const [pendingReorder, setPendingReorder] = useState<DropResult | null>(null);
   const [mobileTextMode, setMobileTextMode] = useState<
     'hidden' | 'all' | 'single'
@@ -336,6 +344,30 @@ function DocDigitization() {
           ...updatedSegments[segmentIndex],
           text: newValue,
         };
+        newMap.set(pageNumber, updatedSegments);
+      }
+      return newMap;
+    });
+  };
+
+  const handleMetadataChange = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    key: string,
+    newValue: string,
+  ) => {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        meta[key] = newValue;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
         newMap.set(pageNumber, updatedSegments);
       }
       return newMap;
@@ -1064,32 +1096,142 @@ function DocDigitization() {
 
                               <div className="flex-1 min-w-0">
                                 <div className="flex justify-start items-center gap-2 h-4">
-                                  {editingSegmentIndex !== idx ? (
+                                  {flippedSegmentIndex === idx ? (
                                     <>
+                                      {metadataEditingIndex !== idx ? (
+                                        <button
+                                          onClick={() =>
+                                            setMetadataEditingIndex(idx)
+                                          }
+                                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                        >
+                                          Edit
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            setMetadataEditingIndex(null)
+                                          }
+                                          className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                                        >
+                                          Done
+                                        </button>
+                                      )}
                                       <button
-                                        onClick={() =>
-                                          setEditingSegmentIndex(idx)
-                                        }
-                                        className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                        onClick={() => {
+                                          setEditingSegmentIndex(null);
+                                          setMetadataEditingIndex(null);
+                                          setFlippedSegmentIndex(null);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 px-1.5 py-0 bg-purple-600 text-white text-[8px] font-bold rounded transition-opacity"
                                       >
-                                        Edit
+                                        <RotateCw className="h-3 w-3" />
                                       </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      {editingSegmentIndex !== idx ? (
+                                        <button
+                                          onClick={() =>
+                                            setEditingSegmentIndex(idx)
+                                          }
+                                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                        >
+                                          Edit
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            setEditingSegmentIndex(null)
+                                          }
+                                          className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                                        >
+                                          Done
+                                        </button>
+                                      )}
+                                      {(segment.extraction_metadata ||
+                                        segment.named_entities) && (
+                                        <button
+                                          onClick={() => {
+                                            setEditingSegmentIndex(null);
+                                            setMetadataEditingIndex(null);
+                                            setFlippedSegmentIndex(idx);
+                                          }}
+                                          className={`opacity-0 group-hover:opacity-100 px-1.5 py-0 text-[8px] font-bold rounded transition-opacity bg-gray-400 hover:bg-gray-500 text-white`}
+                                        >
+                                          <RotateCw className="h-3 w-3" />
+                                        </button>
+                                      )}
                                       <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
                                         {segment.type || 'Text'}
                                       </span>
                                     </>
-                                  ) : (
-                                    <button
-                                      onClick={() =>
-                                        setEditingSegmentIndex(null)
-                                      }
-                                      className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
-                                    >
-                                      Done
-                                    </button>
                                   )}
                                 </div>
-                                {editingSegmentIndex === idx ? (
+                                {flippedSegmentIndex === idx ? (
+                                  <div className="space-y-2 mt-1">
+                                    {segment.extraction_metadata &&
+                                      Object.entries(
+                                        segment.extraction_metadata,
+                                      ).map(([key, value]) => (
+                                        <div key={key} className="text-[11px]">
+                                          <span className="font-bold text-gray-600 dark:text-gray-400">
+                                            {key}:
+                                          </span>{' '}
+                                          {metadataEditingIndex === idx ? (
+                                            <input
+                                              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
+                                              value={String(value)}
+                                              onChange={(e) =>
+                                                handleMetadataChange(
+                                                  idx,
+                                                  'extraction_metadata',
+                                                  key,
+                                                  e.target.value,
+                                                )
+                                              }
+                                            />
+                                          ) : (
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {Array.isArray(value)
+                                                ? value.join(', ')
+                                                : String(value)}
+                                            </span>
+                                          )}
+                                        </div>
+                                      ))}
+                                    {segment.named_entities &&
+                                      Object.entries(
+                                        segment.named_entities,
+                                      ).map(([key, value]) => (
+                                        <div key={key} className="text-[11px]">
+                                          <span className="font-bold text-gray-600 dark:text-gray-400">
+                                            {key}:
+                                          </span>{' '}
+                                          {metadataEditingIndex === idx ? (
+                                            <input
+                                              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
+                                              value={String(value)}
+                                              onChange={(e) =>
+                                                handleMetadataChange(
+                                                  idx,
+                                                  'named_entities',
+                                                  key,
+                                                  e.target.value,
+                                                )
+                                              }
+                                            />
+                                          ) : (
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {Array.isArray(value)
+                                                ? value.join(', ')
+                                                : String(value)}
+                                            </span>
+                                          )}
+                                        </div>
+                                      ))}
+                                  </div>
+                                ) : editingSegmentIndex === idx ? (
                                   <AutoResizeTextArea
                                     value={segment.text || ''}
                                     onChange={(e) =>
@@ -1534,32 +1676,142 @@ function DocDigitization() {
 
                                   <div className="flex-1 min-w-0">
                                     <div className="flex justify-start items-center gap-2 h-4">
-                                      {editingSegmentIndex !== idx ? (
+                                      {flippedSegmentIndex === idx ? (
                                         <>
+                                          {metadataEditingIndex !== idx ? (
+                                            <button
+                                              onClick={() =>
+                                                setMetadataEditingIndex(idx)
+                                              }
+                                              className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                            >
+                                              Edit
+                                            </button>
+                                          ) : (
+                                            <button
+                                              onClick={() =>
+                                                setMetadataEditingIndex(null)
+                                              }
+                                              className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
+                                            >
+                                              Done
+                                            </button>
+                                          )}
                                           <button
-                                            onClick={() =>
-                                              setEditingSegmentIndex(idx)
-                                            }
-                                            className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                            onClick={() => {
+                                              setEditingSegmentIndex(null);
+                                              setMetadataEditingIndex(null);
+                                              setFlippedSegmentIndex(null);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 px-1.5 py-0 bg-purple-600 text-white text-[9px] font-bold rounded transition-opacity"
                                           >
-                                            Edit
+                                            <RotateCw className="h-3 w-3" />
                                           </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          {editingSegmentIndex !== idx ? (
+                                            <button
+                                              onClick={() =>
+                                                setEditingSegmentIndex(idx)
+                                              }
+                                              className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                            >
+                                              Edit
+                                            </button>
+                                          ) : (
+                                            <button
+                                              onClick={() =>
+                                                setEditingSegmentIndex(null)
+                                              }
+                                              className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
+                                            >
+                                              Done
+                                            </button>
+                                          )}
+                                          {(segment.extraction_metadata ||
+                                            segment.named_entities) && (
+                                            <button
+                                              onClick={() => {
+                                                setEditingSegmentIndex(null);
+                                                setMetadataEditingIndex(null);
+                                                setFlippedSegmentIndex(idx);
+                                              }}
+                                              className="opacity-0 group-hover:opacity-100 px-1.5 py-0 text-[9px] font-bold rounded transition-opacity bg-gray-400 hover:bg-gray-500 text-white"
+                                            >
+                                              <RotateCw className="h-3 w-3" />
+                                            </button>
+                                          )}
                                           <span className="opacity-0 group-hover:opacity-100 text-[9px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
                                             {segment.type || 'Text'}
                                           </span>
                                         </>
-                                      ) : (
-                                        <button
-                                          onClick={() =>
-                                            setEditingSegmentIndex(null)
-                                          }
-                                          className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
-                                        >
-                                          Done
-                                        </button>
                                       )}
                                     </div>
-                                    {editingSegmentIndex === idx ? (
+                                    {flippedSegmentIndex === idx ? (
+                                      <div className="space-y-2 mt-1">
+                                        {segment.extraction_metadata &&
+                                          Object.entries(
+                                            segment.extraction_metadata,
+                                          ).map(([key, value]) => (
+                                            <div key={key} className="text-xs">
+                                              <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                {key}:
+                                              </span>{' '}
+                                              {metadataEditingIndex === idx ? (
+                                                <input
+                                                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
+                                                  value={String(value)}
+                                                  onChange={(e) =>
+                                                    handleMetadataChange(
+                                                      idx,
+                                                      'extraction_metadata',
+                                                      key,
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                />
+                                              ) : (
+                                                <span className="text-gray-800 dark:text-gray-200">
+                                                  {Array.isArray(value)
+                                                    ? value.join(', ')
+                                                    : String(value)}
+                                                </span>
+                                              )}
+                                            </div>
+                                          ))}
+                                        {segment.named_entities &&
+                                          Object.entries(
+                                            segment.named_entities,
+                                          ).map(([key, value]) => (
+                                            <div key={key} className="text-xs">
+                                              <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                {key}:
+                                              </span>{' '}
+                                              {metadataEditingIndex === idx ? (
+                                                <input
+                                                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
+                                                  value={String(value)}
+                                                  onChange={(e) =>
+                                                    handleMetadataChange(
+                                                      idx,
+                                                      'named_entities',
+                                                      key,
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                />
+                                              ) : (
+                                                <span className="text-gray-800 dark:text-gray-200">
+                                                  {Array.isArray(value)
+                                                    ? value.join(', ')
+                                                    : String(value)}
+                                                </span>
+                                              )}
+                                            </div>
+                                          ))}
+                                      </div>
+                                    ) : editingSegmentIndex === idx ? (
                                       <AutoResizeTextArea
                                         placeholder={t(
                                           'common.editSegmentText',
