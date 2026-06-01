@@ -1278,10 +1278,8 @@ function DocDigitization() {
                                     }
                                   />
                                 ) : (
-                                  <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {segment.text || ''}
-                                    </ReactMarkdown>
+                                  <div className="w-full whitespace-pre-wrap text-sm leading-relaxed text-gray-900 dark:text-gray-100 p-0 rounded">
+                                    {segment.text || ''}
                                   </div>
                                 )}
                               </div>
@@ -1362,11 +1360,9 @@ function DocDigitization() {
                         disabled={!bookData || isLoading || isSubmitting}
                       />
                     ) : (
-                      <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {currentPageSegments[highlightedSegmentIndex].text ||
-                            ''}
-                        </ReactMarkdown>
+                      <div className="w-full whitespace-pre-wrap text-sm leading-relaxed text-gray-900 dark:text-gray-100 border border-transparent p-0 rounded">
+                        {currentPageSegments[highlightedSegmentIndex].text ||
+                          ''}
                       </div>
                     )}
                   </div>
@@ -1867,12 +1863,8 @@ function DocDigitization() {
                                         }
                                       />
                                     ) : (
-                                      <div className="w-full prose prose-xl dark:prose-invert max-w-none p-0 rounded">
-                                        <ReactMarkdown
-                                          remarkPlugins={[remarkGfm]}
-                                        >
-                                          {segment.text || ''}
-                                        </ReactMarkdown>
+                                      <div className="w-full whitespace-pre-wrap text-sm leading-relaxed text-gray-900 dark:text-gray-100 p-0 rounded">
+                                        {segment.text || ''}
                                       </div>
                                     )}
                                   </div>
