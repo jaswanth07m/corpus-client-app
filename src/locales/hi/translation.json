@@ -402,7 +402,8 @@
     "storageUploadFailedPleaseContactAdminOrRetryLater": "स्टोरेज अपलोड विफल। कृपया एडमिन से संपर्क करें या बाद में पुनः प्रयास करें।",
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "सभी अपलोड विफल। कृपया अपनी फ़ाइलें जांचें और पुनः प्रयास करें।",
     "pleaseSelectAtLeastOneCategoryForYourTextContent": "",
-    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": ""
+    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "",
+    "submitCompleteRecord": ""
   },
   "ui": {
     "failed": {
@@ -756,7 +757,8 @@
     "loadingDistrictBoundariesPleaseWait": "जिला सीमाएँ लोड हो रही हैं... कृपया प्रतीक्षा करें",
     "loadingDistrictBoundaries": "जिला सीमाएँ लोड हो रही हैं...",
     "somethingWentWrong": "कुछ गलत हो गया",
-    "tryAgain": "पुनः प्रयास करें"
+    "tryAgain": "पुनः प्रयास करें",
+    "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
@@ -837,7 +839,8 @@
     "enterRecordId": "रिकॉर्ड आईडी दर्ज करें",
     "recordControls": "रिकॉर्ड नियंत्रण",
     "resumeRecordId": "resume रिकॉर्ड ID:",
-    "copyRecordUrl": "रिकॉर्ड URL कॉपी करें"
+    "copyRecordUrl": "रिकॉर्ड URL कॉपी करें",
+    "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",

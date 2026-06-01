@@ -423,7 +423,8 @@
     "storageUploadFailedPleaseContactAdminOrRetryLater": "Storage upload failed. Please contact admin or retry later.",
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again.",
     "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content.",
-    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "Please flip and review metadata/named entities before submitting."
+    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "Please flip and review metadata/named entities before submitting.",
+    "submitCompleteRecord": "Submit Complete Record"
   },
   "ui": {
     "failed": {
@@ -777,7 +778,8 @@
     "saving": "Saving...",
     "loadingMap": "Loading map...",
     "loadingDistrictBoundariesPleaseWait": "Loading district boundaries... please wait",
-    "loadingDistrictBoundaries": "Loading district boundaries..."
+    "loadingDistrictBoundaries": "Loading district boundaries...",
+    "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": "2. Are you sure all the metadata (title, genre, character,\n                  etc.) are validated and approved for the segments?"
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -863,7 +865,8 @@
     "text": "Text",
     "image": "Image",
     "video": "Video",
-    "audio": "Audio"
+    "audio": "Audio",
+    "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "1. Are you sure all the text segments are validated to the\n                  page images provided?"
   },
   "stats": {
     "contributionsYet": "contributions yet.",

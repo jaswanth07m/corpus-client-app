@@ -288,6 +288,7 @@ function DocDigitization() {
     'hidden' | 'all' | 'single'
   >('hidden');
   const [showRecordPanel, setShowRecordPanel] = useState(false);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [flippedViewedOriginalIndices, setFlippedViewedOriginalIndices] =
     useState<Set<number>>(new Set());
 
@@ -1992,7 +1993,7 @@ function DocDigitization() {
           </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
-            onClick={handleSubmitPage}
+            onClick={() => setShowSubmitConfirm(true)}
             disabled={
               isSubmitting ||
               validPages.length === 0 ||
@@ -2003,7 +2004,7 @@ function DocDigitization() {
             {isSubmitting
               ? 'Submitting...'
               : Object.keys(submittedPages).length === validPages.length
-                ? 'Submit Complete Record'
+                ? t('common.submitCompleteRecord')
                 : 'Submit all pages to enable'}
           </button>
         </div>
@@ -2028,6 +2029,34 @@ function DocDigitization() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmReorder}>
               {t('common.update.order')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showSubmitConfirm} onOpenChange={setShowSubmitConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit Complete Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-4 pt-2">
+                <p>
+                  {t(
+                    'media.1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided',
+                  )}
+                </p>
+                <p>
+                  {t(
+                    'messages.2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments',
+                  )}
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmitPage}>
+              Yes
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

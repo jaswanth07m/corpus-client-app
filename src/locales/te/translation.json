@@ -415,7 +415,8 @@
     "uploadImageFilesMax5Files": "ఇమేజ్ ఫైల్‌లను అప్‌లోడ్ చేయండి (గరిష్టంగా 5 ఫైల్‌లు)",
     "storageUploadFailedPleaseContactAdminOrRetryLater": "స్టోరేజ్ అప్‌లోడ్ విఫలమైంది. కోస్ యాజమాన్యంతో ఎప్పటికప్పుడు మళ్లీ ప్రయత్నించండి.",
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "అన్ని అప్‌లోడ్‌లు విఫలమైనాయి. కన్నా ఫైల్‌లను ధృవీకరించండి.",
-    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": ""
+    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "",
+    "submitCompleteRecord": ""
   },
   "ui": {
     "failed": {
@@ -768,7 +769,8 @@
     "loadingDistrictBoundariesPleaseWait": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి... దయచేసి వేచి ఉండండి",
     "loadingDistrictBoundaries": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి...",
     "somethingWentWrong": "ఏదో తప్పు జరిగింది",
-    "tryAgain": "మళ్లీ ప్రయత్నించండి"
+    "tryAgain": "మళ్లీ ప్రయత్నించండి",
+    "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -849,7 +851,8 @@
     "enterRecordId": "రికార్డ్ IDని నమోదు చేయండి",
     "recordControls": "రికార్డ్ నియంత్రణలు",
     "resumeRecordId": "resume రికార్డ్ ID:",
-    "copyRecordUrl": "రికార్డ్ URL కాపీ చేయండి"
+    "copyRecordUrl": "రికార్డ్ URL కాపీ చేయండి",
+    "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
