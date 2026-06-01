@@ -467,6 +467,13 @@ function DocDigitization() {
     [currentPageSegments, flippedViewedOriginalIndices],
   );
 
+  const hasBboxes = useMemo(() => {
+    for (const pageSegments of segmentsByPage.values()) {
+      if (pageSegments.some((seg) => seg.bbox)) return true;
+    }
+    return false;
+  }, [segmentsByPage]);
+
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
       setPageNumber(validPages[0]);
@@ -985,16 +992,18 @@ function DocDigitization() {
                   <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
 
                   {/* BBox Toggle */}
-                  <button
-                    className={`p-1 rounded text-[8px] font-black uppercase transition-colors ${
-                      showBboxes
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
-                    }`}
-                    onClick={() => setShowBboxes(!showBboxes)}
-                  >
-                    {showBboxes ? 'BBox' : 'Off'}
-                  </button>
+                  {hasBboxes && (
+                    <button
+                      className={`p-1 rounded text-[8px] font-black uppercase transition-colors ${
+                        showBboxes
+                          ? 'bg-purple-600 text-white shadow-sm'
+                          : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+                      }`}
+                      onClick={() => setShowBboxes(!showBboxes)}
+                    >
+                      {showBboxes ? 'BBox' : 'Off'}
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="w-full h-[500px] overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
@@ -1535,16 +1544,18 @@ function DocDigitization() {
                       <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
 
                       {/* Toggle Buttons */}
-                      <button
-                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
-                          showBboxes
-                            ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
-                            : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
-                        }`}
-                        onClick={() => setShowBboxes(!showBboxes)}
-                      >
-                        {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
-                      </button>
+                      {hasBboxes && (
+                        <button
+                          className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
+                            showBboxes
+                              ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
+                              : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
+                          }`}
+                          onClick={() => setShowBboxes(!showBboxes)}
+                        >
+                          {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
+                        </button>
+                      )}
                     </div>
                     {/* PDF viewer with bounding box overlays */}
                     <div
