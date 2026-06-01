@@ -268,145 +268,6 @@
         "number": "కళాశాల రోల్ నంబర్"
       }
     },
-    "selectCollege": "కళాశాల ఎంచుకోండి",
-    "cantFindYourInstitutionSelectOtherNotInList": "మీ సంస్థ కనుగొనబడలేదా? \"ఇతర (జాబితాలో లేదు)\" ఎంచుకోండి.",
-    "selectCategory": "వర్గం ఎంచుకోండి",
-    "specific": {
-      "stream": "నిర్దిష్ట స్ట్రీమ్"
-    },
-    "selectStream": "స్ట్రీమ్ ఎంచుకోండి",
-    "selectYear": "సంవత్సరం ఎంచుకోండి",
-    "task": {
-      "registered": {
-        "id": "TASK నమోదిత ID"
-      },
-      "id": "TASK ID"
-    },
-    "device": {
-      "internet": "పరికరం మరియు ఇంటర్నెట్"
-    },
-    "has": {
-      "laptop": "ల్యాప్‌టాప్ ఉందా?"
-    },
-    "laptop": {
-      "os": "ల్యాప్‌టాప్ OS",
-      "ram": "ల్యాప్‌టాప్ RAM"
-    },
-    "selectOs": "OS ఎంచుకోండి",
-    "selectRam": "RAM ఎంచుకోండి",
-    "mobile": {
-      "os": "మొబైల్ OS",
-      "ram": "మొబైల్ RAM"
-    },
-    "internet": {
-      "speed": "ఇంటర్నెట్ స్పీడ్"
-    },
-    "selectSpeed": "స్పీడ్ ఎంచుకోండి",
-    "daily": {
-      "data": {
-        "limit": "డైలీ డేటా లిమిట్"
-      }
-    },
-    "selectLimit": "లిమిట్ ఎంచుకోండి",
-    "list": {
-      "your": {
-        "ai": {
-          "courses": "మీ AI కోర్సుల జాబితా ఇవ్వండి"
-        }
-      }
-    },
-    "language": {
-      "proficiency": "భాష నైపుణ్యం"
-    },
-    "selectYourProficiencyLevelForEachLanguage": "ప్రతి భాషకు మీ నైపుణ్య స్థాయిని ఎంచుకోండి",
-    "rural": {
-      "area": {
-        "access": "గ్రామీణ ప్రాంత యాక్సెస్"
-      }
-    },
-    "completed": {
-      "ai": {
-        "courses": "పూర్తయిన AI కోర్సులు"
-      }
-    },
-    "gender": "లింగం *",
-    "academic": {
-      "details": "విద్యా వివరాలు",
-      "stream": "విద్యా స్ట్రీమ్"
-    },
-    "roll": {
-      "number": "రోల్ నంబర్"
-    },
-    "whatIsYourPermanentPostalAddress": "మీ శాశ్వత పోస్టల్ చిరునామా ఏమిటి?",
-    "enterYourCompletePermanentAddress": "మీ పూర్తి శాశ్వత చిరునామా నమోదు చేయండి",
-    "uploadResumeLabel": "resume అప్‌లోడ్ చేయండి (గరిష్టం 100 MB) *",
-    "supportedFileTypes": "సమర్థించబడే ఫైల్ రకాలు: PDF, DOC, DOCX, ODT, RTF, TXT, TEX, PAGES",
-    "fileTypeNotAllowedForSecurityReasons": "భద్రత కారణాల వల్ల ఫైల్ రకం అనుమతించబడదు",
-    "archiveFileTypesAreNotAllowed": "ఆర్కైవ్ ఫైల్ రకాలు అనుమతించబడవు",
-    "fileSizeMustBeLessThan100mb": "ఫైల్ పరిమాణం 100MB కంటే తక్కువ ఉండాలి",
-    "invalidFilename": "ఫైల్‌నామంలో అమान్య అక్షరాలు ఉన్నాయి",
-    "do": {
-      "you": {
-        "have": {
-          "a": {
-            "laptop": "మీ వద్ద ల్యాప్‌టాప్ ఉందా? *"
-          }
-        }
-      }
-    },
-    "saving": "సేవ్ అవుతోంది...",
-    "preview": "ప్రివ్యూ:",
-    "noPreviewAvailable": "ప్రివ్యూ అందుబాటులో లేదు",
-    "searchPlaceOrAddress": "స్థలం లేదా చిరునామా వెతకండి",
-    "searching": "వెతుకుతోంది...",
-    "failed": {
-      "to": {
-        "copy": {
-          "url": "URLను కాపీ చేయడం విఫలమైంది"
-        }
-      }
-    },
-    "goBackHome": "హోమ్‌కు తిరిగి వెళ్ళు",
-    "recordNotFound": "రికార్డ్ కనుగొనబడలేదు",
-    "viewDocument": "డాక్యుమెంట్‌ను చూడండి",
-    "noRecordsFoundInThisCategory": "ఈ వర్గంలో రికార్డులు లభించలేదు",
-    "trySelectingADifferentCategoryOrClearingTheFilter": "వేరే వర్గాన్ని ఎంచుకోండి లేదా ఫిల్టర్‌ను క్లియర్ చేయడానికి ప్రయత్నించండి.",
-    "clearFilter": "ఫిల్టర్‌ను క్లియర్ చేయండి",
-    "workstation": {
-      "os": "వర్క్‌స్టేషన్ OS",
-      "ram": "వర్క్‌స్టేషన్ RAM"
-    },
-    "basicInfo": "ప్రాథమిక సమాచారం",
-    "location": "స్థానం",
-    "privacySettings": "గోప్యత సెట్టింగ్‌లు",
-    "phonePrivacy": "ఫోన్ గోప్యత",
-    "emailPrivacy": "ఇమెయిల్ గోప్యత",
-    "selectPrivacy": "గోప్యత ఎంచుకోండి",
-    "saveChanges": "మార్పులను సేవ్ చేయండి",
-    "view": "చూడండి",
-    "start": {
-      "welcome": {
-        "tour": "స్వాగత టూర్‌ను ప్రారంభించండి"
-      }
-    },
-    "takeAnother": "మరొకటి తీయండి",
-    "photoCapturedClickStopCameraWhenDone": "ఫోటో క్యాప్చర్ చేయబడింది. అయినప్పుడు కెమెరా ఆపండి.",
-    "university": "విశ్వవిద్యాలయం",
-    "selectUniversity": "విశ్వవిద్యాలయం ఎంచుకోండి",
-    "pleaseSelectUniversityFirst": "దయచేసి ముందుగా విశ్వవిద్యాలయం ఎంచుకోండి",
-    "specialization": "విశేషీకరణ",
-    "selectSpecialization": "విశేషీకరణ ఎంచుకోండి",
-    "pleaseSelectCollegeFirst": "దయచేసి ముందుగా కళాశాల ఎంచుకోండి",
-    "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది",
-    "remove": "తొలగించు",
-    "normalUser": "సాధారణ వినియోగదారు",
-    "are": {
-      "you": {
-        "an": {
-          "intern": "మీరు ఇంటర్న్‌నా? *"
-        }
-      }
-    },
     "selectCollege": "",
     "cantFindYourInstitutionSelectOtherNotInList": "",
     "selectCategory": "",
@@ -478,7 +339,12 @@
     },
     "whatIsYourPermanentPostalAddress": "",
     "enterYourCompletePermanentAddress": "",
-    "uploadResumePdfOnlyMax5mb": "",
+    "uploadResumeLabel": "resume అప్‌లోడ్ చేయండి (గరిష్టం 100 MB) *",
+    "supportedFileTypes": "సమర్థించబడే ఫైల్ రకాలు: PDF, DOC, DOCX, ODT, RTF, TXT, TEX, PAGES",
+    "fileTypeNotAllowedForSecurityReasons": "భద్రత కారణాల వల్ల ఫైల్ రకం అనుమతించబడదు",
+    "archiveFileTypesAreNotAllowed": "ఆర్కైవ్ ఫైల్ రకాలు అనుమతించబడవు",
+    "fileSizeMustBeLessThan100mb": "ఫైల్ పరిమాణం 100MB కంటే తక్కువ ఉండాలి",
+    "invalidFilename": "ఫైల్‌నామంలో అమान్య అక్షరాలు ఉన్నాయి",
     "do": {
       "you": {
         "have": {
@@ -510,6 +376,29 @@
       "os": "వర్క్‌స్టేషన్ OS",
       "ram": "వర్క్‌స్టేషన్ RAM"
     },
+    "basicInfo": "ప్రాథమిక సమాచారం",
+    "location": "స్థానం",
+    "privacySettings": "గోప్యత సెట్టింగ్‌లు",
+    "phonePrivacy": "ఫోన్ గోప్యత",
+    "emailPrivacy": "ఇమెయిల్ గోప్యత",
+    "selectPrivacy": "గోప్యత ఎంచుకోండి",
+    "saveChanges": "మార్పులను సేవ్ చేయండి",
+    "view": "చూడండి",
+    "start": {
+      "welcome": {
+        "tour": "స్వాగత టూర్‌ను ప్రారంభించండి"
+      }
+    },
+    "takeAnother": "మరొకటి తీయండి",
+    "photoCapturedClickStopCameraWhenDone": "ఫోటో క్యాప్చర్ చేయబడింది. అయినప్పుడు కెమెరా ఆపండి.",
+    "university": "విశ్వవిద్యాలయం",
+    "selectUniversity": "విశ్వవిద్యాలయం ఎంచుకోండి",
+    "pleaseSelectUniversityFirst": "దయచేసి ముందుగా విశ్వవిద్యాలయం ఎంచుకోండి",
+    "specialization": "విశేషీకరణ",
+    "selectSpecialization": "విశేషీకరణ ఎంచుకోండి",
+    "pleaseSelectCollegeFirst": "దయచేసి ముందుగా కళాశాల ఎంచుకోండి",
+    "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది",
+    "remove": "తొలగించు",
     "normalUser": "సాధారణ వినియోగదారు",
     "are": {
       "you": {
@@ -518,14 +407,15 @@
         }
       }
     },
-    "reviewedAndVerified": "సమీక్షించబడింది మరియు ధృవీకరించబడింది",
+    "uploadResumePdfOnlyMax5mb": "",
     "savePreferences": "ప్రిఫరెన్సులను సేవ్ చేయండి",
     "uploadDocumentFilesPdfDocxTxtMax5Files": "డాక్యుమెంట్ ఫైల్‌లను అప్‌లోడ్ చేయండి (PDF, DOCX, TXT) - గరిష్టంగా 5 ఫైల్‌లు",
     "uploadAudioFilesMax5Files": "ఆడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (గరిష్టంగా 5 ఫైల్‌లు)",
     "uploadVideoFilesMax5Files": "వీడియో ఫైల్‌లను అప్‌లోడ్ చేయండి (గరిష్టంగా 5 ఫైల్‌లు)",
     "uploadImageFilesMax5Files": "ఇమేజ్ ఫైల్‌లను అప్‌లోడ్ చేయండి (గరిష్టంగా 5 ఫైల్‌లు)",
     "storageUploadFailedPleaseContactAdminOrRetryLater": "స్టోరేజ్ అప్‌లోడ్ విఫలమైంది. కోస్ యాజమాన్యంతో ఎప్పటికప్పుడు మళ్లీ ప్రయత్నించండి.",
-    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "అన్ని అప్‌లోడ్‌లు విఫలమైనాయి. కన్నా ఫైల్‌లను ధృవీకరించండి."
+    "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "అన్ని అప్‌లోడ్‌లు విఫలమైనాయి. కన్నా ఫైల్‌లను ధృవీకరించండి.",
+    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": ""
   },
   "ui": {
     "failed": {

@@ -401,7 +401,8 @@
     "startWelcomeTour": "स्वागत टूर शुरू करें",
     "storageUploadFailedPleaseContactAdminOrRetryLater": "स्टोरेज अपलोड विफल। कृपया एडमिन से संपर्क करें या बाद में पुनः प्रयास करें।",
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "सभी अपलोड विफल। कृपया अपनी फ़ाइलें जांचें और पुनः प्रयास करें।",
-    "pleaseSelectAtLeastOneCategoryForYourTextContent": ""
+    "pleaseSelectAtLeastOneCategoryForYourTextContent": "",
+    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": ""
   },
   "ui": {
     "failed": {

@@ -422,7 +422,8 @@
     "startWelcomeTour": "Start Welcome Tour",
     "storageUploadFailedPleaseContactAdminOrRetryLater": "Storage upload failed. Please contact admin or retry later.",
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again.",
-    "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content."
+    "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content.",
+    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "Please flip and review metadata/named entities before submitting."
   },
   "ui": {
     "failed": {

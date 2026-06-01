@@ -288,6 +288,8 @@ function DocDigitization() {
     'hidden' | 'all' | 'single'
   >('hidden');
   const [showRecordPanel, setShowRecordPanel] = useState(false);
+  const [flippedViewedOriginalIndices, setFlippedViewedOriginalIndices] =
+    useState<Set<number>>(new Set());
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping(
     editingSegmentIndex !== null
@@ -452,6 +454,18 @@ function DocDigitization() {
     const maxP = Math.max(...currentPageSegments.map((s) => s.end));
     return minP === maxP ? `Page ${minP}` : `Pages ${minP}-${maxP}`;
   }, [currentPageSegments]);
+
+  const hasUnviewedMetadata = useMemo(
+    () =>
+      currentPageSegments.some(
+        (seg) =>
+          (seg.extraction_metadata || seg.named_entities) &&
+          !seg.proofread &&
+          seg.originalIndex !== undefined &&
+          !flippedViewedOriginalIndices.has(seg.originalIndex),
+      ),
+    [currentPageSegments, flippedViewedOriginalIndices],
+  );
 
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
@@ -696,6 +710,21 @@ function DocDigitization() {
       toast.error('Cannot submit: No record is currently loaded.');
       return;
     }
+
+    const unviewed = currentPageSegments.find(
+      (seg) =>
+        (seg.extraction_metadata || seg.named_entities) &&
+        !seg.proofread &&
+        seg.originalIndex !== undefined &&
+        !flippedViewedOriginalIndices.has(seg.originalIndex),
+    );
+    if (unviewed) {
+      toast.error(
+        t('common.pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting'),
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     const token = localStorage.getItem('token');
@@ -1107,7 +1136,7 @@ function DocDigitization() {
                               }`}
                             >
                               {/* Sidebar metadata & Drag Handle */}
-                              <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                              <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1 relative">
                                 <div
                                   {...provided.dragHandleProps}
                                   className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
@@ -1118,6 +1147,15 @@ function DocDigitization() {
                                 <span className="text-[8px] font-bold text-gray-400">
                                   {idx + 1}
                                 </span>
+                                {(segment.extraction_metadata ||
+                                  segment.named_entities) &&
+                                  !segment.proofread &&
+                                  segment.originalIndex !== undefined &&
+                                  !flippedViewedOriginalIndices.has(
+                                    segment.originalIndex,
+                                  ) && (
+                                    <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-red-500" />
+                                  )}
                               </div>
 
                               <div className="flex-1 min-w-0">
@@ -1181,6 +1219,19 @@ function DocDigitization() {
                                           onClick={() => {
                                             setEditingSegmentIndex(null);
                                             setMetadataEditingIndex(null);
+                                            setFlippedViewedOriginalIndices(
+                                              (prev) => {
+                                                const next = new Set(prev);
+                                                if (
+                                                  segment.originalIndex !==
+                                                  undefined
+                                                )
+                                                  next.add(
+                                                    segment.originalIndex,
+                                                  );
+                                                return next;
+                                              },
+                                            );
                                             setFlippedSegmentIndex(idx);
                                           }}
                                           className={`opacity-0 group-hover:opacity-100 px-1.5 py-0 text-[8px] font-bold rounded transition-opacity bg-gray-400 hover:bg-gray-500 text-white`}
@@ -1686,7 +1737,7 @@ function DocDigitization() {
                                   }`}
                                 >
                                   {/* Sidebar metadata & Drag Handle */}
-                                  <div className="w-8 flex-shrink-0 flex flex-col items-center pt-2 border-r border-gray-200 dark:border-gray-700 pr-2">
+                                  <div className="w-8 flex-shrink-0 flex flex-col items-center pt-2 border-r border-gray-200 dark:border-gray-700 pr-2 relative">
                                     <div
                                       {...provided.dragHandleProps}
                                       className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
@@ -1697,6 +1748,15 @@ function DocDigitization() {
                                     <span className="text-[10px] font-bold text-gray-400">
                                       {idx + 1}
                                     </span>
+                                    {(segment.extraction_metadata ||
+                                      segment.named_entities) &&
+                                      !segment.proofread &&
+                                      segment.originalIndex !== undefined &&
+                                      !flippedViewedOriginalIndices.has(
+                                        segment.originalIndex,
+                                      ) && (
+                                        <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-red-500" />
+                                      )}
                                   </div>
 
                                   <div className="flex-1 min-w-0">
@@ -1760,6 +1820,19 @@ function DocDigitization() {
                                               onClick={() => {
                                                 setEditingSegmentIndex(null);
                                                 setMetadataEditingIndex(null);
+                                                setFlippedViewedOriginalIndices(
+                                                  (prev) => {
+                                                    const next = new Set(prev);
+                                                    if (
+                                                      segment.originalIndex !==
+                                                      undefined
+                                                    )
+                                                      next.add(
+                                                        segment.originalIndex,
+                                                      );
+                                                    return next;
+                                                  },
+                                                );
                                                 setFlippedSegmentIndex(idx);
                                               }}
                                               className="opacity-0 group-hover:opacity-100 px-1.5 py-0 text-[9px] font-bold rounded transition-opacity bg-gray-400 hover:bg-gray-500 text-white"
@@ -1902,7 +1975,7 @@ function DocDigitization() {
               if (idx < validPages.length - 1)
                 setPageNumber(validPages[idx + 1]);
             }}
-            disabled={isSubmitting}
+            disabled={isSubmitting || hasUnviewedMetadata}
           >
             {t('common.savePage')}
           </button>
@@ -1912,7 +1985,8 @@ function DocDigitization() {
             disabled={
               isSubmitting ||
               validPages.length === 0 ||
-              Object.keys(submittedPages).length < validPages.length
+              Object.keys(submittedPages).length < validPages.length ||
+              hasUnviewedMetadata
             }
           >
             {isSubmitting
