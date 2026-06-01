@@ -2,8 +2,9 @@ import { SuggestionBar } from '@/components/SuggestionBar';
 import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
 import { useToolEventFilters } from '@/hooks/useToolEventFilters';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
+import { transliterate } from '@/lib/teluguKeyboard';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -294,6 +295,31 @@ function DocDigitization() {
       : undefined,
   );
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
+
+  const handleTeluguKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (!isTeluguTypingEnabled) return;
+      if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) return;
+      e.preventDefault();
+      const target = e.target as HTMLInputElement;
+      const selStart = target.selectionStart ?? target.value.length;
+      const selEnd = target.selectionEnd ?? target.value.length;
+      const textBefore = target.value.substring(0, selStart);
+      const textAfter = target.value.substring(selEnd);
+      const result = transliterate(e.key);
+      const newValue = textBefore + result.str + textAfter;
+      const nativeInputValue = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        'value',
+      );
+      nativeInputValue?.set?.call(target, newValue);
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+      const newCursor = textBefore.length + result.str.length;
+      target.selectionStart = newCursor;
+      target.selectionEnd = newCursor;
+    },
+    [isTeluguTypingEnabled],
+  );
   const [hintsVisible, setHintsVisible] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -1182,6 +1208,7 @@ function DocDigitization() {
                                             <input
                                               className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
                                               value={String(value)}
+                                              onKeyDown={handleTeluguKeyDown}
                                               onChange={(e) =>
                                                 handleMetadataChange(
                                                   idx,
@@ -1212,6 +1239,7 @@ function DocDigitization() {
                                             <input
                                               className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
                                               value={String(value)}
+                                              onKeyDown={handleTeluguKeyDown}
                                               onChange={(e) =>
                                                 handleMetadataChange(
                                                   idx,
@@ -1762,6 +1790,9 @@ function DocDigitization() {
                                                 <input
                                                   className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
                                                   value={String(value)}
+                                                  onKeyDown={
+                                                    handleTeluguKeyDown
+                                                  }
                                                   onChange={(e) =>
                                                     handleMetadataChange(
                                                       idx,
@@ -1792,6 +1823,9 @@ function DocDigitization() {
                                                 <input
                                                   className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
                                                   value={String(value)}
+                                                  onKeyDown={
+                                                    handleTeluguKeyDown
+                                                  }
                                                   onChange={(e) =>
                                                     handleMetadataChange(
                                                       idx,
