@@ -865,14 +865,14 @@ function DocDigitization() {
                   <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-gray-500">
                     <span>Progress</span>
                     <span>
-                      {Object.keys(submittedPages).length} / {numPages}
+                      {Object.keys(submittedPages).length} / {validPages.length}
                     </span>
                   </div>
                   <div className="w-full h-1 bg-white/20 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-400 transition-all duration-500 ease-out"
                       style={{
-                        width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                        width: `${(Object.keys(submittedPages).length / (validPages.length || 1)) * 100}%`,
                       }}
                     />
                   </div>
@@ -1387,14 +1387,15 @@ function DocDigitization() {
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-500">
                         <span>{t('common.overall.progress')}</span>
                         <span>
-                          {Object.keys(submittedPages).length} / {numPages}
+                          {Object.keys(submittedPages).length} /{' '}
+                          {validPages.length}
                         </span>
                       </div>
                       <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500 transition-all duration-500 ease-out"
                           style={{
-                            width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                            width: `${(Object.keys(submittedPages).length / (validPages.length || 1)) * 100}%`,
                           }}
                         />
                       </div>
