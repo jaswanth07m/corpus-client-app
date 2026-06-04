@@ -1,17 +1,77 @@
-# GitLab CI/CD configuration for corpus-frontend
-# Optimized pipeline with lockfile-based npm caching
+# GitLab CI/CD for corpus-frontend (React + Capacitor → Android)
+#
+# Two pipeline modes:
+#   MR / push to default branch  →  test + lint + debug APK
+#   Manual web trigger           →  signed release APK + AAB + GitLab release
+#
+# Required CI/CD variables (Settings → CI/CD → Variables, masked + protected):
+#   KEYSTORE_PASSWORD   keystore store password
+#   KEY_PASSWORD        key entry password
+#   KEYSTORE_ALIAS      key alias inside the keystore
+#   CI_TOKEN            personal access token with write_repository scope (for tagging)
+#
+# Required secure file (Settings → CI/CD → Secure Files):
+#   corpus_android.jks  the release keystore
 
 stages:
   - test
   - build
   - build-apk
+  - bundle
+  - release
 
+variables:
+  ANDROID_COMPILE_SDK: "36"
+  ANDROID_BUILD_TOOLS: "34.0.0"
+  ANDROID_SDK_TOOLS: "10406996"
+  # Override the three below in the GitLab web UI when triggering a release:
+  VERSION_CODE: "139"       # numeric build number
+  RELEASE_TAG: "1.3.5"     # semver x.y.z
+  TARGET_BRANCH: "develop"
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'        # manual → APK + AAB + release
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - when: never
+
+# ── Shared Android + Node setup (inherited by release build jobs) ────────────
+.setup-android:
+  image: node:22
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq openjdk-21-jdk curl unzip git
+    # Checkout the release target branch
+    - git checkout $TARGET_BRANCH
+    - git pull origin $TARGET_BRANCH
+    # Install Android SDK command-line tools
+    - export ANDROID_SDK_ROOT=/opt/android-sdk
+    - export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/build-tools/$ANDROID_BUILD_TOOLS
+    - mkdir -p $ANDROID_SDK_ROOT
+    - curl -q -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
+    - unzip -q /tmp/cmdline-tools.zip -d /tmp/
+    - mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+    - mv /tmp/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
+    - rm /tmp/cmdline-tools.zip
+    - yes | sdkmanager --licenses > /dev/null 2>&1 || true
+    - sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}" > /dev/null 2>&1
+    # Install Node dependencies
+    - npm ci
+    # Download keystore from GitLab Secure Files
+    - curl -s https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer | bash
+    - cp $CI_PROJECT_DIR/.secure_files/corpus_android.jks android/app/corpus_android.jks
+    # Write signing credentials for Gradle
+    - printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=corpus_android.jks\n' "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEYSTORE_ALIAS" > android/key.properties
+    # Verify keystore is readable
+    - ls -la android/app/corpus_android.jks
+    - keytool -list -keystore android/app/corpus_android.jks -alias $KEYSTORE_ALIAS -storepass $KEYSTORE_PASSWORD -noprompt | grep -E "SHA1|SHA256" || echo "Could not verify keystore fingerprint"
+
+# ── test ─────────────────────────────────────────────────────────────────────
 test:
   stage: test
-  image: node:latest
+  image: node:22
   before_script:
-    - apt-get update && apt-get install -y git
-    - npm install
+    - npm ci
   script:
     - npm run test:coverage
   artifacts:
@@ -27,6 +87,7 @@ test:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+# ── build: lint + type-check + web build ─────────────────────────────────────
 build-job:
   stage: build
   image: node:22-alpine
@@ -39,54 +100,39 @@ build-job:
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
-    - echo "Checking code formatting with Prettier..."
     - npm run format:check
-    - echo "Code formatting check completed successfully."
-    - echo ""
-    - echo "Running ESLint checks..."
     - npm run lint
-    - echo "Linting completed successfully."
-    - echo ""
-    - echo "Running TypeScript type checks..."
     - npx tsc --noEmit
-    - echo "TypeScript type checks completed successfully."
-    - echo ""
-    - echo "Building the React application..."
     - npm run build
-    - echo "Build completed successfully."
   artifacts:
     paths:
       - dist/
     expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-build-apk:
+# ── build-apk: debug (MR / push to default branch) ───────────────────────────
+build-apk-debug:
   stage: build-apk
   image: node:22-alpine
   needs: []
   before_script:
-    # Install Java and essential tools
     - apk add --no-cache openjdk21 curl unzip git bash
     - mkdir -p /opt/android-sdk
     - export ANDROID_SDK_ROOT=/opt/android-sdk
     - export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
-    - |
-      if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
-        echo "Downloading Android SDK cmdline-tools..."
-        curl -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-        unzip -q /tmp/cmdline-tools.zip -d /tmp/
-        mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-        mv /tmp/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
-        rm /tmp/cmdline-tools.zip
-      fi
-    # Accept SDK licenses
+    - curl -q -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
+    - unzip -q /tmp/cmdline-tools.zip -d /tmp/
+    - mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+    - mv /tmp/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest
+    - rm /tmp/cmdline-tools.zip
     - yes | sdkmanager --licenses > /dev/null 2>&1 || true
-    # Install required SDK components
-    - sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125" > /dev/null 2>&1
+    - sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}" > /dev/null 2>&1
     - npm ci
-    # Optimize Gradle for CI environment with limited RAM
     - mkdir -p ~/.gradle
     - |
-      cat >> ~/.gradle/gradle.properties << EOF
+      cat >> ~/.gradle/gradle.properties << 'EOF'
       org.gradle.jvmargs=-Xmx2048m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
       org.gradle.parallel=true
       org.gradle.workers.max=4
@@ -95,16 +141,99 @@ build-apk:
       android.enableAapt2Daemon=false
       EOF
   script:
-    - echo "Building React application..."
     - npm run build
-    - echo ""
-    - echo "Syncing Capacitor..."
-    - npx cap sync
-    - echo ""
-    - echo "Building debug APK (memory optimized)..."
+    - npx cap sync android
     - cd android && ./gradlew assembleDebug --no-daemon --build-cache && cd ..
-    - echo "APK build completed successfully."
   artifacts:
     paths:
       - android/app/build/outputs/apk/debug/
     expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ── build-apk: signed release (manual web trigger only) ──────────────────────
+build-apk-release:
+  extends: .setup-android
+  stage: build-apk
+  interruptible: true
+  script:
+    - npm run build
+    - npx cap sync android
+    - cd android && ./gradlew assembleRelease --no-daemon -PversionCode="$VERSION_CODE" -PversionName="$RELEASE_TAG" && cd ..
+    - echo "Verifying APK signature..."
+    - apksigner verify --print-certs android/app/build/outputs/apk/release/app-release.apk | grep -E "Signer|SHA" || echo "apksigner verify failed"
+  artifacts:
+    paths:
+      - android/app/build/outputs/apk/release/
+    name: "apk_${RELEASE_TAG}_${VERSION_CODE}"
+    expire_in: 4 weeks
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+# ── bundle: signed AAB (manual web trigger only) ──────────────────────────────
+bundle-release:
+  extends: .setup-android
+  stage: bundle
+  interruptible: true
+  script:
+    - npm run build
+    - npx cap sync android
+    - cd android && ./gradlew bundleRelease --no-daemon -PversionCode="$VERSION_CODE" -PversionName="$RELEASE_TAG" && cd ..
+    - echo "Verifying AAB contents..."
+    - unzip -l android/app/build/outputs/bundle/release/app-release.aab | grep -E "(META-INF|\.RSA|\.SF)" || echo "No signing files found in AAB"
+  artifacts:
+    paths:
+      - android/app/build/outputs/bundle/release/
+    name: "bundle_${RELEASE_TAG}_${VERSION_CODE}"
+    expire_in: 4 weeks
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+# ── release: create GitLab release and tag (manual web trigger only) ──────────
+release:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  stage: release
+  before_script:
+    - apk add --no-cache git curl
+    - git config --global user.email "ci@code.swecha.org"
+    - git config --global user.name "GitLab CI"
+    - git remote set-url origin "https://gitlab-ci-token:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+    - git checkout $TARGET_BRANCH
+    - git pull origin $TARGET_BRANCH
+  script:
+    - |
+      if git rev-parse "v$RELEASE_TAG" >/dev/null 2>&1; then
+        echo "Tag v$RELEASE_TAG already exists, skipping tag creation"
+      else
+        echo "Creating tag v$RELEASE_TAG"
+        git tag -a "v$RELEASE_TAG" -m "Release v$RELEASE_TAG (build $VERSION_CODE)"
+        git push origin "v$RELEASE_TAG"
+      fi
+  release:
+    tag_name: "v$RELEASE_TAG"
+    name: "Release v$RELEASE_TAG"
+    description: |
+      Release v$RELEASE_TAG built from branch $TARGET_BRANCH
+
+      **Build Details:**
+      - Version: $RELEASE_TAG
+      - Build Number: $VERSION_CODE
+      - Source Branch: $TARGET_BRANCH
+      - Commit: $CI_COMMIT_SHA
+      - Built on: $CI_COMMIT_TIMESTAMP
+
+      **Downloads:**
+      - APK: Check the `build-apk-release` job artifacts
+      - App Bundle (AAB): Check the `bundle-release` job artifacts
+    assets:
+      links:
+        - name: "Download APK"
+          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/download?job=build-apk-release"
+        - name: "Download App Bundle (AAB)"
+          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/download?job=bundle-release"
+  dependencies:
+    - build-apk-release
+    - bundle-release
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
