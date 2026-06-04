@@ -10,3 +10,4 @@ public/telugu_sub_districts.geojson
 .env*
 *.lock
 android
+*.geojson
