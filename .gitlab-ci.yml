@@ -50,7 +50,8 @@ workflow:
 #   Cache 3 — Gradle deps   (keyed by Gradle build files, survives dep changes)
 #
 .android-base:
-  image: node:22
+  # eclipse-temurin guarantees JDK 21; node:22 apt repos may lack openjdk-21-jdk
+  image: eclipse-temurin:21-jdk-jammy
   cache:
     - key:
         files:
@@ -63,6 +64,8 @@ workflow:
         - .android-sdk/
       policy: pull-push
     - key:
+        # prefix avoids '/' from file paths being embedded in the cache key string
+        prefix: gradle
         files:
           - android/build.gradle
           - android/app/build.gradle
@@ -75,7 +78,8 @@ workflow:
 .android-release-base:
   extends: .android-base
   before_script:
-    - apt-get update -qq && apt-get install -y -qq openjdk-21-jdk curl unzip
+    - apt-get update -qq && apt-get install -y -qq curl unzip git
+    - curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y -qq nodejs
     - git checkout $TARGET_BRANCH && git pull origin $TARGET_BRANCH
     - . .ci/setup-android-sdk.sh
     - npm ci --cache .npm --prefer-offline
@@ -174,7 +178,8 @@ build-apk-debug:
     - job: build-job
       artifacts: true
   before_script:
-    - apt-get update -qq && apt-get install -y -qq openjdk-21-jdk curl unzip
+    - apt-get update -qq && apt-get install -y -qq curl unzip
+    - curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y -qq nodejs
     - . .ci/setup-android-sdk.sh
     - npm ci --cache .npm --prefer-offline
   script:
