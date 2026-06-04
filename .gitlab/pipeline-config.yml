@@ -1,0 +1,7 @@
+# Pipeline infrastructure — stable values, rarely need changing.
+variables:
+  GRADLE_USER_HOME: '$CI_PROJECT_DIR/.gradle'
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  SECURE_FILES_INSTALLER_URL: 'https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer'
+  CI_GIT_EMAIL: 'ci@code.swecha.org'
+  CI_GIT_USER: 'GitLab CI'

@@ -6,7 +6,7 @@
 #     test ──────────────────────────────────────────── (parallel, no deps)
 #     build-job (lint + typecheck + web) ─── build-apk-debug
 #
-#   Manual web trigger:
+#   Push to develop/main with .gitlab/release.yml changed (or manual web trigger):
 #     web-build ──┬── build-apk-release ──┐
 #                 └── bundle-release ─────┴── release
 #
@@ -17,29 +17,24 @@
 # Required secure file (Settings → CI/CD → Secure Files):
 #    telugu_corpus.jks
 
+include:
+  - local: '.gitlab/release.yml'
+  - local: '.gitlab/android-sdk.yml'
+  - local: '.gitlab/pipeline-config.yml'
+
 stages:
   - test
   - build
   - android
   - release
 
-variables:
-  ANDROID_COMPILE_SDK: '36'
-  ANDROID_BUILD_TOOLS: '34.0.0'
-  ANDROID_SDK_TOOLS: '10406996'
-  # Override in the GitLab web UI when triggering a release:
-  VERSION_CODE: '139'
-  RELEASE_TAG: '1.3.5'
-  TARGET_BRANCH: 'develop'
-  # Cache Gradle inside the project directory (required for GitLab caching)
-  GRADLE_USER_HOME: '$CI_PROJECT_DIR/.gradle'
-  # Prevent Node.js OOM when running prettier / tsc on large trees
-  NODE_OPTIONS: '--max-old-space-size=4096'
-
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+      changes:
+        - .gitlab/release.yml
     - when: never
 
 # ── Shared base for all Android jobs: image + three cache layers ──────────────
@@ -49,8 +44,7 @@ workflow:
 #   Cache 3 — Gradle deps   (keyed by Gradle build files, survives dep changes)
 #
 .android-base:
-  # eclipse-temurin guarantees JDK 21; node:22 apt repos may lack openjdk-21-jdk
-  image: eclipse-temurin:21-jdk-jammy
+  image: $ANDROID_IMAGE
   cache:
     - key:
         files:
@@ -78,11 +72,11 @@ workflow:
   extends: .android-base
   before_script:
     - apt-get update -qq && apt-get install -y -qq curl unzip git
-    - curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y -qq nodejs
+    - curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && apt-get install -y -qq nodejs
     - git checkout $TARGET_BRANCH && git pull origin $TARGET_BRANCH
     - . .ci/setup-android-sdk.sh
     - npm ci --cache .npm --prefer-offline
-    - curl -s https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer | bash
+    - curl -s "$SECURE_FILES_INSTALLER_URL" | bash
     - cp $CI_PROJECT_DIR/.secure_files/ telugu_corpus.jks android/app/ telugu_corpus.jks
     - printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile= telugu_corpus.jks\n' "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEYSTORE_ALIAS" > android/key.properties
     - keytool -list -keystore android/app/ telugu_corpus.jks -alias $KEYSTORE_ALIAS -storepass $KEYSTORE_PASSWORD -noprompt | grep -E "SHA1|SHA256" || echo "Could not verify keystore fingerprint"
@@ -90,7 +84,7 @@ workflow:
 # ── test ─────────────────────────────────────────────────────────────────────
 test:
   stage: test
-  image: node:22-alpine
+  image: node:$NODE_VERSION-alpine
   needs: []
   cache:
     key:
@@ -118,7 +112,7 @@ test:
 # ── build: lint + typecheck + web (MR / push) ─────────────────────────────────
 build-job:
   stage: build
-  image: node:22-alpine
+  image: node:$NODE_VERSION-alpine
   needs: [] # run in parallel with test — no dependency between them
   cache:
     key:
@@ -141,10 +135,10 @@ build-job:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
-# ── build: web-only for release pipeline (web trigger) ────────────────────────
+# ── build: web-only for release pipeline (web trigger or release.yml push) ───
 web-build:
   stage: build
-  image: node:22-alpine
+  image: node:$NODE_VERSION-alpine
   needs: []
   cache:
     key:
@@ -165,6 +159,9 @@ web-build:
     expire_in: 1 day
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+      changes:
+        - .gitlab/release.yml
 
 # ── android: debug APK (MR / push) ───────────────────────────────────────────
 # Uses dist/ from build-job — no duplicate Vite build.
@@ -176,7 +173,7 @@ build-apk-debug:
       artifacts: true
   before_script:
     - apt-get update -qq && apt-get install -y -qq curl unzip
-    - curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y -qq nodejs
+    - curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && apt-get install -y -qq nodejs
     - . .ci/setup-android-sdk.sh
     - npm ci --cache .npm --prefer-offline
   script:
@@ -210,6 +207,9 @@ build-apk-release:
     expire_in: 4 weeks
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+      changes:
+        - .gitlab/release.yml
 
 # ── android: signed AAB (parallel with build-apk-release) ────────────────────
 bundle-release:
@@ -231,8 +231,11 @@ bundle-release:
     expire_in: 4 weeks
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+      changes:
+        - .gitlab/release.yml
 
-# ── release: GitLab release + git tag (web trigger) ──────────────────────────
+# ── release: GitLab release + git tag (web trigger or release.yml push) ──────
 release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   stage: release
@@ -243,8 +246,8 @@ release:
       artifacts: false
   before_script:
     - apk add --no-cache git curl
-    - git config --global user.email "ci@code.swecha.org"
-    - git config --global user.name "GitLab CI"
+    - git config --global user.email "$CI_GIT_EMAIL"
+    - git config --global user.name "$CI_GIT_USER"
     - git remote set-url origin "https://gitlab-ci-token:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
     - git checkout $TARGET_BRANCH && git pull origin $TARGET_BRANCH
   script:
@@ -281,3 +284,6 @@ release:
     - bundle-release
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+      changes:
+        - .gitlab/release.yml
