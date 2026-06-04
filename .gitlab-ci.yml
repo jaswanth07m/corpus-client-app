@@ -188,6 +188,7 @@ build-apk-debug:
   artifacts:
     paths:
       - android/app/build/outputs/apk/debug/
+    expose_as: 'Debug APK'
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -209,6 +210,7 @@ build-apk-release:
     paths:
       - android/app/build/outputs/apk/release/
     name: 'apk_${RELEASE_TAG}_${VERSION_CODE}'
+    expose_as: 'Release APK'
     expire_in: 4 weeks
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
@@ -229,6 +231,7 @@ bundle-release:
     paths:
       - android/app/build/outputs/bundle/release/
     name: 'bundle_${RELEASE_TAG}_${VERSION_CODE}'
+    expose_as: 'Release AAB'
     expire_in: 4 weeks
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
