@@ -416,7 +416,10 @@
     "storageUploadFailedPleaseContactAdminOrRetryLater": "స్టోరేజ్ అప్‌లోడ్ విఫలమైంది. కోస్ యాజమాన్యంతో ఎప్పటికప్పుడు మళ్లీ ప్రయత్నించండి.",
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "అన్ని అప్‌లోడ్‌లు విఫలమైనాయి. కన్నా ఫైల్‌లను ధృవీకరించండి.",
     "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "",
-    "submitCompleteRecord": ""
+    "submitCompleteRecord": "",
+    "saveThisPage": "ఈ పేజీని సేవ్ చేయాలా?",
+    "thisIsTheLastPageOfTheSegmentAreYouSureYouWantToSave": "ఇది సెగ్మెంట్ యొక్క చివరి పేజీ. మీరు ఖచ్చితంగా సేవ్ చేయాలనుకుంటున్నారా?",
+    "yesSave": "అవును, సేవ్ చేయండి"
   },
   "ui": {
     "failed": {

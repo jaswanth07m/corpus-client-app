@@ -289,6 +289,7 @@ function DocDigitization() {
   >('hidden');
   const [showRecordPanel, setShowRecordPanel] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [flippedViewedOriginalIndices, setFlippedViewedOriginalIndices] =
     useState<Set<number>>(new Set());
 
@@ -473,6 +474,9 @@ function DocDigitization() {
   };
 
   const currentPageSegments = getCurrentPageSegments();
+  const isLastPageOfSegment = currentPageSegments.some(
+    (seg) => seg.end === pageNumber,
+  );
   const validPages = useMemo(
     () => [...segmentsByPage.keys()].sort((a, b) => a - b),
     [segmentsByPage],
@@ -845,6 +849,12 @@ function DocDigitization() {
       setIsSubmitting(false);
     }
   }
+
+  const handleSavePage = useCallback(() => {
+    setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
+    const idx = validPages.indexOf(pageNumber);
+    if (idx < validPages.length - 1) setPageNumber(validPages[idx + 1]);
+  }, [pageNumber, validPages]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -2012,10 +2022,11 @@ function DocDigitization() {
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => {
-              setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
-              const idx = validPages.indexOf(pageNumber);
-              if (idx < validPages.length - 1)
-                setPageNumber(validPages[idx + 1]);
+              if (isLastPageOfSegment) {
+                setShowSaveConfirm(true);
+              } else {
+                handleSavePage();
+              }
             }}
             disabled={isSubmitting || hasUnviewedMetadata}
           >
@@ -2059,6 +2070,29 @@ function DocDigitization() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmReorder}>
               {t('common.update.order')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save this page?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This is the last page of the segment. Are you sure you want to
+              save?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleSavePage();
+                setShowSaveConfirm(false);
+              }}
+            >
+              Yes, Save
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

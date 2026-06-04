@@ -403,7 +403,10 @@
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "सभी अपलोड विफल। कृपया अपनी फ़ाइलें जांचें और पुनः प्रयास करें।",
     "pleaseSelectAtLeastOneCategoryForYourTextContent": "",
     "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "",
-    "submitCompleteRecord": ""
+    "submitCompleteRecord": "",
+    "saveThisPage": "",
+    "thisIsTheLastPageOfTheSegmentAreYouSureYouWantToSave": "",
+    "yesSave": ""
   },
   "ui": {
     "failed": {

@@ -424,7 +424,10 @@
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again.",
     "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content.",
     "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "Please flip and review metadata/named entities before submitting.",
-    "submitCompleteRecord": "Submit Complete Record"
+    "submitCompleteRecord": "Submit Complete Record",
+    "saveThisPage": "Save this page?",
+    "thisIsTheLastPageOfTheSegmentAreYouSureYouWantToSave": "This is the last page of the segment. Are you sure you want to\n              save?",
+    "yesSave": "Yes, Save"
   },
   "ui": {
     "failed": {
