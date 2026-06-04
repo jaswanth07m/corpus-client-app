@@ -374,6 +374,21 @@ function DocDigitization() {
           text: newValue,
         };
         newMap.set(pageNumber, updatedSegments);
+        // Sync edit to all sibling pages sharing the same segment
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], text: newValue };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
       }
       return newMap;
     });
@@ -398,6 +413,21 @@ function DocDigitization() {
         seg[field] = meta;
         updatedSegments[segmentIndex] = seg;
         newMap.set(pageNumber, updatedSegments);
+        // Sync metadata edit to all sibling pages sharing the same segment
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
       }
       return newMap;
     });
