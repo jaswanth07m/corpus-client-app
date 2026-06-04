@@ -39,8 +39,7 @@ variables:
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
     - when: never
 
 # ── Shared base for all Android jobs: image + three cache layers ──────────────
@@ -115,7 +114,6 @@ test:
   coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)%/'
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # ── build: lint + typecheck + web (MR / push) ─────────────────────────────────
 build-job:
@@ -142,7 +140,6 @@ build-job:
     expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # ── build: web-only for release pipeline (web trigger) ────────────────────────
 web-build:
@@ -192,7 +189,6 @@ build-apk-debug:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 # ── android: signed release APK (parallel with bundle-release) ───────────────
 build-apk-release:
