@@ -2,11 +2,16 @@
 #
 # Pipeline dependency graph:
 #
-#   MR / push to default branch:
+#   MR targeting develop:
 #     test ──────────────────────────────────────────── (parallel, no deps)
 #     build-job (lint + typecheck + web) ─── build-apk-debug
 #
-#   Push to develop/main with .gitlab/release.yml changed (or manual web trigger):
+#   MR targeting main with .gitlab/release.yml changed:
+#     test ─────────────────────────────────────────────────────────── (parallel)
+#     build-job (lint + typecheck + web) ─── build-apk-debug
+#                                        └── build-apk-prerelease (signed, for review)
+#
+#   Push to main with .gitlab/release.yml changed (after MR merge):
 #     web-build ──┬── build-apk-release ──┐
 #                 └── bundle-release ─────┴── release
 #
@@ -30,9 +35,8 @@ stages:
 
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       changes:
         - .gitlab/release.yml
     - when: never
@@ -71,9 +75,8 @@ workflow:
 .android-release-base:
   extends: .android-base
   before_script:
-    - apt-get update -qq && apt-get install -y -qq curl unzip git
+    - apt-get update -qq && apt-get install -y -qq curl unzip
     - curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && apt-get install -y -qq nodejs
-    - git checkout $TARGET_BRANCH && git pull origin $TARGET_BRANCH
     - . .ci/setup-android-sdk.sh
     - npm ci --cache .npm --prefer-offline
     - curl -s "$SECURE_FILES_INSTALLER_URL" | bash
@@ -135,7 +138,7 @@ build-job:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
-# ── build: web-only for release pipeline (web trigger or release.yml push) ───
+# ── build: web build for release pipeline (triggered by release.yml merge to main)
 web-build:
   stage: build
   image: node:$NODE_VERSION-alpine
@@ -148,8 +151,6 @@ web-build:
       - .npm/
     policy: pull-push
   before_script:
-    - apk add --no-cache git
-    - git checkout $TARGET_BRANCH && git pull origin $TARGET_BRANCH
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run build
@@ -158,8 +159,7 @@ web-build:
       - dist/
     expire_in: 1 day
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       changes:
         - .gitlab/release.yml
 
@@ -187,6 +187,27 @@ build-apk-debug:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
+# ── android: pre-release APK for release MRs (review before merging to main) ─
+build-apk-prerelease:
+  extends: .android-release-base
+  stage: android
+  needs:
+    - job: build-job
+      artifacts: true
+  script:
+    - npx cap sync android
+    - cd android && ./gradlew assembleRelease --no-daemon -PversionCode="$VERSION_CODE" -PversionName="$RELEASE_TAG" && cd ..
+  artifacts:
+    paths:
+      - android/app/build/outputs/apk/release/
+    name: 'prerelease_apk_${RELEASE_TAG}_${VERSION_CODE}'
+    expose_as: 'Pre-release APK'
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      changes:
+        - .gitlab/release.yml
+
 # ── android: signed release APK (parallel with bundle-release) ───────────────
 build-apk-release:
   extends: .android-release-base
@@ -206,8 +227,7 @@ build-apk-release:
     expose_as: 'Release APK'
     expire_in: 4 weeks
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       changes:
         - .gitlab/release.yml
 
@@ -230,12 +250,11 @@ bundle-release:
     expose_as: 'Release AAB'
     expire_in: 4 weeks
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       changes:
         - .gitlab/release.yml
 
-# ── release: GitLab release + git tag (web trigger or release.yml push) ──────
+# ── release: GitLab release + git tag ────────────────────────────────────────
 release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   stage: release
@@ -249,7 +268,6 @@ release:
     - git config --global user.email "$CI_GIT_EMAIL"
     - git config --global user.name "$CI_GIT_USER"
     - git remote set-url origin "https://gitlab-ci-token:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
-    - git checkout $TARGET_BRANCH && git pull origin $TARGET_BRANCH
   script:
     - |
       if git rev-parse "v$RELEASE_TAG" >/dev/null 2>&1; then
@@ -262,12 +280,12 @@ release:
     tag_name: 'v$RELEASE_TAG'
     name: 'Release v$RELEASE_TAG'
     description: |
-      Release v$RELEASE_TAG built from branch $TARGET_BRANCH
+      Release v$RELEASE_TAG built from branch $CI_COMMIT_BRANCH
 
       **Build Details:**
       - Version: $RELEASE_TAG
       - Build Number: $VERSION_CODE
-      - Source Branch: $TARGET_BRANCH
+      - Source Branch: $CI_COMMIT_BRANCH
       - Commit: $CI_COMMIT_SHA
 
       **Downloads:**
@@ -283,7 +301,6 @@ release:
     - build-apk-release
     - bundle-release
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       changes:
         - .gitlab/release.yml
