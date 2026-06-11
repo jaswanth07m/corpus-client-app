@@ -174,6 +174,9 @@
       "organisation": "సంస్థను నమోదు చేయండి",
       "roll": {
         "number": ""
+      },
+      "skip": {
+        "reason": ""
       }
     },
     "noUsersFound": "యూజర్‌లు కనుగొనబడలేదు",
@@ -419,7 +422,14 @@
     "submitCompleteRecord": "",
     "saveThisPage": "ఈ పేజీని సేవ్ చేయాలా?",
     "thisIsTheLastPageOfTheSegmentAreYouSureYouWantToSave": "ఇది సెగ్మెంట్ యొక్క చివరి పేజీ. మీరు ఖచ్చితంగా సేవ్ చేయాలనుకుంటున్నారా?",
-    "yesSave": "అవును, సేవ్ చేయండి"
+    "yesSave": "అవును, సేవ్ చేయండి",
+    "poem": "",
+    "story": "",
+    "interview": "",
+    "article": "",
+    "editorial": "",
+    "miscellaneous": "",
+    "confirmSkip": ""
   },
   "ui": {
     "failed": {
@@ -773,7 +783,8 @@
     "loadingDistrictBoundaries": "జిల్లా సరిహద్దులు లోడ్ అవుతున్నాయి...",
     "somethingWentWrong": "ఏదో తప్పు జరిగింది",
     "tryAgain": "మళ్లీ ప్రయత్నించండి",
-    "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": ""
+    "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": "",
+    "recordSkippedSuccessfully": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",
@@ -814,7 +825,8 @@
     "sourceLabel": "మూలం లేబుల్",
     "type": "రకం:",
     "organisationType": "సంస్థ రకం",
-    "educationCategory": "విద్యా వర్గం"
+    "educationCategory": "విద్యా వర్గం",
+    "category": ""
   },
   "media": {
     "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",
@@ -855,7 +867,8 @@
     "recordControls": "రికార్డ్ నియంత్రణలు",
     "resumeRecordId": "resume రికార్డ్ ID:",
     "copyRecordUrl": "రికార్డ్ URL కాపీ చేయండి",
-    "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": ""
+    "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "",
+    "skipRecord": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",

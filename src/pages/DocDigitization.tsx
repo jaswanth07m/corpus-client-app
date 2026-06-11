@@ -24,7 +24,21 @@ import {
   Draggable,
   DropResult,
 } from '@hello-pangea/dnd';
-import { ArrowLeft, ChevronDown, ChevronUp, RotateCw } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  RotateCw,
+  SkipForward,
+} from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -69,6 +83,10 @@ type RecordDetails = {
   language?: string;
   author?: string;
   source?: string;
+  category?: string;
+  category_ids?: string[];
+  skip?: boolean;
+  skip_reason?: string;
   extracted_text?: ExtractedTextResponse;
 };
 
@@ -278,7 +296,7 @@ function DocDigitization() {
     null,
   );
   const [flippedSegmentIndex, setFlippedSegmentIndex] = useState<number | null>(
-    null,
+    0,
   );
   const [metadataEditingIndex, setMetadataEditingIndex] = useState<
     number | null
@@ -292,6 +310,12 @@ function DocDigitization() {
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [flippedViewedOriginalIndices, setFlippedViewedOriginalIndices] =
     useState<Set<number>>(new Set());
+  const [showSkipModal, setShowSkipModal] = useState(false);
+  const [skipReason, setSkipReason] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [recordCategory, setRecordCategory] = useState<string | null>(null);
+  const [isCompleteRecordSubmitted, setIsCompleteRecordSubmitted] =
+    useState(false);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping(
     editingSegmentIndex !== null
@@ -514,6 +538,15 @@ function DocDigitization() {
       setPageNumber(validPages[0]);
     }
   }, [validPages, pageNumber]);
+
+  useEffect(() => {
+    if (fullRecordData?.category) {
+      setRecordCategory(fullRecordData.category);
+    } else {
+      setRecordCategory(null);
+    }
+    setIsCompleteRecordSubmitted(false);
+  }, [fullRecordData]);
 
   // Compute the reference dimensions for bbox overlay positioning.
   // Uses inferred OCR image dimensions when bbox coords are in pixel space,
@@ -806,10 +839,14 @@ function DocDigitization() {
       };
     });
 
-    const requestBody = {
+    const requestBody: Record<string, unknown> = {
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
       segments: updatedSegments,
     };
+
+    if (selectedCategory) {
+      requestBody.category = selectedCategory;
+    }
 
     try {
       const response = await fetch(
@@ -834,6 +871,7 @@ function DocDigitization() {
 
       toast.success(`Page ${pageNumber} submitted successfully!`);
       setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
+      setIsCompleteRecordSubmitted(true);
 
       const currentIdx = validPages.indexOf(pageNumber);
       if (currentIdx < validPages.length - 1) {
@@ -855,6 +893,58 @@ function DocDigitization() {
     const idx = validPages.indexOf(pageNumber);
     if (idx < validPages.length - 1) setPageNumber(validPages[idx + 1]);
   }, [pageNumber, validPages]);
+
+  async function handleSkip() {
+    if (!recordId) return;
+
+    setIsSubmitting(true);
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/records/${recordId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          skip: true,
+          skip_reason: skipReason,
+          category: selectedCategory,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail?.[0]?.msg || 'Failed to skip record.');
+      }
+
+      toast.success(t('messages.recordSkippedSuccessfully'));
+      setShowSkipModal(false);
+      setSkipReason('');
+      setSelectedCategory('');
+      await fetchNextRecord();
+    } catch (err) {
+      const error = err as Error;
+      toast.error(`Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const isSelectedStoryCategory = selectedCategory === 'story';
+
+  const categoryOptions = [
+    { label: 'Poem (కవిత)', value: 'poem' },
+    { label: 'Story (కథ)', value: 'story' },
+    { label: 'Interview (ఇంటర్వ్యూ)', value: 'interview' },
+    { label: 'Article (వ్యాసం)', value: 'article' },
+    { label: 'Editorial (సంపాదకీయం)', value: 'editorial' },
+    { label: 'Miscellaneous (ఇతర)', value: 'miscellaneous' },
+  ];
+
+  const selectedCategoryLabel =
+    categoryOptions.find((opt) => opt.value === selectedCategory)?.label || '';
 
   return (
     <div className="flex flex-col h-screen">
@@ -1244,16 +1334,7 @@ function DocDigitization() {
                                     </>
                                   ) : (
                                     <>
-                                      {editingSegmentIndex !== idx ? (
-                                        <button
-                                          onClick={() =>
-                                            setEditingSegmentIndex(idx)
-                                          }
-                                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
-                                        >
-                                          Edit
-                                        </button>
-                                      ) : (
+                                      {editingSegmentIndex === idx ? (
                                         <button
                                           onClick={() =>
                                             setEditingSegmentIndex(null)
@@ -1262,7 +1343,16 @@ function DocDigitization() {
                                         >
                                           Done
                                         </button>
-                                      )}
+                                      ) : isCompleteRecordSubmitted ? (
+                                        <button
+                                          onClick={() =>
+                                            setEditingSegmentIndex(idx)
+                                          }
+                                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                        >
+                                          Edit
+                                        </button>
+                                      ) : null}
                                       {(segment.extraction_metadata ||
                                         segment.named_entities) && (
                                         <button
@@ -1359,6 +1449,59 @@ function DocDigitization() {
                                           )}
                                         </div>
                                       ))}
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        fontSize: '11px',
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          fontWeight: 'bold',
+                                          color: '#4b5563',
+                                        }}
+                                      >
+                                        category:
+                                      </span>
+                                      <select
+                                        value={selectedCategory}
+                                        onChange={(e) =>
+                                          setSelectedCategory(e.target.value)
+                                        }
+                                        style={{
+                                          fontSize: '11px',
+                                          border: '1px solid #d1d5db',
+                                          borderRadius: '4px',
+                                          padding: '0px 4px',
+                                          width: 'auto',
+                                          minWidth: 0,
+                                        }}
+                                      >
+                                        <option value="">
+                                          Select category...
+                                        </option>
+                                        <option value="poem">
+                                          Poem (కవిత)
+                                        </option>
+                                        <option value="story">
+                                          Story (కథ)
+                                        </option>
+                                        <option value="interview">
+                                          Interview (ఇంటర్వ్యూ)
+                                        </option>
+                                        <option value="article">
+                                          Article (వ్యాసం)
+                                        </option>
+                                        <option value="editorial">
+                                          Editorial (సంపాదకీయం)
+                                        </option>
+                                        <option value="miscellaneous">
+                                          Miscellaneous (ఇతర)
+                                        </option>
+                                      </select>
+                                    </div>
                                   </div>
                                 ) : editingSegmentIndex === idx ? (
                                   <AutoResizeTextArea
@@ -1422,7 +1565,14 @@ function DocDigitization() {
 
                   <div className="max-h-[40vh] overflow-y-auto">
                     <div className="flex justify-start items-center gap-2 mb-2">
-                      {editingSegmentIndex !== highlightedSegmentIndex ? (
+                      {editingSegmentIndex === highlightedSegmentIndex ? (
+                        <button
+                          onClick={() => setEditingSegmentIndex(null)}
+                          className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                        >
+                          Done
+                        </button>
+                      ) : isCompleteRecordSubmitted ? (
                         <button
                           onClick={() =>
                             setEditingSegmentIndex(highlightedSegmentIndex)
@@ -1431,14 +1581,7 @@ function DocDigitization() {
                         >
                           Edit
                         </button>
-                      ) : (
-                        <button
-                          onClick={() => setEditingSegmentIndex(null)}
-                          className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
-                        >
-                          Done
-                        </button>
-                      )}
+                      ) : null}
                     </div>
                     {editingSegmentIndex === highlightedSegmentIndex ? (
                       <AutoResizeTextArea
@@ -1847,16 +1990,7 @@ function DocDigitization() {
                                         </>
                                       ) : (
                                         <>
-                                          {editingSegmentIndex !== idx ? (
-                                            <button
-                                              onClick={() =>
-                                                setEditingSegmentIndex(idx)
-                                              }
-                                              className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
-                                            >
-                                              Edit
-                                            </button>
-                                          ) : (
+                                          {editingSegmentIndex === idx ? (
                                             <button
                                               onClick={() =>
                                                 setEditingSegmentIndex(null)
@@ -1865,7 +1999,16 @@ function DocDigitization() {
                                             >
                                               Done
                                             </button>
-                                          )}
+                                          ) : isCompleteRecordSubmitted ? (
+                                            <button
+                                              onClick={() =>
+                                                setEditingSegmentIndex(idx)
+                                              }
+                                              className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                            >
+                                              Edit
+                                            </button>
+                                          ) : null}
                                           {(segment.extraction_metadata ||
                                             segment.named_entities) && (
                                             <button
@@ -1966,6 +2109,61 @@ function DocDigitization() {
                                               )}
                                             </div>
                                           ))}
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            fontSize: '0.75rem',
+                                          }}
+                                        >
+                                          <span
+                                            style={{
+                                              fontWeight: 'bold',
+                                              color: '#4b5563',
+                                            }}
+                                          >
+                                            category:
+                                          </span>
+                                          <select
+                                            value={selectedCategory}
+                                            onChange={(e) =>
+                                              setSelectedCategory(
+                                                e.target.value,
+                                              )
+                                            }
+                                            style={{
+                                              fontSize: '0.75rem',
+                                              border: '1px solid #d1d5db',
+                                              borderRadius: '4px',
+                                              padding: '0px 4px',
+                                              width: 'auto',
+                                              minWidth: 0,
+                                            }}
+                                          >
+                                            <option value="">
+                                              Select category...
+                                            </option>
+                                            <option value="poem">
+                                              {t('common.poem')}
+                                            </option>
+                                            <option value="story">
+                                              {t('common.story')}
+                                            </option>
+                                            <option value="interview">
+                                              {t('common.interview')}
+                                            </option>
+                                            <option value="article">
+                                              {t('common.article')}
+                                            </option>
+                                            <option value="editorial">
+                                              {t('common.editorial')}
+                                            </option>
+                                            <option value="miscellaneous">
+                                              {t('common.miscellaneous')}
+                                            </option>
+                                          </select>
+                                        </div>
                                       </div>
                                     ) : editingSegmentIndex === idx ? (
                                       <AutoResizeTextArea
@@ -2019,6 +2217,14 @@ function DocDigitization() {
 
         {/* Submit Button Section */}
         <div className="border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col sm:flex-row justify-center gap-4">
+          <button
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
+            onClick={() => setShowSkipModal(true)}
+            disabled={isSubmitting || hasUnviewedMetadata}
+          >
+            <SkipForward className="inline h-4 w-4 mr-1" />
+            Skip
+          </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => {
@@ -2125,6 +2331,53 @@ function DocDigitization() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={showSkipModal} onOpenChange={setShowSkipModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('media.skipRecord')}</DialogTitle>
+            <DialogDescription>
+              {isSelectedStoryCategory
+                ? 'Story category requires a mandatory skip reason.'
+                : 'Optionally provide a reason for skipping this record.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            {selectedCategory && (
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t('categories.category')}
+                {selectedCategoryLabel}
+              </p>
+            )}
+            <textarea
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              rows={4}
+              placeholder={t('common.enter.skip.reason')}
+              value={skipReason}
+              onChange={(e) => setSkipReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <button
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              onClick={() => {
+                setShowSkipModal(false);
+                setSkipReason('');
+                setSelectedCategory('');
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
+              onClick={handleSkip}
+              disabled={isSelectedStoryCategory && !skipReason.trim()}
+            >
+              {t('common.confirmSkip')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
