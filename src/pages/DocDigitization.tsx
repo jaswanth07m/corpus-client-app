@@ -1564,59 +1564,47 @@ function DocDigitization() {
                                           </div>
                                         );
                                       })}
-                                    <div
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px',
-                                        fontSize: '11px',
-                                      }}
-                                    >
-                                      <span
-                                        style={{
-                                          fontWeight: 'bold',
-                                          color: '#4b5563',
-                                        }}
-                                      >
-                                        category:
-                                      </span>
-                                      <select
-                                        value={selectedCategory}
-                                        onChange={(e) =>
-                                          setSelectedCategory(e.target.value)
-                                        }
-                                        style={{
-                                          fontSize: '11px',
-                                          border: '1px solid #d1d5db',
-                                          borderRadius: '4px',
-                                          padding: '0px 4px',
-                                          width: 'auto',
-                                          minWidth: 0,
-                                        }}
-                                      >
-                                        <option value="">
-                                          Select category...
-                                        </option>
-                                        <option value="poem">
-                                          Poem (కవిత)
-                                        </option>
-                                        <option value="story">
-                                          Story (కథ)
-                                        </option>
-                                        <option value="interview">
-                                          Interview (ఇంటర్వ్యూ)
-                                        </option>
-                                        <option value="article">
-                                          Article (వ్యాసం)
-                                        </option>
-                                        <option value="editorial">
-                                          Editorial (సంపాదకీయం)
-                                        </option>
-                                        <option value="miscellaneous">
-                                          Miscellaneous (ఇతర)
-                                        </option>
-                                      </select>
-                                    </div>
+                                    {metadataEditingIndex === idx ? (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          category:
+                                        </span>
+                                        <select
+                                          value={selectedCategory}
+                                          onChange={(e) =>
+                                            setSelectedCategory(e.target.value)
+                                          }
+                                          className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                        >
+                                          <option value="">
+                                            Select category...
+                                          </option>
+                                          <option value="poem">poem</option>
+                                          <option value="story">story</option>
+                                          <option value="interview">
+                                            interview
+                                          </option>
+                                          <option value="article">
+                                            article
+                                          </option>
+                                          <option value="editorial">
+                                            editorial
+                                          </option>
+                                          <option value="miscellaneous">
+                                            miscellaneous
+                                          </option>
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          category:
+                                        </span>{' '}
+                                        <span className="text-gray-800 dark:text-gray-200">
+                                          {selectedCategory || ''}
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
                                 ) : editingSegmentIndex === idx ? (
                                   <AutoResizeTextArea
@@ -2299,61 +2287,51 @@ function DocDigitization() {
                                               </div>
                                             );
                                           })}
-                                        <div
-                                          style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                            fontSize: '0.75rem',
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontWeight: 'bold',
-                                              color: '#4b5563',
-                                            }}
-                                          >
-                                            category:
-                                          </span>
-                                          <select
-                                            value={selectedCategory}
-                                            onChange={(e) =>
-                                              setSelectedCategory(
-                                                e.target.value,
-                                              )
-                                            }
-                                            style={{
-                                              fontSize: '0.75rem',
-                                              border: '1px solid #d1d5db',
-                                              borderRadius: '4px',
-                                              padding: '0px 4px',
-                                              width: 'auto',
-                                              minWidth: 0,
-                                            }}
-                                          >
-                                            <option value="">
-                                              Select category...
-                                            </option>
-                                            <option value="poem">
-                                              {t('common.poem')}
-                                            </option>
-                                            <option value="story">
-                                              {t('common.story')}
-                                            </option>
-                                            <option value="interview">
-                                              {t('common.interview')}
-                                            </option>
-                                            <option value="article">
-                                              {t('common.article')}
-                                            </option>
-                                            <option value="editorial">
-                                              {t('common.editorial')}
-                                            </option>
-                                            <option value="miscellaneous">
-                                              {t('common.miscellaneous')}
-                                            </option>
-                                          </select>
-                                        </div>
+                                        {metadataEditingIndex === idx ? (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              category:
+                                            </span>
+                                            <select
+                                              value={selectedCategory}
+                                              onChange={(e) =>
+                                                setSelectedCategory(
+                                                  e.target.value,
+                                                )
+                                              }
+                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                            >
+                                              <option value="">
+                                                Select category...
+                                              </option>
+                                              <option value="poem">poem</option>
+                                              <option value="story">
+                                                story
+                                              </option>
+                                              <option value="interview">
+                                                interview
+                                              </option>
+                                              <option value="article">
+                                                article
+                                              </option>
+                                              <option value="editorial">
+                                                editorial
+                                              </option>
+                                              <option value="miscellaneous">
+                                                miscellaneous
+                                              </option>
+                                            </select>
+                                          </div>
+                                        ) : (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              category:
+                                            </span>{' '}
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {selectedCategory || ''}
+                                            </span>
+                                          </div>
+                                        )}
                                       </div>
                                     ) : editingSegmentIndex === idx ? (
                                       <AutoResizeTextArea
@@ -2411,7 +2389,10 @@ function DocDigitization() {
             className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
             onClick={() => setShowSkipModal(true)}
             disabled={
-              isSubmitting || hasUnviewedMetadata || !isLastPageOfSegment
+              isSubmitting ||
+              hasUnviewedMetadata ||
+              !isLastPageOfSegment ||
+              !selectedCategory
             }
           >
             <SkipForward className="inline h-4 w-4 mr-1" />
@@ -2421,7 +2402,10 @@ function DocDigitization() {
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => setShowSaveConfirm(true)}
             disabled={
-              isSubmitting || hasUnviewedMetadata || !isLastPageOfSegment
+              isSubmitting ||
+              hasUnviewedMetadata ||
+              !isLastPageOfSegment ||
+              !selectedCategory
             }
           >
             {t('common.savePage')}
@@ -2555,7 +2539,10 @@ function DocDigitization() {
             <button
               className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
               onClick={handleSkip}
-              disabled={isSelectedStoryCategory && !skipReason.trim()}
+              disabled={
+                !selectedCategory ||
+                (isSelectedStoryCategory && !skipReason.trim())
+              }
             >
               {t('common.confirmSkip')}
             </button>
