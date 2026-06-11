@@ -458,6 +458,49 @@ function DocDigitization() {
     });
   };
 
+  const handleNestedMetadataChange = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    parentKey: string,
+    subKey: string,
+    newValue: string,
+  ) => {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        const parent = meta[parentKey]
+          ? { ...(meta[parentKey] as Record<string, unknown>) }
+          : {};
+        parent[subKey] = newValue;
+        meta[parentKey] = parent;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
+        newMap.set(pageNumber, updatedSegments);
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
+      }
+      return newMap;
+    });
+  };
+
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
@@ -628,6 +671,15 @@ function DocDigitization() {
         throw new Error('No segments found in the record.');
       }
 
+      segments.forEach((seg) => {
+        const characters = seg.named_entities?.characters;
+        if (Array.isArray(characters)) {
+          seg.named_entities!.characters = Object.fromEntries(
+            characters.map((item: unknown) => [String(item), null]),
+          );
+        }
+      });
+
       const groupedSegments = groupSegmentsByPage(segments);
       const totalPages =
         segments.length > 0 ? Math.max(...segments.map((s) => s.start + 1)) : 0;
@@ -747,6 +799,15 @@ function DocDigitization() {
       if (segments.length === 0) {
         throw new Error('No segments found in the record.');
       }
+
+      segments.forEach((seg) => {
+        const characters = seg.named_entities?.characters;
+        if (Array.isArray(characters)) {
+          seg.named_entities!.characters = Object.fromEntries(
+            characters.map((item: unknown) => [String(item), null]),
+          );
+        }
+      });
 
       const groupedSegments = groupSegmentsByPage(segments);
       const totalPages =
@@ -1408,34 +1469,101 @@ function DocDigitization() {
                                     {segment.named_entities &&
                                       Object.entries(
                                         segment.named_entities,
-                                      ).map(([key, value]) => (
-                                        <div key={key} className="text-[11px]">
-                                          <span className="font-bold text-gray-600 dark:text-gray-400">
-                                            {key}:
-                                          </span>{' '}
-                                          {metadataEditingIndex === idx ? (
-                                            <input
-                                              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
-                                              value={String(value)}
-                                              onKeyDown={handleTeluguKeyDown}
-                                              onChange={(e) =>
-                                                handleMetadataChange(
-                                                  idx,
-                                                  'named_entities',
-                                                  key,
-                                                  e.target.value,
-                                                )
-                                              }
-                                            />
-                                          ) : (
-                                            <span className="text-gray-800 dark:text-gray-200">
-                                              {Array.isArray(value)
-                                                ? value.join(', ')
-                                                : String(value)}
-                                            </span>
-                                          )}
-                                        </div>
-                                      ))}
+                                      ).map(([key, value]) => {
+                                        const isDict =
+                                          typeof value === 'object' &&
+                                          value !== null &&
+                                          !Array.isArray(value);
+                                        if (isDict) {
+                                          return (
+                                            <div
+                                              key={key}
+                                              className="text-[11px]"
+                                            >
+                                              <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                {key}:
+                                              </span>
+                                              <div className="ml-2 space-y-1 mt-1">
+                                                {Object.entries(
+                                                  value as Record<
+                                                    string,
+                                                    unknown
+                                                  >,
+                                                ).map(([subKey, subValue]) => (
+                                                  <div
+                                                    key={subKey}
+                                                    className="flex items-center gap-1"
+                                                  >
+                                                    <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                      {subKey}:
+                                                    </span>
+                                                    {metadataEditingIndex ===
+                                                    idx ? (
+                                                      <input
+                                                        className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                                        value={
+                                                          subValue === null
+                                                            ? ''
+                                                            : String(subValue)
+                                                        }
+                                                        onKeyDown={
+                                                          handleTeluguKeyDown
+                                                        }
+                                                        onChange={(e) =>
+                                                          handleNestedMetadataChange(
+                                                            idx,
+                                                            'named_entities',
+                                                            key,
+                                                            subKey,
+                                                            e.target.value,
+                                                          )
+                                                        }
+                                                      />
+                                                    ) : (
+                                                      <span className="text-gray-800 dark:text-gray-200">
+                                                        {subValue === null
+                                                          ? ''
+                                                          : String(subValue)}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          );
+                                        }
+                                        return (
+                                          <div
+                                            key={key}
+                                            className="text-[11px]"
+                                          >
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              {key}:
+                                            </span>{' '}
+                                            {metadataEditingIndex === idx ? (
+                                              <input
+                                                className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
+                                                value={String(value)}
+                                                onKeyDown={handleTeluguKeyDown}
+                                                onChange={(e) =>
+                                                  handleMetadataChange(
+                                                    idx,
+                                                    'named_entities',
+                                                    key,
+                                                    e.target.value,
+                                                  )
+                                                }
+                                              />
+                                            ) : (
+                                              <span className="text-gray-800 dark:text-gray-200">
+                                                {Array.isArray(value)
+                                                  ? value.join(', ')
+                                                  : String(value)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
                                     <div
                                       style={{
                                         display: 'flex',
@@ -2065,36 +2193,112 @@ function DocDigitization() {
                                         {segment.named_entities &&
                                           Object.entries(
                                             segment.named_entities,
-                                          ).map(([key, value]) => (
-                                            <div key={key} className="text-xs">
-                                              <span className="font-bold text-gray-600 dark:text-gray-400">
-                                                {key}:
-                                              </span>{' '}
-                                              {metadataEditingIndex === idx ? (
-                                                <input
-                                                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
-                                                  value={String(value)}
-                                                  onKeyDown={
-                                                    handleTeluguKeyDown
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleMetadataChange(
-                                                      idx,
-                                                      'named_entities',
-                                                      key,
-                                                      e.target.value,
-                                                    )
-                                                  }
-                                                />
-                                              ) : (
-                                                <span className="text-gray-800 dark:text-gray-200">
-                                                  {Array.isArray(value)
-                                                    ? value.join(', ')
-                                                    : String(value)}
-                                                </span>
-                                              )}
-                                            </div>
-                                          ))}
+                                          ).map(([key, value]) => {
+                                            const isDict =
+                                              typeof value === 'object' &&
+                                              value !== null &&
+                                              !Array.isArray(value);
+                                            if (isDict) {
+                                              return (
+                                                <div
+                                                  key={key}
+                                                  className="text-xs"
+                                                >
+                                                  <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                    {key}:
+                                                  </span>
+                                                  <div className="ml-2 space-y-1 mt-1">
+                                                    {Object.entries(
+                                                      value as Record<
+                                                        string,
+                                                        unknown
+                                                      >,
+                                                    ).map(
+                                                      ([subKey, subValue]) => (
+                                                        <div
+                                                          key={subKey}
+                                                          className="flex items-center gap-1"
+                                                        >
+                                                          <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                            {subKey}:
+                                                          </span>
+                                                          {metadataEditingIndex ===
+                                                          idx ? (
+                                                            <input
+                                                              className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                                              value={
+                                                                subValue ===
+                                                                null
+                                                                  ? ''
+                                                                  : String(
+                                                                      subValue,
+                                                                    )
+                                                              }
+                                                              onKeyDown={
+                                                                handleTeluguKeyDown
+                                                              }
+                                                              onChange={(e) =>
+                                                                handleNestedMetadataChange(
+                                                                  idx,
+                                                                  'named_entities',
+                                                                  key,
+                                                                  subKey,
+                                                                  e.target
+                                                                    .value,
+                                                                )
+                                                              }
+                                                            />
+                                                          ) : (
+                                                            <span className="text-gray-800 dark:text-gray-200">
+                                                              {subValue === null
+                                                                ? ''
+                                                                : String(
+                                                                    subValue,
+                                                                  )}
+                                                            </span>
+                                                          )}
+                                                        </div>
+                                                      ),
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              );
+                                            }
+                                            return (
+                                              <div
+                                                key={key}
+                                                className="text-xs"
+                                              >
+                                                <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                  {key}:
+                                                </span>{' '}
+                                                {metadataEditingIndex ===
+                                                idx ? (
+                                                  <input
+                                                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
+                                                    value={String(value)}
+                                                    onKeyDown={
+                                                      handleTeluguKeyDown
+                                                    }
+                                                    onChange={(e) =>
+                                                      handleMetadataChange(
+                                                        idx,
+                                                        'named_entities',
+                                                        key,
+                                                        e.target.value,
+                                                      )
+                                                    }
+                                                  />
+                                                ) : (
+                                                  <span className="text-gray-800 dark:text-gray-200">
+                                                    {Array.isArray(value)
+                                                      ? value.join(', ')
+                                                      : String(value)}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
                                         <div
                                           style={{
                                             display: 'flex',
