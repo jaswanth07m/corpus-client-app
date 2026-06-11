@@ -416,7 +416,9 @@
     "article": "",
     "editorial": "",
     "miscellaneous": "",
-    "confirmSkip": ""
+    "confirmSkip": "",
+    "selectAReason": "कारण चुनें...",
+    "unclearPage": "अस्पष्ट पृष्ठ"
   },
   "ui": {
     "failed": {

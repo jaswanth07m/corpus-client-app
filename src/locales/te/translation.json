@@ -429,7 +429,9 @@
     "article": "",
     "editorial": "",
     "miscellaneous": "",
-    "confirmSkip": ""
+    "confirmSkip": "",
+    "selectAReason": "కారణం ఎంచుకోండి...",
+    "unclearPage": "అస్పష్టమైన పేజీ"
   },
   "ui": {
     "failed": {

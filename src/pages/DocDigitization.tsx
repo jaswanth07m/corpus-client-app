@@ -55,6 +55,8 @@ type Segment = {
   text: string;
   confidence?: number;
   proofread?: boolean;
+  skipped?: boolean;
+  skip_reason?: string;
   bbox?: number[];
   type?: string;
   reading_order?: number;
@@ -275,9 +277,7 @@ function DocDigitization() {
   const [segmentsByPage, setSegmentsByPage] = useState<Map<number, Segment[]>>(
     new Map(),
   );
-  const [submittedPages, setSubmittedPages] = useState<Record<number, boolean>>(
-    {},
-  );
+
   const [zoom, setZoom] = useState(1.0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -533,6 +533,19 @@ function DocDigitization() {
     return false;
   }, [segmentsByPage]);
 
+  const proofreadPages = useMemo(() => {
+    const pages = new Set<number>();
+    segmentsByPage.forEach((segs, page) => {
+      if (
+        segs.length > 0 &&
+        segs.every((seg) => seg.proofread || seg.skipped)
+      ) {
+        pages.add(page);
+      }
+    });
+    return pages;
+  }, [segmentsByPage]);
+
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
       setPageNumber(validPages[0]);
@@ -565,7 +578,6 @@ function DocDigitization() {
     setFullRecordData(null);
     setPageNumber(1);
     setSegmentsByPage(new Map());
-    setSubmittedPages({});
     setNumPages(0);
 
     const token = localStorage.getItem('token');
@@ -620,14 +632,6 @@ function DocDigitization() {
       const totalPages =
         segments.length > 0 ? Math.max(...segments.map((s) => s.start + 1)) : 0;
 
-      const initialSubmittedPages: Record<number, boolean> = {};
-      segments.forEach((segment) => {
-        const pageNum = segment.start + 1;
-        if (segment.proofread) {
-          initialSubmittedPages[pageNum] = true;
-        }
-      });
-
       setBookData({
         pdfUrl,
         metadata: {
@@ -638,7 +642,6 @@ function DocDigitization() {
         },
       });
       setSegmentsByPage(groupedSegments);
-      setSubmittedPages(initialSubmittedPages);
       setNumPages(totalPages);
       setPdfPageSize({ width: 0, height: 0 });
     } catch (err) {
@@ -674,7 +677,6 @@ function DocDigitization() {
     setFullRecordData(null);
     setPageNumber(1);
     setSegmentsByPage(new Map());
-    setSubmittedPages({});
     setNumPages(0);
 
     const token = localStorage.getItem('token');
@@ -750,14 +752,6 @@ function DocDigitization() {
       const totalPages =
         segments.length > 0 ? Math.max(...segments.map((s) => s.start + 1)) : 0;
 
-      const initialSubmittedPages: Record<number, boolean> = {};
-      segments.forEach((segment) => {
-        const pageNum = segment.start + 1;
-        if (segment.proofread) {
-          initialSubmittedPages[pageNum] = true;
-        }
-      });
-
       setBookData({
         pdfUrl,
         metadata: {
@@ -768,7 +762,6 @@ function DocDigitization() {
         },
       });
       setSegmentsByPage(groupedSegments);
-      setSubmittedPages(initialSubmittedPages);
       setNumPages(totalPages);
       setPdfPageSize({ width: 0, height: 0 });
     } catch (err) {
@@ -822,22 +815,11 @@ function DocDigitization() {
       return (a.originalIndex || 0) - (b.originalIndex || 0);
     });
 
-    const updatedSegments = allSegments.map((segment) => {
-      const pageNum = segment.start + 1;
-      const wasAlreadySubmitted = !!submittedPages[pageNum];
-      const isCurrentPage = pageNum === pageNumber;
-
-      return {
-        start: segment.start,
-        end: segment.end,
-        text: segment.text.trim() === '' ? ' ' : segment.text,
-        proofread: wasAlreadySubmitted || isCurrentPage || !!segment.proofread,
-        bbox: segment.bbox,
-        type: segment.type,
-        reading_order: segment.reading_order,
-        confidence: segment.confidence,
-      };
-    });
+    const updatedSegments = allSegments.map(({ originalIndex, ...rest }) => ({
+      ...rest,
+      text: rest.text.trim() === '' ? ' ' : rest.text,
+      proofread: true,
+    }));
 
     const requestBody: Record<string, unknown> = {
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
@@ -870,7 +852,6 @@ function DocDigitization() {
       }
 
       toast.success(`Page ${pageNumber} submitted successfully!`);
-      setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
       setIsCompleteRecordSubmitted(true);
 
       const currentIdx = validPages.indexOf(pageNumber);
@@ -888,47 +869,53 @@ function DocDigitization() {
     }
   }
 
-  const handleSavePage = useCallback(() => {
-    setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
-    const idx = validPages.indexOf(pageNumber);
-    if (idx < validPages.length - 1) setPageNumber(validPages[idx + 1]);
-  }, [pageNumber, validPages]);
-
-  async function handleSkip() {
-    if (!recordId) return;
-
-    setIsSubmitting(true);
-    const token = localStorage.getItem('token');
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/records/${recordId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          skip: true,
-          skip_reason: skipReason,
-          category: selectedCategory,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail?.[0]?.msg || 'Failed to skip record.');
+  function handleSavePage() {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      for (const [pg, segs] of newMap.entries()) {
+        if (segs.some((seg) => seg.end === pageNumber)) {
+          newMap.set(
+            pg,
+            segs.map((seg) =>
+              seg.end === pageNumber ? { ...seg, proofread: true } : seg,
+            ),
+          );
+        }
       }
+      return newMap;
+    });
 
-      toast.success(t('messages.recordSkippedSuccessfully'));
-      setShowSkipModal(false);
-      setSkipReason('');
-      setSelectedCategory('');
-      await fetchNextRecord();
-    } catch (err) {
-      const error = err as Error;
-      toast.error(`Error: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
+    const idx = validPages.indexOf(pageNumber);
+    if (idx < validPages.length - 1) {
+      setPageNumber(validPages[idx + 1]);
+    }
+  }
+
+  function handleSkip() {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      for (const [pg, segs] of newMap.entries()) {
+        if (segs.some((seg) => seg.end === pageNumber)) {
+          newMap.set(
+            pg,
+            segs.map((seg) =>
+              seg.end === pageNumber
+                ? { ...seg, skipped: true, skip_reason: skipReason }
+                : seg,
+            ),
+          );
+        }
+      }
+      return newMap;
+    });
+
+    setShowSkipModal(false);
+    setSkipReason('');
+    setSelectedCategory('');
+
+    const idx = validPages.indexOf(pageNumber);
+    if (idx < validPages.length - 1) {
+      setPageNumber(validPages[idx + 1]);
     }
   }
 
@@ -1032,14 +1019,14 @@ function DocDigitization() {
                   <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-gray-500">
                     <span>Progress</span>
                     <span>
-                      {Object.keys(submittedPages).length} / {validPages.length}
+                      {proofreadPages.size} / {validPages.length}
                     </span>
                   </div>
                   <div className="w-full h-1 bg-white/20 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-400 transition-all duration-500 ease-out"
                       style={{
-                        width: `${(Object.keys(submittedPages).length / (validPages.length || 1)) * 100}%`,
+                        width: `${(proofreadPages.size / (validPages.length || 1)) * 100}%`,
                       }}
                     />
                   </div>
@@ -1069,12 +1056,12 @@ function DocDigitization() {
                             key={`mobile_zoom_page_opt_${p}`}
                             value={p}
                             className={
-                              submittedPages[p]
+                              proofreadPages.has(p)
                                 ? 'text-green-600 font-bold'
                                 : 'text-gray-900'
                             }
                           >
-                            P{p} {submittedPages[p] ? '✓' : ''}
+                            P{p} {proofreadPages.has(p) ? '✓' : ''}
                           </option>
                         ))}
                       </select>
@@ -1631,15 +1618,14 @@ function DocDigitization() {
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-500">
                         <span>{t('common.overall.progress')}</span>
                         <span>
-                          {Object.keys(submittedPages).length} /{' '}
-                          {validPages.length}
+                          {proofreadPages.size} / {validPages.length}
                         </span>
                       </div>
                       <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500 transition-all duration-500 ease-out"
                           style={{
-                            width: `${(Object.keys(submittedPages).length / (validPages.length || 1)) * 100}%`,
+                            width: `${(proofreadPages.size / (validPages.length || 1)) * 100}%`,
                           }}
                         />
                       </div>
@@ -1672,12 +1658,12 @@ function DocDigitization() {
                                 key={`desktop_page_opt_${p}`}
                                 value={p}
                                 className={
-                                  submittedPages[p]
+                                  proofreadPages.has(p)
                                     ? 'text-green-600 font-bold'
                                     : 'text-gray-900 dark:text-gray-100'
                                 }
                               >
-                                Page {p} {submittedPages[p] ? '✓' : ''}
+                                Page {p} {proofreadPages.has(p) ? '✓' : ''}
                               </option>
                             ))}
                           </select>
@@ -2220,21 +2206,19 @@ function DocDigitization() {
           <button
             className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
             onClick={() => setShowSkipModal(true)}
-            disabled={isSubmitting || hasUnviewedMetadata}
+            disabled={
+              isSubmitting || hasUnviewedMetadata || !isLastPageOfSegment
+            }
           >
             <SkipForward className="inline h-4 w-4 mr-1" />
             Skip
           </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
-            onClick={() => {
-              if (isLastPageOfSegment) {
-                setShowSaveConfirm(true);
-              } else {
-                handleSavePage();
-              }
-            }}
-            disabled={isSubmitting || hasUnviewedMetadata}
+            onClick={() => setShowSaveConfirm(true)}
+            disabled={
+              isSubmitting || hasUnviewedMetadata || !isLastPageOfSegment
+            }
           >
             {t('common.savePage')}
           </button>
@@ -2244,13 +2228,13 @@ function DocDigitization() {
             disabled={
               isSubmitting ||
               validPages.length === 0 ||
-              Object.keys(submittedPages).length < validPages.length ||
+              proofreadPages.size < validPages.length ||
               hasUnviewedMetadata
             }
           >
             {isSubmitting
               ? 'Submitting...'
-              : Object.keys(submittedPages).length === validPages.length
+              : proofreadPages.size === validPages.length
                 ? t('common.submitCompleteRecord')
                 : 'Submit all pages to enable'}
           </button>
@@ -2343,19 +2327,15 @@ function DocDigitization() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-3">
-            {selectedCategory && (
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('categories.category')}
-                {selectedCategoryLabel}
-              </p>
-            )}
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-              rows={4}
-              placeholder={t('common.enter.skip.reason')}
+            <select
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={skipReason}
               onChange={(e) => setSkipReason(e.target.value)}
-            />
+            >
+              <option value="">{t('common.selectAReason')}</option>
+              <option value="Unclear page">{t('common.unclearPage')}</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <DialogFooter>
             <button
