@@ -432,7 +432,20 @@
     "confirmSkip": "",
     "selectAReason": "కారణం ఎంచుకోండి...",
     "unclearPage": "అస్పష్టమైన పేజీ",
-    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "ఇది సెగ్మెంట్ యొక్క చివరి పేజీ. చేసిన మార్పుల రకాలను ఎంచుకోండి:"
+    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "ఇది సెగ్మెంట్ యొక్క చివరి పేజీ. చేసిన మార్పుల రకాలను ఎంచుకోండి:",
+    "button": {
+      "conditions": "బటన్ షరతులు"
+    },
+    "general": {
+      "conditions": "సాధారణ షరతులు"
+    },
+    "metadataMustBeReviewedFlipped": "మెటాడేటా సమీక్షించబడాలి (ఫ్లిప్)",
+    "cannotBeInEditMode": "ఎడిట్ మోడ్‌లో ఉండకూడదు",
+    "saveActiveOnLastPageAllConditionsApply": "సేవ్: చివరి పేజీలో చురుకుగా ఉంటుంది, అన్ని షరతులు వర్తిస్తాయి",
+    "skipActiveOnLastPageAllConditionsApply": "స్కిప్: చివరి పేజీలో చురుకుగా ఉంటుంది, అన్ని షరతులు వర్తిస్తాయి",
+    "categoryNonstory": "వర్గం: కథ కానిది",
+    "saveDisabled": "సేవ్: నిలిపివేయబడింది",
+    "skipActiveWhenCategorySetAndNotEditing": "స్కిప్: వర్గం సెట్ చేసినప్పుడు మరియు ఎడిటింగ్ లేనప్పుడు చురుకుగా ఉంటుంది"
   },
   "ui": {
     "failed": {
@@ -819,7 +832,8 @@
     "latitudeMustBeBetween90And90": "అక్షాంశం -90 మరియు 90 మధ్య ఉండాలి",
     "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
     "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి",
-    "authenticationRequired": "ప్రమాణీకరణ అవసరం"
+    "authenticationRequired": "ప్రమాణీకరణ అవసరం",
+    "mustBeOnLastPageOfSegment": "సెగ్మెంట్ యొక్క చివరి పేజీలో ఉండాలి"
   },
   "categories": {
     "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",
@@ -829,7 +843,8 @@
     "type": "రకం:",
     "organisationType": "సంస్థ రకం",
     "educationCategory": "విద్యా వర్గం",
-    "category": ""
+    "category": "",
+    "categoryStory": "వర్గం: కథ"
   },
   "media": {
     "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",

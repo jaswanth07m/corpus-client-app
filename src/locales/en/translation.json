@@ -440,7 +440,20 @@
     "confirmSkip": "Confirm Skip",
     "selectAReason": "Select a reason...",
     "unclearPage": "Unclear page",
-    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "This is the last page of the segment. Select the types of edits\n              made:"
+    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "This is the last page of the segment. Select the types of edits\n              made:",
+    "button": {
+      "conditions": "Button conditions"
+    },
+    "general": {
+      "conditions": "General conditions"
+    },
+    "metadataMustBeReviewedFlipped": "Metadata must be reviewed (flipped)",
+    "cannotBeInEditMode": "Cannot be in edit mode",
+    "saveActiveOnLastPageAllConditionsApply": "Save: active on last page, all conditions apply",
+    "skipActiveOnLastPageAllConditionsApply": "Skip: active on last page, all conditions apply",
+    "categoryNonstory": "Category: Non-Story",
+    "saveDisabled": "Save: disabled",
+    "skipActiveWhenCategorySetAndNotEditing": "Skip: active when category set and not editing"
   },
   "ui": {
     "failed": {
@@ -828,7 +841,8 @@
     "latitudeMustBeBetween90And90": "Latitude must be between -90 and 90",
     "longitudeMustBeBetween180And180": "Longitude must be between -180 and 180",
     "pleaseEnterTextContent": "Please enter text content",
-    "authenticationRequired": "Authentication required"
+    "authenticationRequired": "Authentication required",
+    "mustBeOnLastPageOfSegment": "Must be on last page of segment"
   },
   "categories": {
     "chooseACategoryToContributeContent": "Choose a category to contribute content",
@@ -838,7 +852,8 @@
     "type": "Type:",
     "organisationType": "Organisation Type",
     "educationCategory": "Education Category",
-    "category": "category:"
+    "category": "category:",
+    "categoryStory": "Category: Story"
   },
   "media": {
     "failedToSwitchCamera": "Failed to switch camera",

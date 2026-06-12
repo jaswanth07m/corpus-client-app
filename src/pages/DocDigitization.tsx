@@ -36,6 +36,7 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronUp,
+  Info,
   RotateCw,
   SkipForward,
 } from 'lucide-react';
@@ -316,6 +317,7 @@ function DocDigitization() {
   const [isCompleteRecordSubmitted, setIsCompleteRecordSubmitted] =
     useState(false);
   const [editReasons, setEditReasons] = useState<string[]>([]);
+  const [showInfoPanel, setShowInfoPanel] = useState(false);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping(
     editingSegmentIndex !== null
@@ -1187,6 +1189,70 @@ function DocDigitization() {
         </button>
         <div className="flex items-center gap-2">
           <NetworkStrengthIndicator />
+          {currentPageSegments.some(
+            (seg) => seg.extraction_metadata || seg.named_entities,
+          ) && (
+            <div className="relative">
+              <button
+                onClick={() => setShowInfoPanel(!showInfoPanel)}
+                className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 w-8 h-8 rounded-full p-1.5 transition-colors"
+                title="Button conditions"
+              >
+                <Info className="h-full w-full" />
+              </button>
+              {showInfoPanel && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50 text-xs text-gray-700 dark:text-gray-300">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                      {t('common.button.conditions')}
+                    </h3>
+                    <button
+                      onClick={() => setShowInfoPanel(false)}
+                      className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <ArrowLeft className="h-3 w-3 rotate-90" />
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-gray-100">
+                        {t('common.general.conditions')}
+                      </p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        <li>{t('validation.mustBeOnLastPageOfSegment')}</li>
+                        <li>{t('common.metadataMustBeReviewedFlipped')}</li>
+                        <li>{t('common.cannotBeInEditMode')}</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-gray-100">
+                        {t('categories.categoryStory')}
+                      </p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        <li>
+                          {t('common.saveActiveOnLastPageAllConditionsApply')}
+                        </li>
+                        <li>
+                          {t('common.skipActiveOnLastPageAllConditionsApply')}
+                        </li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-gray-100">
+                        {t('common.categoryNonstory')}
+                      </p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        <li>{t('common.saveDisabled')}</li>
+                        <li>
+                          {t('common.skipActiveWhenCategorySetAndNotEditing')}
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="relative">
             <button
               onClick={() => setShowRecordPanel(!showRecordPanel)}

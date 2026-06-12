@@ -419,7 +419,20 @@
     "confirmSkip": "",
     "selectAReason": "कारण चुनें...",
     "unclearPage": "अस्पष्ट पृष्ठ",
-    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "यह सेगमेंट का अंतिम पृष्ठ है। किए गए संपादन के प्रकार चुनें:"
+    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "यह सेगमेंट का अंतिम पृष्ठ है। किए गए संपादन के प्रकार चुनें:",
+    "button": {
+      "conditions": "बटन की शर्तें"
+    },
+    "general": {
+      "conditions": "सामान्य शर्तें"
+    },
+    "metadataMustBeReviewedFlipped": "मेटाडेटा की समीक्षा की जानी चाहिए (फ़्लिप)",
+    "cannotBeInEditMode": "संपादन मोड में नहीं होना चाहिए",
+    "saveActiveOnLastPageAllConditionsApply": "सहेजें: अंतिम पृष्ठ पर सक्रिय, सभी शर्तें लागू",
+    "skipActiveOnLastPageAllConditionsApply": "छोड़ें: अंतिम पृष्ठ पर सक्रिय, सभी शर्तें लागू",
+    "categoryNonstory": "श्रेणी: गैर-कहानी",
+    "saveDisabled": "सहेजें: अक्षम",
+    "skipActiveWhenCategorySetAndNotEditing": "छोड़ें: श्रेणी सेट होने पर सक्रिय और संपादन नहीं"
   },
   "ui": {
     "failed": {
@@ -807,7 +820,8 @@
     "latitudeMustBeBetween90And90": "अक्षांश -90 और 90 के बीच होना चाहिए",
     "longitudeMustBeBetween180And180": "देशांतर -180 और 180 के बीच होना चाहिए",
     "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें",
-    "authenticationRequired": "प्रमाणीकरण आवश्यक है"
+    "authenticationRequired": "प्रमाणीकरण आवश्यक है",
+    "mustBeOnLastPageOfSegment": "सेगमेंट के अंतिम पृष्ठ पर होना चाहिए"
   },
   "categories": {
     "chooseACategoryToContributeContent": "सामग्री योगदान देने के लिए एक श्रेणी चुनें",
@@ -817,7 +831,8 @@
     "type": "प्रकार:",
     "organisationType": "संगठन प्रकार",
     "educationCategory": "शिक्षा श्रेणी",
-    "category": ""
+    "category": "",
+    "categoryStory": "श्रेणी: कहानी"
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",
