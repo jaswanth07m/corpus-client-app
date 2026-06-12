@@ -2749,11 +2749,14 @@ function DocDigitization() {
             className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
             onClick={() => setShowSkipModal(true)}
             disabled={
-              isSubmitting ||
-              hasUnviewedMetadata ||
-              !isLastPageOfSegment ||
-              !allEndingSegmentsHaveCategory ||
-              metadataEditingIndex !== null
+              isCurrentPageStoryCategory
+                ? isSubmitting ||
+                  hasUnviewedMetadata ||
+                  !isLastPageOfSegment ||
+                  !allEndingSegmentsHaveCategory ||
+                  metadataEditingIndex !== null
+                : !allEndingSegmentsHaveCategory ||
+                  metadataEditingIndex !== null
             }
           >
             <SkipForward className="inline h-4 w-4 mr-1" />
@@ -2763,6 +2766,7 @@ function DocDigitization() {
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => setShowSaveConfirm(true)}
             disabled={
+              !isCurrentPageStoryCategory ||
               isSubmitting ||
               hasUnviewedMetadata ||
               !isLastPageOfSegment ||
