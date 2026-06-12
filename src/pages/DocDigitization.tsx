@@ -1000,14 +1000,16 @@ function DocDigitization() {
       return (a.originalIndex || 0) - (b.originalIndex || 0);
     });
 
-    const updatedSegments = allSegments.map(({ originalIndex, ...rest }) => ({
-      ...rest,
-      text: rest.text.trim() === '' ? ' ' : rest.text,
-      proofread: true,
-      extraction_metadata: {
-        ...((rest.extraction_metadata || {}) as Record<string, unknown>),
-      },
-    }));
+    const updatedSegments = allSegments.map(
+      ({ originalIndex, skip, skipped, skip_reason, ...rest }) => ({
+        ...rest,
+        text: rest.text.trim() === '' ? ' ' : rest.text,
+        proofread: true,
+        extraction_metadata: {
+          ...((rest.extraction_metadata || {}) as Record<string, unknown>),
+        },
+      }),
+    );
 
     const requestBody: Record<string, unknown> = {
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
