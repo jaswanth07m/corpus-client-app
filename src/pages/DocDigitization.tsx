@@ -1571,34 +1571,39 @@ function DocDigitization() {
                                     {segment.extraction_metadata &&
                                       Object.entries(
                                         segment.extraction_metadata,
-                                      ).map(([key, value]) => (
-                                        <div key={key} className="text-[11px]">
-                                          <span className="font-bold text-gray-600 dark:text-gray-400">
-                                            {key}:
-                                          </span>{' '}
-                                          {metadataEditingIndex === idx ? (
-                                            <input
-                                              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
-                                              value={String(value)}
-                                              onKeyDown={handleTeluguKeyDown}
-                                              onChange={(e) =>
-                                                handleMetadataChange(
-                                                  idx,
-                                                  'extraction_metadata',
-                                                  key,
-                                                  e.target.value,
-                                                )
-                                              }
-                                            />
-                                          ) : (
-                                            <span className="text-gray-800 dark:text-gray-200">
-                                              {Array.isArray(value)
-                                                ? value.join(', ')
-                                                : String(value)}
-                                            </span>
-                                          )}
-                                        </div>
-                                      ))}
+                                      )
+                                        .filter(([key]) => key !== 'category')
+                                        .map(([key, value]) => (
+                                          <div
+                                            key={key}
+                                            className="text-[11px]"
+                                          >
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              {key}:
+                                            </span>{' '}
+                                            {metadataEditingIndex === idx ? (
+                                              <input
+                                                className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
+                                                value={String(value)}
+                                                onKeyDown={handleTeluguKeyDown}
+                                                onChange={(e) =>
+                                                  handleMetadataChange(
+                                                    idx,
+                                                    'extraction_metadata',
+                                                    key,
+                                                    e.target.value,
+                                                  )
+                                                }
+                                              />
+                                            ) : (
+                                              <span className="text-gray-800 dark:text-gray-200">
+                                                {Array.isArray(value)
+                                                  ? value.join(', ')
+                                                  : String(value)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        ))}
                                     {segment.named_entities &&
                                       Object.entries(
                                         segment.named_entities,
@@ -2353,36 +2358,44 @@ function DocDigitization() {
                                         {segment.extraction_metadata &&
                                           Object.entries(
                                             segment.extraction_metadata,
-                                          ).map(([key, value]) => (
-                                            <div key={key} className="text-xs">
-                                              <span className="font-bold text-gray-600 dark:text-gray-400">
-                                                {key}:
-                                              </span>{' '}
-                                              {metadataEditingIndex === idx ? (
-                                                <input
-                                                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
-                                                  value={String(value)}
-                                                  onKeyDown={
-                                                    handleTeluguKeyDown
-                                                  }
-                                                  onChange={(e) =>
-                                                    handleMetadataChange(
-                                                      idx,
-                                                      'extraction_metadata',
-                                                      key,
-                                                      e.target.value,
-                                                    )
-                                                  }
-                                                />
-                                              ) : (
-                                                <span className="text-gray-800 dark:text-gray-200">
-                                                  {Array.isArray(value)
-                                                    ? value.join(', ')
-                                                    : String(value)}
-                                                </span>
-                                              )}
-                                            </div>
-                                          ))}
+                                          )
+                                            .filter(
+                                              ([key]) => key !== 'category',
+                                            )
+                                            .map(([key, value]) => (
+                                              <div
+                                                key={key}
+                                                className="text-xs"
+                                              >
+                                                <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                  {key}:
+                                                </span>{' '}
+                                                {metadataEditingIndex ===
+                                                idx ? (
+                                                  <input
+                                                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
+                                                    value={String(value)}
+                                                    onKeyDown={
+                                                      handleTeluguKeyDown
+                                                    }
+                                                    onChange={(e) =>
+                                                      handleMetadataChange(
+                                                        idx,
+                                                        'extraction_metadata',
+                                                        key,
+                                                        e.target.value,
+                                                      )
+                                                    }
+                                                  />
+                                                ) : (
+                                                  <span className="text-gray-800 dark:text-gray-200">
+                                                    {Array.isArray(value)
+                                                      ? value.join(', ')
+                                                      : String(value)}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            ))}
                                         {segment.named_entities &&
                                           Object.entries(
                                             segment.named_entities,
