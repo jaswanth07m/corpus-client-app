@@ -322,17 +322,24 @@ function DocDigitization() {
   );
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
 
+  const teluguEngineRef = useRef({ prevChar: '', prevLen: 0 });
+
   const handleTeluguKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       if (!isTeluguTypingEnabled) return;
-      if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) return;
+      if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) {
+        teluguEngineRef.current = { prevChar: '', prevLen: 0 };
+        return;
+      }
       e.preventDefault();
+      const engine = teluguEngineRef.current;
       const target = e.target as HTMLInputElement;
       const selStart = target.selectionStart ?? target.value.length;
       const selEnd = target.selectionEnd ?? target.value.length;
-      const textBefore = target.value.substring(0, selStart);
+      const str = engine.prevChar + e.key;
+      const result = transliterate(str);
+      const textBefore = target.value.substring(0, selStart - engine.prevLen);
       const textAfter = target.value.substring(selEnd);
-      const result = transliterate(e.key);
       const newValue = textBefore + result.str + textAfter;
       const nativeInputValue = Object.getOwnPropertyDescriptor(
         window.HTMLInputElement.prototype,
@@ -343,6 +350,8 @@ function DocDigitization() {
       const newCursor = textBefore.length + result.str.length;
       target.selectionStart = newCursor;
       target.selectionEnd = newCursor;
+      engine.prevChar = str.substring(result.freezpos);
+      engine.prevLen = result.indic.length;
     },
     [isTeluguTypingEnabled],
   );
@@ -1642,6 +1651,9 @@ function DocDigitization() {
                                                         <input
                                                           className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
                                                           defaultValue={subKey}
+                                                          onKeyDown={
+                                                            handleTeluguKeyDown
+                                                          }
                                                           onBlur={(e) => {
                                                             if (
                                                               e.target.value !==
@@ -2436,6 +2448,9 @@ function DocDigitization() {
                                                               className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
                                                               defaultValue={
                                                                 subKey
+                                                              }
+                                                              onKeyDown={
+                                                                handleTeluguKeyDown
                                                               }
                                                               onBlur={(e) => {
                                                                 if (
