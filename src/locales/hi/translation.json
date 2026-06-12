@@ -432,7 +432,9 @@
     "skipActiveOnLastPageAllConditionsApply": "छोड़ें: अंतिम पृष्ठ पर सक्रिय, सभी शर्तें लागू",
     "categoryNonstory": "श्रेणी: गैर-कहानी",
     "saveDisabled": "सहेजें: अक्षम",
-    "skipActiveWhenCategorySetAndNotEditing": "छोड़ें: श्रेणी सेट होने पर सक्रिय और संपादन नहीं"
+    "skipActiveWhenCategorySetAndNotEditing": "छोड़ें: श्रेणी सेट होने पर सक्रिय और संपादन नहीं",
+    "genre": "शैली:",
+    "selectGenre": "शैली चुनें..."
   },
   "ui": {
     "failed": {

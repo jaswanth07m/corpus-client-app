@@ -453,7 +453,9 @@
     "skipActiveOnLastPageAllConditionsApply": "Skip: active on last page, all conditions apply",
     "categoryNonstory": "Category: Non-Story",
     "saveDisabled": "Save: disabled",
-    "skipActiveWhenCategorySetAndNotEditing": "Skip: active when category set and not editing"
+    "skipActiveWhenCategorySetAndNotEditing": "Skip: active when category set and not editing",
+    "genre": "genre:",
+    "selectGenre": "Select genre..."
   },
   "ui": {
     "failed": {

@@ -445,7 +445,9 @@
     "skipActiveOnLastPageAllConditionsApply": "స్కిప్: చివరి పేజీలో చురుకుగా ఉంటుంది, అన్ని షరతులు వర్తిస్తాయి",
     "categoryNonstory": "వర్గం: కథ కానిది",
     "saveDisabled": "సేవ్: నిలిపివేయబడింది",
-    "skipActiveWhenCategorySetAndNotEditing": "స్కిప్: వర్గం సెట్ చేసినప్పుడు మరియు ఎడిటింగ్ లేనప్పుడు చురుకుగా ఉంటుంది"
+    "skipActiveWhenCategorySetAndNotEditing": "స్కిప్: వర్గం సెట్ చేసినప్పుడు మరియు ఎడిటింగ్ లేనప్పుడు చురుకుగా ఉంటుంది",
+    "genre": "శైలి:",
+    "selectGenre": "శైలిని ఎంచుకోండి..."
   },
   "ui": {
     "failed": {

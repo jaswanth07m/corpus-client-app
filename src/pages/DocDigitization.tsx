@@ -806,6 +806,12 @@ function DocDigitization() {
         if (!seg.named_entities.locations) {
           seg.named_entities.locations = '';
         }
+        if (!seg.extraction_metadata?.genre) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            genre: '',
+          };
+        }
       });
 
       const groupedSegments = groupSegmentsByPage(segments);
@@ -946,6 +952,12 @@ function DocDigitization() {
         }
         if (!seg.named_entities.locations) {
           seg.named_entities.locations = '';
+        }
+        if (!seg.extraction_metadata?.genre) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            genre: '',
+          };
         }
       });
 
@@ -1728,11 +1740,63 @@ function DocDigitization() {
                                         </span>
                                       </div>
                                     )}
+                                    {metadataEditingIndex === idx ? (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          genre:
+                                        </span>
+                                        <select
+                                          value={
+                                            (segment.extraction_metadata
+                                              ?.genre as string) || ''
+                                          }
+                                          onChange={(e) =>
+                                            handleMetadataChange(
+                                              idx,
+                                              'extraction_metadata',
+                                              'genre',
+                                              e.target.value,
+                                            )
+                                          }
+                                          className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                        >
+                                          <option value="">
+                                            Select genre...
+                                          </option>
+                                          <option value="social">social</option>
+                                          <option value="mythology">
+                                            mythology
+                                          </option>
+                                          <option value="fantasy">
+                                            fantasy
+                                          </option>
+                                          <option value="folklore">
+                                            folklore
+                                          </option>
+                                          <option value="fables">fables</option>
+                                          <option value="others">others</option>
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          genre:
+                                        </span>{' '}
+                                        <span className="text-gray-800 dark:text-gray-200">
+                                          {(segment.extraction_metadata
+                                            ?.genre as string) || ''}
+                                        </span>
+                                      </div>
+                                    )}
                                     {segment.extraction_metadata &&
                                       Object.entries(
                                         segment.extraction_metadata,
                                       )
-                                        .filter(([key]) => key !== 'category')
+                                        .filter(
+                                          ([key]) =>
+                                            key !== 'category' &&
+                                            key !== 'ner_genre',
+                                        )
                                         .map(([key, value]) => (
                                           <div
                                             key={key}
@@ -2533,12 +2597,68 @@ function DocDigitization() {
                                             </span>
                                           </div>
                                         )}
+                                        {metadataEditingIndex === idx ? (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              {t('common.genre')}
+                                            </span>
+                                            <select
+                                              value={
+                                                (segment.extraction_metadata
+                                                  ?.genre as string) || ''
+                                              }
+                                              onChange={(e) =>
+                                                handleMetadataChange(
+                                                  idx,
+                                                  'extraction_metadata',
+                                                  'genre',
+                                                  e.target.value,
+                                                )
+                                              }
+                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                            >
+                                              <option value="">
+                                                {t('common.selectGenre')}
+                                              </option>
+                                              <option value="social">
+                                                social
+                                              </option>
+                                              <option value="mythology">
+                                                mythology
+                                              </option>
+                                              <option value="fantasy">
+                                                fantasy
+                                              </option>
+                                              <option value="folklore">
+                                                folklore
+                                              </option>
+                                              <option value="fables">
+                                                fables
+                                              </option>
+                                              <option value="others">
+                                                others
+                                              </option>
+                                            </select>
+                                          </div>
+                                        ) : (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              genre:
+                                            </span>{' '}
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {(segment.extraction_metadata
+                                                ?.genre as string) || ''}
+                                            </span>
+                                          </div>
+                                        )}
                                         {segment.extraction_metadata &&
                                           Object.entries(
                                             segment.extraction_metadata,
                                           )
                                             .filter(
-                                              ([key]) => key !== 'category',
+                                              ([key]) =>
+                                                key !== 'category' &&
+                                                key !== 'ner_genre',
                                             )
                                             .map(([key, value]) => (
                                               <div
