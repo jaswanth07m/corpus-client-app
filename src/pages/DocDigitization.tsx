@@ -1612,6 +1612,56 @@ function DocDigitization() {
                                 </div>
                                 {flippedSegmentIndex === idx ? (
                                   <div className="space-y-2 mt-1">
+                                    {metadataEditingIndex === idx ? (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          category:
+                                        </span>
+                                        <select
+                                          value={
+                                            (segment.extraction_metadata
+                                              ?.category as string) || ''
+                                          }
+                                          onChange={(e) =>
+                                            handleMetadataChange(
+                                              idx,
+                                              'extraction_metadata',
+                                              'category',
+                                              e.target.value,
+                                            )
+                                          }
+                                          className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                        >
+                                          <option value="">
+                                            Select category...
+                                          </option>
+                                          <option value="poem">poem</option>
+                                          <option value="story">story</option>
+                                          <option value="interview">
+                                            interview
+                                          </option>
+                                          <option value="article">
+                                            article
+                                          </option>
+                                          <option value="editorial">
+                                            editorial
+                                          </option>
+                                          <option value="miscellaneous">
+                                            miscellaneous
+                                          </option>
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          category:
+                                        </span>{' '}
+                                        <span className="text-gray-800 dark:text-gray-200">
+                                          {(segment.extraction_metadata
+                                            ?.category as string) || ''}
+                                        </span>
+                                      </div>
+                                    )}
                                     {segment.extraction_metadata &&
                                       Object.entries(
                                         segment.extraction_metadata,
@@ -1825,56 +1875,6 @@ function DocDigitization() {
                                             </div>
                                           );
                                         })}
-                                    {metadataEditingIndex === idx ? (
-                                      <div className="text-[11px]">
-                                        <span className="font-bold text-gray-600 dark:text-gray-400">
-                                          category:
-                                        </span>
-                                        <select
-                                          value={
-                                            (segment.extraction_metadata
-                                              ?.category as string) || ''
-                                          }
-                                          onChange={(e) =>
-                                            handleMetadataChange(
-                                              idx,
-                                              'extraction_metadata',
-                                              'category',
-                                              e.target.value,
-                                            )
-                                          }
-                                          className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
-                                        >
-                                          <option value="">
-                                            Select category...
-                                          </option>
-                                          <option value="poem">poem</option>
-                                          <option value="story">story</option>
-                                          <option value="interview">
-                                            interview
-                                          </option>
-                                          <option value="article">
-                                            article
-                                          </option>
-                                          <option value="editorial">
-                                            editorial
-                                          </option>
-                                          <option value="miscellaneous">
-                                            miscellaneous
-                                          </option>
-                                        </select>
-                                      </div>
-                                    ) : (
-                                      <div className="text-[11px]">
-                                        <span className="font-bold text-gray-600 dark:text-gray-400">
-                                          category:
-                                        </span>{' '}
-                                        <span className="text-gray-800 dark:text-gray-200">
-                                          {(segment.extraction_metadata
-                                            ?.category as string) || ''}
-                                        </span>
-                                      </div>
-                                    )}
                                   </div>
                                 ) : editingSegmentIndex === idx ? (
                                   <AutoResizeTextArea
@@ -2415,6 +2415,58 @@ function DocDigitization() {
                                     </div>
                                     {flippedSegmentIndex === idx ? (
                                       <div className="space-y-2 mt-1">
+                                        {metadataEditingIndex === idx ? (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              category:
+                                            </span>
+                                            <select
+                                              value={
+                                                (segment.extraction_metadata
+                                                  ?.category as string) || ''
+                                              }
+                                              onChange={(e) =>
+                                                handleMetadataChange(
+                                                  idx,
+                                                  'extraction_metadata',
+                                                  'category',
+                                                  e.target.value,
+                                                )
+                                              }
+                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                            >
+                                              <option value="">
+                                                Select category...
+                                              </option>
+                                              <option value="poem">poem</option>
+                                              <option value="story">
+                                                story
+                                              </option>
+                                              <option value="interview">
+                                                interview
+                                              </option>
+                                              <option value="article">
+                                                article
+                                              </option>
+                                              <option value="editorial">
+                                                editorial
+                                              </option>
+                                              <option value="miscellaneous">
+                                                miscellaneous
+                                              </option>
+                                            </select>
+                                          </div>
+                                        ) : (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              category:
+                                            </span>{' '}
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {(segment.extraction_metadata
+                                                ?.category as string) || ''}
+                                            </span>
+                                          </div>
+                                        )}
                                         {segment.extraction_metadata &&
                                           Object.entries(
                                             segment.extraction_metadata,
@@ -2640,58 +2692,6 @@ function DocDigitization() {
                                                 </div>
                                               );
                                             })}
-                                        {metadataEditingIndex === idx ? (
-                                          <div className="text-xs">
-                                            <span className="font-bold text-gray-600 dark:text-gray-400">
-                                              category:
-                                            </span>
-                                            <select
-                                              value={
-                                                (segment.extraction_metadata
-                                                  ?.category as string) || ''
-                                              }
-                                              onChange={(e) =>
-                                                handleMetadataChange(
-                                                  idx,
-                                                  'extraction_metadata',
-                                                  'category',
-                                                  e.target.value,
-                                                )
-                                              }
-                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
-                                            >
-                                              <option value="">
-                                                Select category...
-                                              </option>
-                                              <option value="poem">poem</option>
-                                              <option value="story">
-                                                story
-                                              </option>
-                                              <option value="interview">
-                                                interview
-                                              </option>
-                                              <option value="article">
-                                                article
-                                              </option>
-                                              <option value="editorial">
-                                                editorial
-                                              </option>
-                                              <option value="miscellaneous">
-                                                miscellaneous
-                                              </option>
-                                            </select>
-                                          </div>
-                                        ) : (
-                                          <div className="text-xs">
-                                            <span className="font-bold text-gray-600 dark:text-gray-400">
-                                              category:
-                                            </span>{' '}
-                                            <span className="text-gray-800 dark:text-gray-200">
-                                              {(segment.extraction_metadata
-                                                ?.category as string) || ''}
-                                            </span>
-                                          </div>
-                                        )}
                                       </div>
                                     ) : editingSegmentIndex === idx ? (
                                       <AutoResizeTextArea
