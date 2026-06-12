@@ -312,8 +312,6 @@ function DocDigitization() {
     useState<Set<number>>(new Set());
   const [showSkipModal, setShowSkipModal] = useState(false);
   const [skipReason, setSkipReason] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [recordCategory, setRecordCategory] = useState<string | null>(null);
   const [isCompleteRecordSubmitted, setIsCompleteRecordSubmitted] =
     useState(false);
 
@@ -501,6 +499,94 @@ function DocDigitization() {
     });
   };
 
+  const removeDictEntry = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    parentKey: string,
+    subKey: string,
+  ) => {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        const parent = meta[parentKey]
+          ? { ...(meta[parentKey] as Record<string, unknown>) }
+          : {};
+        delete parent[subKey];
+        meta[parentKey] = parent;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
+        newMap.set(pageNumber, updatedSegments);
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
+      }
+      return newMap;
+    });
+  };
+
+  const renameDictKey = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    parentKey: string,
+    oldSubKey: string,
+    newSubKey: string,
+  ) => {
+    if (oldSubKey === newSubKey || !newSubKey.trim()) return;
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        const parent = meta[parentKey]
+          ? { ...(meta[parentKey] as Record<string, unknown>) }
+          : {};
+        const value = parent[oldSubKey];
+        delete parent[oldSubKey];
+        parent[newSubKey] = value;
+        meta[parentKey] = parent;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
+        newMap.set(pageNumber, updatedSegments);
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
+      }
+      return newMap;
+    });
+  };
+
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
@@ -589,6 +675,28 @@ function DocDigitization() {
     return pages;
   }, [segmentsByPage]);
 
+  const currentPageEndingSegments = useMemo(
+    () => currentPageSegments.filter((seg) => seg.end === pageNumber),
+    [currentPageSegments, pageNumber],
+  );
+
+  const allEndingSegmentsHaveCategory = useMemo(
+    () =>
+      currentPageEndingSegments.length > 0 &&
+      currentPageEndingSegments.every(
+        (seg) => seg.extraction_metadata?.category,
+      ),
+    [currentPageEndingSegments],
+  );
+
+  const isCurrentPageStoryCategory = useMemo(
+    () =>
+      currentPageEndingSegments.some(
+        (seg) => seg.extraction_metadata?.category === 'story',
+      ),
+    [currentPageEndingSegments],
+  );
+
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
       setPageNumber(validPages[0]);
@@ -596,11 +704,6 @@ function DocDigitization() {
   }, [validPages, pageNumber]);
 
   useEffect(() => {
-    if (fullRecordData?.category) {
-      setRecordCategory(fullRecordData.category);
-    } else {
-      setRecordCategory(null);
-    }
     setIsCompleteRecordSubmitted(false);
   }, [fullRecordData]);
 
@@ -677,6 +780,12 @@ function DocDigitization() {
           seg.named_entities!.characters = Object.fromEntries(
             characters.map((item: unknown) => [String(item), null]),
           );
+        }
+        if (recordDetails.category && !seg.extraction_metadata?.category) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            category: recordDetails.category,
+          };
         }
       });
 
@@ -807,6 +916,12 @@ function DocDigitization() {
             characters.map((item: unknown) => [String(item), null]),
           );
         }
+        if (recordDetails.category && !seg.extraction_metadata?.category) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            category: recordDetails.category,
+          };
+        }
       });
 
       const groupedSegments = groupSegmentsByPage(segments);
@@ -880,16 +995,15 @@ function DocDigitization() {
       ...rest,
       text: rest.text.trim() === '' ? ' ' : rest.text,
       proofread: true,
+      extraction_metadata: {
+        ...((rest.extraction_metadata || {}) as Record<string, unknown>),
+      },
     }));
 
     const requestBody: Record<string, unknown> = {
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
       segments: updatedSegments,
     };
-
-    if (selectedCategory) {
-      requestBody.category = selectedCategory;
-    }
 
     try {
       const response = await fetch(
@@ -930,7 +1044,42 @@ function DocDigitization() {
     }
   }
 
+  function cleanupEmptyCharacters() {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      for (const [pg, segs] of newMap.entries()) {
+        newMap.set(
+          pg,
+          segs.map((seg) => {
+            if (!seg.named_entities?.characters) return seg;
+            const chars = seg.named_entities.characters as Record<
+              string,
+              unknown
+            >;
+            const cleaned: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(chars)) {
+              if (k.trim() !== '') {
+                cleaned[k] = v;
+              }
+            }
+            return {
+              ...seg,
+              named_entities: { ...seg.named_entities, characters: cleaned },
+            };
+          }),
+        );
+      }
+      return newMap;
+    });
+  }
+
+  function doneEditingMetadata() {
+    cleanupEmptyCharacters();
+    setMetadataEditingIndex(null);
+  }
+
   function handleSavePage() {
+    cleanupEmptyCharacters();
     setSegmentsByPage((prevMap) => {
       const newMap = new Map(prevMap);
       for (const [pg, segs] of newMap.entries()) {
@@ -953,6 +1102,7 @@ function DocDigitization() {
   }
 
   function handleSkip() {
+    cleanupEmptyCharacters();
     setSegmentsByPage((prevMap) => {
       const newMap = new Map(prevMap);
       for (const [pg, segs] of newMap.entries()) {
@@ -972,27 +1122,12 @@ function DocDigitization() {
 
     setShowSkipModal(false);
     setSkipReason('');
-    setSelectedCategory('');
 
     const idx = validPages.indexOf(pageNumber);
     if (idx < validPages.length - 1) {
       setPageNumber(validPages[idx + 1]);
     }
   }
-
-  const isSelectedStoryCategory = selectedCategory === 'story';
-
-  const categoryOptions = [
-    { label: 'Poem (కవిత)', value: 'poem' },
-    { label: 'Story (కథ)', value: 'story' },
-    { label: 'Interview (ఇంటర్వ్యూ)', value: 'interview' },
-    { label: 'Article (వ్యాసం)', value: 'article' },
-    { label: 'Editorial (సంపాదకీయం)', value: 'editorial' },
-    { label: 'Miscellaneous (ఇతర)', value: 'miscellaneous' },
-  ];
-
-  const selectedCategoryLabel =
-    categoryOptions.find((opt) => opt.value === selectedCategory)?.label || '';
 
   return (
     <div className="flex flex-col h-screen">
@@ -1361,9 +1496,7 @@ function DocDigitization() {
                                         </button>
                                       ) : (
                                         <button
-                                          onClick={() =>
-                                            setMetadataEditingIndex(null)
-                                          }
+                                          onClick={() => doneEditingMetadata()}
                                           className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
                                         >
                                           Done
@@ -1372,7 +1505,7 @@ function DocDigitization() {
                                       <button
                                         onClick={() => {
                                           setEditingSegmentIndex(null);
-                                          setMetadataEditingIndex(null);
+                                          doneEditingMetadata();
                                           setFlippedSegmentIndex(null);
                                         }}
                                         className="opacity-0 group-hover:opacity-100 px-1.5 py-0 bg-purple-600 text-white text-[8px] font-bold rounded transition-opacity"
@@ -1406,7 +1539,7 @@ function DocDigitization() {
                                         <button
                                           onClick={() => {
                                             setEditingSegmentIndex(null);
-                                            setMetadataEditingIndex(null);
+                                            doneEditingMetadata();
                                             setFlippedViewedOriginalIndices(
                                               (prev) => {
                                                 const next = new Set(prev);
@@ -1489,45 +1622,108 @@ function DocDigitization() {
                                                     string,
                                                     unknown
                                                   >,
-                                                ).map(([subKey, subValue]) => (
-                                                  <div
-                                                    key={subKey}
-                                                    className="flex items-center gap-1"
-                                                  >
-                                                    <span className="text-gray-600 dark:text-gray-400 font-medium">
-                                                      {subKey}:
-                                                    </span>
-                                                    {metadataEditingIndex ===
-                                                    idx ? (
-                                                      <input
-                                                        className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
-                                                        value={
-                                                          subValue === null
+                                                ).map(
+                                                  (
+                                                    [subKey, subValue],
+                                                    index,
+                                                  ) => (
+                                                    <div
+                                                      key={index}
+                                                      className="flex items-center gap-1"
+                                                    >
+                                                      {metadataEditingIndex ===
+                                                        idx &&
+                                                      key === 'characters' ? (
+                                                        <input
+                                                          className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                                          defaultValue={subKey}
+                                                          onBlur={(e) => {
+                                                            if (
+                                                              e.target.value !==
+                                                              subKey
+                                                            ) {
+                                                              renameDictKey(
+                                                                idx,
+                                                                'named_entities',
+                                                                key,
+                                                                subKey,
+                                                                e.target.value,
+                                                              );
+                                                            }
+                                                          }}
+                                                        />
+                                                      ) : (
+                                                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                          {subKey}:
+                                                        </span>
+                                                      )}
+                                                      {metadataEditingIndex ===
+                                                      idx ? (
+                                                        <input
+                                                          className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                                          value={
+                                                            subValue === null
+                                                              ? ''
+                                                              : String(subValue)
+                                                          }
+                                                          onKeyDown={
+                                                            handleTeluguKeyDown
+                                                          }
+                                                          onChange={(e) =>
+                                                            handleNestedMetadataChange(
+                                                              idx,
+                                                              'named_entities',
+                                                              key,
+                                                              subKey,
+                                                              e.target.value,
+                                                            )
+                                                          }
+                                                        />
+                                                      ) : (
+                                                        <span className="text-gray-800 dark:text-gray-200">
+                                                          {subValue === null
                                                             ? ''
-                                                            : String(subValue)
-                                                        }
-                                                        onKeyDown={
-                                                          handleTeluguKeyDown
-                                                        }
-                                                        onChange={(e) =>
-                                                          handleNestedMetadataChange(
-                                                            idx,
-                                                            'named_entities',
-                                                            key,
-                                                            subKey,
-                                                            e.target.value,
-                                                          )
-                                                        }
-                                                      />
-                                                    ) : (
-                                                      <span className="text-gray-800 dark:text-gray-200">
-                                                        {subValue === null
-                                                          ? ''
-                                                          : String(subValue)}
-                                                      </span>
-                                                    )}
-                                                  </div>
-                                                ))}
+                                                            : String(subValue)}
+                                                        </span>
+                                                      )}
+                                                      {metadataEditingIndex ===
+                                                        idx &&
+                                                        key ===
+                                                          'characters' && (
+                                                          <button
+                                                            onClick={() =>
+                                                              removeDictEntry(
+                                                                idx,
+                                                                'named_entities',
+                                                                key,
+                                                                subKey,
+                                                              )
+                                                            }
+                                                            className="text-red-500 hover:text-red-700 text-[11px] font-bold ml-1"
+                                                          >
+                                                            -
+                                                          </button>
+                                                        )}
+                                                    </div>
+                                                  ),
+                                                )}
+                                                {metadataEditingIndex === idx &&
+                                                  key === 'characters' && (
+                                                    <button
+                                                      onClick={() =>
+                                                        handleNestedMetadataChange(
+                                                          idx,
+                                                          'named_entities',
+                                                          key,
+                                                          '',
+                                                          '',
+                                                        )
+                                                      }
+                                                      className="text-blue-500 hover:text-blue-700 text-[11px] font-bold mt-1"
+                                                    >
+                                                      +
+                                                    </button>
+                                                  )}
                                               </div>
                                             </div>
                                           );
@@ -1570,9 +1766,17 @@ function DocDigitization() {
                                           category:
                                         </span>
                                         <select
-                                          value={selectedCategory}
+                                          value={
+                                            (segment.extraction_metadata
+                                              ?.category as string) || ''
+                                          }
                                           onChange={(e) =>
-                                            setSelectedCategory(e.target.value)
+                                            handleMetadataChange(
+                                              idx,
+                                              'extraction_metadata',
+                                              'category',
+                                              e.target.value,
+                                            )
                                           }
                                           className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
                                         >
@@ -1601,7 +1805,8 @@ function DocDigitization() {
                                           category:
                                         </span>{' '}
                                         <span className="text-gray-800 dark:text-gray-200">
-                                          {selectedCategory || ''}
+                                          {(segment.extraction_metadata
+                                            ?.category as string) || ''}
                                         </span>
                                       </div>
                                     )}
@@ -2072,7 +2277,7 @@ function DocDigitization() {
                                           ) : (
                                             <button
                                               onClick={() =>
-                                                setMetadataEditingIndex(null)
+                                                doneEditingMetadata()
                                               }
                                               className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
                                             >
@@ -2082,7 +2287,7 @@ function DocDigitization() {
                                           <button
                                             onClick={() => {
                                               setEditingSegmentIndex(null);
-                                              setMetadataEditingIndex(null);
+                                              doneEditingMetadata();
                                               setFlippedSegmentIndex(null);
                                             }}
                                             className="opacity-0 group-hover:opacity-100 px-1.5 py-0 bg-purple-600 text-white text-[9px] font-bold rounded transition-opacity"
@@ -2116,7 +2321,7 @@ function DocDigitization() {
                                             <button
                                               onClick={() => {
                                                 setEditingSegmentIndex(null);
-                                                setMetadataEditingIndex(null);
+                                                doneEditingMetadata();
                                                 setFlippedViewedOriginalIndices(
                                                   (prev) => {
                                                     const next = new Set(prev);
@@ -2202,14 +2407,45 @@ function DocDigitization() {
                                                         unknown
                                                       >,
                                                     ).map(
-                                                      ([subKey, subValue]) => (
+                                                      (
+                                                        [subKey, subValue],
+                                                        index,
+                                                      ) => (
                                                         <div
-                                                          key={subKey}
+                                                          key={index}
                                                           className="flex items-center gap-1"
                                                         >
-                                                          <span className="text-gray-600 dark:text-gray-400 font-medium">
-                                                            {subKey}:
-                                                          </span>
+                                                          {metadataEditingIndex ===
+                                                            idx &&
+                                                          key ===
+                                                            'characters' ? (
+                                                            <input
+                                                              className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                                              defaultValue={
+                                                                subKey
+                                                              }
+                                                              onBlur={(e) => {
+                                                                if (
+                                                                  e.target
+                                                                    .value !==
+                                                                  subKey
+                                                                ) {
+                                                                  renameDictKey(
+                                                                    idx,
+                                                                    'named_entities',
+                                                                    key,
+                                                                    subKey,
+                                                                    e.target
+                                                                      .value,
+                                                                  );
+                                                                }
+                                                              }}
+                                                            />
+                                                          ) : (
+                                                            <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                              {subKey}:
+                                                            </span>
+                                                          )}
                                                           {metadataEditingIndex ===
                                                           idx ? (
                                                             <input
@@ -2245,9 +2481,45 @@ function DocDigitization() {
                                                                   )}
                                                             </span>
                                                           )}
+                                                          {metadataEditingIndex ===
+                                                            idx &&
+                                                            key ===
+                                                              'characters' && (
+                                                              <button
+                                                                onClick={() =>
+                                                                  removeDictEntry(
+                                                                    idx,
+                                                                    'named_entities',
+                                                                    key,
+                                                                    subKey,
+                                                                  )
+                                                                }
+                                                                className="text-red-500 hover:text-red-700 text-xs font-bold ml-1"
+                                                              >
+                                                                -
+                                                              </button>
+                                                            )}
                                                         </div>
                                                       ),
                                                     )}
+                                                    {metadataEditingIndex ===
+                                                      idx &&
+                                                      key === 'characters' && (
+                                                        <button
+                                                          onClick={() =>
+                                                            handleNestedMetadataChange(
+                                                              idx,
+                                                              'named_entities',
+                                                              key,
+                                                              '',
+                                                              '',
+                                                            )
+                                                          }
+                                                          className="text-blue-500 hover:text-blue-700 text-xs font-bold mt-1"
+                                                        >
+                                                          +
+                                                        </button>
+                                                      )}
                                                   </div>
                                                 </div>
                                               );
@@ -2293,9 +2565,15 @@ function DocDigitization() {
                                               category:
                                             </span>
                                             <select
-                                              value={selectedCategory}
+                                              value={
+                                                (segment.extraction_metadata
+                                                  ?.category as string) || ''
+                                              }
                                               onChange={(e) =>
-                                                setSelectedCategory(
+                                                handleMetadataChange(
+                                                  idx,
+                                                  'extraction_metadata',
+                                                  'category',
                                                   e.target.value,
                                                 )
                                               }
@@ -2328,7 +2606,8 @@ function DocDigitization() {
                                               category:
                                             </span>{' '}
                                             <span className="text-gray-800 dark:text-gray-200">
-                                              {selectedCategory || ''}
+                                              {(segment.extraction_metadata
+                                                ?.category as string) || ''}
                                             </span>
                                           </div>
                                         )}
@@ -2392,7 +2671,8 @@ function DocDigitization() {
               isSubmitting ||
               hasUnviewedMetadata ||
               !isLastPageOfSegment ||
-              !selectedCategory
+              !allEndingSegmentsHaveCategory ||
+              metadataEditingIndex !== null
             }
           >
             <SkipForward className="inline h-4 w-4 mr-1" />
@@ -2405,7 +2685,8 @@ function DocDigitization() {
               isSubmitting ||
               hasUnviewedMetadata ||
               !isLastPageOfSegment ||
-              !selectedCategory
+              !allEndingSegmentsHaveCategory ||
+              metadataEditingIndex !== null
             }
           >
             {t('common.savePage')}
@@ -2417,7 +2698,8 @@ function DocDigitization() {
               isSubmitting ||
               validPages.length === 0 ||
               proofreadPages.size < validPages.length ||
-              hasUnviewedMetadata
+              hasUnviewedMetadata ||
+              metadataEditingIndex !== null
             }
           >
             {isSubmitting
@@ -2509,7 +2791,7 @@ function DocDigitization() {
           <DialogHeader>
             <DialogTitle>{t('media.skipRecord')}</DialogTitle>
             <DialogDescription>
-              {isSelectedStoryCategory
+              {isCurrentPageStoryCategory
                 ? 'Story category requires a mandatory skip reason.'
                 : 'Optionally provide a reason for skipping this record.'}
             </DialogDescription>
@@ -2531,7 +2813,6 @@ function DocDigitization() {
               onClick={() => {
                 setShowSkipModal(false);
                 setSkipReason('');
-                setSelectedCategory('');
               }}
             >
               Cancel
@@ -2540,8 +2821,8 @@ function DocDigitization() {
               className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
               onClick={handleSkip}
               disabled={
-                !selectedCategory ||
-                (isSelectedStoryCategory && !skipReason.trim())
+                !allEndingSegmentsHaveCategory ||
+                (isCurrentPageStoryCategory && !skipReason.trim())
               }
             >
               {t('common.confirmSkip')}
