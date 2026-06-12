@@ -57,6 +57,7 @@ type Segment = {
   proofread?: boolean;
   skipped?: boolean;
   skip_reason?: string;
+  edit?: string[];
   bbox?: number[];
   type?: string;
   reading_order?: number;
@@ -314,6 +315,7 @@ function DocDigitization() {
   const [skipReason, setSkipReason] = useState('');
   const [isCompleteRecordSubmitted, setIsCompleteRecordSubmitted] =
     useState(false);
+  const [editReasons, setEditReasons] = useState<string[]>([]);
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping(
     editingSegmentIndex !== null
@@ -1122,13 +1124,20 @@ function DocDigitization() {
           newMap.set(
             pg,
             segs.map((seg) =>
-              seg.end === pageNumber ? { ...seg, proofread: true } : seg,
+              seg.end === pageNumber
+                ? {
+                    ...seg,
+                    proofread: true,
+                    edit: editReasons.length > 0 ? [...editReasons] : seg.edit,
+                  }
+                : seg,
             ),
           );
         }
       }
       return newMap;
     });
+    setEditReasons([]);
 
     const idx = validPages.indexOf(pageNumber);
     if (idx < validPages.length - 1) {
@@ -2812,12 +2821,41 @@ function DocDigitization() {
           <AlertDialogHeader>
             <AlertDialogTitle>Save this page?</AlertDialogTitle>
             <AlertDialogDescription>
-              This is the last page of the segment. Are you sure you want to
-              save?
+              {t(
+                'common.thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade',
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="px-6 py-2 space-y-2">
+            {['grammatical fixes', 'rearrangement', 'others'].map((reason) => (
+              <label
+                key={reason}
+                className="flex items-center gap-2 text-sm cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={editReasons.includes(reason)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEditReasons([...editReasons, reason]);
+                    } else {
+                      setEditReasons(editReasons.filter((r) => r !== reason));
+                    }
+                  }}
+                  className="cursor-pointer"
+                />
+                {reason}
+              </label>
+            ))}
+          </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel
+              onClick={() => {
+                setEditReasons([]);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 handleSavePage();

@@ -431,7 +431,8 @@
     "miscellaneous": "",
     "confirmSkip": "",
     "selectAReason": "కారణం ఎంచుకోండి...",
-    "unclearPage": "అస్పష్టమైన పేజీ"
+    "unclearPage": "అస్పష్టమైన పేజీ",
+    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "ఇది సెగ్మెంట్ యొక్క చివరి పేజీ. చేసిన మార్పుల రకాలను ఎంచుకోండి:"
   },
   "ui": {
     "failed": {

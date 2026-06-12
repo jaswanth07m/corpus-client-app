@@ -418,7 +418,8 @@
     "miscellaneous": "",
     "confirmSkip": "",
     "selectAReason": "कारण चुनें...",
-    "unclearPage": "अस्पष्ट पृष्ठ"
+    "unclearPage": "अस्पष्ट पृष्ठ",
+    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "यह सेगमेंट का अंतिम पृष्ठ है। किए गए संपादन के प्रकार चुनें:"
   },
   "ui": {
     "failed": {

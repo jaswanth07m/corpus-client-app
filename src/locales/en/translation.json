@@ -439,7 +439,8 @@
     "miscellaneous": "Miscellaneous (ఇతర)",
     "confirmSkip": "Confirm Skip",
     "selectAReason": "Select a reason...",
-    "unclearPage": "Unclear page"
+    "unclearPage": "Unclear page",
+    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "This is the last page of the segment. Select the types of edits\n              made:"
   },
   "ui": {
     "failed": {
