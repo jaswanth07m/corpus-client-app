@@ -314,6 +314,7 @@ function DocDigitization() {
     useState<Set<number>>(new Set());
   const [showSkipModal, setShowSkipModal] = useState(false);
   const [skipReason, setSkipReason] = useState('');
+  const [skipCategory, setSkipCategory] = useState('');
   const [isCompleteRecordSubmitted, setIsCompleteRecordSubmitted] =
     useState(false);
   const [editReasons, setEditReasons] = useState<string[]>([]);
@@ -688,28 +689,6 @@ function DocDigitization() {
     return pages;
   }, [segmentsByPage]);
 
-  const currentPageEndingSegments = useMemo(
-    () => currentPageSegments.filter((seg) => seg.end === pageNumber),
-    [currentPageSegments, pageNumber],
-  );
-
-  const allEndingSegmentsHaveCategory = useMemo(
-    () =>
-      currentPageEndingSegments.length > 0 &&
-      currentPageEndingSegments.every(
-        (seg) => seg.extraction_metadata?.category,
-      ),
-    [currentPageEndingSegments],
-  );
-
-  const isCurrentPageStoryCategory = useMemo(
-    () =>
-      currentPageEndingSegments.some(
-        (seg) => seg.extraction_metadata?.category === 'story',
-      ),
-    [currentPageEndingSegments],
-  );
-
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
       setPageNumber(validPages[0]);
@@ -1028,28 +1007,31 @@ function DocDigitization() {
       return (a.originalIndex || 0) - (b.originalIndex || 0);
     });
 
-    const updatedSegments = allSegments.map(
-      ({ originalIndex, skip, skipped, skip_reason, ...rest }) => ({
-        ...rest,
-        text: rest.text.trim() === '' ? ' ' : rest.text,
-        proofread: true,
-        named_entities: {
-          ...(rest.named_entities as Record<string, unknown>),
-          locations:
-            typeof (rest.named_entities as Record<string, unknown> | undefined)
-              ?.locations === 'string'
-              ? (rest.named_entities as Record<string, unknown>).locations
-                  .split(',')
-                  .map((s: string) => s.trim())
-                  .filter(Boolean)
-              : (rest.named_entities as Record<string, unknown> | undefined)
-                  ?.locations,
-        },
-        extraction_metadata: {
-          ...((rest.extraction_metadata || {}) as Record<string, unknown>),
-        },
-      }),
-    );
+    const updatedSegments = allSegments.map(({ originalIndex, ...rest }) => ({
+      ...rest,
+      text: rest.text.trim() === '' ? ' ' : rest.text,
+      proofread: rest.skipped ? false : true,
+      skipped: !!rest.skipped,
+      skip_reason:
+        rest.skip_reason && rest.skip_reason.trim()
+          ? rest.skip_reason
+          : undefined,
+      named_entities: {
+        ...(rest.named_entities as Record<string, unknown>),
+        locations:
+          typeof (rest.named_entities as Record<string, unknown> | undefined)
+            ?.locations === 'string'
+            ? (rest.named_entities as Record<string, unknown>).locations
+                .split(',')
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+            : (rest.named_entities as Record<string, unknown> | undefined)
+                ?.locations,
+      },
+      extraction_metadata: {
+        ...((rest.extraction_metadata || {}) as Record<string, unknown>),
+      },
+    }));
 
     const requestBody: Record<string, unknown> = {
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
@@ -1143,6 +1125,10 @@ function DocDigitization() {
                     ...seg,
                     proofread: true,
                     edit: editReasons.length > 0 ? [...editReasons] : seg.edit,
+                    extraction_metadata: {
+                      ...(seg.extraction_metadata || {}),
+                      category: 'story',
+                    },
                   }
                 : seg,
             ),
@@ -1161,29 +1147,45 @@ function DocDigitization() {
 
   function handleSkip() {
     cleanupEmptyCharacters();
+    const segmentIndices = new Set<number>();
+    currentPageSegments.forEach((seg) => {
+      if (seg.originalIndex !== undefined) {
+        segmentIndices.add(seg.originalIndex);
+      }
+    });
+
     setSegmentsByPage((prevMap) => {
       const newMap = new Map(prevMap);
       for (const [pg, segs] of newMap.entries()) {
-        if (segs.some((seg) => seg.end === pageNumber)) {
-          newMap.set(
-            pg,
-            segs.map((seg) =>
-              seg.end === pageNumber
-                ? { ...seg, skipped: true, skip_reason: skipReason }
-                : seg,
-            ),
-          );
-        }
+        newMap.set(
+          pg,
+          segs.map((seg) =>
+            seg.originalIndex !== undefined &&
+            segmentIndices.has(seg.originalIndex)
+              ? {
+                  ...seg,
+                  skipped: true,
+                  skip_reason: skipReason,
+                  extraction_metadata: {
+                    ...(seg.extraction_metadata || {}),
+                    category: skipCategory,
+                  },
+                }
+              : seg,
+          ),
+        );
       }
       return newMap;
     });
 
     setShowSkipModal(false);
     setSkipReason('');
+    setSkipCategory('');
 
-    const idx = validPages.indexOf(pageNumber);
-    if (idx < validPages.length - 1) {
-      setPageNumber(validPages[idx + 1]);
+    const maxEnd = Math.max(...currentPageSegments.map((seg) => seg.end));
+    const nextPage = validPages.find((p) => p > maxEnd);
+    if (nextPage) {
+      setPageNumber(nextPage);
     }
   }
 
@@ -1690,56 +1692,6 @@ function DocDigitization() {
                                 </div>
                                 {flippedSegmentIndex === idx ? (
                                   <div className="space-y-2 mt-1">
-                                    {metadataEditingIndex === idx ? (
-                                      <div className="text-[11px]">
-                                        <span className="font-bold text-gray-600 dark:text-gray-400">
-                                          category:
-                                        </span>
-                                        <select
-                                          value={
-                                            (segment.extraction_metadata
-                                              ?.category as string) || ''
-                                          }
-                                          onChange={(e) =>
-                                            handleMetadataChange(
-                                              idx,
-                                              'extraction_metadata',
-                                              'category',
-                                              e.target.value,
-                                            )
-                                          }
-                                          className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
-                                        >
-                                          <option value="">
-                                            Select category...
-                                          </option>
-                                          <option value="poem">poem</option>
-                                          <option value="story">story</option>
-                                          <option value="interview">
-                                            interview
-                                          </option>
-                                          <option value="article">
-                                            article
-                                          </option>
-                                          <option value="editorial">
-                                            editorial
-                                          </option>
-                                          <option value="miscellaneous">
-                                            miscellaneous
-                                          </option>
-                                        </select>
-                                      </div>
-                                    ) : (
-                                      <div className="text-[11px]">
-                                        <span className="font-bold text-gray-600 dark:text-gray-400">
-                                          category:
-                                        </span>{' '}
-                                        <span className="text-gray-800 dark:text-gray-200">
-                                          {(segment.extraction_metadata
-                                            ?.category as string) || ''}
-                                        </span>
-                                      </div>
-                                    )}
                                     {metadataEditingIndex === idx ? (
                                       <div className="text-[11px]">
                                         <span className="font-bold text-gray-600 dark:text-gray-400">
@@ -2548,58 +2500,6 @@ function DocDigitization() {
                                         {metadataEditingIndex === idx ? (
                                           <div className="text-xs">
                                             <span className="font-bold text-gray-600 dark:text-gray-400">
-                                              category:
-                                            </span>
-                                            <select
-                                              value={
-                                                (segment.extraction_metadata
-                                                  ?.category as string) || ''
-                                              }
-                                              onChange={(e) =>
-                                                handleMetadataChange(
-                                                  idx,
-                                                  'extraction_metadata',
-                                                  'category',
-                                                  e.target.value,
-                                                )
-                                              }
-                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
-                                            >
-                                              <option value="">
-                                                Select category...
-                                              </option>
-                                              <option value="poem">poem</option>
-                                              <option value="story">
-                                                story
-                                              </option>
-                                              <option value="interview">
-                                                interview
-                                              </option>
-                                              <option value="article">
-                                                article
-                                              </option>
-                                              <option value="editorial">
-                                                editorial
-                                              </option>
-                                              <option value="miscellaneous">
-                                                miscellaneous
-                                              </option>
-                                            </select>
-                                          </div>
-                                        ) : (
-                                          <div className="text-xs">
-                                            <span className="font-bold text-gray-600 dark:text-gray-400">
-                                              category:
-                                            </span>{' '}
-                                            <span className="text-gray-800 dark:text-gray-200">
-                                              {(segment.extraction_metadata
-                                                ?.category as string) || ''}
-                                            </span>
-                                          </div>
-                                        )}
-                                        {metadataEditingIndex === idx ? (
-                                          <div className="text-xs">
-                                            <span className="font-bold text-gray-600 dark:text-gray-400">
                                               {t('common.genre')}
                                             </span>
                                             <select
@@ -2933,17 +2833,11 @@ function DocDigitization() {
         <div className="border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col sm:flex-row justify-center gap-4">
           <button
             className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
-            onClick={() => setShowSkipModal(true)}
-            disabled={
-              isCurrentPageStoryCategory
-                ? isSubmitting ||
-                  hasUnviewedMetadata ||
-                  !isLastPageOfSegment ||
-                  !allEndingSegmentsHaveCategory ||
-                  metadataEditingIndex !== null
-                : !allEndingSegmentsHaveCategory ||
-                  metadataEditingIndex !== null
-            }
+            onClick={() => {
+              setSkipCategory('');
+              setSkipReason('');
+              setShowSkipModal(true);
+            }}
           >
             <SkipForward className="inline h-4 w-4 mr-1" />
             Skip
@@ -2952,11 +2846,9 @@ function DocDigitization() {
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => setShowSaveConfirm(true)}
             disabled={
-              !isCurrentPageStoryCategory ||
               isSubmitting ||
               hasUnviewedMetadata ||
               !isLastPageOfSegment ||
-              !allEndingSegmentsHaveCategory ||
               metadataEditingIndex !== null
             }
           >
@@ -3091,12 +2983,25 @@ function DocDigitization() {
           <DialogHeader>
             <DialogTitle>{t('media.skipRecord')}</DialogTitle>
             <DialogDescription>
-              {isCurrentPageStoryCategory
+              {skipCategory === 'story'
                 ? 'Story category requires a mandatory skip reason.'
                 : 'Optionally provide a reason for skipping this record.'}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-3">
+            <select
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={skipCategory}
+              onChange={(e) => setSkipCategory(e.target.value)}
+            >
+              <option value="">Select category...</option>
+              <option value="poem">poem</option>
+              <option value="story">story</option>
+              <option value="interview">interview</option>
+              <option value="article">article</option>
+              <option value="editorial">editorial</option>
+              <option value="miscellaneous">miscellaneous</option>
+            </select>
             <select
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
               value={skipReason}
@@ -3113,6 +3018,7 @@ function DocDigitization() {
               onClick={() => {
                 setShowSkipModal(false);
                 setSkipReason('');
+                setSkipCategory('');
               }}
             >
               Cancel
@@ -3121,8 +3027,8 @@ function DocDigitization() {
               className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
               onClick={handleSkip}
               disabled={
-                !allEndingSegmentsHaveCategory ||
-                (isCurrentPageStoryCategory && !skipReason.trim())
+                !skipCategory ||
+                (skipCategory === 'story' && !skipReason.trim())
               }
             >
               {t('common.confirmSkip')}
