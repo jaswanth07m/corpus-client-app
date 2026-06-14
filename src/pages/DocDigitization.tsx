@@ -663,6 +663,7 @@ function DocDigitization() {
         (seg) =>
           (seg.extraction_metadata || seg.named_entities) &&
           !seg.proofread &&
+          !seg.skipped &&
           seg.originalIndex !== undefined &&
           !flippedViewedOriginalIndices.has(seg.originalIndex),
       ),
@@ -975,6 +976,7 @@ function DocDigitization() {
       (seg) =>
         (seg.extraction_metadata || seg.named_entities) &&
         !seg.proofread &&
+        !seg.skipped &&
         seg.originalIndex !== undefined &&
         !flippedViewedOriginalIndices.has(seg.originalIndex),
     );
@@ -1062,12 +1064,7 @@ function DocDigitization() {
       toast.success(`Page ${pageNumber} submitted successfully!`);
       setIsCompleteRecordSubmitted(true);
 
-      const currentIdx = validPages.indexOf(pageNumber);
-      if (currentIdx < validPages.length - 1) {
-        setPageNumber(validPages[currentIdx + 1]);
-      } else {
-        await fetchNextRecord();
-      }
+      await fetchNextRecord();
     } catch (err) {
       const error = err as Error;
       setError(error.message);
