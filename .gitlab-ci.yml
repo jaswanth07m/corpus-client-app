@@ -1,16 +1,103 @@
-# GitLab CI/CD configuration for corpus-frontend
-# Optimized pipeline with lockfile-based npm caching
+# GitLab CI/CD for corpus-frontend (React + Capacitor → Android)
+#
+# Pipeline dependency graph:
+#
+#   MR targeting develop:
+#     test ──────────────────────────────────────────── (parallel, no deps)
+#     build-job (lint + typecheck + web) ─── build-apk-debug
+#
+#   MR targeting main with .gitlab/release.yml changed:
+#     test ─────────────────────────────────────────────────────────── (parallel)
+#     build-job (lint + typecheck + web) ─── build-apk-debug
+#                                        └── build-apk-prerelease (signed, for review)
+#
+#   Push to main with .gitlab/release.yml changed (after MR merge):
+#     web-build ──┬── build-apk-release ──┐
+#                 └── bundle-release ─────┴── release
+#
+# Required CI/CD variables (Settings → CI/CD → Variables, masked + protected):
+#   KEYSTORE_PASSWORD, KEY_PASSWORD, KEYSTORE_ALIAS
+#   CI_TOKEN  — personal access token with write_repository scope (for tagging)
+#
+# Required secure file (Settings → CI/CD → Secure Files):
+#    telugu_corpus.jks
+
+include:
+  - local: '.gitlab/release.yml'
+  - local: '.gitlab/android-sdk.yml'
+  - local: '.gitlab/pipeline-config.yml'
 
 stages:
   - test
   - build
+  - android
+  - release
 
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      changes:
+        - .gitlab/release.yml
+    - when: never
+
+# ── Shared base for all Android jobs: image + three cache layers ──────────────
+#
+#   Cache 1 — npm tarballs  (platform-agnostic, shared with Node-only jobs)
+#   Cache 2 — Android SDK   (keyed by SDK version, survives upgrades cleanly)
+#   Cache 3 — Gradle deps   (keyed by Gradle build files, survives dep changes)
+#
+.android-base:
+  image: $ANDROID_IMAGE
+  cache:
+    - key:
+        files:
+          - package-lock.json
+      paths:
+        - .npm/
+      policy: pull
+    - key: 'android-sdk-$ANDROID_SDK_TOOLS-$ANDROID_COMPILE_SDK-$ANDROID_BUILD_TOOLS'
+      paths:
+        - .android-sdk/
+      policy: pull-push
+    - key:
+        # prefix avoids '/' from file paths being embedded in the cache key string
+        prefix: gradle
+        files:
+          - android/build.gradle
+          - android/app/build.gradle
+      paths:
+        - .gradle/caches/
+        - .gradle/wrapper/
+      policy: pull-push
+
+# ── Full setup for signed release builds (extends .android-base) ──────────────
+.android-release-base:
+  extends: .android-base
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl unzip
+    - curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && apt-get install -y -qq nodejs
+    - . .ci/setup-android-sdk.sh
+    - npm ci --cache .npm --prefer-offline
+    - curl -s "$SECURE_FILES_INSTALLER_URL" | bash
+    - cp $CI_PROJECT_DIR/.secure_files/ telugu_corpus.jks android/app/ telugu_corpus.jks
+    - printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile= telugu_corpus.jks\n' "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEYSTORE_ALIAS" > android/key.properties
+    - keytool -list -keystore android/app/ telugu_corpus.jks -alias $KEYSTORE_ALIAS -storepass $KEYSTORE_PASSWORD -noprompt | grep -E "SHA1|SHA256" || echo "Could not verify keystore fingerprint"
+
+# ── test ─────────────────────────────────────────────────────────────────────
 test:
   stage: test
-  image: node:latest
+  image: node:$NODE_VERSION-alpine
+  needs: []
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+    policy: pull-push
   before_script:
-    - apt-get update && apt-get install -y git
-    - npm install
+    - npm ci --cache .npm --prefer-offline
   script:
     - npm run test:coverage
   artifacts:
@@ -24,36 +111,196 @@ test:
   coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)%/'
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+# ── build: lint + typecheck + web (MR / push) ─────────────────────────────────
 build-job:
   stage: build
-  image: node:22-alpine
+  image: node:$NODE_VERSION-alpine
+  needs: [] # run in parallel with test — no dependency between them
   cache:
     key:
       files:
         - package-lock.json
     paths:
       - .npm/
+    policy: pull-push
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
-    - echo "Checking code formatting with Prettier..."
     - npm run format:check
-    - echo "Code formatting check completed successfully."
-    - echo ""
-    - echo "Running ESLint checks..."
     - npm run lint
-    - echo "Linting completed successfully."
-    - echo ""
-    - echo "Running TypeScript type checks..."
     - npx tsc --noEmit
-    - echo "TypeScript type checks completed successfully."
-    - echo ""
-    - echo "Building the React application..."
     - npm run build
-    - echo "Build completed successfully."
   artifacts:
     paths:
       - dist/
+    expire_in: 1 day
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# ── build: web build for release pipeline (triggered by release.yml merge to main)
+web-build:
+  stage: build
+  image: node:$NODE_VERSION-alpine
+  needs: []
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+    policy: pull-push
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 day
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      changes:
+        - .gitlab/release.yml
+
+# ── android: debug APK (MR / push) ───────────────────────────────────────────
+# Uses dist/ from build-job — no duplicate Vite build.
+build-apk-debug:
+  extends: .android-base
+  stage: android
+  needs:
+    - job: build-job
+      artifacts: true
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl unzip
+    - curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && apt-get install -y -qq nodejs
+    - . .ci/setup-android-sdk.sh
+    - npm ci --cache .npm --prefer-offline
+  script:
+    - npx cap sync android
+    - cd android && ./gradlew assembleDebug --no-daemon && cd ..
+  artifacts:
+    paths:
+      - android/app/build/outputs/apk/debug/
+    expose_as: 'Debug APK'
     expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# ── android: pre-release APK for release MRs (review before merging to main) ─
+build-apk-prerelease:
+  extends: .android-release-base
+  stage: android
+  needs:
+    - job: build-job
+      artifacts: true
+  script:
+    - npx cap sync android
+    - cd android && ./gradlew assembleRelease --no-daemon -PversionCode="$VERSION_CODE" -PversionName="$RELEASE_TAG" && cd ..
+  artifacts:
+    paths:
+      - android/app/build/outputs/apk/release/
+    name: 'prerelease_apk_${RELEASE_TAG}_${VERSION_CODE}'
+    expose_as: 'Pre-release APK'
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      changes:
+        - .gitlab/release.yml
+
+# ── android: signed release APK (parallel with bundle-release) ───────────────
+build-apk-release:
+  extends: .android-release-base
+  stage: android
+  interruptible: true
+  needs:
+    - job: web-build
+      artifacts: true
+  script:
+    - npx cap sync android
+    - cd android && ./gradlew assembleRelease --no-daemon -PversionCode="$VERSION_CODE" -PversionName="$RELEASE_TAG" && cd ..
+    - apksigner verify --print-certs android/app/build/outputs/apk/release/app-release.apk | grep -E "Signer|SHA" || echo "apksigner verify failed"
+  artifacts:
+    paths:
+      - android/app/build/outputs/apk/release/
+    name: 'apk_${RELEASE_TAG}_${VERSION_CODE}'
+    expose_as: 'Release APK'
+    expire_in: 4 weeks
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      changes:
+        - .gitlab/release.yml
+
+# ── android: signed AAB (parallel with build-apk-release) ────────────────────
+bundle-release:
+  extends: .android-release-base
+  stage: android
+  interruptible: true
+  needs:
+    - job: web-build
+      artifacts: true
+  script:
+    - npx cap sync android
+    - cd android && ./gradlew bundleRelease --no-daemon -PversionCode="$VERSION_CODE" -PversionName="$RELEASE_TAG" && cd ..
+    - unzip -l android/app/build/outputs/bundle/release/app-release.aab | grep -E "(META-INF|\.RSA|\.SF)" || echo "No signing files found in AAB"
+  artifacts:
+    paths:
+      - android/app/build/outputs/bundle/release/
+    name: 'bundle_${RELEASE_TAG}_${VERSION_CODE}'
+    expose_as: 'Release AAB'
+    expire_in: 4 weeks
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      changes:
+        - .gitlab/release.yml
+
+# ── release: GitLab release + git tag ────────────────────────────────────────
+release:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  stage: release
+  needs:
+    - job: build-apk-release
+      artifacts: false
+    - job: bundle-release
+      artifacts: false
+  before_script:
+    - apk add --no-cache git curl
+    - git config --global user.email "$CI_GIT_EMAIL"
+    - git config --global user.name "$CI_GIT_USER"
+    - git remote set-url origin "https://gitlab-ci-token:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  script:
+    - |
+      if git rev-parse "v$RELEASE_TAG" >/dev/null 2>&1; then
+        echo "Tag v$RELEASE_TAG already exists, skipping"
+      else
+        git tag -a "v$RELEASE_TAG" -m "Release v$RELEASE_TAG (build $VERSION_CODE)"
+        git push origin "v$RELEASE_TAG"
+      fi
+  release:
+    tag_name: 'v$RELEASE_TAG'
+    name: 'Release v$RELEASE_TAG'
+    description: |
+      Release v$RELEASE_TAG built from branch $CI_COMMIT_BRANCH
+
+      **Build Details:**
+      - Version: $RELEASE_TAG
+      - Build Number: $VERSION_CODE
+      - Source Branch: $CI_COMMIT_BRANCH
+      - Commit: $CI_COMMIT_SHA
+
+      **Downloads:**
+      - APK: Check the `build-apk-release` job artifacts
+      - App Bundle (AAB): Check the `bundle-release` job artifacts
+    assets:
+      links:
+        - name: 'Download APK'
+          url: '$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/download?job=build-apk-release'
+        - name: 'Download App Bundle (AAB)'
+          url: '$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/download?job=bundle-release'
+  dependencies:
+    - build-apk-release
+    - bundle-release
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      changes:
+        - .gitlab/release.yml

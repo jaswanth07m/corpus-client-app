@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { latLngBounds } from 'leaflet';
 import { X, MapPin, AlertCircle, RefreshCw } from 'lucide-react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  useMap,
+} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useContributionGeo } from '@/hooks/useContributionGeo';
 import type { FlatContribution } from '@/types/geo';
@@ -33,11 +40,10 @@ function FitBounds({ data }: { data: FlatContribution[] }) {
       map.setView([17.385044, 78.486671], 10);
       return;
     }
-    const L = (window as any).L ?? require('leaflet');
     const bounds = data.map(
       (c) => [c.location.latitude, c.location.longitude] as [number, number],
     );
-    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 10 });
+    map.fitBounds(latLngBounds(bounds), { padding: [60, 60], maxZoom: 10 });
   }, [map, data]);
   return null;
 }
@@ -63,20 +69,33 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
         >
           <Popup>
             <div style={{ fontFamily: 'inherit', padding: '2px 0' }}>
-              <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 13, color: '#0f172a' }}>
+              <p
+                style={{
+                  margin: '0 0 4px',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  color: '#0f172a',
+                }}
+              >
                 {c.title}
               </p>
               <p style={{ margin: '0 0 2px', fontSize: 11, color: '#64748b' }}>
                 <span
                   style={{
-                    display: 'inline-block', width: 8, height: 8,
-                    borderRadius: '50%', background: color,
-                    marginRight: 4, verticalAlign: 'middle',
+                    display: 'inline-block',
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: color,
+                    marginRight: 4,
+                    verticalAlign: 'middle',
                   }}
                 />
                 Type: {label}
               </p>
-              <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>Date: {date}</p>
+              <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>
+                Date: {date}
+              </p>
             </div>
           </Popup>
         </CircleMarker>
@@ -87,13 +106,18 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
   if (isLoading) {
     return (
       <div className="flex h-[520px] items-center justify-center rounded-2xl bg-slate-100">
-        <span className="text-sm text-slate-500">{t('messages.loadingMap')}</span>
+        <span className="text-sm text-slate-500">
+          {t('messages.loadingMap')}
+        </span>
       </div>
     );
   }
 
   if (isError) {
-    const message = error instanceof Error ? error.message : t('common.couldNotLoadContributions');
+    const message =
+      error instanceof Error
+        ? error.message
+        : t('common.couldNotLoadContributions');
     return (
       <div className="flex h-[520px] flex-col items-center justify-center gap-3 rounded-2xl bg-slate-100 px-6 text-center">
         <AlertCircle className="h-8 w-8 text-red-400" />
@@ -114,7 +138,9 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
     return (
       <div className="flex h-[520px] flex-col items-center justify-center gap-2 rounded-2xl bg-slate-100">
         <MapPin className="h-8 w-8 text-slate-400" />
-        <p className="text-sm text-slate-500">{t('common.noGeotaggedContributionsYet')}</p>
+        <p className="text-sm text-slate-500">
+          {t('common.noGeotaggedContributionsYet')}
+        </p>
       </div>
     );
   }
@@ -146,7 +172,9 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
               className="h-2.5 w-2.5 rounded-full"
               style={{ backgroundColor: MEDIA_TYPE_COLORS[type] }}
             />
-            <span className="text-xs text-slate-600">{MEDIA_TYPE_LABELS[type]}</span>
+            <span className="text-xs text-slate-600">
+              {MEDIA_TYPE_LABELS[type]}
+            </span>
           </div>
         ))}
       </div>
@@ -154,14 +182,20 @@ function GeoMapContent({ userIdentifier }: { userIdentifier: string }) {
   );
 }
 
-function GeoContributionModal({ userIdentifier, open, onClose }: GeoContributionModalProps) {
+function GeoContributionModal({
+  userIdentifier,
+  open,
+  onClose,
+}: GeoContributionModalProps) {
   const { t } = useTranslation();
 
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = prev;
@@ -170,7 +204,9 @@ function GeoContributionModal({ userIdentifier, open, onClose }: GeoContribution
   }, [open, onClose]);
 
   const handleOverlay = useCallback(
-    (e: MouseEvent<HTMLDivElement>) => { if (e.target === e.currentTarget) onClose(); },
+    (e: MouseEvent<HTMLDivElement>) => {
+      if (e.target === e.currentTarget) onClose();
+    },
     [onClose],
   );
 
@@ -196,7 +232,10 @@ function GeoContributionModal({ userIdentifier, open, onClose }: GeoContribution
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 id="geo-modal-title" className="text-lg font-semibold text-slate-900">
+          <h2
+            id="geo-modal-title"
+            className="text-lg font-semibold text-slate-900"
+          >
             {t('stats.myContributionsOnTheMap')}
           </h2>
           <button

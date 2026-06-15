@@ -1,9 +1,10 @@
 import PeerReviewCard from '@/components/PeerReviewCard';
 import UserSearchResults from '@/components/UserSearchResults';
+import { useToolEventFilters } from '@/hooks/useToolEventFilters';
 import { BACKEND_URL } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Search } from 'lucide-react';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
@@ -30,10 +31,15 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
   title,
   description,
   mediaTypes,
-  proofReading = false,
 }) => {
   const { t } = useTranslation();
   const numberOfRecordsFetched = 10;
+  const fallbackFilters = useMemo(
+    () => ({ media_type: mediaTypes }),
+    [mediaTypes],
+  );
+  const { reviewFilters, isReady: areReviewFiltersReady } =
+    useToolEventFilters(fallbackFilters);
 
   const [recordIdList, setRecordIdList] = useState<PeerReviewCardProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -62,7 +68,7 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
   const [userSearchError, setUserSearchError] = useState<string | null>(null);
 
   const fetchMoreData = useCallback(async () => {
-    if (isFetching || !hasMore) return;
+    if (!areReviewFiltersReady || isFetching || !hasMore) return;
 
     setIsFetching(true);
     const token = localStorage.getItem('token');
@@ -77,9 +83,7 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            filters: {
-              media_type: mediaTypes,
-            },
+            filters: reviewFilters,
             limit: numberOfRecordsFetched,
           }),
         },
@@ -152,7 +156,13 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
     } finally {
       setIsFetching(false);
     }
-  }, [isFetching, hasMore, mediaTypes, proofReading, numberOfRecordsFetched]);
+  }, [
+    areReviewFiltersReady,
+    hasMore,
+    isFetching,
+    numberOfRecordsFetched,
+    reviewFilters,
+  ]);
 
   async function searchRecords(query: string) {
     const token = localStorage.getItem('token');
@@ -288,8 +298,10 @@ const ReviewPageBase: React.FC<ReviewPageBaseProps> = ({
   };
 
   useEffect(() => {
-    fetchMoreData();
-  }, [fetchMoreData]);
+    if (areReviewFiltersReady) {
+      void fetchMoreData();
+    }
+  }, [areReviewFiltersReady, fetchMoreData]);
 
   useEffect(() => {
     if (searchType === 'users' && inSearch) {

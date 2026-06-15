@@ -1232,7 +1232,7 @@ function Profile() {
         let formattedProfile;
 
         if (isOwnProfile) {
-          // Fetch own profile
+          // Fetch own profile basic data first, then hydrate with full profile
           const response = await fetch(`${BACKEND_URL}/auth/me`, {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -1245,39 +1245,80 @@ function Profile() {
           }
 
           userData = await response.json();
+          const detailedProfileResponse = await fetch(
+            `${BACKEND_URL}/users/${userData.id}/profile?include=streaks,timeline,summary&days=30`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+
+          const detailedProfileData = detailedProfileResponse.ok
+            ? await detailedProfileResponse.json()
+            : {};
+
+          const summary = detailedProfileData.summary || userData.summary || {};
+          const contributionsSummary = summary.contributions || {};
+          const editsSummary = summary.edits || {};
+          const overallSummary = summary.overall || {};
+
           formattedProfile = {
             id: userData.id,
-            name: userData.name || userData.username || 'Unknown User',
-            username: userData.username,
+            name:
+              userData.name ||
+              detailedProfileData.user_name ||
+              userData.username ||
+              'Unknown User',
+            username: userData.username || detailedProfileData.username,
             phone: userData.phone || null,
             profile_picture_path: userData.profile_picture_path || null,
             short_bio: userData.short_bio || null,
             profile_complete: isProfileComplete(userData),
             streaks: {
               combined_streak: {
-                current: userData.streak_days || 0,
-                longest: userData.streak_days || 0,
-                total_active_days: userData.total_active_days || 0,
+                current:
+                  detailedProfileData.streaks?.combined_streak?.current ||
+                  userData.streak_days ||
+                  0,
+                longest:
+                  detailedProfileData.streaks?.combined_streak?.longest ||
+                  userData.streak_days ||
+                  0,
+                total_active_days:
+                  detailedProfileData.streaks?.combined_streak
+                    ?.total_active_days ||
+                  userData.total_active_days ||
+                  0,
               },
             },
-            timeline: {},
+            timeline: detailedProfileData.timeline || {},
             summary: {
               contributions: {
-                total_contributions: userData.total_contributions || 0,
+                total_contributions:
+                  contributionsSummary.total_contributions ||
+                  userData.total_contributions ||
+                  0,
                 contributions_by_media_type:
-                  userData.contributions_by_media_type || {
-                    text: 0,
-                    audio: 0,
-                    image: 0,
-                    video: 0,
-                    document: 0,
-                  },
+                  contributionsSummary.contributions_by_media_type ||
+                    userData.contributions_by_media_type || {
+                      text: 0,
+                      audio: 0,
+                      image: 0,
+                      video: 0,
+                      document: 0,
+                    },
               },
               edits: {
-                total_edits: userData.total_edits || 0,
+                total_edits:
+                  editsSummary.total_edits || userData.total_edits || 0,
               },
               overall: {
-                total_activities: userData.total_activities || 0,
+                total_activities:
+                  overallSummary.total_activities ||
+                  userData.total_activities ||
+                  0,
               },
             },
           };

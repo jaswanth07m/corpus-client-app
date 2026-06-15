@@ -1,0 +1,7 @@
+# Toolchain versions — bump when upgrading Android SDK, JDK, or Node.
+variables:
+  ANDROID_COMPILE_SDK: '36'
+  ANDROID_BUILD_TOOLS: '34.0.0'
+  ANDROID_SDK_TOOLS: '10406996'
+  ANDROID_IMAGE: 'eclipse-temurin:21-jdk-jammy'
+  NODE_VERSION: '22'

@@ -1,8 +1,10 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
 import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
+import { useToolEventFilters } from '@/hooks/useToolEventFilters';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
+import { transliterate } from '@/lib/teluguKeyboard';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -22,7 +24,22 @@ import {
   Draggable,
   DropResult,
 } from '@hello-pangea/dnd';
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  RotateCw,
+  SkipForward,
+} from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -39,10 +56,15 @@ type Segment = {
   text: string;
   confidence?: number;
   proofread?: boolean;
+  skipped?: boolean;
+  skip_reason?: string;
+  edit?: string[];
   bbox?: number[];
   type?: string;
   reading_order?: number;
   originalIndex?: number;
+  extraction_metadata?: Record<string, unknown>;
+  named_entities?: Record<string, unknown>;
 };
 
 type ExtractedTextResponse = {
@@ -65,6 +87,10 @@ type RecordDetails = {
   language?: string;
   author?: string;
   source?: string;
+  category?: string;
+  category_ids?: string[];
+  skip?: boolean;
+  skip_reason?: string;
   extracted_text?: ExtractedTextResponse;
 };
 
@@ -207,13 +233,20 @@ function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
   const pageMap = new Map<number, Segment[]>();
 
   segments.forEach((segment, index) => {
-    const pageNum = segment.start + 1;
     const segmentWithIndex = { ...segment, originalIndex: index };
 
-    if (!pageMap.has(pageNum)) {
-      pageMap.set(pageNum, []);
+    const startPage = segment.start + 1;
+    const endPage = segment.end;
+
+    if (segment.end - segment.start > 1) {
+      for (let p = startPage; p <= endPage; p++) {
+        if (!pageMap.has(p)) pageMap.set(p, []);
+        pageMap.get(p)!.push(segmentWithIndex);
+      }
+    } else {
+      if (!pageMap.has(startPage)) pageMap.set(startPage, []);
+      pageMap.get(startPage)!.push(segmentWithIndex);
     }
-    pageMap.get(pageNum)!.push(segmentWithIndex);
   });
 
   pageMap.forEach((pageSegments) => {
@@ -230,6 +263,12 @@ function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
 
 function DocDigitization() {
   const { t } = useTranslation();
+  const fallbackFilters = useMemo(
+    () => ({ media_type: ['document'], is_fully_proofread: false }),
+    [],
+  );
+  const { reviewFilters, isReady: areReviewFiltersReady } =
+    useToolEventFilters(fallbackFilters);
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [recordId, setRecordId] = useState<string | null>(null);
   const [fullRecordData, setFullRecordData] = useState<RecordDetails | null>(
@@ -240,9 +279,7 @@ function DocDigitization() {
   const [segmentsByPage, setSegmentsByPage] = useState<Map<number, Segment[]>>(
     new Map(),
   );
-  const [submittedPages, setSubmittedPages] = useState<Record<number, boolean>>(
-    {},
-  );
+
   const [zoom, setZoom] = useState(1.0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -260,11 +297,31 @@ function DocDigitization() {
   const [editingSegmentIndex, setEditingSegmentIndex] = useState<number | null>(
     null,
   );
+  const [flippedSegmentIndex, setFlippedSegmentIndex] = useState<number | null>(
+    0,
+  );
+  const [metadataEditingIndex, setMetadataEditingIndex] = useState<
+    number | null
+  >(null);
   const [pendingReorder, setPendingReorder] = useState<DropResult | null>(null);
   const [mobileTextMode, setMobileTextMode] = useState<
     'hidden' | 'all' | 'single'
   >('hidden');
   const [showRecordPanel, setShowRecordPanel] = useState(false);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [flippedViewedOriginalIndices, setFlippedViewedOriginalIndices] =
+    useState<Set<number>>(new Set());
+  const [showSkipModal, setShowSkipModal] = useState(false);
+  const [skipReason, setSkipReason] = useState('');
+  const [skipCategory, setSkipCategory] = useState('');
+  const [isCompleteRecordSubmitted, setIsCompleteRecordSubmitted] =
+    useState(false);
+  const [editReasons, setEditReasons] = useState<string[]>([]);
+  const [showInfoPanel, setShowInfoPanel] = useState(false);
+  const [charactersErrors, setCharactersErrors] = useState<
+    Record<number, string>
+  >({});
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping(
     editingSegmentIndex !== null
@@ -272,6 +329,40 @@ function DocDigitization() {
       : undefined,
   );
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
+
+  const teluguEngineRef = useRef({ prevChar: '', prevLen: 0 });
+
+  const handleTeluguKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (!isTeluguTypingEnabled) return;
+      if (e.key.length > 1 || e.ctrlKey || e.altKey || e.metaKey) {
+        teluguEngineRef.current = { prevChar: '', prevLen: 0 };
+        return;
+      }
+      e.preventDefault();
+      const engine = teluguEngineRef.current;
+      const target = e.target as HTMLInputElement;
+      const selStart = target.selectionStart ?? target.value.length;
+      const selEnd = target.selectionEnd ?? target.value.length;
+      const str = engine.prevChar + e.key;
+      const result = transliterate(str);
+      const textBefore = target.value.substring(0, selStart - engine.prevLen);
+      const textAfter = target.value.substring(selEnd);
+      const newValue = textBefore + result.str + textAfter;
+      const nativeInputValue = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        'value',
+      );
+      nativeInputValue?.set?.call(target, newValue);
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+      const newCursor = textBefore.length + result.str.length;
+      target.selectionStart = newCursor;
+      target.selectionEnd = newCursor;
+      engine.prevChar = str.substring(result.freezpos);
+      engine.prevLen = result.indic.length;
+    },
+    [isTeluguTypingEnabled],
+  );
   const [hintsVisible, setHintsVisible] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -323,6 +414,193 @@ function DocDigitization() {
           text: newValue,
         };
         newMap.set(pageNumber, updatedSegments);
+        // Sync edit to all sibling pages sharing the same segment
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], text: newValue };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
+      }
+      return newMap;
+    });
+  };
+
+  const handleMetadataChange = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    key: string,
+    newValue: string,
+  ) => {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        meta[key] = newValue;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
+        newMap.set(pageNumber, updatedSegments);
+        // Sync metadata edit to all sibling pages sharing the same segment
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
+      }
+      return newMap;
+    });
+  };
+
+  const handleNestedMetadataChange = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    parentKey: string,
+    subKey: string,
+    newValue: string,
+  ) => {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        const parent = meta[parentKey]
+          ? { ...(meta[parentKey] as Record<string, unknown>) }
+          : {};
+        parent[subKey] = newValue;
+        meta[parentKey] = parent;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
+        newMap.set(pageNumber, updatedSegments);
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
+      }
+      return newMap;
+    });
+  };
+
+  const removeDictEntry = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    parentKey: string,
+    subKey: string,
+  ) => {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        const parent = meta[parentKey]
+          ? { ...(meta[parentKey] as Record<string, unknown>) }
+          : {};
+        delete parent[subKey];
+        meta[parentKey] = parent;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
+        newMap.set(pageNumber, updatedSegments);
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
+      }
+      return newMap;
+    });
+  };
+
+  const renameDictKey = (
+    segmentIndex: number,
+    field: 'extraction_metadata' | 'named_entities',
+    parentKey: string,
+    oldSubKey: string,
+    newSubKey: string,
+  ) => {
+    if (oldSubKey === newSubKey) return;
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (pageSegments && segmentIndex < pageSegments.length) {
+        const updatedSegments = [...pageSegments];
+        const seg = { ...updatedSegments[segmentIndex] };
+        const meta = seg[field]
+          ? { ...seg[field] }
+          : ({} as Record<string, unknown>);
+        const parent = meta[parentKey]
+          ? { ...(meta[parentKey] as Record<string, unknown>) }
+          : {};
+        const value = parent[oldSubKey];
+        delete parent[oldSubKey];
+        if (newSubKey.trim()) {
+          parent[newSubKey] = value;
+        }
+        meta[parentKey] = parent;
+        seg[field] = meta;
+        updatedSegments[segmentIndex] = seg;
+        newMap.set(pageNumber, updatedSegments);
+        const editedSegment = updatedSegments[segmentIndex];
+        if (editedSegment?.originalIndex !== undefined) {
+          for (const [pg, segs] of newMap.entries()) {
+            if (pg === pageNumber) continue;
+            const sibIdx = segs.findIndex(
+              (s) => s.originalIndex === editedSegment.originalIndex,
+            );
+            if (sibIdx !== -1) {
+              const sibSegs = [...segs];
+              sibSegs[sibIdx] = { ...sibSegs[sibIdx], [field]: seg[field] };
+              newMap.set(pg, sibSegs);
+            }
+          }
+        }
       }
       return newMap;
     });
@@ -368,6 +646,64 @@ function DocDigitization() {
   };
 
   const currentPageSegments = getCurrentPageSegments();
+  const isLastPageOfSegment = currentPageSegments.some(
+    (seg) => seg.end === pageNumber,
+  );
+  const validPages = useMemo(
+    () => [...segmentsByPage.keys()].sort((a, b) => a - b),
+    [segmentsByPage],
+  );
+
+  const pageRangeLabel = useMemo(() => {
+    if (currentPageSegments.length === 0) return '';
+    const pages = currentPageSegments.map((s) => s.start + 1);
+    const minP = Math.min(...pages);
+    const maxP = Math.max(...currentPageSegments.map((s) => s.end));
+    return minP === maxP ? `Page ${minP}` : `Pages ${minP}-${maxP}`;
+  }, [currentPageSegments]);
+
+  const hasUnviewedMetadata = useMemo(
+    () =>
+      currentPageSegments.some(
+        (seg) =>
+          (seg.extraction_metadata || seg.named_entities) &&
+          !seg.proofread &&
+          !seg.skipped &&
+          seg.originalIndex !== undefined &&
+          !flippedViewedOriginalIndices.has(seg.originalIndex),
+      ),
+    [currentPageSegments, flippedViewedOriginalIndices],
+  );
+
+  const hasBboxes = useMemo(() => {
+    for (const pageSegments of segmentsByPage.values()) {
+      if (pageSegments.some((seg) => seg.bbox)) return true;
+    }
+    return false;
+  }, [segmentsByPage]);
+
+  const proofreadPages = useMemo(() => {
+    const pages = new Set<number>();
+    segmentsByPage.forEach((segs, page) => {
+      if (
+        segs.length > 0 &&
+        segs.every((seg) => seg.proofread || seg.skipped)
+      ) {
+        pages.add(page);
+      }
+    });
+    return pages;
+  }, [segmentsByPage]);
+
+  useEffect(() => {
+    if (validPages.length > 0 && !validPages.includes(pageNumber)) {
+      setPageNumber(validPages[0]);
+    }
+  }, [validPages, pageNumber]);
+
+  useEffect(() => {
+    setIsCompleteRecordSubmitted(false);
+  }, [fullRecordData]);
 
   // Compute the reference dimensions for bbox overlay positioning.
   // Uses inferred OCR image dimensions when bbox coords are in pixel space,
@@ -386,7 +722,6 @@ function DocDigitization() {
     setFullRecordData(null);
     setPageNumber(1);
     setSegmentsByPage(new Map());
-    setSubmittedPages({});
     setNumPages(0);
 
     const token = localStorage.getItem('token');
@@ -437,17 +772,39 @@ function DocDigitization() {
         throw new Error('No segments found in the record.');
       }
 
+      segments.forEach((seg) => {
+        const ner_characters = seg.named_entities?.ner_characters;
+        if (Array.isArray(ner_characters)) {
+          seg.named_entities!.ner_characters = Object.fromEntries(
+            ner_characters.map((item: unknown) => [String(item), null]),
+          );
+        }
+        if (recordDetails.category && !seg.extraction_metadata?.category) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            category: recordDetails.category,
+          };
+        }
+        if (!seg.named_entities) {
+          seg.named_entities = {};
+        }
+        if (!seg.named_entities.locations) {
+          seg.named_entities.locations = '';
+        }
+        if (!seg.named_entities.characters) {
+          seg.named_entities.characters = {};
+        }
+        if (!seg.extraction_metadata?.genre) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            genre: '',
+          };
+        }
+      });
+
       const groupedSegments = groupSegmentsByPage(segments);
       const totalPages =
         segments.length > 0 ? Math.max(...segments.map((s) => s.start + 1)) : 0;
-
-      const initialSubmittedPages: Record<number, boolean> = {};
-      segments.forEach((segment) => {
-        const pageNum = segment.start + 1;
-        if (segment.proofread) {
-          initialSubmittedPages[pageNum] = true;
-        }
-      });
 
       setBookData({
         pdfUrl,
@@ -459,9 +816,9 @@ function DocDigitization() {
         },
       });
       setSegmentsByPage(groupedSegments);
-      setSubmittedPages(initialSubmittedPages);
       setNumPages(totalPages);
       setPdfPageSize({ width: 0, height: 0 });
+      setFlippedSegmentIndex(0);
     } catch (err) {
       const error = err as Error;
       console.error('An error occurred in fetchRecordById:', error);
@@ -484,6 +841,13 @@ function DocDigitization() {
   };
 
   async function fetchNextRecord() {
+    if (!areReviewFiltersReady) {
+      return;
+    }
+
+    setMetadataEditingIndex(null);
+    setFlippedSegmentIndex(null);
+    setFlippedViewedOriginalIndices(new Set());
     setIsLoading(true);
     setError(null);
     setBookData(null);
@@ -491,8 +855,8 @@ function DocDigitization() {
     setFullRecordData(null);
     setPageNumber(1);
     setSegmentsByPage(new Map());
-    setSubmittedPages({});
     setNumPages(0);
+    setEditingSegmentIndex(null);
 
     const token = localStorage.getItem('token');
     try {
@@ -505,7 +869,7 @@ function DocDigitization() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            filters: { media_type: ['document'], is_fully_proofread: false },
+            filters: reviewFilters,
             limit: 1,
           }),
         },
@@ -563,17 +927,39 @@ function DocDigitization() {
         throw new Error('No segments found in the record.');
       }
 
+      segments.forEach((seg) => {
+        const ner_characters = seg.named_entities?.ner_characters;
+        if (Array.isArray(ner_characters)) {
+          seg.named_entities!.ner_characters = Object.fromEntries(
+            ner_characters.map((item: unknown) => [String(item), null]),
+          );
+        }
+        if (recordDetails.category && !seg.extraction_metadata?.category) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            category: recordDetails.category,
+          };
+        }
+        if (!seg.named_entities) {
+          seg.named_entities = {};
+        }
+        if (!seg.named_entities.locations) {
+          seg.named_entities.locations = '';
+        }
+        if (!seg.named_entities.characters) {
+          seg.named_entities.characters = {};
+        }
+        if (!seg.extraction_metadata?.genre) {
+          seg.extraction_metadata = {
+            ...seg.extraction_metadata,
+            genre: '',
+          };
+        }
+      });
+
       const groupedSegments = groupSegmentsByPage(segments);
       const totalPages =
         segments.length > 0 ? Math.max(...segments.map((s) => s.start + 1)) : 0;
-
-      const initialSubmittedPages: Record<number, boolean> = {};
-      segments.forEach((segment) => {
-        const pageNum = segment.start + 1;
-        if (segment.proofread) {
-          initialSubmittedPages[pageNum] = true;
-        }
-      });
 
       setBookData({
         pdfUrl,
@@ -585,9 +971,9 @@ function DocDigitization() {
         },
       });
       setSegmentsByPage(groupedSegments);
-      setSubmittedPages(initialSubmittedPages);
       setNumPages(totalPages);
       setPdfPageSize({ width: 0, height: 0 });
+      setFlippedSegmentIndex(0);
     } catch (err) {
       const error = err as Error;
       console.error('An error occurred in fetchNextRecord:', error);
@@ -602,13 +988,35 @@ function DocDigitization() {
       toast.error('Cannot submit: No record is currently loaded.');
       return;
     }
+
+    const unviewed = currentPageSegments.find(
+      (seg) =>
+        (seg.extraction_metadata || seg.named_entities) &&
+        !seg.proofread &&
+        !seg.skipped &&
+        seg.originalIndex !== undefined &&
+        !flippedViewedOriginalIndices.has(seg.originalIndex),
+    );
+    if (unviewed) {
+      toast.error(
+        t('common.pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting'),
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     const token = localStorage.getItem('token');
 
+    const seenIndices = new Set<number>();
     const allSegments: Segment[] = [];
     segmentsByPage.forEach((pageSegments) => {
-      allSegments.push(...pageSegments);
+      pageSegments.forEach((seg) => {
+        if (!seenIndices.has(seg.originalIndex!)) {
+          seenIndices.add(seg.originalIndex!);
+          allSegments.push(seg);
+        }
+      });
     });
     allSegments.sort((a, b) => {
       if (a.start !== b.start) return a.start - b.start;
@@ -618,24 +1026,33 @@ function DocDigitization() {
       return (a.originalIndex || 0) - (b.originalIndex || 0);
     });
 
-    const updatedSegments = allSegments.map((segment) => {
-      const pageNum = segment.start + 1;
-      const wasAlreadySubmitted = !!submittedPages[pageNum];
-      const isCurrentPage = pageNum === pageNumber;
+    const updatedSegments = allSegments.map(({ originalIndex, ...rest }) => ({
+      ...rest,
+      text: rest.text.trim() === '' ? ' ' : rest.text,
+      proofread: rest.skipped ? false : true,
+      skipped: !!rest.skipped,
+      skip_reason:
+        rest.skip_reason && rest.skip_reason.trim()
+          ? rest.skip_reason
+          : undefined,
+      named_entities: {
+        ...(rest.named_entities as Record<string, unknown>),
+        locations:
+          typeof (rest.named_entities as Record<string, unknown> | undefined)
+            ?.locations === 'string'
+            ? (rest.named_entities as Record<string, unknown>).locations
+                .split(',')
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+            : (rest.named_entities as Record<string, unknown> | undefined)
+                ?.locations,
+      },
+      extraction_metadata: {
+        ...((rest.extraction_metadata || {}) as Record<string, unknown>),
+      },
+    }));
 
-      return {
-        start: segment.start,
-        end: segment.end,
-        text: segment.text.trim() === '' ? ' ' : segment.text,
-        proofread: wasAlreadySubmitted || isCurrentPage || !!segment.proofread,
-        bbox: segment.bbox,
-        type: segment.type,
-        reading_order: segment.reading_order,
-        confidence: segment.confidence,
-      };
-    });
-
-    const requestBody = {
+    const requestBody: Record<string, unknown> = {
       extraction_type: fullRecordData.extracted_text?.extraction_type || 'OCR',
       segments: updatedSegments,
     };
@@ -662,19 +1079,151 @@ function DocDigitization() {
       }
 
       toast.success(`Page ${pageNumber} submitted successfully!`);
-      setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
+      setIsCompleteRecordSubmitted(true);
 
-      if (numPages && pageNumber < numPages) {
-        setPageNumber(pageNumber + 1);
-      } else {
-        await fetchNextRecord();
-      }
+      await fetchNextRecord();
     } catch (err) {
       const error = err as Error;
       setError(error.message);
       toast.error(`Error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  function cleanupEmptyCharacters() {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      for (const [pg, segs] of newMap.entries()) {
+        newMap.set(
+          pg,
+          segs.map((seg) => {
+            if (!seg.named_entities?.characters) return seg;
+            const chars = seg.named_entities.characters as Record<
+              string,
+              unknown
+            >;
+            const cleaned: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(chars)) {
+              if (k.trim() !== '') {
+                cleaned[k] = v;
+              }
+            }
+            return {
+              ...seg,
+              named_entities: { ...seg.named_entities, characters: cleaned },
+            };
+          }),
+        );
+      }
+      return newMap;
+    });
+  }
+
+  function doneEditingMetadata() {
+    if (metadataEditingIndex !== null) {
+      const seg = currentPageSegments[metadataEditingIndex];
+      const chars = (seg?.named_entities?.characters ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const invalid = Object.entries(chars).some(([k, v]) => {
+        const keyStr = String(k);
+        const valStr = String(v ?? '');
+        if (keyStr.startsWith('__new_')) return false;
+        const keyFilled = keyStr.trim().length > 0;
+        const valFilled = valStr.trim().length > 0;
+        return (keyFilled || valFilled) && !(keyFilled && valFilled);
+      });
+      if (invalid) {
+        setCharactersErrors((prev) => ({
+          ...prev,
+          [metadataEditingIndex]:
+            'All character name and value fields must be filled.',
+        }));
+        return;
+      }
+    }
+    cleanupEmptyCharacters();
+    setMetadataEditingIndex(null);
+    setCharactersErrors({});
+  }
+
+  function handleSavePage() {
+    cleanupEmptyCharacters();
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      for (const [pg, segs] of newMap.entries()) {
+        if (segs.some((seg) => seg.end === pageNumber)) {
+          newMap.set(
+            pg,
+            segs.map((seg) =>
+              seg.end === pageNumber
+                ? {
+                    ...seg,
+                    proofread: true,
+                    edit: editReasons.length > 0 ? [...editReasons] : seg.edit,
+                    extraction_metadata: {
+                      ...(seg.extraction_metadata || {}),
+                      category: 'story',
+                    },
+                  }
+                : seg,
+            ),
+          );
+        }
+      }
+      return newMap;
+    });
+    setEditReasons([]);
+
+    const idx = validPages.indexOf(pageNumber);
+    if (idx < validPages.length - 1) {
+      setPageNumber(validPages[idx + 1]);
+    }
+  }
+
+  function handleSkip() {
+    cleanupEmptyCharacters();
+    const segmentIndices = new Set<number>();
+    currentPageSegments.forEach((seg) => {
+      if (seg.originalIndex !== undefined) {
+        segmentIndices.add(seg.originalIndex);
+      }
+    });
+
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      for (const [pg, segs] of newMap.entries()) {
+        newMap.set(
+          pg,
+          segs.map((seg) =>
+            seg.originalIndex !== undefined &&
+            segmentIndices.has(seg.originalIndex)
+              ? {
+                  ...seg,
+                  skipped: true,
+                  skip_reason: skipReason,
+                  extraction_metadata: {
+                    ...(seg.extraction_metadata || {}),
+                    category: skipCategory,
+                  },
+                }
+              : seg,
+          ),
+        );
+      }
+      return newMap;
+    });
+
+    setShowSkipModal(false);
+    setSkipReason('');
+    setSkipCategory('');
+
+    const maxEnd = Math.max(...currentPageSegments.map((seg) => seg.end));
+    const nextPage = validPages.find((p) => p > maxEnd);
+    if (nextPage) {
+      setPageNumber(nextPage);
     }
   }
 
@@ -692,6 +1241,70 @@ function DocDigitization() {
         </button>
         <div className="flex items-center gap-2">
           <NetworkStrengthIndicator />
+          {currentPageSegments.some(
+            (seg) => seg.extraction_metadata || seg.named_entities,
+          ) && (
+            <div className="relative">
+              <button
+                onClick={() => setShowInfoPanel(!showInfoPanel)}
+                className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 w-8 h-8 rounded-full p-1.5 transition-colors"
+                title="Button conditions"
+              >
+                <Info className="h-full w-full" />
+              </button>
+              {showInfoPanel && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50 text-xs text-gray-700 dark:text-gray-300">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                      {t('common.button.conditions')}
+                    </h3>
+                    <button
+                      onClick={() => setShowInfoPanel(false)}
+                      className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <ArrowLeft className="h-3 w-3 rotate-90" />
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-gray-100">
+                        {t('common.general.conditions')}
+                      </p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        <li>{t('validation.mustBeOnLastPageOfSegment')}</li>
+                        <li>{t('common.metadataMustBeReviewedFlipped')}</li>
+                        <li>{t('common.cannotBeInEditMode')}</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-gray-100">
+                        {t('categories.categoryStory')}
+                      </p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        <li>
+                          {t('common.saveActiveOnLastPageAllConditionsApply')}
+                        </li>
+                        <li>
+                          {t('common.skipActiveOnLastPageAllConditionsApply')}
+                        </li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-gray-100">
+                        {t('common.categoryNonstory')}
+                      </p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        <li>{t('common.saveDisabled')}</li>
+                        <li>
+                          {t('common.skipActiveWhenCategorySetAndNotEditing')}
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="relative">
             <button
               onClick={() => setShowRecordPanel(!showRecordPanel)}
@@ -737,7 +1350,9 @@ function DocDigitization() {
                   <button
                     className="w-full bg-green-600 text-white hover:bg-green-700 font-bold py-2 px-4 rounded transition-colors duration-200 disabled:opacity-50"
                     onClick={fetchNextRecord}
-                    disabled={isLoading || isSearching}
+                    disabled={
+                      isLoading || isSearching || !areReviewFiltersReady
+                    }
                   >
                     {isLoading
                       ? t('common.loading')
@@ -762,14 +1377,14 @@ function DocDigitization() {
                   <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-gray-500">
                     <span>Progress</span>
                     <span>
-                      {Object.keys(submittedPages).length} / {numPages}
+                      {proofreadPages.size} / {validPages.length}
                     </span>
                   </div>
                   <div className="w-full h-1 bg-white/20 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-400 transition-all duration-500 ease-out"
                       style={{
-                        width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                        width: `${(proofreadPages.size / (validPages.length || 1)) * 100}%`,
                       }}
                     />
                   </div>
@@ -779,8 +1394,11 @@ function DocDigitization() {
                   {/* Navigation Arrows & Dropdown */}
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
-                      disabled={pageNumber <= 1}
+                      onClick={() => {
+                        const idx = validPages.indexOf(pageNumber);
+                        if (idx > 0) setPageNumber(validPages[idx - 1]);
+                      }}
+                      disabled={validPages.indexOf(pageNumber) <= 0}
                       className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4" />
@@ -791,20 +1409,17 @@ function DocDigitization() {
                         onChange={(e) => setPageNumber(Number(e.target.value))}
                         className="appearance-none bg-white/10 dark:bg-gray-700 border border-white/20 dark:border-gray-600 text-gray-900 dark:text-gray-300 text-[10px] font-black py-1 pl-2 pr-6 rounded focus:outline-none cursor-pointer"
                       >
-                        {Array.from(
-                          { length: Math.max(0, Math.floor(numPages || 0)) },
-                          (_, i) => i + 1,
-                        ).map((p) => (
+                        {validPages.map((p) => (
                           <option
                             key={`mobile_zoom_page_opt_${p}`}
                             value={p}
                             className={
-                              submittedPages[p]
+                              proofreadPages.has(p)
                                 ? 'text-green-600 font-bold'
                                 : 'text-gray-900'
                             }
                           >
-                            P{p} {submittedPages[p] ? '✓' : ''}
+                            P{p} {proofreadPages.has(p) ? '✓' : ''}
                           </option>
                         ))}
                       </select>
@@ -813,10 +1428,14 @@ function DocDigitization() {
                       </div>
                     </div>
                     <button
-                      onClick={() =>
-                        setPageNumber(Math.min(numPages, pageNumber + 1))
+                      onClick={() => {
+                        const idx = validPages.indexOf(pageNumber);
+                        if (idx < validPages.length - 1)
+                          setPageNumber(validPages[idx + 1]);
+                      }}
+                      disabled={
+                        validPages.indexOf(pageNumber) >= validPages.length - 1
                       }
-                      disabled={pageNumber >= numPages}
                       className="p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
                     >
                       <ArrowLeft className="h-4 w-4" />
@@ -849,16 +1468,18 @@ function DocDigitization() {
                   <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
 
                   {/* BBox Toggle */}
-                  <button
-                    className={`p-1 rounded text-[8px] font-black uppercase transition-colors ${
-                      showBboxes
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
-                    }`}
-                    onClick={() => setShowBboxes(!showBboxes)}
-                  >
-                    {showBboxes ? 'BBox' : 'Off'}
-                  </button>
+                  {hasBboxes && (
+                    <button
+                      className={`p-1 rounded text-[8px] font-black uppercase transition-colors ${
+                        showBboxes
+                          ? 'bg-purple-600 text-white shadow-sm'
+                          : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+                      }`}
+                      onClick={() => setShowBboxes(!showBboxes)}
+                    >
+                      {showBboxes ? 'BBox' : 'Off'}
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="w-full h-[500px] overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
@@ -963,7 +1584,8 @@ function DocDigitization() {
             </h2>
             {currentPageSegments.length > 0 && (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Page {pageNumber} - {currentPageSegments.length} segments
+                {pageRangeLabel} - {currentPageSegments.length} segment
+                {currentPageSegments.length > 1 ? 's' : ''}
               </p>
             )}
           </div>
@@ -999,7 +1621,7 @@ function DocDigitization() {
                               }`}
                             >
                               {/* Sidebar metadata & Drag Handle */}
-                              <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1">
+                              <div className="w-6 flex-shrink-0 flex flex-col items-center pt-1 border-r border-gray-200 dark:border-gray-700 pr-1 relative">
                                 <div
                                   {...provided.dragHandleProps}
                                   className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
@@ -1010,36 +1632,485 @@ function DocDigitization() {
                                 <span className="text-[8px] font-bold text-gray-400">
                                   {idx + 1}
                                 </span>
+                                {(segment.extraction_metadata ||
+                                  segment.named_entities) &&
+                                  !segment.proofread &&
+                                  segment.originalIndex !== undefined &&
+                                  !flippedViewedOriginalIndices.has(
+                                    segment.originalIndex,
+                                  ) && (
+                                    <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-red-500" />
+                                  )}
                               </div>
 
                               <div className="flex-1 min-w-0">
                                 <div className="flex justify-start items-center gap-2 h-4">
-                                  {editingSegmentIndex !== idx ? (
+                                  {flippedSegmentIndex === idx ? (
                                     <>
+                                      {metadataEditingIndex !== idx ? (
+                                        <button
+                                          onClick={() => {
+                                            const seg =
+                                              currentPageSegments[idx];
+                                            if (seg) {
+                                              const chars = (seg.named_entities
+                                                ?.characters ?? {}) as Record<
+                                                string,
+                                                unknown
+                                              >;
+                                              const count =
+                                                Object.keys(chars).length;
+                                              if (count < 1) {
+                                                handleNestedMetadataChange(
+                                                  idx,
+                                                  'named_entities',
+                                                  'characters',
+                                                  '__new_0',
+                                                  '',
+                                                );
+                                              }
+                                            }
+                                            setMetadataEditingIndex(idx);
+                                            setCharactersErrors({});
+                                          }}
+                                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                        >
+                                          Edit
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => doneEditingMetadata()}
+                                          className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                                        >
+                                          Done
+                                        </button>
+                                      )}
                                       <button
-                                        onClick={() =>
-                                          setEditingSegmentIndex(idx)
-                                        }
-                                        className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                        onClick={() => {
+                                          setEditingSegmentIndex(null);
+                                          doneEditingMetadata();
+                                          setFlippedSegmentIndex(null);
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 px-1.5 py-0 bg-purple-600 text-white text-[8px] font-bold rounded transition-opacity"
                                       >
-                                        Edit
+                                        <RotateCw className="h-3 w-3" />
                                       </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      {editingSegmentIndex === idx ? (
+                                        <button
+                                          onClick={() =>
+                                            setEditingSegmentIndex(null)
+                                          }
+                                          className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
+                                        >
+                                          Done
+                                        </button>
+                                      ) : isCompleteRecordSubmitted ? (
+                                        <button
+                                          onClick={() =>
+                                            setEditingSegmentIndex(idx)
+                                          }
+                                          className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
+                                        >
+                                          Edit
+                                        </button>
+                                      ) : null}
+                                      {(segment.extraction_metadata ||
+                                        segment.named_entities) && (
+                                        <button
+                                          onClick={() => {
+                                            setEditingSegmentIndex(null);
+                                            doneEditingMetadata();
+                                            setFlippedViewedOriginalIndices(
+                                              (prev) => {
+                                                const next = new Set(prev);
+                                                if (
+                                                  segment.originalIndex !==
+                                                  undefined
+                                                )
+                                                  next.add(
+                                                    segment.originalIndex,
+                                                  );
+                                                return next;
+                                              },
+                                            );
+                                            setFlippedSegmentIndex(idx);
+                                          }}
+                                          className={`opacity-0 group-hover:opacity-100 px-1.5 py-0 text-[8px] font-bold rounded transition-opacity bg-gray-400 hover:bg-gray-500 text-white`}
+                                        >
+                                          <RotateCw className="h-3 w-3" />
+                                        </button>
+                                      )}
                                       <span className="opacity-0 group-hover:opacity-100 text-[8px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
                                         {segment.type || 'Text'}
                                       </span>
                                     </>
-                                  ) : (
-                                    <button
-                                      onClick={() =>
-                                        setEditingSegmentIndex(null)
-                                      }
-                                      className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[8px] font-bold rounded"
-                                    >
-                                      Done
-                                    </button>
                                   )}
                                 </div>
-                                {editingSegmentIndex === idx ? (
+                                {flippedSegmentIndex === idx ? (
+                                  <div className="space-y-2 mt-1">
+                                    {metadataEditingIndex === idx ? (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          genre:
+                                        </span>
+                                        <select
+                                          value={
+                                            (segment.extraction_metadata
+                                              ?.genre as string) || ''
+                                          }
+                                          onChange={(e) =>
+                                            handleMetadataChange(
+                                              idx,
+                                              'extraction_metadata',
+                                              'genre',
+                                              e.target.value,
+                                            )
+                                          }
+                                          className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                        >
+                                          <option value="">
+                                            Select genre...
+                                          </option>
+                                          <option value="social">social</option>
+                                          <option value="mythology">
+                                            mythology
+                                          </option>
+                                          <option value="fantasy">
+                                            fantasy
+                                          </option>
+                                          <option value="folklore">
+                                            folklore
+                                          </option>
+                                          <option value="fables">fables</option>
+                                          <option value="others">others</option>
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-gray-600 dark:text-gray-400">
+                                          genre:
+                                        </span>{' '}
+                                        <span className="text-gray-800 dark:text-gray-200">
+                                          {(segment.extraction_metadata
+                                            ?.genre as string) || ''}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {segment.extraction_metadata &&
+                                      Object.entries(
+                                        segment.extraction_metadata,
+                                      )
+                                        .filter(
+                                          ([key]) =>
+                                            key !== 'category' &&
+                                            key !== 'ner_genre' &&
+                                            key !== 'genre' &&
+                                            key !== 'keywords',
+                                        )
+                                        .map(([key, value]) => (
+                                          <div
+                                            key={key}
+                                            className="text-[11px]"
+                                          >
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              {key}:
+                                            </span>{' '}
+                                            {metadataEditingIndex === idx ? (
+                                              <input
+                                                className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
+                                                value={String(value)}
+                                                onKeyDown={handleTeluguKeyDown}
+                                                onChange={(e) =>
+                                                  handleMetadataChange(
+                                                    idx,
+                                                    'extraction_metadata',
+                                                    key,
+                                                    e.target.value,
+                                                  )
+                                                }
+                                              />
+                                            ) : (
+                                              <span className="text-gray-800 dark:text-gray-200">
+                                                {Array.isArray(value)
+                                                  ? value.join(', ')
+                                                  : String(value)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        ))}
+                                    {segment.named_entities &&
+                                      Object.entries(segment.named_entities)
+                                        .filter(
+                                          ([key]) =>
+                                            key !== 'ner_locations' &&
+                                            key !== 'keywords' &&
+                                            key !== 'ner_characters',
+                                        )
+                                        .map(([key, value]) => {
+                                          const isDict =
+                                            typeof value === 'object' &&
+                                            value !== null &&
+                                            !Array.isArray(value);
+                                          if (isDict) {
+                                            return (
+                                              <div
+                                                key={key}
+                                                className="text-[11px]"
+                                              >
+                                                <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                  {key}:
+                                                </span>
+                                                <div className="ml-2 space-y-1 mt-1">
+                                                  {Object.entries(
+                                                    value as Record<
+                                                      string,
+                                                      unknown
+                                                    >,
+                                                  ).map(
+                                                    (
+                                                      [subKey, subValue],
+                                                      index,
+                                                    ) => (
+                                                      <div
+                                                        key={index}
+                                                        className="flex items-center gap-1"
+                                                      >
+                                                        {metadataEditingIndex ===
+                                                          idx &&
+                                                        key === 'characters' ? (
+                                                          <input
+                                                            className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
+                                                            defaultValue={
+                                                              String(
+                                                                subKey,
+                                                              ).startsWith(
+                                                                '__new_',
+                                                              )
+                                                                ? ''
+                                                                : subKey
+                                                            }
+                                                            onKeyDown={
+                                                              handleTeluguKeyDown
+                                                            }
+                                                            onBlur={(e) => {
+                                                              if (
+                                                                e.target
+                                                                  .value !==
+                                                                subKey
+                                                              ) {
+                                                                renameDictKey(
+                                                                  idx,
+                                                                  'named_entities',
+                                                                  key,
+                                                                  subKey,
+                                                                  e.target
+                                                                    .value,
+                                                                );
+                                                              }
+                                                            }}
+                                                          />
+                                                        ) : (
+                                                          <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                            {subKey}:
+                                                          </span>
+                                                        )}
+                                                        {metadataEditingIndex ===
+                                                        idx ? (
+                                                          <input
+                                                            className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
+                                                            value={
+                                                              subValue === null
+                                                                ? ''
+                                                                : String(
+                                                                    subValue,
+                                                                  )
+                                                            }
+                                                            onKeyDown={
+                                                              handleTeluguKeyDown
+                                                            }
+                                                            onChange={(e) =>
+                                                              handleNestedMetadataChange(
+                                                                idx,
+                                                                'named_entities',
+                                                                key,
+                                                                subKey,
+                                                                e.target.value,
+                                                              )
+                                                            }
+                                                          />
+                                                        ) : (
+                                                          <span className="text-gray-800 dark:text-gray-200">
+                                                            {subValue === null
+                                                              ? ''
+                                                              : String(
+                                                                  subValue,
+                                                                )}
+                                                          </span>
+                                                        )}
+                                                        {metadataEditingIndex ===
+                                                          idx &&
+                                                          key ===
+                                                            'characters' &&
+                                                          (() => {
+                                                            const entries =
+                                                              Object.entries(
+                                                                value as Record<
+                                                                  string,
+                                                                  unknown
+                                                                >,
+                                                              );
+                                                            return (
+                                                              entries.length ===
+                                                                0 ||
+                                                              entries.every(
+                                                                ([k, v]) => {
+                                                                  const keyStr =
+                                                                    String(k);
+                                                                  const valStr =
+                                                                    String(
+                                                                      v ?? '',
+                                                                    );
+                                                                  if (
+                                                                    keyStr.startsWith(
+                                                                      '__new_',
+                                                                    )
+                                                                  )
+                                                                    return false;
+                                                                  return (
+                                                                    keyStr.trim()
+                                                                      .length >
+                                                                      0 &&
+                                                                    valStr.trim()
+                                                                      .length >
+                                                                      0
+                                                                  );
+                                                                },
+                                                              )
+                                                            );
+                                                          })() && (
+                                                            <button
+                                                              onClick={() =>
+                                                                removeDictEntry(
+                                                                  idx,
+                                                                  'named_entities',
+                                                                  key,
+                                                                  subKey,
+                                                                )
+                                                              }
+                                                              className="text-red-500 hover:text-red-700 text-[11px] font-bold ml-1"
+                                                            >
+                                                              -
+                                                            </button>
+                                                          )}
+                                                      </div>
+                                                    ),
+                                                  )}
+                                                  {metadataEditingIndex ===
+                                                    idx &&
+                                                    key === 'characters' &&
+                                                    (() => {
+                                                      const seg =
+                                                        currentPageSegments[
+                                                          idx
+                                                        ];
+                                                      const chars = (seg
+                                                        ?.named_entities
+                                                        ?.characters ??
+                                                        {}) as Record<
+                                                        string,
+                                                        unknown
+                                                      >;
+                                                      const entries =
+                                                        Object.entries(chars);
+                                                      return (
+                                                        entries.length === 0 ||
+                                                        entries.every(
+                                                          ([k, v]) => {
+                                                            const keyStr =
+                                                              String(k);
+                                                            const valStr =
+                                                              String(v ?? '');
+                                                            if (
+                                                              keyStr.startsWith(
+                                                                '__new_',
+                                                              )
+                                                            )
+                                                              return false;
+                                                            return (
+                                                              keyStr.trim()
+                                                                .length > 0 &&
+                                                              valStr.trim()
+                                                                .length > 0
+                                                            );
+                                                          },
+                                                        )
+                                                      );
+                                                    })() && (
+                                                      <button
+                                                        onClick={() =>
+                                                          handleNestedMetadataChange(
+                                                            idx,
+                                                            'named_entities',
+                                                            key,
+                                                            '',
+                                                            '',
+                                                          )
+                                                        }
+                                                        className="text-blue-500 hover:text-blue-700 text-[11px] font-bold mt-1"
+                                                      >
+                                                        +
+                                                      </button>
+                                                    )}
+                                                  {charactersErrors[idx] &&
+                                                    idx ===
+                                                      metadataEditingIndex && (
+                                                      <p className="text-red-500 text-[10px] mt-1">
+                                                        {charactersErrors[idx]}
+                                                      </p>
+                                                    )}
+                                                </div>
+                                              </div>
+                                            );
+                                          }
+                                          return (
+                                            <div
+                                              key={key}
+                                              className="text-[11px]"
+                                            >
+                                              <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                {key}:
+                                              </span>{' '}
+                                              {metadataEditingIndex === idx ? (
+                                                <input
+                                                  className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px] w-full mt-0.5"
+                                                  value={String(value)}
+                                                  onKeyDown={
+                                                    handleTeluguKeyDown
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleMetadataChange(
+                                                      idx,
+                                                      'named_entities',
+                                                      key,
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                />
+                                              ) : (
+                                                <span className="text-gray-800 dark:text-gray-200">
+                                                  {Array.isArray(value)
+                                                    ? value.join(', ')
+                                                    : String(value)}
+                                                </span>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                  </div>
+                                ) : editingSegmentIndex === idx ? (
                                   <AutoResizeTextArea
                                     value={segment.text || ''}
                                     onChange={(e) =>
@@ -1058,10 +2129,8 @@ function DocDigitization() {
                                     }
                                   />
                                 ) : (
-                                  <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {segment.text || ''}
-                                    </ReactMarkdown>
+                                  <div className="w-full whitespace-pre-wrap text-sm leading-relaxed text-gray-900 dark:text-gray-100 p-0 rounded">
+                                    {segment.text || ''}
                                   </div>
                                 )}
                               </div>
@@ -1103,7 +2172,14 @@ function DocDigitization() {
 
                   <div className="max-h-[40vh] overflow-y-auto">
                     <div className="flex justify-start items-center gap-2 mb-2">
-                      {editingSegmentIndex !== highlightedSegmentIndex ? (
+                      {editingSegmentIndex === highlightedSegmentIndex ? (
+                        <button
+                          onClick={() => setEditingSegmentIndex(null)}
+                          className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
+                        >
+                          Done
+                        </button>
+                      ) : isCompleteRecordSubmitted ? (
                         <button
                           onClick={() =>
                             setEditingSegmentIndex(highlightedSegmentIndex)
@@ -1112,14 +2188,7 @@ function DocDigitization() {
                         >
                           Edit
                         </button>
-                      ) : (
-                        <button
-                          onClick={() => setEditingSegmentIndex(null)}
-                          className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
-                        >
-                          Done
-                        </button>
-                      )}
+                      ) : null}
                     </div>
                     {editingSegmentIndex === highlightedSegmentIndex ? (
                       <AutoResizeTextArea
@@ -1142,11 +2211,9 @@ function DocDigitization() {
                         disabled={!bookData || isLoading || isSubmitting}
                       />
                     ) : (
-                      <div className="w-full prose prose-xl dark:prose-invert max-w-none border border-transparent p-0 rounded">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {currentPageSegments[highlightedSegmentIndex].text ||
-                            ''}
-                        </ReactMarkdown>
+                      <div className="w-full whitespace-pre-wrap text-sm leading-relaxed text-gray-900 dark:text-gray-100 border border-transparent p-0 rounded">
+                        {currentPageSegments[highlightedSegmentIndex].text ||
+                          ''}
                       </div>
                     )}
                   </div>
@@ -1171,14 +2238,14 @@ function DocDigitization() {
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-500">
                         <span>{t('common.overall.progress')}</span>
                         <span>
-                          {Object.keys(submittedPages).length} / {numPages}
+                          {proofreadPages.size} / {validPages.length}
                         </span>
                       </div>
                       <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500 transition-all duration-500 ease-out"
                           style={{
-                            width: `${(Object.keys(submittedPages).length / (numPages || 1)) * 100}%`,
+                            width: `${(proofreadPages.size / (validPages.length || 1)) * 100}%`,
                           }}
                         />
                       </div>
@@ -1188,10 +2255,11 @@ function DocDigitization() {
                       {/* Navigation Arrows */}
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() =>
-                            setPageNumber(Math.max(1, pageNumber - 1))
-                          }
-                          disabled={pageNumber <= 1}
+                          onClick={() => {
+                            const idx = validPages.indexOf(pageNumber);
+                            if (idx > 0) setPageNumber(validPages[idx - 1]);
+                          }}
+                          disabled={validPages.indexOf(pageNumber) <= 0}
                           className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
                           title={t('common.previousPage')}
                         >
@@ -1205,22 +2273,17 @@ function DocDigitization() {
                             }
                             className="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-[9px] font-black py-1 pl-2 pr-7 rounded uppercase tracking-tighter focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer transition-colors"
                           >
-                            {Array.from(
-                              {
-                                length: Math.max(0, Math.floor(numPages || 0)),
-                              },
-                              (_, i) => i + 1,
-                            ).map((p) => (
+                            {validPages.map((p) => (
                               <option
                                 key={`desktop_page_opt_${p}`}
                                 value={p}
                                 className={
-                                  submittedPages[p]
+                                  proofreadPages.has(p)
                                     ? 'text-green-600 font-bold'
                                     : 'text-gray-900 dark:text-gray-100'
                                 }
                               >
-                                Page {p} {submittedPages[p] ? '✓' : ''}
+                                Page {p} {proofreadPages.has(p) ? '✓' : ''}
                               </option>
                             ))}
                           </select>
@@ -1229,10 +2292,15 @@ function DocDigitization() {
                           </div>
                         </div>
                         <button
-                          onClick={() =>
-                            setPageNumber(Math.min(numPages, pageNumber + 1))
+                          onClick={() => {
+                            const idx = validPages.indexOf(pageNumber);
+                            if (idx < validPages.length - 1)
+                              setPageNumber(validPages[idx + 1]);
+                          }}
+                          disabled={
+                            validPages.indexOf(pageNumber) >=
+                            validPages.length - 1
                           }
-                          disabled={pageNumber >= numPages}
                           className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors rotate-180"
                           title={t('common.nextPage')}
                         >
@@ -1266,16 +2334,18 @@ function DocDigitization() {
                       <div className="h-6 w-[1px] bg-gray-400 dark:bg-gray-500" />
 
                       {/* Toggle Buttons */}
-                      <button
-                        className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
-                          showBboxes
-                            ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
-                            : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
-                        }`}
-                        onClick={() => setShowBboxes(!showBboxes)}
-                      >
-                        {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
-                      </button>
+                      {hasBboxes && (
+                        <button
+                          className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-tight transition-colors ${
+                            showBboxes
+                              ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'
+                              : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500'
+                          }`}
+                          onClick={() => setShowBboxes(!showBboxes)}
+                        >
+                          {showBboxes ? 'Hide BBoxes' : 'Show BBoxes'}
+                        </button>
+                      )}
                     </div>
                     {/* PDF viewer with bounding box overlays */}
                     <div
@@ -1389,7 +2459,7 @@ function DocDigitization() {
                     </h2>
                     {currentPageSegments.length > 0 && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Page {pageNumber} - {currentPageSegments.length} segment
+                        {pageRangeLabel} - {currentPageSegments.length} segment
                         {currentPageSegments.length > 1 ? 's' : ''}
                       </p>
                     )}
@@ -1468,7 +2538,7 @@ function DocDigitization() {
                                   }`}
                                 >
                                   {/* Sidebar metadata & Drag Handle */}
-                                  <div className="w-8 flex-shrink-0 flex flex-col items-center pt-2 border-r border-gray-200 dark:border-gray-700 pr-2">
+                                  <div className="w-8 flex-shrink-0 flex flex-col items-center pt-2 border-r border-gray-200 dark:border-gray-700 pr-2 relative">
                                     <div
                                       {...provided.dragHandleProps}
                                       className="mb-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
@@ -1479,36 +2549,476 @@ function DocDigitization() {
                                     <span className="text-[10px] font-bold text-gray-400">
                                       {idx + 1}
                                     </span>
+                                    {(segment.extraction_metadata ||
+                                      segment.named_entities) &&
+                                      !segment.proofread &&
+                                      segment.originalIndex !== undefined &&
+                                      !flippedViewedOriginalIndices.has(
+                                        segment.originalIndex,
+                                      ) && (
+                                        <span className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-red-500" />
+                                      )}
                                   </div>
 
                                   <div className="flex-1 min-w-0">
                                     <div className="flex justify-start items-center gap-2 h-4">
-                                      {editingSegmentIndex !== idx ? (
+                                      {flippedSegmentIndex === idx ? (
                                         <>
+                                          {metadataEditingIndex !== idx ? (
+                                            <button
+                                              onClick={() => {
+                                                const seg =
+                                                  currentPageSegments[idx];
+                                                if (seg) {
+                                                  const chars = (seg
+                                                    .named_entities
+                                                    ?.characters ??
+                                                    {}) as Record<
+                                                    string,
+                                                    unknown
+                                                  >;
+                                                  const count =
+                                                    Object.keys(chars).length;
+                                                  if (count < 1) {
+                                                    handleNestedMetadataChange(
+                                                      idx,
+                                                      'named_entities',
+                                                      'characters',
+                                                      '__new_0',
+                                                      '',
+                                                    );
+                                                  }
+                                                }
+                                                setMetadataEditingIndex(idx);
+                                                setCharactersErrors({});
+                                              }}
+                                              className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                            >
+                                              Edit
+                                            </button>
+                                          ) : (
+                                            <button
+                                              onClick={() =>
+                                                doneEditingMetadata()
+                                              }
+                                              className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
+                                            >
+                                              Done
+                                            </button>
+                                          )}
                                           <button
-                                            onClick={() =>
-                                              setEditingSegmentIndex(idx)
-                                            }
-                                            className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                            onClick={() => {
+                                              setEditingSegmentIndex(null);
+                                              doneEditingMetadata();
+                                              setFlippedSegmentIndex(null);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 px-1.5 py-0 bg-purple-600 text-white text-[9px] font-bold rounded transition-opacity"
                                           >
-                                            Edit
+                                            <RotateCw className="h-3 w-3" />
                                           </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          {editingSegmentIndex === idx ? (
+                                            <button
+                                              onClick={() =>
+                                                setEditingSegmentIndex(null)
+                                              }
+                                              className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
+                                            >
+                                              Done
+                                            </button>
+                                          ) : isCompleteRecordSubmitted ? (
+                                            <button
+                                              onClick={() =>
+                                                setEditingSegmentIndex(idx)
+                                              }
+                                              className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
+                                            >
+                                              Edit
+                                            </button>
+                                          ) : null}
+                                          {(segment.extraction_metadata ||
+                                            segment.named_entities) && (
+                                            <button
+                                              onClick={() => {
+                                                setEditingSegmentIndex(null);
+                                                doneEditingMetadata();
+                                                setFlippedViewedOriginalIndices(
+                                                  (prev) => {
+                                                    const next = new Set(prev);
+                                                    if (
+                                                      segment.originalIndex !==
+                                                      undefined
+                                                    )
+                                                      next.add(
+                                                        segment.originalIndex,
+                                                      );
+                                                    return next;
+                                                  },
+                                                );
+                                                setFlippedSegmentIndex(idx);
+                                              }}
+                                              className="opacity-0 group-hover:opacity-100 px-1.5 py-0 text-[9px] font-bold rounded transition-opacity bg-gray-400 hover:bg-gray-500 text-white"
+                                            >
+                                              <RotateCw className="h-3 w-3" />
+                                            </button>
+                                          )}
                                           <span className="opacity-0 group-hover:opacity-100 text-[9px] uppercase tracking-wider text-gray-400 font-bold transition-opacity">
                                             {segment.type || 'Text'}
                                           </span>
                                         </>
-                                      ) : (
-                                        <button
-                                          onClick={() =>
-                                            setEditingSegmentIndex(null)
-                                          }
-                                          className="px-2 py-0 bg-green-500 hover:bg-green-600 text-white text-[9px] font-bold rounded"
-                                        >
-                                          Done
-                                        </button>
                                       )}
                                     </div>
-                                    {editingSegmentIndex === idx ? (
+                                    {flippedSegmentIndex === idx ? (
+                                      <div className="space-y-2 mt-1">
+                                        {metadataEditingIndex === idx ? (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              {t('common.genre')}
+                                            </span>
+                                            <select
+                                              value={
+                                                (segment.extraction_metadata
+                                                  ?.genre as string) || ''
+                                              }
+                                              onChange={(e) =>
+                                                handleMetadataChange(
+                                                  idx,
+                                                  'extraction_metadata',
+                                                  'genre',
+                                                  e.target.value,
+                                                )
+                                              }
+                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                            >
+                                              <option value="">
+                                                {t('common.selectGenre')}
+                                              </option>
+                                              <option value="social">
+                                                social
+                                              </option>
+                                              <option value="mythology">
+                                                mythology
+                                              </option>
+                                              <option value="fantasy">
+                                                fantasy
+                                              </option>
+                                              <option value="folklore">
+                                                folklore
+                                              </option>
+                                              <option value="fables">
+                                                fables
+                                              </option>
+                                              <option value="others">
+                                                others
+                                              </option>
+                                            </select>
+                                          </div>
+                                        ) : (
+                                          <div className="text-xs">
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              genre:
+                                            </span>{' '}
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {(segment.extraction_metadata
+                                                ?.genre as string) || ''}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {segment.extraction_metadata &&
+                                          Object.entries(
+                                            segment.extraction_metadata,
+                                          )
+                                            .filter(
+                                              ([key]) =>
+                                                key !== 'category' &&
+                                                key !== 'ner_genre' &&
+                                                key !== 'genre' &&
+                                                key !== 'keywords',
+                                            )
+                                            .map(([key, value]) => (
+                                              <div
+                                                key={key}
+                                                className="text-xs"
+                                              >
+                                                <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                  {key}:
+                                                </span>{' '}
+                                                {metadataEditingIndex ===
+                                                idx ? (
+                                                  <input
+                                                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
+                                                    value={String(value)}
+                                                    onKeyDown={
+                                                      handleTeluguKeyDown
+                                                    }
+                                                    onChange={(e) =>
+                                                      handleMetadataChange(
+                                                        idx,
+                                                        'extraction_metadata',
+                                                        key,
+                                                        e.target.value,
+                                                      )
+                                                    }
+                                                  />
+                                                ) : (
+                                                  <span className="text-gray-800 dark:text-gray-200">
+                                                    {Array.isArray(value)
+                                                      ? value.join(', ')
+                                                      : String(value)}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            ))}
+                                        {segment.named_entities &&
+                                          Object.entries(segment.named_entities)
+                                            .filter(
+                                              ([key]) =>
+                                                key !== 'ner_locations' &&
+                                                key !== 'keywords' &&
+                                                key !== 'ner_characters',
+                                            )
+                                            .map(([key, value]) => {
+                                              const isDict =
+                                                typeof value === 'object' &&
+                                                value !== null &&
+                                                !Array.isArray(value);
+                                              if (isDict) {
+                                                return (
+                                                  <div
+                                                    key={key}
+                                                    className="text-xs"
+                                                  >
+                                                    <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                      {key}:
+                                                    </span>
+                                                    <div className="ml-2 space-y-1 mt-1">
+                                                      {Object.entries(
+                                                        value as Record<
+                                                          string,
+                                                          unknown
+                                                        >,
+                                                      ).map(
+                                                        (
+                                                          [subKey, subValue],
+                                                          index,
+                                                        ) => (
+                                                          <div
+                                                            key={index}
+                                                            className="flex items-center gap-1"
+                                                          >
+                                                            {metadataEditingIndex ===
+                                                              idx &&
+                                                            key ===
+                                                              'characters' ? (
+                                                              <input
+                                                                className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
+                                                                defaultValue={
+                                                                  String(
+                                                                    subKey,
+                                                                  ).startsWith(
+                                                                    '__new_',
+                                                                  )
+                                                                    ? ''
+                                                                    : subKey
+                                                                }
+                                                                onKeyDown={
+                                                                  handleTeluguKeyDown
+                                                                }
+                                                                onBlur={(e) => {
+                                                                  if (
+                                                                    e.target
+                                                                      .value !==
+                                                                    subKey
+                                                                  ) {
+                                                                    renameDictKey(
+                                                                      idx,
+                                                                      'named_entities',
+                                                                      key,
+                                                                      subKey,
+                                                                      e.target
+                                                                        .value,
+                                                                    );
+                                                                  }
+                                                                }}
+                                                              />
+                                                            ) : (
+                                                              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                                {subKey}:
+                                                              </span>
+                                                            )}
+                                                            {metadataEditingIndex ===
+                                                            idx ? (
+                                                              <input
+                                                                className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
+                                                                value={
+                                                                  subValue ===
+                                                                  null
+                                                                    ? ''
+                                                                    : String(
+                                                                        subValue,
+                                                                      )
+                                                                }
+                                                                onKeyDown={
+                                                                  handleTeluguKeyDown
+                                                                }
+                                                                onChange={(e) =>
+                                                                  handleNestedMetadataChange(
+                                                                    idx,
+                                                                    'named_entities',
+                                                                    key,
+                                                                    subKey,
+                                                                    e.target
+                                                                      .value,
+                                                                  )
+                                                                }
+                                                              />
+                                                            ) : (
+                                                              <span className="text-gray-800 dark:text-gray-200">
+                                                                {subValue ===
+                                                                null
+                                                                  ? ''
+                                                                  : String(
+                                                                      subValue,
+                                                                    )}
+                                                              </span>
+                                                            )}
+                                                            {metadataEditingIndex ===
+                                                              idx &&
+                                                              key ===
+                                                                'characters' && (
+                                                                <button
+                                                                  onClick={() =>
+                                                                    removeDictEntry(
+                                                                      idx,
+                                                                      'named_entities',
+                                                                      key,
+                                                                      subKey,
+                                                                    )
+                                                                  }
+                                                                  className="text-red-500 hover:text-red-700 text-xs font-bold ml-1"
+                                                                >
+                                                                  -
+                                                                </button>
+                                                              )}
+                                                          </div>
+                                                        ),
+                                                      )}
+                                                      {metadataEditingIndex ===
+                                                        idx &&
+                                                        key === 'characters' &&
+                                                        (() => {
+                                                          const seg =
+                                                            currentPageSegments[
+                                                              idx
+                                                            ];
+                                                          const chars = (seg
+                                                            ?.named_entities
+                                                            ?.characters ??
+                                                            {}) as Record<
+                                                            string,
+                                                            unknown
+                                                          >;
+                                                          const entries =
+                                                            Object.entries(
+                                                              chars,
+                                                            );
+                                                          return (
+                                                            entries.length ===
+                                                              0 ||
+                                                            entries.every(
+                                                              ([k, v]) => {
+                                                                const keyStr =
+                                                                  String(k);
+                                                                const valStr =
+                                                                  String(
+                                                                    v ?? '',
+                                                                  );
+                                                                if (
+                                                                  keyStr.startsWith(
+                                                                    '__new_',
+                                                                  )
+                                                                )
+                                                                  return false;
+                                                                return (
+                                                                  keyStr.trim()
+                                                                    .length >
+                                                                    0 &&
+                                                                  valStr.trim()
+                                                                    .length > 0
+                                                                );
+                                                              },
+                                                            )
+                                                          );
+                                                        })() && (
+                                                          <button
+                                                            onClick={() =>
+                                                              handleNestedMetadataChange(
+                                                                idx,
+                                                                'named_entities',
+                                                                key,
+                                                                '',
+                                                                '',
+                                                              )
+                                                            }
+                                                            className="text-blue-500 hover:text-blue-700 text-xs font-bold mt-1"
+                                                          >
+                                                            +
+                                                          </button>
+                                                        )}
+                                                      {charactersErrors[idx] &&
+                                                        idx ===
+                                                          metadataEditingIndex && (
+                                                          <p className="text-red-500 text-[10px] mt-1">
+                                                            {
+                                                              charactersErrors[
+                                                                idx
+                                                              ]
+                                                            }
+                                                          </p>
+                                                        )}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              }
+                                              return (
+                                                <div
+                                                  key={key}
+                                                  className="text-xs"
+                                                >
+                                                  <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                    {key}:
+                                                  </span>{' '}
+                                                  {metadataEditingIndex ===
+                                                  idx ? (
+                                                    <input
+                                                      className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs w-full mt-0.5"
+                                                      value={String(value)}
+                                                      onKeyDown={
+                                                        handleTeluguKeyDown
+                                                      }
+                                                      onChange={(e) =>
+                                                        handleMetadataChange(
+                                                          idx,
+                                                          'named_entities',
+                                                          key,
+                                                          e.target.value,
+                                                        )
+                                                      }
+                                                    />
+                                                  ) : (
+                                                    <span className="text-gray-800 dark:text-gray-200">
+                                                      {Array.isArray(value)
+                                                        ? value.join(', ')
+                                                        : String(value)}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              );
+                                            })}
+                                      </div>
+                                    ) : editingSegmentIndex === idx ? (
                                       <AutoResizeTextArea
                                         placeholder={t(
                                           'common.editSegmentText',
@@ -1530,12 +3040,8 @@ function DocDigitization() {
                                         }
                                       />
                                     ) : (
-                                      <div className="w-full prose prose-xl dark:prose-invert max-w-none p-0 rounded">
-                                        <ReactMarkdown
-                                          remarkPlugins={[remarkGfm]}
-                                        >
-                                          {segment.text || ''}
-                                        </ReactMarkdown>
+                                      <div className="w-full whitespace-pre-wrap text-sm leading-relaxed text-gray-900 dark:text-gray-100 p-0 rounded">
+                                        {segment.text || ''}
                                       </div>
                                     )}
                                   </div>
@@ -1565,28 +3071,43 @@ function DocDigitization() {
         {/* Submit Button Section */}
         <div className="border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col sm:flex-row justify-center gap-4">
           <button
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
             onClick={() => {
-              setSubmittedPages((prev) => ({ ...prev, [pageNumber]: true }));
-              setPageNumber(Math.min(numPages, pageNumber + 1));
+              setSkipCategory('');
+              setSkipReason('');
+              setShowSkipModal(true);
             }}
-            disabled={isSubmitting}
+          >
+            <SkipForward className="inline h-4 w-4 mr-1" />
+            Skip
+          </button>
+          <button
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
+            onClick={() => setShowSaveConfirm(true)}
+            disabled={
+              isSubmitting ||
+              hasUnviewedMetadata ||
+              !isLastPageOfSegment ||
+              metadataEditingIndex !== null
+            }
           >
             {t('common.savePage')}
           </button>
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
-            onClick={handleSubmitPage}
+            onClick={() => setShowSubmitConfirm(true)}
             disabled={
               isSubmitting ||
-              !numPages ||
-              Object.keys(submittedPages).length < numPages
+              validPages.length === 0 ||
+              proofreadPages.size < validPages.length ||
+              hasUnviewedMetadata ||
+              metadataEditingIndex !== null
             }
           >
             {isSubmitting
               ? 'Submitting...'
-              : Object.keys(submittedPages).length === numPages
-                ? 'Submit Complete Record'
+              : proofreadPages.size === validPages.length
+                ? t('common.submitCompleteRecord')
                 : 'Submit all pages to enable'}
           </button>
         </div>
@@ -1615,6 +3136,145 @@ function DocDigitization() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save this page?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                'common.thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade',
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="px-6 py-2 space-y-2">
+            {['grammatical fixes', 'rearrangement', 'others'].map((reason) => (
+              <label
+                key={reason}
+                className="flex items-center gap-2 text-sm cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={editReasons.includes(reason)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEditReasons([...editReasons, reason]);
+                    } else {
+                      setEditReasons(editReasons.filter((r) => r !== reason));
+                    }
+                  }}
+                  className="cursor-pointer"
+                />
+                {reason}
+              </label>
+            ))}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setEditReasons([]);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleSavePage();
+                setShowSaveConfirm(false);
+              }}
+            >
+              Yes, Save
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showSubmitConfirm} onOpenChange={setShowSubmitConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit Complete Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-4 pt-2">
+                <p>
+                  {t(
+                    'media.1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided',
+                  )}
+                </p>
+                <p>
+                  {t(
+                    'messages.2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments',
+                  )}
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmitPage}>
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={showSkipModal} onOpenChange={setShowSkipModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('media.skipRecord')}</DialogTitle>
+            <DialogDescription>
+              {skipCategory === 'story'
+                ? 'Story category requires a mandatory skip reason.'
+                : 'Optionally provide a reason for skipping this record.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <select
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={skipCategory}
+              onChange={(e) => setSkipCategory(e.target.value)}
+            >
+              <option value="">Select category...</option>
+              <option value="poem">poem</option>
+              <option value="story">story</option>
+              <option value="interview">interview</option>
+              <option value="article">article</option>
+              <option value="editorial">editorial</option>
+              <option value="miscellaneous">miscellaneous</option>
+            </select>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={skipReason}
+              onChange={(e) => setSkipReason(e.target.value)}
+            >
+              <option value="">{t('common.selectAReason')}</option>
+              <option value="Unclear page">{t('common.unclearPage')}</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <DialogFooter>
+            <button
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              onClick={() => {
+                setShowSkipModal(false);
+                setSkipReason('');
+                setSkipCategory('');
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
+              onClick={handleSkip}
+              disabled={
+                !skipCategory ||
+                (skipCategory === 'story' && !skipReason.trim())
+              }
+            >
+              {t('common.confirmSkip')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

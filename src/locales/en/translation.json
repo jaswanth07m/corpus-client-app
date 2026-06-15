@@ -174,6 +174,9 @@
       "organisation": "Enter organisation",
       "roll": {
         "number": "Enter roll number"
+      },
+      "skip": {
+        "reason": "Enter skip reason..."
       }
     },
     "noUsersFound": "No users found",
@@ -422,7 +425,37 @@
     "startWelcomeTour": "Start Welcome Tour",
     "storageUploadFailedPleaseContactAdminOrRetryLater": "Storage upload failed. Please contact admin or retry later.",
     "allUploadsFailedPleaseCheckYourFilesAndTryAgain": "All uploads failed. Please check your files and try again.",
-    "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content."
+    "pleaseSelectAtLeastOneCategoryForYourTextContent": "Please select at least one category for your text content.",
+    "pleaseFlipAndReviewMetadatanamedEntitiesBeforeSubmitting": "Please flip and review metadata/named entities before submitting.",
+    "submitCompleteRecord": "Submit Complete Record",
+    "saveThisPage": "Save this page?",
+    "thisIsTheLastPageOfTheSegmentAreYouSureYouWantToSave": "This is the last page of the segment. Are you sure you want to\n              save?",
+    "yesSave": "Yes, Save",
+    "poem": "Poem (కవిత)",
+    "story": "Story (కథ)",
+    "interview": "Interview (ఇంటర్వ్యూ)",
+    "article": "Article (వ్యాసం)",
+    "editorial": "Editorial (సంపాదకీయం)",
+    "miscellaneous": "Miscellaneous (ఇతర)",
+    "confirmSkip": "Confirm Skip",
+    "selectAReason": "Select a reason...",
+    "unclearPage": "Unclear page",
+    "thisIsTheLastPageOfTheSegmentSelectTheTypesOfEditsMade": "This is the last page of the segment. Select the types of edits\n              made:",
+    "button": {
+      "conditions": "Button conditions"
+    },
+    "general": {
+      "conditions": "General conditions"
+    },
+    "metadataMustBeReviewedFlipped": "Metadata must be reviewed (flipped)",
+    "cannotBeInEditMode": "Cannot be in edit mode",
+    "saveActiveOnLastPageAllConditionsApply": "Save: active on last page, all conditions apply",
+    "skipActiveOnLastPageAllConditionsApply": "Skip: active on last page, all conditions apply",
+    "categoryNonstory": "Category: Non-Story",
+    "saveDisabled": "Save: disabled",
+    "skipActiveWhenCategorySetAndNotEditing": "Skip: active when category set and not editing",
+    "genre": "genre:",
+    "selectGenre": "Select genre..."
   },
   "ui": {
     "failed": {
@@ -776,7 +809,9 @@
     "saving": "Saving...",
     "loadingMap": "Loading map...",
     "loadingDistrictBoundariesPleaseWait": "Loading district boundaries... please wait",
-    "loadingDistrictBoundaries": "Loading district boundaries..."
+    "loadingDistrictBoundaries": "Loading district boundaries...",
+    "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": "2. Are you sure all the metadata (title, genre, character,\n                  etc.) are validated and approved for the segments?",
+    "recordSkippedSuccessfully": "Record skipped successfully"
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
@@ -808,7 +843,8 @@
     "latitudeMustBeBetween90And90": "Latitude must be between -90 and 90",
     "longitudeMustBeBetween180And180": "Longitude must be between -180 and 180",
     "pleaseEnterTextContent": "Please enter text content",
-    "authenticationRequired": "Authentication required"
+    "authenticationRequired": "Authentication required",
+    "mustBeOnLastPageOfSegment": "Must be on last page of segment"
   },
   "categories": {
     "chooseACategoryToContributeContent": "Choose a category to contribute content",
@@ -817,7 +853,9 @@
     "sourceLabel": "Source Label",
     "type": "Type:",
     "organisationType": "Organisation Type",
-    "educationCategory": "Education Category"
+    "educationCategory": "Education Category",
+    "category": "category:",
+    "categoryStory": "Category: Story"
   },
   "media": {
     "failedToSwitchCamera": "Failed to switch camera",
@@ -862,7 +900,9 @@
     "text": "Text",
     "image": "Image",
     "video": "Video",
-    "audio": "Audio"
+    "audio": "Audio",
+    "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "1. Are you sure all the text segments are validated to the\n                  page images provided?",
+    "skipRecord": "Skip Record"
   },
   "stats": {
     "contributionsYet": "contributions yet.",

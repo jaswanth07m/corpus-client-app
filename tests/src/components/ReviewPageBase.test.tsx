@@ -3,6 +3,11 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const hookState = vi.hoisted(() => ({
+  reviewFilters: { media_type: ['audio'] },
+  isReady: true,
+}));
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -11,6 +16,10 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/lib/constants', () => ({
   BACKEND_URL: 'http://test-api.com',
+}));
+
+vi.mock('@/hooks/useToolEventFilters', () => ({
+  useToolEventFilters: () => hookState,
 }));
 
 vi.mock('@/components/PeerReviewCard', () => ({
@@ -81,6 +90,8 @@ describe('ReviewPageBase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.setItem('token', 'test-token');
+    hookState.reviewFilters = { media_type: ['audio'] };
+    hookState.isReady = true;
 
     // Default: empty results (no more records)
     mockFetch.mockResolvedValue({
@@ -224,6 +235,31 @@ describe('ReviewPageBase', () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalled();
     });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://test-api.com/records/for-review',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          filters: { media_type: ['audio'] },
+          limit: 10,
+        }),
+      }),
+    );
+  });
+
+  it('does not fetch review records before event filters are ready', async () => {
+    hookState.isReady = false;
+
+    render(
+      <ReviewPageBase title="Test" description="Desc" mediaTypes={['audio']} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Test')).toBeInTheDocument();
+    });
+
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('handles empty array response from fetch', async () => {
