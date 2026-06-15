@@ -1744,7 +1744,9 @@ function DocDigitization() {
                                         .filter(
                                           ([key]) =>
                                             key !== 'category' &&
-                                            key !== 'ner_genre',
+                                            key !== 'ner_genre' &&
+                                            key !== 'genre' &&
+                                            key !== 'keywords',
                                         )
                                         .map(([key, value]) => (
                                           <div
@@ -2555,7 +2557,9 @@ function DocDigitization() {
                                             .filter(
                                               ([key]) =>
                                                 key !== 'category' &&
-                                                key !== 'ner_genre',
+                                                key !== 'ner_genre' &&
+                                                key !== 'genre' &&
+                                                key !== 'keywords',
                                             )
                                             .map(([key, value]) => (
                                               <div
