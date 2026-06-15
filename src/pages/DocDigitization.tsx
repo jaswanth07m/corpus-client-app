@@ -319,6 +319,9 @@ function DocDigitization() {
     useState(false);
   const [editReasons, setEditReasons] = useState<string[]>([]);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
+  const [charactersErrors, setCharactersErrors] = useState<
+    Record<number, string>
+  >({});
 
   const { value, suggestions, inputProps, setValue } = useTeluguTyping(
     editingSegmentIndex !== null
@@ -562,7 +565,7 @@ function DocDigitization() {
     oldSubKey: string,
     newSubKey: string,
   ) => {
-    if (oldSubKey === newSubKey || !newSubKey.trim()) return;
+    if (oldSubKey === newSubKey) return;
     setSegmentsByPage((prevMap) => {
       const newMap = new Map(prevMap);
       const pageSegments = newMap.get(pageNumber);
@@ -577,7 +580,9 @@ function DocDigitization() {
           : {};
         const value = parent[oldSubKey];
         delete parent[oldSubKey];
-        parent[newSubKey] = value;
+        if (newSubKey.trim()) {
+          parent[newSubKey] = value;
+        }
         meta[parentKey] = parent;
         seg[field] = meta;
         updatedSegments[segmentIndex] = seg;
@@ -768,10 +773,10 @@ function DocDigitization() {
       }
 
       segments.forEach((seg) => {
-        const characters = seg.named_entities?.characters;
-        if (Array.isArray(characters)) {
-          seg.named_entities!.characters = Object.fromEntries(
-            characters.map((item: unknown) => [String(item), null]),
+        const ner_characters = seg.named_entities?.ner_characters;
+        if (Array.isArray(ner_characters)) {
+          seg.named_entities!.ner_characters = Object.fromEntries(
+            ner_characters.map((item: unknown) => [String(item), null]),
           );
         }
         if (recordDetails.category && !seg.extraction_metadata?.category) {
@@ -785,6 +790,9 @@ function DocDigitization() {
         }
         if (!seg.named_entities.locations) {
           seg.named_entities.locations = '';
+        }
+        if (!seg.named_entities.characters) {
+          seg.named_entities.characters = {};
         }
         if (!seg.extraction_metadata?.genre) {
           seg.extraction_metadata = {
@@ -920,10 +928,10 @@ function DocDigitization() {
       }
 
       segments.forEach((seg) => {
-        const characters = seg.named_entities?.characters;
-        if (Array.isArray(characters)) {
-          seg.named_entities!.characters = Object.fromEntries(
-            characters.map((item: unknown) => [String(item), null]),
+        const ner_characters = seg.named_entities?.ner_characters;
+        if (Array.isArray(ner_characters)) {
+          seg.named_entities!.ner_characters = Object.fromEntries(
+            ner_characters.map((item: unknown) => [String(item), null]),
           );
         }
         if (recordDetails.category && !seg.extraction_metadata?.category) {
@@ -937,6 +945,9 @@ function DocDigitization() {
         }
         if (!seg.named_entities.locations) {
           seg.named_entities.locations = '';
+        }
+        if (!seg.named_entities.characters) {
+          seg.named_entities.characters = {};
         }
         if (!seg.extraction_metadata?.genre) {
           seg.extraction_metadata = {
@@ -1110,8 +1121,32 @@ function DocDigitization() {
   }
 
   function doneEditingMetadata() {
+    if (metadataEditingIndex !== null) {
+      const seg = currentPageSegments[metadataEditingIndex];
+      const chars = (seg?.named_entities?.characters ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const invalid = Object.entries(chars).some(([k, v]) => {
+        const keyStr = String(k);
+        const valStr = String(v ?? '');
+        if (keyStr.startsWith('__new_')) return false;
+        const keyFilled = keyStr.trim().length > 0;
+        const valFilled = valStr.trim().length > 0;
+        return (keyFilled || valFilled) && !(keyFilled && valFilled);
+      });
+      if (invalid) {
+        setCharactersErrors((prev) => ({
+          ...prev,
+          [metadataEditingIndex]:
+            'All character name and value fields must be filled.',
+        }));
+        return;
+      }
+    }
     cleanupEmptyCharacters();
     setMetadataEditingIndex(null);
+    setCharactersErrors({});
   }
 
   function handleSavePage() {
@@ -1614,9 +1649,30 @@ function DocDigitization() {
                                     <>
                                       {metadataEditingIndex !== idx ? (
                                         <button
-                                          onClick={() =>
-                                            setMetadataEditingIndex(idx)
-                                          }
+                                          onClick={() => {
+                                            const seg =
+                                              currentPageSegments[idx];
+                                            if (seg) {
+                                              const chars = (seg.named_entities
+                                                ?.characters ?? {}) as Record<
+                                                string,
+                                                unknown
+                                              >;
+                                              const count =
+                                                Object.keys(chars).length;
+                                              if (count < 1) {
+                                                handleNestedMetadataChange(
+                                                  idx,
+                                                  'named_entities',
+                                                  'characters',
+                                                  '__new_0',
+                                                  '',
+                                                );
+                                              }
+                                            }
+                                            setMetadataEditingIndex(idx);
+                                            setCharactersErrors({});
+                                          }}
                                           className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[8px] font-bold rounded transition-opacity"
                                         >
                                           Edit
@@ -1790,7 +1846,8 @@ function DocDigitization() {
                                         .filter(
                                           ([key]) =>
                                             key !== 'ner_locations' &&
-                                            key !== 'keywords',
+                                            key !== 'keywords' &&
+                                            key !== 'ner_characters',
                                         )
                                         .map(([key, value]) => {
                                           const isDict =
@@ -1825,9 +1882,15 @@ function DocDigitization() {
                                                           idx &&
                                                         key === 'characters' ? (
                                                           <input
-                                                            className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                                            className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
                                                             defaultValue={
-                                                              subKey
+                                                              String(
+                                                                subKey,
+                                                              ).startsWith(
+                                                                '__new_',
+                                                              )
+                                                                ? ''
+                                                                : subKey
                                                             }
                                                             onKeyDown={
                                                               handleTeluguKeyDown
@@ -1857,7 +1920,7 @@ function DocDigitization() {
                                                         {metadataEditingIndex ===
                                                         idx ? (
                                                           <input
-                                                            className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                                            className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
                                                             value={
                                                               subValue === null
                                                                 ? ''
@@ -1890,7 +1953,44 @@ function DocDigitization() {
                                                         {metadataEditingIndex ===
                                                           idx &&
                                                           key ===
-                                                            'characters' && (
+                                                            'characters' &&
+                                                          (() => {
+                                                            const entries =
+                                                              Object.entries(
+                                                                value as Record<
+                                                                  string,
+                                                                  unknown
+                                                                >,
+                                                              );
+                                                            return (
+                                                              entries.length ===
+                                                                0 ||
+                                                              entries.every(
+                                                                ([k, v]) => {
+                                                                  const keyStr =
+                                                                    String(k);
+                                                                  const valStr =
+                                                                    String(
+                                                                      v ?? '',
+                                                                    );
+                                                                  if (
+                                                                    keyStr.startsWith(
+                                                                      '__new_',
+                                                                    )
+                                                                  )
+                                                                    return false;
+                                                                  return (
+                                                                    keyStr.trim()
+                                                                      .length >
+                                                                      0 &&
+                                                                    valStr.trim()
+                                                                      .length >
+                                                                      0
+                                                                  );
+                                                                },
+                                                              )
+                                                            );
+                                                          })() && (
                                                             <button
                                                               onClick={() =>
                                                                 removeDictEntry(
@@ -1910,7 +2010,45 @@ function DocDigitization() {
                                                   )}
                                                   {metadataEditingIndex ===
                                                     idx &&
-                                                    key === 'characters' && (
+                                                    key === 'characters' &&
+                                                    (() => {
+                                                      const seg =
+                                                        currentPageSegments[
+                                                          idx
+                                                        ];
+                                                      const chars = (seg
+                                                        ?.named_entities
+                                                        ?.characters ??
+                                                        {}) as Record<
+                                                        string,
+                                                        unknown
+                                                      >;
+                                                      const entries =
+                                                        Object.entries(chars);
+                                                      return (
+                                                        entries.length === 0 ||
+                                                        entries.every(
+                                                          ([k, v]) => {
+                                                            const keyStr =
+                                                              String(k);
+                                                            const valStr =
+                                                              String(v ?? '');
+                                                            if (
+                                                              keyStr.startsWith(
+                                                                '__new_',
+                                                              )
+                                                            )
+                                                              return false;
+                                                            return (
+                                                              keyStr.trim()
+                                                                .length > 0 &&
+                                                              valStr.trim()
+                                                                .length > 0
+                                                            );
+                                                          },
+                                                        )
+                                                      );
+                                                    })() && (
                                                       <button
                                                         onClick={() =>
                                                           handleNestedMetadataChange(
@@ -1925,6 +2063,13 @@ function DocDigitization() {
                                                       >
                                                         +
                                                       </button>
+                                                    )}
+                                                  {charactersErrors[idx] &&
+                                                    idx ===
+                                                      metadataEditingIndex && (
+                                                      <p className="text-red-500 text-[10px] mt-1">
+                                                        {charactersErrors[idx]}
+                                                      </p>
                                                     )}
                                                 </div>
                                               </div>
@@ -2421,9 +2566,32 @@ function DocDigitization() {
                                         <>
                                           {metadataEditingIndex !== idx ? (
                                             <button
-                                              onClick={() =>
-                                                setMetadataEditingIndex(idx)
-                                              }
+                                              onClick={() => {
+                                                const seg =
+                                                  currentPageSegments[idx];
+                                                if (seg) {
+                                                  const chars = (seg
+                                                    .named_entities
+                                                    ?.characters ??
+                                                    {}) as Record<
+                                                    string,
+                                                    unknown
+                                                  >;
+                                                  const count =
+                                                    Object.keys(chars).length;
+                                                  if (count < 1) {
+                                                    handleNestedMetadataChange(
+                                                      idx,
+                                                      'named_entities',
+                                                      'characters',
+                                                      '__new_0',
+                                                      '',
+                                                    );
+                                                  }
+                                                }
+                                                setMetadataEditingIndex(idx);
+                                                setCharactersErrors({});
+                                              }}
                                               className="opacity-0 group-hover:opacity-100 px-2 py-0 bg-blue-500 hover:bg-blue-600 text-white text-[9px] font-bold rounded transition-opacity"
                                             >
                                               Edit
@@ -2608,7 +2776,8 @@ function DocDigitization() {
                                             .filter(
                                               ([key]) =>
                                                 key !== 'ner_locations' &&
-                                                key !== 'keywords',
+                                                key !== 'keywords' &&
+                                                key !== 'ner_characters',
                                             )
                                             .map(([key, value]) => {
                                               const isDict =
@@ -2644,9 +2813,15 @@ function DocDigitization() {
                                                             key ===
                                                               'characters' ? (
                                                               <input
-                                                                className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                                                className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
                                                                 defaultValue={
-                                                                  subKey
+                                                                  String(
+                                                                    subKey,
+                                                                  ).startsWith(
+                                                                    '__new_',
+                                                                  )
+                                                                    ? ''
+                                                                    : subKey
                                                                 }
                                                                 onKeyDown={
                                                                   handleTeluguKeyDown
@@ -2676,7 +2851,7 @@ function DocDigitization() {
                                                             {metadataEditingIndex ===
                                                             idx ? (
                                                               <input
-                                                                className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                                                className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
                                                                 value={
                                                                   subValue ===
                                                                   null
@@ -2732,8 +2907,51 @@ function DocDigitization() {
                                                       )}
                                                       {metadataEditingIndex ===
                                                         idx &&
-                                                        key ===
-                                                          'characters' && (
+                                                        key === 'characters' &&
+                                                        (() => {
+                                                          const seg =
+                                                            currentPageSegments[
+                                                              idx
+                                                            ];
+                                                          const chars = (seg
+                                                            ?.named_entities
+                                                            ?.characters ??
+                                                            {}) as Record<
+                                                            string,
+                                                            unknown
+                                                          >;
+                                                          const entries =
+                                                            Object.entries(
+                                                              chars,
+                                                            );
+                                                          return (
+                                                            entries.length ===
+                                                              0 ||
+                                                            entries.every(
+                                                              ([k, v]) => {
+                                                                const keyStr =
+                                                                  String(k);
+                                                                const valStr =
+                                                                  String(
+                                                                    v ?? '',
+                                                                  );
+                                                                if (
+                                                                  keyStr.startsWith(
+                                                                    '__new_',
+                                                                  )
+                                                                )
+                                                                  return false;
+                                                                return (
+                                                                  keyStr.trim()
+                                                                    .length >
+                                                                    0 &&
+                                                                  valStr.trim()
+                                                                    .length > 0
+                                                                );
+                                                              },
+                                                            )
+                                                          );
+                                                        })() && (
                                                           <button
                                                             onClick={() =>
                                                               handleNestedMetadataChange(
@@ -2748,6 +2966,17 @@ function DocDigitization() {
                                                           >
                                                             +
                                                           </button>
+                                                        )}
+                                                      {charactersErrors[idx] &&
+                                                        idx ===
+                                                          metadataEditingIndex && (
+                                                          <p className="text-red-500 text-[10px] mt-1">
+                                                            {
+                                                              charactersErrors[
+                                                                idx
+                                                              ]
+                                                            }
+                                                          </p>
                                                         )}
                                                     </div>
                                                   </div>
