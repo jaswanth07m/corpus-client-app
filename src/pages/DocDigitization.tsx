@@ -1036,11 +1036,9 @@ function DocDigitization() {
             : (rest.named_entities as Record<string, unknown> | undefined)
                 ?.locations,
       },
-      extraction_metadata: Object.fromEntries(
-        Object.entries(
-          (rest.extraction_metadata || {}) as Record<string, unknown>,
-        ).filter(([key]) => key !== 'genre' && key !== 'keywords'),
-      ),
+      extraction_metadata: {
+        ...((rest.extraction_metadata || {}) as Record<string, unknown>),
+      },
     }));
 
     const requestBody: Record<string, unknown> = {
