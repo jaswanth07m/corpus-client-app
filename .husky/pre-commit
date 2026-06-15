@@ -1,16 +1,16 @@
 #!/usr/bin/env sh
 set -e
 
+# Validate commit message first to fail fast before expensive checks
+npx --no -- commitlint --edit .git/COMMIT_EDITMSG
+
 # Run formatting on staged files
 npx lint-staged
 
 # Check for untranslated i18n strings
 npm run i18n:check
 
-# Run tests to ensure they pass before committing
-npm run test:run
-
-# Run coverage to ensure code quality
+# Run tests with coverage
 npm run test:coverage
 
 # Run knip to check for unused files, dependencies, and exports

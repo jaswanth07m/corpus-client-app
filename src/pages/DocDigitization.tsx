@@ -810,6 +810,7 @@ function DocDigitization() {
       setSegmentsByPage(groupedSegments);
       setNumPages(totalPages);
       setPdfPageSize({ width: 0, height: 0 });
+      setFlippedSegmentIndex(0);
     } catch (err) {
       const error = err as Error;
       console.error('An error occurred in fetchRecordById:', error);
@@ -836,6 +837,9 @@ function DocDigitization() {
       return;
     }
 
+    setMetadataEditingIndex(null);
+    setFlippedSegmentIndex(null);
+    setFlippedViewedOriginalIndices(new Set());
     setIsLoading(true);
     setError(null);
     setBookData(null);
@@ -844,6 +848,7 @@ function DocDigitization() {
     setPageNumber(1);
     setSegmentsByPage(new Map());
     setNumPages(0);
+    setEditingSegmentIndex(null);
 
     const token = localStorage.getItem('token');
     try {
@@ -957,6 +962,7 @@ function DocDigitization() {
       setSegmentsByPage(groupedSegments);
       setNumPages(totalPages);
       setPdfPageSize({ width: 0, height: 0 });
+      setFlippedSegmentIndex(0);
     } catch (err) {
       const error = err as Error;
       console.error('An error occurred in fetchNextRecord:', error);
@@ -1030,9 +1036,11 @@ function DocDigitization() {
             : (rest.named_entities as Record<string, unknown> | undefined)
                 ?.locations,
       },
-      extraction_metadata: {
-        ...((rest.extraction_metadata || {}) as Record<string, unknown>),
-      },
+      extraction_metadata: Object.fromEntries(
+        Object.entries(
+          (rest.extraction_metadata || {}) as Record<string, unknown>,
+        ).filter(([key]) => key !== 'genre' && key !== 'keywords'),
+      ),
     }));
 
     const requestBody: Record<string, unknown> = {
@@ -1782,7 +1790,9 @@ function DocDigitization() {
                                     {segment.named_entities &&
                                       Object.entries(segment.named_entities)
                                         .filter(
-                                          ([key]) => key !== 'ner_locations',
+                                          ([key]) =>
+                                            key !== 'ner_locations' &&
+                                            key !== 'keywords',
                                         )
                                         .map(([key, value]) => {
                                           const isDict =
@@ -2599,7 +2609,8 @@ function DocDigitization() {
                                           Object.entries(segment.named_entities)
                                             .filter(
                                               ([key]) =>
-                                                key !== 'ner_locations',
+                                                key !== 'ner_locations' &&
+                                                key !== 'keywords',
                                             )
                                             .map(([key, value]) => {
                                               const isDict =
