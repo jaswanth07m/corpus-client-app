@@ -434,7 +434,12 @@
     "saveDisabled": "सहेजें: अक्षम",
     "skipActiveWhenCategorySetAndNotEditing": "छोड़ें: श्रेणी सेट होने पर सक्रिय और संपादन नहीं",
     "genre": "शैली:",
-    "selectGenre": "शैली चुनें..."
+    "selectGenre": "शैली चुनें...",
+    "resumePreviousSession": "Resume previous session?",
+    "youHaveAnUnsavedDraftForRecord": "You have an unsaved draft for record",
+    "doYouWantToResume": "Do you want to resume where you left off?",
+    "startFresh": "Start fresh",
+    "resume": "Resume"
   },
   "ui": {
     "failed": {
@@ -790,7 +795,8 @@
     "somethingWentWrong": "कुछ गलत हो गया",
     "tryAgain": "पुनः प्रयास करें",
     "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": "",
-    "recordSkippedSuccessfully": ""
+    "recordSkippedSuccessfully": "",
+    "draftRestoredSuccessfully": ""
   },
   "user": {
     "requestingLocationAccess": "स्थान एक्सेस का अनुरोध कर रहे हैं...",
