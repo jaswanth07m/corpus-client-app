@@ -67,6 +67,39 @@ type Segment = {
   named_entities?: Record<string, unknown>;
 };
 
+function isSegmentComplete(seg: Segment): boolean {
+  const meta = seg.extraction_metadata || {};
+  const entities = seg.named_entities || {};
+
+  if (!meta.genre || String(meta.genre).trim() === '') return false;
+  if (!meta.moral || String(meta.moral).trim() === '') return false;
+  if (!meta.title || String(meta.title).trim() === '') return false;
+  if (!meta.author || String(meta.author).trim() === '') return false;
+
+  const locs = entities.locations;
+  if (!locs) return false;
+  if (typeof locs === 'string' && locs.trim() === '') return false;
+  if (Array.isArray(locs) && locs.length === 0) return false;
+  if (typeof locs === 'object' && !Array.isArray(locs) && locs !== null) {
+    const locEntries = Object.entries(locs as Record<string, unknown>);
+    const hasValidLoc = locEntries.some(
+      ([k]) => k.trim() !== '' && !k.startsWith('__new_'),
+    );
+    if (!hasValidLoc) return false;
+  }
+
+  const chars = entities.characters as Record<string, unknown> | undefined;
+  if (!chars) return false;
+  const charEntries = Object.entries(chars);
+  const hasValidChar = charEntries.some(([k, v]) => {
+    if (k.startsWith('__new_')) return false;
+    return k.trim().length > 0 && String(v ?? '').trim().length > 0;
+  });
+  if (!hasValidChar) return false;
+
+  return true;
+}
+
 type ExtractedTextResponse = {
   transcription?: string;
   confidence?: number;
@@ -675,6 +708,17 @@ function DocDigitization() {
     [currentPageSegments, flippedViewedOriginalIndices],
   );
 
+  const hasIncompleteRequiredFields = useMemo(
+    () =>
+      currentPageSegments
+        .filter((seg) => seg.end === pageNumber)
+        .some((seg) => {
+          if (seg.skipped) return false;
+          return !isSegmentComplete(seg);
+        }),
+    [currentPageSegments, pageNumber],
+  );
+
   const hasBboxes = useMemo(() => {
     for (const pageSegments of segmentsByPage.values()) {
       if (pageSegments.some((seg) => seg.bbox)) return true;
@@ -1105,9 +1149,11 @@ function DocDigitization() {
             >;
             const cleaned: Record<string, unknown> = {};
             for (const [k, v] of Object.entries(chars)) {
-              if (k.trim() !== '') {
-                cleaned[k] = v;
-              }
+              const keyTrimmed = k.trim();
+              if (keyTrimmed === '' || k.startsWith('__new_')) continue;
+              const valStr = String(v ?? '').trim();
+              if (valStr === '') continue;
+              cleaned[k] = v;
             }
             return {
               ...seg,
@@ -1869,145 +1915,157 @@ function DocDigitization() {
                                                       string,
                                                       unknown
                                                     >,
-                                                  ).map(
-                                                    (
-                                                      [subKey, subValue],
-                                                      index,
-                                                    ) => (
-                                                      <div
-                                                        key={index}
-                                                        className="flex items-center gap-1"
-                                                      >
-                                                        {metadataEditingIndex ===
-                                                          idx &&
-                                                        key === 'characters' ? (
-                                                          <input
-                                                            className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
-                                                            defaultValue={
-                                                              String(
-                                                                subKey,
-                                                              ).startsWith(
-                                                                '__new_',
-                                                              )
-                                                                ? ''
-                                                                : subKey
-                                                            }
-                                                            onKeyDown={
-                                                              handleTeluguKeyDown
-                                                            }
-                                                            onBlur={(e) => {
-                                                              if (
-                                                                e.target
-                                                                  .value !==
-                                                                subKey
-                                                              ) {
-                                                                renameDictKey(
+                                                  )
+                                                    .filter(
+                                                      ([subKey]) =>
+                                                        metadataEditingIndex ===
+                                                          idx ||
+                                                        !subKey.startsWith(
+                                                          '__new_',
+                                                        ),
+                                                    )
+                                                    .map(
+                                                      (
+                                                        [subKey, subValue],
+                                                        index,
+                                                      ) => (
+                                                        <div
+                                                          key={index}
+                                                          className="flex items-center gap-1"
+                                                        >
+                                                          {metadataEditingIndex ===
+                                                            idx &&
+                                                          key ===
+                                                            'characters' ? (
+                                                            <input
+                                                              className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
+                                                              defaultValue={
+                                                                String(
+                                                                  subKey,
+                                                                ).startsWith(
+                                                                  '__new_',
+                                                                )
+                                                                  ? ''
+                                                                  : subKey
+                                                              }
+                                                              onKeyDown={
+                                                                handleTeluguKeyDown
+                                                              }
+                                                              onBlur={(e) => {
+                                                                if (
+                                                                  e.target
+                                                                    .value !==
+                                                                  subKey
+                                                                ) {
+                                                                  renameDictKey(
+                                                                    idx,
+                                                                    'named_entities',
+                                                                    key,
+                                                                    subKey,
+                                                                    e.target
+                                                                      .value,
+                                                                  );
+                                                                }
+                                                              }}
+                                                            />
+                                                          ) : (
+                                                            <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                              {subKey}:
+                                                            </span>
+                                                          )}
+                                                          {metadataEditingIndex ===
+                                                          idx ? (
+                                                            <input
+                                                              className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
+                                                              value={
+                                                                subValue ===
+                                                                null
+                                                                  ? ''
+                                                                  : String(
+                                                                      subValue,
+                                                                    )
+                                                              }
+                                                              onKeyDown={
+                                                                handleTeluguKeyDown
+                                                              }
+                                                              onChange={(e) =>
+                                                                handleNestedMetadataChange(
                                                                   idx,
                                                                   'named_entities',
                                                                   key,
                                                                   subKey,
                                                                   e.target
                                                                     .value,
-                                                                );
+                                                                )
                                                               }
-                                                            }}
-                                                          />
-                                                        ) : (
-                                                          <span className="text-gray-600 dark:text-gray-400 font-medium">
-                                                            {subKey}:
-                                                          </span>
-                                                        )}
-                                                        {metadataEditingIndex ===
-                                                        idx ? (
-                                                          <input
-                                                            className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-[11px]`}
-                                                            value={
-                                                              subValue === null
+                                                            />
+                                                          ) : (
+                                                            <span className="text-gray-800 dark:text-gray-200">
+                                                              {subValue === null
                                                                 ? ''
                                                                 : String(
                                                                     subValue,
-                                                                  )
-                                                            }
-                                                            onKeyDown={
-                                                              handleTeluguKeyDown
-                                                            }
-                                                            onChange={(e) =>
-                                                              handleNestedMetadataChange(
-                                                                idx,
-                                                                'named_entities',
-                                                                key,
-                                                                subKey,
-                                                                e.target.value,
-                                                              )
-                                                            }
-                                                          />
-                                                        ) : (
-                                                          <span className="text-gray-800 dark:text-gray-200">
-                                                            {subValue === null
-                                                              ? ''
-                                                              : String(
-                                                                  subValue,
-                                                                )}
-                                                          </span>
-                                                        )}
-                                                        {metadataEditingIndex ===
-                                                          idx &&
-                                                          key ===
-                                                            'characters' &&
-                                                          (() => {
-                                                            const entries =
-                                                              Object.entries(
-                                                                value as Record<
-                                                                  string,
-                                                                  unknown
-                                                                >,
-                                                              );
-                                                            return (
-                                                              entries.length ===
-                                                                0 ||
-                                                              entries.every(
-                                                                ([k, v]) => {
-                                                                  const keyStr =
-                                                                    String(k);
-                                                                  const valStr =
-                                                                    String(
-                                                                      v ?? '',
-                                                                    );
-                                                                  if (
-                                                                    keyStr.startsWith(
-                                                                      '__new_',
-                                                                    )
-                                                                  )
-                                                                    return false;
-                                                                  return (
-                                                                    keyStr.trim()
-                                                                      .length >
-                                                                      0 &&
-                                                                    valStr.trim()
-                                                                      .length >
-                                                                      0
-                                                                  );
-                                                                },
-                                                              )
-                                                            );
-                                                          })() && (
-                                                            <button
-                                                              onClick={() =>
-                                                                removeDictEntry(
-                                                                  idx,
-                                                                  'named_entities',
-                                                                  key,
-                                                                  subKey,
-                                                                )
-                                                              }
-                                                              className="text-red-500 hover:text-red-700 text-[11px] font-bold ml-1"
-                                                            >
-                                                              -
-                                                            </button>
+                                                                  )}
+                                                            </span>
                                                           )}
-                                                      </div>
-                                                    ),
-                                                  )}
+                                                          {metadataEditingIndex ===
+                                                            idx &&
+                                                            key ===
+                                                              'characters' &&
+                                                            (() => {
+                                                              const entries =
+                                                                Object.entries(
+                                                                  value as Record<
+                                                                    string,
+                                                                    unknown
+                                                                  >,
+                                                                );
+                                                              return (
+                                                                entries.length ===
+                                                                  0 ||
+                                                                entries.every(
+                                                                  ([k, v]) => {
+                                                                    const keyStr =
+                                                                      String(k);
+                                                                    const valStr =
+                                                                      String(
+                                                                        v ?? '',
+                                                                      );
+                                                                    if (
+                                                                      keyStr.startsWith(
+                                                                        '__new_',
+                                                                      )
+                                                                    )
+                                                                      return false;
+                                                                    return (
+                                                                      keyStr.trim()
+                                                                        .length >
+                                                                        0 &&
+                                                                      valStr.trim()
+                                                                        .length >
+                                                                        0
+                                                                    );
+                                                                  },
+                                                                )
+                                                              );
+                                                            })() && (
+                                                              <button
+                                                                onClick={() =>
+                                                                  removeDictEntry(
+                                                                    idx,
+                                                                    'named_entities',
+                                                                    key,
+                                                                    subKey,
+                                                                  )
+                                                                }
+                                                                className="text-red-500 hover:text-red-700 text-[11px] font-bold ml-1"
+                                                              >
+                                                                -
+                                                              </button>
+                                                            )}
+                                                        </div>
+                                                      ),
+                                                    )}
                                                   {metadataEditingIndex ===
                                                     idx &&
                                                     key === 'characters' &&
@@ -2799,112 +2857,125 @@ function DocDigitization() {
                                                           string,
                                                           unknown
                                                         >,
-                                                      ).map(
-                                                        (
-                                                          [subKey, subValue],
-                                                          index,
-                                                        ) => (
-                                                          <div
-                                                            key={index}
-                                                            className="flex items-center gap-1"
-                                                          >
-                                                            {metadataEditingIndex ===
-                                                              idx &&
-                                                            key ===
-                                                              'characters' ? (
-                                                              <input
-                                                                className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
-                                                                defaultValue={
-                                                                  String(
-                                                                    subKey,
-                                                                  ).startsWith(
-                                                                    '__new_',
-                                                                  )
-                                                                    ? ''
-                                                                    : subKey
-                                                                }
-                                                                onKeyDown={
-                                                                  handleTeluguKeyDown
-                                                                }
-                                                                onBlur={(e) => {
-                                                                  if (
-                                                                    e.target
-                                                                      .value !==
-                                                                    subKey
-                                                                  ) {
-                                                                    renameDictKey(
+                                                      )
+                                                        .filter(
+                                                          ([subKey]) =>
+                                                            metadataEditingIndex ===
+                                                              idx ||
+                                                            !subKey.startsWith(
+                                                              '__new_',
+                                                            ),
+                                                        )
+                                                        .map(
+                                                          (
+                                                            [subKey, subValue],
+                                                            index,
+                                                          ) => (
+                                                            <div
+                                                              key={index}
+                                                              className="flex items-center gap-1"
+                                                            >
+                                                              {metadataEditingIndex ===
+                                                                idx &&
+                                                              key ===
+                                                                'characters' ? (
+                                                                <input
+                                                                  className={`w-20 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
+                                                                  defaultValue={
+                                                                    String(
+                                                                      subKey,
+                                                                    ).startsWith(
+                                                                      '__new_',
+                                                                    )
+                                                                      ? ''
+                                                                      : subKey
+                                                                  }
+                                                                  onKeyDown={
+                                                                    handleTeluguKeyDown
+                                                                  }
+                                                                  onBlur={(
+                                                                    e,
+                                                                  ) => {
+                                                                    if (
+                                                                      e.target
+                                                                        .value !==
+                                                                      subKey
+                                                                    ) {
+                                                                      renameDictKey(
+                                                                        idx,
+                                                                        'named_entities',
+                                                                        key,
+                                                                        subKey,
+                                                                        e.target
+                                                                          .value,
+                                                                      );
+                                                                    }
+                                                                  }}
+                                                                />
+                                                              ) : (
+                                                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                                                  {subKey}:
+                                                                </span>
+                                                              )}
+                                                              {metadataEditingIndex ===
+                                                              idx ? (
+                                                                <input
+                                                                  className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
+                                                                  value={
+                                                                    subValue ===
+                                                                    null
+                                                                      ? ''
+                                                                      : String(
+                                                                          subValue,
+                                                                        )
+                                                                  }
+                                                                  onKeyDown={
+                                                                    handleTeluguKeyDown
+                                                                  }
+                                                                  onChange={(
+                                                                    e,
+                                                                  ) =>
+                                                                    handleNestedMetadataChange(
                                                                       idx,
                                                                       'named_entities',
                                                                       key,
                                                                       subKey,
                                                                       e.target
                                                                         .value,
-                                                                    );
+                                                                    )
                                                                   }
-                                                                }}
-                                                              />
-                                                            ) : (
-                                                              <span className="text-gray-600 dark:text-gray-400 font-medium">
-                                                                {subKey}:
-                                                              </span>
-                                                            )}
-                                                            {metadataEditingIndex ===
-                                                            idx ? (
-                                                              <input
-                                                                className={`flex-1 bg-white dark:bg-gray-700 border ${charactersErrors[idx] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded px-1 py-0.5 text-xs`}
-                                                                value={
-                                                                  subValue ===
+                                                                />
+                                                              ) : (
+                                                                <span className="text-gray-800 dark:text-gray-200">
+                                                                  {subValue ===
                                                                   null
                                                                     ? ''
                                                                     : String(
                                                                         subValue,
-                                                                      )
-                                                                }
-                                                                onKeyDown={
-                                                                  handleTeluguKeyDown
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleNestedMetadataChange(
-                                                                    idx,
-                                                                    'named_entities',
-                                                                    key,
-                                                                    subKey,
-                                                                    e.target
-                                                                      .value,
-                                                                  )
-                                                                }
-                                                              />
-                                                            ) : (
-                                                              <span className="text-gray-800 dark:text-gray-200">
-                                                                {subValue ===
-                                                                null
-                                                                  ? ''
-                                                                  : String(
-                                                                      subValue,
-                                                                    )}
-                                                              </span>
-                                                            )}
-                                                            {metadataEditingIndex ===
-                                                              idx &&
-                                                              key ===
-                                                                'characters' && (
-                                                                <button
-                                                                  onClick={() =>
-                                                                    removeDictEntry(
-                                                                      idx,
-                                                                      'named_entities',
-                                                                      key,
-                                                                      subKey,
-                                                                    )
-                                                                  }
-                                                                  className="text-red-500 hover:text-red-700 text-xs font-bold ml-1"
-                                                                >
-                                                                  -
-                                                                </button>
+                                                                      )}
+                                                                </span>
                                                               )}
-                                                          </div>
-                                                        ),
-                                                      )}
+                                                              {metadataEditingIndex ===
+                                                                idx &&
+                                                                key ===
+                                                                  'characters' && (
+                                                                  <button
+                                                                    onClick={() =>
+                                                                      removeDictEntry(
+                                                                        idx,
+                                                                        'named_entities',
+                                                                        key,
+                                                                        subKey,
+                                                                      )
+                                                                    }
+                                                                    className="text-red-500 hover:text-red-700 text-xs font-bold ml-1"
+                                                                  >
+                                                                    -
+                                                                  </button>
+                                                                )}
+                                                            </div>
+                                                          ),
+                                                        )}
                                                       {metadataEditingIndex ===
                                                         idx &&
                                                         key === 'characters' &&
@@ -3088,6 +3159,7 @@ function DocDigitization() {
               isSubmitting ||
               hasUnviewedMetadata ||
               !isLastPageOfSegment ||
+              hasIncompleteRequiredFields ||
               metadataEditingIndex !== null
             }
           >
