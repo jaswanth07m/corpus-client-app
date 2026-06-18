@@ -50,7 +50,7 @@ import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator'
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 // Type definitions for segment-based OCR
-type Segment = {
+export type Segment = {
   start: number;
   end: number;
   text: string;
@@ -66,6 +66,52 @@ type Segment = {
   extraction_metadata?: Record<string, unknown>;
   named_entities?: Record<string, unknown>;
 };
+
+export type DraftState = {
+  recordId: string;
+  pageNumber: number;
+  segmentsByPageEntries: [number, Segment[]][];
+  flippedViewedOriginalIndicesArray: number[];
+};
+
+export function saveDraft(state: DraftState): void {
+  try {
+    localStorage.setItem(
+      `doc-digitization-draft-${state.recordId}`,
+      JSON.stringify(state),
+    );
+  } catch {
+    /* quota exceeded — silently ignore */
+  }
+}
+
+export function clearDraft(recordId: string): void {
+  localStorage.removeItem(`doc-digitization-draft-${recordId}`);
+}
+
+export function findAnyDraft(): DraftState | null {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('doc-digitization-draft-')) {
+        const raw = localStorage.getItem(key);
+        if (raw) return JSON.parse(raw) as DraftState;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function hasSavedOrSkippedPages(
+  segmentsByPage: Map<number, Segment[]>,
+): boolean {
+  for (const segs of segmentsByPage.values()) {
+    if (segs.some((s) => s.proofread || s.skipped)) return true;
+  }
+  return false;
+}
 
 function isSegmentComplete(seg: Segment): boolean {
   const meta = seg.extraction_metadata || {};
@@ -362,6 +408,8 @@ function DocDigitization() {
       : undefined,
   );
   const [isTeluguTypingEnabled, setIsTeluguTypingEnabled] = useState(false);
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
+  const pendingDraftRef = useRef<DraftState | null>(null);
 
   const teluguEngineRef = useRef({ prevChar: '', prevLen: 0 });
 
@@ -749,6 +797,67 @@ function DocDigitization() {
     setIsCompleteRecordSubmitted(false);
   }, [fullRecordData]);
 
+  useEffect(() => {
+    const draft = findAnyDraft();
+    if (draft) {
+      pendingDraftRef.current = draft;
+      setShowResumeDialog(true);
+    }
+  }, []);
+
+  const autosaveRef = useRef(false);
+  useEffect(() => {
+    if (!autosaveRef.current) {
+      autosaveRef.current = true;
+      return;
+    }
+    if (!recordId || segmentsByPage.size === 0) return;
+    if (!hasSavedOrSkippedPages(segmentsByPage)) return;
+    const timer = setTimeout(() => {
+      saveDraft({
+        recordId,
+        pageNumber,
+        segmentsByPageEntries: Array.from(segmentsByPage.entries()),
+        flippedViewedOriginalIndicesArray: Array.from(
+          flippedViewedOriginalIndices,
+        ),
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [segmentsByPage, pageNumber, recordId, flippedViewedOriginalIndices]);
+
+  useEffect(() => {
+    function handleBeforeUnload() {
+      if (!recordId || segmentsByPage.size === 0) return;
+      if (!hasSavedOrSkippedPages(segmentsByPage)) return;
+      saveDraft({
+        recordId,
+        pageNumber,
+        segmentsByPageEntries: Array.from(segmentsByPage.entries()),
+        flippedViewedOriginalIndicesArray: Array.from(
+          flippedViewedOriginalIndices,
+        ),
+      });
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [recordId, pageNumber, segmentsByPage, flippedViewedOriginalIndices]);
+
+  useEffect(() => {
+    if (!pendingDraftRef.current) return;
+    const draft = pendingDraftRef.current;
+    const currentRecordId = recordId;
+    if (draft.recordId !== currentRecordId) return;
+    pendingDraftRef.current = null;
+    setSegmentsByPage(new Map(draft.segmentsByPageEntries));
+    setPageNumber(draft.pageNumber);
+    setFlippedViewedOriginalIndices(
+      new Set(draft.flippedViewedOriginalIndicesArray),
+    );
+    clearDraft(draft.recordId);
+    toast.success(t('messages.draftRestoredSuccessfully'));
+  }, [fullRecordData, recordId]);
+
   // Compute the reference dimensions for bbox overlay positioning.
   // Uses inferred OCR image dimensions when bbox coords are in pixel space,
   // otherwise falls back to the PDF page dimensions.
@@ -1124,6 +1233,7 @@ function DocDigitization() {
 
       toast.success(`Page ${pageNumber} submitted successfully!`);
       setIsCompleteRecordSubmitted(true);
+      if (recordId) clearDraft(recordId);
 
       await fetchNextRecord();
     } catch (err) {
@@ -1271,6 +1381,35 @@ function DocDigitization() {
     if (nextPage) {
       setPageNumber(nextPage);
     }
+
+    if (recordId) {
+      setSegmentsByPage((prevMap) => {
+        saveDraft({
+          recordId,
+          pageNumber,
+          segmentsByPageEntries: Array.from(prevMap.entries()),
+          flippedViewedOriginalIndicesArray: Array.from(
+            flippedViewedOriginalIndices,
+          ),
+        });
+        return prevMap;
+      });
+    }
+  }
+
+  function handleResume() {
+    const draft = pendingDraftRef.current;
+    if (!draft) return;
+    setShowResumeDialog(false);
+    pendingDraftRef.current = draft;
+    fetchRecordById(draft.recordId);
+  }
+
+  function handleDiscardDraft() {
+    const draft = pendingDraftRef.current;
+    if (draft) clearDraft(draft.recordId);
+    pendingDraftRef.current = null;
+    setShowResumeDialog(false);
   }
 
   return (
@@ -3347,6 +3486,29 @@ function DocDigitization() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('common.resumePreviousSession')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('common.youHaveAnUnsavedDraftForRecord')}{' '}
+              <strong>{pendingDraftRef.current?.recordId}</strong>.{' '}
+              {t('common.doYouWantToResume')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDiscardDraft}>
+              {t('common.startFresh')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleResume}>
+              {t('common.resume')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
