@@ -175,7 +175,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
+    const drafts: [string, string][] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('doc-digitization-draft-')) {
+        drafts.push([key, localStorage.getItem(key)!]);
+      }
+    }
     localStorage.clear();
+    for (const [key, value] of drafts) {
+      localStorage.setItem(key, value);
+    }
   };
 
   const refetchUser = async () => {

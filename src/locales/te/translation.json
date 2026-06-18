@@ -447,7 +447,12 @@
     "saveDisabled": "సేవ్: నిలిపివేయబడింది",
     "skipActiveWhenCategorySetAndNotEditing": "స్కిప్: వర్గం సెట్ చేసినప్పుడు మరియు ఎడిటింగ్ లేనప్పుడు చురుకుగా ఉంటుంది",
     "genre": "శైలి:",
-    "selectGenre": "శైలిని ఎంచుకోండి..."
+    "selectGenre": "శైలిని ఎంచుకోండి...",
+    "resumePreviousSession": "Resume previous session?",
+    "youHaveAnUnsavedDraftForRecord": "You have an unsaved draft for record",
+    "doYouWantToResume": "Do you want to resume where you left off?",
+    "startFresh": "Start fresh",
+    "resume": "Resume"
   },
   "ui": {
     "failed": {
@@ -802,7 +807,8 @@
     "somethingWentWrong": "ఏదో తప్పు జరిగింది",
     "tryAgain": "మళ్లీ ప్రయత్నించండి",
     "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": "",
-    "recordSkippedSuccessfully": ""
+    "recordSkippedSuccessfully": "",
+    "draftRestoredSuccessfully": ""
   },
   "user": {
     "requestingLocationAccess": "స్థానం యాక్సెస్ అభ్యర్థిస్తోంది...",

@@ -267,30 +267,31 @@ describe('LoginForm', () => {
     );
   });
 
-  it('tests signup password strength validation logic', async () => {
-    const user = userEvent.setup();
+  it('tests signup password strength validation logic', () => {
     renderComponent();
     const signupBtns = screen.getAllByRole('button', { name: 'auth.signUp' });
-    await user.click(signupBtns[0]);
+    fireEvent.click(signupBtns[0]);
 
     const passwordInput = screen.getByPlaceholderText('auth.createPassword');
 
-    await user.type(passwordInput, 'weak');
+    fireEvent.change(passwordInput, { target: { value: 'weak' } });
     fireEvent.blur(passwordInput);
     expect(passwordInput).toHaveClass('border-rose-800');
 
-    await user.clear(passwordInput);
-    await user.type(passwordInput, 'Medium123');
+    fireEvent.change(passwordInput, { target: { value: '' } });
+    fireEvent.change(passwordInput, { target: { value: 'Medium123' } });
     fireEvent.blur(passwordInput);
     expect(passwordInput).toHaveClass('border-yellow-500');
 
-    await user.clear(passwordInput);
-    await user.type(passwordInput, 'StrongPassword123!');
+    fireEvent.change(passwordInput, { target: { value: '' } });
+    fireEvent.change(passwordInput, {
+      target: { value: 'StrongPassword123!' },
+    });
     fireEvent.blur(passwordInput);
     expect(passwordInput).toHaveClass('border-green-500');
 
     const confirmInput = screen.getByPlaceholderText('common.confirmPassword');
-    await user.type(confirmInput, 'Different!23');
+    fireEvent.change(confirmInput, { target: { value: 'Different!23' } });
     fireEvent.blur(confirmInput);
     expect(confirmInput).toHaveClass('border-rose-800');
   });

@@ -455,7 +455,12 @@
     "saveDisabled": "Save: disabled",
     "skipActiveWhenCategorySetAndNotEditing": "Skip: active when category set and not editing",
     "genre": "genre:",
-    "selectGenre": "Select genre..."
+    "selectGenre": "Select genre...",
+    "resumePreviousSession": "Resume previous session?",
+    "youHaveAnUnsavedDraftForRecord": "You have an unsaved draft for record",
+    "doYouWantToResume": "Do you want to resume where you left off?",
+    "startFresh": "Start fresh",
+    "resume": "Resume"
   },
   "ui": {
     "failed": {
@@ -811,7 +816,8 @@
     "loadingDistrictBoundariesPleaseWait": "Loading district boundaries... please wait",
     "loadingDistrictBoundaries": "Loading district boundaries...",
     "2AreYouSureAllTheMetadataTitleGenreCharacterEtcAreValidatedAndApprovedForTheSegments": "2. Are you sure all the metadata (title, genre, character,\n                  etc.) are validated and approved for the segments?",
-    "recordSkippedSuccessfully": "Record skipped successfully"
+    "recordSkippedSuccessfully": "Record skipped successfully",
+    "draftRestoredSuccessfully": "Draft restored successfully!"
   },
   "user": {
     "requestingLocationAccess": "Requesting location access...",
