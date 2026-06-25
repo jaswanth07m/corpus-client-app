@@ -439,7 +439,8 @@
     "youHaveAnUnsavedDraftForRecord": "You have an unsaved draft for record",
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
-    "resume": "Resume"
+    "resume": "Resume",
+    "": ""
   },
   "ui": {
     "failed": {
@@ -882,7 +883,8 @@
     "resumeRecordId": "resume रिकॉर्ड ID:",
     "copyRecordUrl": "रिकॉर्ड URL कॉपी करें",
     "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "",
-    "skipRecord": ""
+    "skipRecord": "",
+    "rerecord": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",

@@ -569,10 +569,10 @@ describe('AnnotationsDashboard', () => {
     it('should render exactly 11 tools', () => {
       renderWithRouter(<AnnotationsDashboard />);
       const toolCards = document.querySelectorAll('.group');
-      expect(toolCards.length).toBe(11);
+      expect(toolCards.length).toBe(12);
     });
 
-    it('should render 5 available tools', () => {
+    it('should render 6 available tools', () => {
       renderWithRouter(<AnnotationsDashboard />);
       // Check that available tools don't have cursor-not-allowed class
       const availableToolIds = [
@@ -581,6 +581,7 @@ describe('AnnotationsDashboard', () => {
         'tour-audio-review-tool',
         'tour-video-review-tool',
         'tour-doc-digitization-tool',
+        'tour-read-speech-tool',
       ];
       availableToolIds.forEach((id) => {
         const tool = document.getElementById(id);
@@ -607,7 +608,7 @@ describe('AnnotationsDashboard', () => {
     it('should render all tool cards', () => {
       renderWithRouter(<AnnotationsDashboard />);
       const toolCards = document.querySelectorAll('.group');
-      expect(toolCards.length).toBe(11);
+      expect(toolCards.length).toBe(12);
     });
   });
 });

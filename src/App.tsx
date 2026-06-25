@@ -26,6 +26,7 @@ import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import RecordDetails from './pages/RecordDetails';
 import CompleteProfileGeneralPage from './pages/CompleteProfileGeneralPage';
 import CompleteProfileInternPage from './pages/CompleteProfileInternPage';
+import ReadSpeech from './pages/tools/ReadSpeech';
 
 const queryClient = new QueryClient();
 
@@ -182,6 +183,15 @@ const App = () => (
                     element={
                       <RequireAuth>
                         <VideoReviewPage />
+                      </RequireAuth>
+                    }
+                  />
+
+                  <Route
+                    path="/tools/read-speech"
+                    element={
+                      <RequireAuth>
+                        <ReadSpeech />
                       </RequireAuth>
                     }
                   />

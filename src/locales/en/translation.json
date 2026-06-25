@@ -460,7 +460,8 @@
     "youHaveAnUnsavedDraftForRecord": "You have an unsaved draft for record",
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
-    "resume": "Resume"
+    "resume": "Resume",
+    "": "—"
   },
   "ui": {
     "failed": {
@@ -908,7 +909,8 @@
     "video": "Video",
     "audio": "Audio",
     "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "1. Are you sure all the text segments are validated to the\n                  page images provided?",
-    "skipRecord": "Skip Record"
+    "skipRecord": "Skip Record",
+    "rerecord": "Re-record"
   },
   "stats": {
     "contributionsYet": "contributions yet.",
@@ -1118,6 +1120,8 @@
     "agentWorkflowsDescription": "Design and manage automated AI agent processes",
     "metadataIndex": "Metadata Index",
     "metadataIndexDescription": "Advanced indexing and search for community metadata",
+    "readSpeech": "Read Speech",
+    "readSpeechDescription": "Record your voice reading displayed sentences.",
     "heading": "Tools",
     "planned": "Planned",
     "comingSoonDescription": "Dataset ingestion module under calibration."
@@ -1150,5 +1154,25 @@
   },
   "time": {
     "currentYearOfStudy": "Current Year of Study"
+  },
+  "readSpeech": {
+    "recordingDuration": "Duration",
+    "skip": "Skip",
+    "next": "Next",
+    "done": "Done",
+    "sentences": "Sentences",
+    "submitAll": "Submit all {{count}}",
+    "submittingProgress": "Submitting {{current}} of {{total}}...",
+    "batchSubmitted": "{{count}} recordings submitted! Thank you.",
+    "skipFailed": "Failed to load replacement sentence",
+    "locationPrompt": "Set your location once to improve dataset quality",
+    "setLocation": "Set location",
+    "submitFailed": "Failed to submit recording. Please try again.",
+    "recordingTooShort": "Recording too short. Please read the sentence slowly and clearly — try to speak for at least 10 seconds.",
+    "sentence": "Sentence",
+    "validationFailed": "Submission failed",
+    "checkFields": "please check",
+    "serverError": "Server error. Please try again.",
+    "invalidRequest": "Invalid request. Please try again."
   }
 }
