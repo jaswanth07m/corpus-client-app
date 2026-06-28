@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { axiosInstance } from '@/api/axiosInstance';
 
 export interface RecordDetail {
@@ -64,11 +64,10 @@ export interface ReadSpeechRecordState {
 export function useReadSpeechRecord() {
   const [state, setState] = useState<ReadSpeechRecordState>({
     records: [],
-    loading: true,
+    loading: false,
     error: null,
   });
   const [recordIds, setRecordIds] = useState<string[]>([]);
-  const [hasFetched, setHasFetched] = useState(false);
 
   const fetchRecords = useCallback(
     async (limit = 5, filters?: Record<string, unknown>) => {
@@ -129,13 +128,6 @@ export function useReadSpeechRecord() {
     },
     [],
   );
-
-  useEffect(() => {
-    if (!hasFetched) {
-      setHasFetched(true);
-      fetchRecords(5);
-    }
-  }, [fetchRecords, hasFetched]);
 
   return {
     ...state,
