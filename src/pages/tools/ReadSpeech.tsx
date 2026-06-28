@@ -67,7 +67,9 @@ function SlotCard({
   isRecorded,
   isCurrent,
   isSubmitting,
+  isPlaying,
   onPlay,
+  onPause,
   onReRecord,
   recorder,
 }: {
@@ -75,7 +77,9 @@ function SlotCard({
   isRecorded: boolean;
   isCurrent: boolean;
   isSubmitting: boolean;
+  isPlaying: boolean;
   onPlay: () => void;
+  onPause: () => void;
   onReRecord: () => void;
   recorder: {
     status: string;
@@ -126,12 +130,16 @@ function SlotCard({
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
-            onClick={onPlay}
+            onClick={isPlaying ? onPause : onPlay}
             disabled={isSubmitting}
             className="p-1 hover:bg-slate-100 rounded"
-            title="Play"
+            title={isPlaying ? 'Pause' : 'Play'}
           >
-            <Play className="h-3.5 w-3.5 text-slate-500" />
+            {isPlaying ? (
+              <Square className="h-3.5 w-3.5 text-slate-500" />
+            ) : (
+              <Play className="h-3.5 w-3.5 text-slate-500" />
+            )}
           </button>
           <button
             type="button"
@@ -178,8 +186,6 @@ export default function ReadSpeech() {
     }
   }, [areReviewFiltersReady]);
   const recorder = useAudioRecorder();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
   const [sentences, setSentences] = useState<RecordDetail[]>([]);
   const [recordings, setRecordings] = useState<(Blob | null)[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -189,6 +195,8 @@ export default function ReadSpeech() {
     total: number;
   } | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [playingIndex, setPlayingIndex] = useState(-1);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [savedLocation, setSavedLocation] = useState<SavedLocation | null>(
     () => {
@@ -291,30 +299,50 @@ export default function ReadSpeech() {
       audio.onended = () => {
         URL.revokeObjectURL(url);
         audioRef.current = null;
+        setPlayingIndex(-1);
       };
       audio.play().catch(() => {});
+      setPlayingIndex(index);
     },
     [recordings],
   );
 
+  const handlePauseRecording = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setPlayingIndex(-1);
+  }, []);
+
   const handleReRecord = useCallback(
     (index: number) => {
+      setRecordings((prev) => {
+        const next = [...prev];
+        next[index] = null;
+        return next;
+      });
       setCurrentIndex(index);
       recorder.resetRecording();
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
+      setPlayingIndex(-1);
     },
     [recorder],
   );
 
   const handleNext = useCallback(() => {
-    if (currentIndex < 4) {
-      setCurrentIndex((prev) => prev + 1);
+    const nextUnrecorded = recordings.findIndex(
+      (r, i) => r === null && i > currentIndex,
+    );
+    const next = nextUnrecorded !== -1 ? nextUnrecorded : currentIndex + 1;
+    if (next < 5) {
+      setCurrentIndex(next);
       recorder.resetRecording();
     }
-  }, [currentIndex, recorder]);
+  }, [currentIndex, recorder, recordings]);
 
   const handleSkip = useCallback(async () => {
     if (!areReviewFiltersReady) return;
@@ -473,7 +501,9 @@ export default function ReadSpeech() {
           isRecorded={recordings[i] !== null}
           isCurrent={i === currentIndex}
           isSubmitting={submitting}
+          isPlaying={i === playingIndex}
           onPlay={() => handlePlayRecording(i)}
+          onPause={handlePauseRecording}
           onReRecord={() => handleReRecord(i)}
           recorder={{
             status: recorder.status,
