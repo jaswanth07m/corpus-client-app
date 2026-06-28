@@ -22,6 +22,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 import { useReadSpeechRecord, collectIds } from '@/hooks/useReadSpeechRecord';
 import type { RecordDetail } from '@/hooks/useReadSpeechRecord';
+import { useToolEventFilters } from '@/hooks/useToolEventFilters';
+import type { ReviewFilters } from '@/hooks/useToolEventFilters';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { useAuth } from '@/hooks/useAuth';
 import { axiosInstance } from '@/api/axiosInstance';
@@ -34,7 +36,7 @@ interface SavedLocation {
   label: string;
 }
 
-const MIN_RECORDING_DURATION = 10;
+const MIN_RECORDING_DURATION = 5;
 const LOCATION_STORAGE_KEY = 'read_speech_location';
 
 function formatDuration(seconds: number): string {
@@ -81,6 +83,7 @@ function SlotCard({
     frequencyData: Uint8Array | null;
   };
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
@@ -154,12 +157,26 @@ function SlotCard({
 export default function ReadSpeech() {
   const { t } = useTranslation();
   const { user } = useAuth();
+
+  const fallbackFilters = useMemo<ReviewFilters>(
+    () => ({ language: ['telugu'], media_type: ['text'] }),
+    [],
+  );
+  const { reviewFilters, isReady: areReviewFiltersReady } =
+    useToolEventFilters(fallbackFilters);
+
   const {
     records: fetchedRecords,
     loading: fetchLoading,
     error: fetchError,
     refetch,
   } = useReadSpeechRecord();
+
+  useEffect(() => {
+    if (areReviewFiltersReady) {
+      refetch(reviewFilters);
+    }
+  }, [areReviewFiltersReady]);
   const recorder = useAudioRecorder();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -183,7 +200,7 @@ export default function ReadSpeech() {
       }
     },
   );
-  const [showLocationBanner, setShowLocationBanner] = useState(false);
+  const [showAccentPrompt, setShowAccentPrompt] = useState(!savedLocation);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<{
     id: string;
@@ -198,8 +215,8 @@ export default function ReadSpeech() {
     })
       .then((res) => res.json().catch(() => []))
       .then((cats: { id: string; name: string }[]) => {
-        const readSpeech = cats.find((c) =>
-          c.name?.toLowerCase().includes('read-speech'),
+        const readSpeech = cats.find(
+          (c) => c.name?.toLowerCase() === 'read-speech',
         );
         const fallback = cats[0];
         setSelectedCategory(readSpeech || fallback);
@@ -233,17 +250,9 @@ export default function ReadSpeech() {
     }
   }, [fetchedRecords]);
 
-  useEffect(() => {
-    if (showLocationBanner === false && !savedLocation) {
-      const dismissed = sessionStorage.getItem('location_banner_dismissed');
-      if (!dismissed) {
-        setShowLocationBanner(true);
-      }
-    }
-  }, [savedLocation, showLocationBanner]);
-
   const handleLocationSaved = useCallback((lat: number, lng: number) => {
     setShowLocationPicker(false);
+    setShowAccentPrompt(false);
     fetch(`${BACKEND_URL}/location/verify-location`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -256,7 +265,6 @@ export default function ReadSpeech() {
         const location: SavedLocation = { lat, lng, label };
         setSavedLocation(location);
         localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location));
-        setShowLocationBanner(false);
       })
       .catch(() => {
         const location: SavedLocation = {
@@ -266,7 +274,6 @@ export default function ReadSpeech() {
         };
         setSavedLocation(location);
         localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location));
-        setShowLocationBanner(false);
       });
   }, []);
 
@@ -310,10 +317,11 @@ export default function ReadSpeech() {
   }, [currentIndex, recorder]);
 
   const handleSkip = useCallback(async () => {
+    if (!areReviewFiltersReady) return;
     setLoadingMore(true);
     try {
       const response = await axiosInstance.post('/records/for-review', {
-        filters: { media_type: ['text'] },
+        filters: reviewFilters,
         limit: 1,
       });
       const ids = collectIds(response.data);
@@ -338,7 +346,7 @@ export default function ReadSpeech() {
       setLoadingMore(false);
     }
     recorder.resetRecording();
-  }, [currentIndex, recorder, t]);
+  }, [currentIndex, recorder, t, reviewFilters, areReviewFiltersReady]);
 
   const handleSubmitAll = useCallback(async () => {
     if (!allRecorded || submitting) return;
@@ -376,19 +384,8 @@ export default function ReadSpeech() {
         }
 
         const rawText = (sentence.text || '').trim();
-        const description =
-          rawText.length >= 32
-            ? rawText
-            : `Voice recording of "${sentence.title || ''}" contributed to Swecha Corpus open dataset.`;
-
-        const rawTitle = (sentence.title || '').trim();
-        const isRawId = /^[a-z]+_[a-z]+_\d+$/i.test(rawTitle);
-        const titleSource =
-          !isRawId && rawTitle ? rawTitle : (sentence.text || '').trim();
-        const title =
-          titleSource.length >= 8
-            ? titleSource
-            : `Recording of ${titleSource || 'Telugu sentence'}`;
+        const title = 'Accents Map activity';
+        const description = `Accents Map activity Sentence: ${rawText}`;
 
         const catId =
           selectedCategory?.id || (sentence.category_ids?.[0] ?? '');
@@ -466,11 +463,6 @@ export default function ReadSpeech() {
     t,
     selectedCategory,
   ]);
-
-  const handleDismissLocationBanner = useCallback(() => {
-    setShowLocationBanner(false);
-    sessionStorage.setItem('location_banner_dismissed', 'true');
-  }, []);
 
   const rightPanel = (
     <div className="flex flex-col gap-2">
@@ -696,53 +688,50 @@ export default function ReadSpeech() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {savedLocation && (
-                <div className="flex items-center gap-1 text-sm text-slate-500">
-                  <MapPin className="h-4 w-4 text-emerald-500" />
-                  <span className="max-w-[180px] truncate">
-                    {savedLocation.label}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowLocationPicker(true)}
-                    className="p-1 hover:bg-slate-100 rounded"
-                    title={t('common.edit')}
-                  >
-                    <Settings2 className="h-3.5 w-3.5 text-slate-400" />
-                  </button>
-                </div>
-              )}
               <NetworkStrengthIndicator />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Location banner */}
-      {showLocationBanner && !savedLocation && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm text-amber-800">
-              <MapPin className="h-4 w-4 shrink-0" />
-              <span>{t('readSpeech.locationPrompt')}</span>
+      {/* Location display below nav */}
+      {savedLocation && (
+        <div className="max-w-7xl mx-auto px-6 pt-3 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowLocationPicker(true)}
+            className="flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-slate-200 rounded-md px-3 py-1.5 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all"
+            title={t('common.edit')}
+          >
+            <MapPin className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+            <span className="max-w-[400px]">{savedLocation.label}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Accent location prompt overlay */}
+      {showAccentPrompt && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-6">
+            <div className="mx-auto w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
+              <MapPin className="h-8 w-8 text-emerald-600" />
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-amber-300 text-amber-800 hover:bg-amber-100"
-                onClick={() => setShowLocationPicker(true)}
-              >
-                {t('readSpeech.setLocation')}
-              </Button>
-              <button
-                type="button"
-                onClick={handleDismissLocationBanner}
-                className="p-1 hover:bg-amber-100 rounded text-amber-600"
-              >
-                <span className="text-lg leading-none">&times;</span>
-              </button>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">
+                {t('readSpeech.accentPromptTitle')}
+              </h2>
+              <p className="text-sm text-slate-500 mt-2">
+                {t('readSpeech.accentPromptDescription')}
+              </p>
             </div>
+            <Button
+              size="lg"
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => setShowLocationPicker(true)}
+            >
+              <MapPin className="h-5 w-5 mr-2" />
+              {t('readSpeech.chooseLocation')}
+            </Button>
           </div>
         </div>
       )}

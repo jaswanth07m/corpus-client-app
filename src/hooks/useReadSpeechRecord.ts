@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { axiosInstance } from '@/api/axiosInstance';
 
 export interface RecordDetail {
@@ -66,44 +66,52 @@ export function useReadSpeechRecord() {
     loading: true,
     error: null,
   });
-
   const [hasFetched, setHasFetched] = useState(false);
 
-  const fetchRecords = useCallback(async (limit = 5) => {
-    setState((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      const reviewResponse = await axiosInstance.post('/records/for-review', {
-        filters: { media_type: ['text'] },
-        limit,
-      });
-
-      const ids = collectIds(reviewResponse.data);
-      if (ids.length === 0) {
-        setState({
-          records: [],
-          loading: false,
-          error: 'No sentences available. Try again later.',
+  const fetchRecords = useCallback(
+    async (limit = 5, filters?: Record<string, unknown>) => {
+      const activeFilters = filters ?? {
+        language: ['telugu'],
+        media_type: ['text'],
+      };
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      try {
+        const reviewResponse = await axiosInstance.post('/records/for-review', {
+          filters: activeFilters,
+          limit,
         });
-        return;
+
+        const ids = collectIds(reviewResponse.data);
+        if (ids.length === 0) {
+          setState({
+            records: [],
+            loading: false,
+            error: 'No sentences available. Try again later.',
+          });
+          return;
+        }
+
+        const detailResponses = await Promise.all(
+          ids.map((id) =>
+            axiosInstance
+              .get<RecordDetail>(`/records/${id}`)
+              .then((r) => r.data),
+          ),
+        );
+
+        setState({
+          records: detailResponses,
+          loading: false,
+          error: null,
+        });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to load sentences.';
+        setState((prev) => ({ ...prev, loading: false, error: message }));
       }
-
-      const detailResponses = await Promise.all(
-        ids.map((id) =>
-          axiosInstance.get<RecordDetail>(`/records/${id}`).then((r) => r.data),
-        ),
-      );
-
-      setState({
-        records: detailResponses,
-        loading: false,
-        error: null,
-      });
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to load sentences.';
-      setState((prev) => ({ ...prev, loading: false, error: message }));
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!hasFetched) {
@@ -112,5 +120,8 @@ export function useReadSpeechRecord() {
     }
   }, [fetchRecords, hasFetched]);
 
-  return { ...state, refetch: () => fetchRecords(5) };
+  return {
+    ...state,
+    refetch: (filters?: Record<string, unknown>) => fetchRecords(5, filters),
+  };
 }
