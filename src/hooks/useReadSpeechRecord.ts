@@ -74,6 +74,7 @@ export function useReadSpeechRecord() {
       const activeFilters = filters ?? {
         language: ['telugu'],
         media_type: ['text'],
+        source_label: 'vikasitha-sentence-source',
       };
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {

@@ -167,7 +167,11 @@ export default function ReadSpeech() {
   const { user } = useAuth();
 
   const fallbackFilters = useMemo<ReviewFilters>(
-    () => ({ language: ['telugu'], media_type: ['text'] }),
+    () => ({
+      language: ['telugu'],
+      media_type: ['text'],
+      source_label: 'vikasitha-sentence-source',
+    }),
     [],
   );
   const { reviewFilters, isReady: areReviewFiltersReady } =
@@ -363,12 +367,26 @@ export default function ReadSpeech() {
       });
       const ids = collectIds(response.data);
       if (ids.length > 0) {
-        const detail = await axiosInstance.get<RecordDetail>(
-          `/records/${ids[0]}`,
-        );
+        const detail = (await axiosInstance.get(`/records/${ids[0]}`))
+          .data as RecordDetail;
+        if (detail.file_url) {
+          try {
+            const contentRes = await fetch(detail.file_url);
+            if (contentRes.ok) {
+              detail.text = (await contentRes.text()).trim();
+            }
+          } catch {
+            // file content not available
+          }
+        }
+        if (!detail.text) {
+          toast.error(t('readSpeech.skipFailed'));
+          setLoadingMore(false);
+          return;
+        }
         setSentences((prev) => {
           const next = [...prev];
-          next[currentIndex] = detail.data;
+          next[currentIndex] = detail;
           return next;
         });
         setRecordings((prev) => {
