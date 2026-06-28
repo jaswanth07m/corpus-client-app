@@ -65,6 +65,16 @@ const AnnotationsDashboard = () => {
       path: '/tools/video-review',
     },
     {
+      id: 'read-speech',
+      title: t('tools.readSpeech', 'Read Speech'),
+      description: t(
+        'tools.readSpeechDescription',
+        'Record your voice reading displayed sentences.',
+      ),
+      icon: <Mic className="h-8 w-8 text-sky-600" />,
+      path: '/tools/read-speech',
+    },
+    {
       id: 'doc-digitization',
       title: t('tools.docDigitization'),
       description: t('tools.docDigitizationDescription'),
@@ -172,9 +182,11 @@ const AnnotationsDashboard = () => {
                         ? 'tour-audio-review-tool'
                         : tool.id === 'video-review'
                           ? 'tour-video-review-tool'
-                          : tool.comingSoon && tool.id === 'ask-your-corpus'
-                            ? 'tour-future-tools'
-                            : undefined
+                          : tool.id === 'read-speech'
+                            ? 'tour-read-speech-tool'
+                            : tool.comingSoon && tool.id === 'ask-your-corpus'
+                              ? 'tour-future-tools'
+                              : undefined
               }
               onClick={() => !tool.comingSoon && navigate(tool.path)}
               className={`relative overflow-hidden group bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 border-2 ${
