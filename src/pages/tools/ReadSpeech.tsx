@@ -177,8 +177,17 @@ export default function ReadSpeech() {
     records: fetchedRecords,
     loading: fetchLoading,
     error: fetchError,
+    recordIds,
     refetch,
   } = useReadSpeechRecord();
+
+  const [sourceRecordIds, setSourceRecordIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (recordIds.length > 0) {
+      setSourceRecordIds(recordIds);
+    }
+  }, [recordIds]);
 
   useEffect(() => {
     if (areReviewFiltersReady) {
@@ -411,9 +420,9 @@ export default function ReadSpeech() {
           throw new Error(`Failed to upload sentence ${i + 1}`);
         }
 
-        const rawText = (sentence.text || '').trim();
         const title = 'Accents Map activity';
-        const description = `Accents Map activity Sentence: ${rawText}`;
+        const displayText = (sentence.text || sentence.title || '').trim();
+        const description = `Accents Map activity Sentence: ${displayText}`;
 
         const catId =
           selectedCategory?.id || (sentence.category_ids?.[0] ?? '');
@@ -430,6 +439,11 @@ export default function ReadSpeech() {
         finalizeFormData.append('filename', filename);
         finalizeFormData.append('release_rights', 'creator');
         finalizeFormData.append('language', 'telugu');
+
+        const sourceId = sourceRecordIds[i];
+        if (sourceId) {
+          finalizeFormData.append('record_tags', JSON.stringify([sourceId]));
+        }
 
         if (savedLocation) {
           finalizeFormData.append('latitude', String(savedLocation.lat));
@@ -465,9 +479,6 @@ export default function ReadSpeech() {
         const msg =
           err instanceof Error ? err.message : t('readSpeech.submitFailed');
         toast.error(`${t('readSpeech.sentence')} ${i + 1}: ${msg}`);
-        setSubmitting(false);
-        setSubmitProgress(null);
-        return;
       }
     }
 
@@ -490,6 +501,7 @@ export default function ReadSpeech() {
     refetch,
     t,
     selectedCategory,
+    sourceRecordIds,
   ]);
 
   const rightPanel = (
