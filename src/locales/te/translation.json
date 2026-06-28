@@ -452,7 +452,8 @@
     "youHaveAnUnsavedDraftForRecord": "You have an unsaved draft for record",
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
-    "resume": "Resume"
+    "resume": "Resume",
+    "": ""
   },
   "ui": {
     "failed": {
@@ -894,7 +895,8 @@
     "resumeRecordId": "resume రికార్డ్ ID:",
     "copyRecordUrl": "రికార్డ్ URL కాపీ చేయండి",
     "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "",
-    "skipRecord": ""
+    "skipRecord": "",
+    "rerecord": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
