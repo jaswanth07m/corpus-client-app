@@ -66,6 +66,7 @@ export function useReadSpeechRecord() {
     loading: true,
     error: null,
   });
+  const [recordIds, setRecordIds] = useState<string[]>([]);
   const [hasFetched, setHasFetched] = useState(false);
 
   const fetchRecords = useCallback(
@@ -90,6 +91,8 @@ export function useReadSpeechRecord() {
           });
           return;
         }
+
+        setRecordIds(ids);
 
         const detailResponses = await Promise.all(
           ids.map((id) =>
@@ -122,6 +125,7 @@ export function useReadSpeechRecord() {
 
   return {
     ...state,
+    recordIds,
     refetch: (filters?: Record<string, unknown>) => fetchRecords(5, filters),
   };
 }
