@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { axiosInstance } from '@/api/axiosInstance';
 
 export interface RecordDetail {
@@ -11,6 +11,7 @@ export interface RecordDetail {
   media_type?: string;
   category_ids?: string[];
   release_rights?: string;
+  file_url?: string;
   extracted_text?: {
     transcription?: string;
     segments?: { text: string }[];
@@ -94,13 +95,26 @@ export function useReadSpeechRecord() {
 
         setRecordIds(ids);
 
-        const detailResponses = await Promise.all(
-          ids.map((id) =>
-            axiosInstance
-              .get<RecordDetail>(`/records/${id}`)
-              .then((r) => r.data),
-          ),
-        );
+        const detailResponses: RecordDetail[] = [];
+        for (const id of ids) {
+          const detail = (await axiosInstance.get(`/records/${id}`))
+            .data as RecordDetail;
+          if (detail.file_url) {
+            try {
+              const contentRes = await fetch(detail.file_url);
+              if (contentRes.ok) {
+                detail.text = (await contentRes.text()).trim();
+              }
+            } catch {
+              // file content not available
+            }
+          }
+          if (!detail.text) {
+            continue;
+          }
+          detailResponses.push(detail);
+          if (detailResponses.length >= limit) break;
+        }
 
         setState({
           records: detailResponses,

@@ -421,8 +421,7 @@ export default function ReadSpeech() {
         }
 
         const title = 'Accents Map activity';
-        const displayText = (sentence.text || sentence.title || '').trim();
-        const description = `Accents Map activity Sentence: ${displayText}`;
+        const description = `Accents Map activity Sentence: ${(sentence.text || '').trim()}`;
 
         const catId =
           selectedCategory?.id || (sentence.category_ids?.[0] ?? '');
@@ -562,7 +561,7 @@ export default function ReadSpeech() {
           <Card className="w-full mb-6">
             <CardContent className="p-8">
               <p className="text-xl leading-relaxed text-slate-800 text-center font-medium">
-                {currentSentence.text || currentSentence.title || ''}
+                {currentSentence.text || ''}
               </p>
             </CardContent>
           </Card>
