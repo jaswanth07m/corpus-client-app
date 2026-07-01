@@ -39,6 +39,28 @@ interface SavedLocation {
 const MIN_RECORDING_DURATION = 5;
 const LOCATION_STORAGE_KEY = 'read_speech_location';
 
+const LANGUAGE_CONFIGS: Record<
+  string,
+  { label: string; filters: ReviewFilters }
+> = {
+  telugu: {
+    label: 'Telugu',
+    filters: {
+      language: ['telugu'],
+      media_type: ['text'],
+      source_label: 'vikasitha-sentence-source',
+    },
+  },
+  hindi: {
+    label: 'Hindi',
+    filters: {
+      language: ['hindi'],
+      media_type: ['text'],
+      source_label: 'panchatantra-hindi-sentence-source',
+    },
+  },
+};
+
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -166,16 +188,30 @@ export default function ReadSpeech() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('telugu');
+
   const fallbackFilters = useMemo<ReviewFilters>(
-    () => ({
-      language: ['telugu'],
-      media_type: ['text'],
-      source_label: 'vikasitha-sentence-source',
-    }),
-    [],
+    () =>
+      LANGUAGE_CONFIGS[selectedLanguage]?.filters ??
+      LANGUAGE_CONFIGS.telugu.filters,
+    [selectedLanguage],
   );
   const { reviewFilters, isReady: areReviewFiltersReady } =
     useToolEventFilters(fallbackFilters);
+
+  // Always force the language-specific fields (language + source_label) from
+  // the selected language config, regardless of what the backend event returns.
+  // Other event fields (media_type, category_ids, etc.) are kept from the event.
+  const effectiveFilters = useMemo<ReviewFilters>(() => {
+    const langConfig =
+      LANGUAGE_CONFIGS[selectedLanguage]?.filters ??
+      LANGUAGE_CONFIGS.telugu.filters;
+    return {
+      ...reviewFilters,
+      language: langConfig.language,
+      source_label: langConfig.source_label,
+    };
+  }, [reviewFilters, selectedLanguage]);
 
   const {
     records: fetchedRecords,
@@ -195,9 +231,9 @@ export default function ReadSpeech() {
 
   useEffect(() => {
     if (areReviewFiltersReady) {
-      refetch(reviewFilters);
+      refetch(effectiveFilters);
     }
-  }, [areReviewFiltersReady]);
+  }, [areReviewFiltersReady, effectiveFilters]);
   const recorder = useAudioRecorder();
   const [sentences, setSentences] = useState<RecordDetail[]>([]);
   const [recordings, setRecordings] = useState<(Blob | null)[]>([]);
@@ -210,6 +246,13 @@ export default function ReadSpeech() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [playingIndex, setPlayingIndex] = useState(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    setSentences([]);
+    setRecordings(new Array(5).fill(null));
+    setCurrentIndex(0);
+    recorder.resetRecording();
+  }, [selectedLanguage]);
 
   const [savedLocation, setSavedLocation] = useState<SavedLocation | null>(
     () => {
@@ -362,7 +405,7 @@ export default function ReadSpeech() {
     setLoadingMore(true);
     try {
       const response = await axiosInstance.post('/records/for-review', {
-        filters: reviewFilters,
+        filters: effectiveFilters,
         limit: 1,
       });
       const ids = collectIds(response.data);
@@ -401,7 +444,7 @@ export default function ReadSpeech() {
       setLoadingMore(false);
     }
     recorder.resetRecording();
-  }, [currentIndex, recorder, t, reviewFilters, areReviewFiltersReady]);
+  }, [currentIndex, recorder, t, effectiveFilters, areReviewFiltersReady]);
 
   const handleSubmitAll = useCallback(async () => {
     if (!allRecorded || submitting) return;
@@ -455,7 +498,7 @@ export default function ReadSpeech() {
         finalizeFormData.append('total_chunks', '1');
         finalizeFormData.append('filename', filename);
         finalizeFormData.append('release_rights', 'creator');
-        finalizeFormData.append('language', 'telugu');
+        finalizeFormData.append('language', selectedLanguage);
 
         const sourceId = sourceRecordIds[i];
         if (sourceId) {
@@ -506,7 +549,7 @@ export default function ReadSpeech() {
     setSentences([]);
 
     setTimeout(() => {
-      refetch();
+      refetch(effectiveFilters);
     }, 1500);
   }, [
     recordings,
@@ -519,6 +562,8 @@ export default function ReadSpeech() {
     t,
     selectedCategory,
     sourceRecordIds,
+    selectedLanguage,
+    effectiveFilters,
   ]);
 
   const rightPanel = (
@@ -747,6 +792,22 @@ export default function ReadSpeech() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 gap-0.5">
+                {Object.entries(LANGUAGE_CONFIGS).map(([key, cfg]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSelectedLanguage(key)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                      selectedLanguage === key
+                        ? 'bg-white text-emerald-700 shadow-sm border border-slate-200'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {cfg.label}
+                  </button>
+                ))}
+              </div>
               <NetworkStrengthIndicator />
             </div>
           </div>
@@ -808,7 +869,11 @@ export default function ReadSpeech() {
           <div className="flex items-center justify-center h-64">
             <div className="text-center space-y-3">
               <p className="text-red-600 text-sm">{fetchError}</p>
-              <Button variant="outline" size="sm" onClick={refetch}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch(effectiveFilters)}
+              >
                 {t('common.retry')}
               </Button>
             </div>
