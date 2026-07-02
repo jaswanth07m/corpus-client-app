@@ -1174,6 +1174,8 @@
     "validationFailed": "Submission failed",
     "checkFields": "please check",
     "serverError": "Server error. Please try again.",
-    "invalidRequest": "Invalid request. Please try again."
+    "invalidRequest": "Invalid request. Please try again.",
+    "progressLabel": "Read-Speech Recordings",
+    "progressOf": "{{current}} / {{total}}"
   }
 }
