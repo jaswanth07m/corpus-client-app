@@ -811,29 +811,27 @@ export default function ReadSpeech() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 p-4 shadow-sm">
+      <div className="bg-white border-b border-slate-200 p-3 sm:p-4 shadow-sm">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <Link to="/tools">
-                <button className="p-2 hover:bg-slate-100 rounded-xl transition-all duration-200 border border-slate-200">
-                  <ArrowLeft className="h-5 w-5 text-slate-700" />
+                <button className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-xl transition-all duration-200 border border-slate-200 shrink-0">
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-slate-700" />
                 </button>
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  {t('tools.readSpeech')}
-                </h1>
-              </div>
+              <h1 className="text-lg sm:text-2xl font-bold text-slate-900 truncate">
+                {t('tools.readSpeech')}
+              </h1>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 gap-0.5">
                 {Object.entries(LANGUAGE_CONFIGS).map(([key, cfg]) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setSelectedLanguage(key)}
-                    className={`px-2 py-1 text-xs font-medium rounded-md transition-all ${
+                    className={`px-1.5 sm:px-2 py-1 text-xs font-medium rounded-md transition-all ${
                       selectedLanguage === key
                         ? 'bg-white text-emerald-700 shadow-sm border border-slate-200'
                         : 'text-slate-500 hover:text-slate-700'
