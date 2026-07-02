@@ -438,12 +438,9 @@ describe('ReadSpeech', () => {
       mockLoading = false;
     });
 
-    it('renders the page title and description', () => {
+    it('renders the page title', () => {
       renderComponent();
       expect(screen.getByText('Read Speech')).toBeInTheDocument();
-      expect(
-        screen.getByText('Record your voice reading displayed sentences.'),
-      ).toBeInTheDocument();
     });
 
     it('shows back button linking to /tools', () => {

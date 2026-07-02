@@ -29,6 +29,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { axiosInstance } from '@/api/axiosInstance';
 import { BACKEND_URL } from '@/lib/constants';
 import LocationPicker from '@/components/LocationPicker';
+import { Progress } from '@/components/ui/progress';
+import type { ContributionItem } from '@/types/geo';
 
 interface SavedLocation {
   lat: number;
@@ -41,10 +43,11 @@ const LOCATION_STORAGE_KEY = 'read_speech_location';
 
 const LANGUAGE_CONFIGS: Record<
   string,
-  { label: string; filters: ReviewFilters }
+  { label: string; shortLabel: string; filters: ReviewFilters }
 > = {
   telugu: {
     label: 'Telugu',
+    shortLabel: 'అ',
     filters: {
       language: ['telugu'],
       media_type: ['text'],
@@ -53,6 +56,7 @@ const LANGUAGE_CONFIGS: Record<
   },
   hindi: {
     label: 'Hindi',
+    shortLabel: 'अ',
     filters: {
       language: ['hindi'],
       media_type: ['text'],
@@ -270,6 +274,10 @@ export default function ReadSpeech() {
     id: string;
     name: string;
   } | null>(null);
+  const [readSpeechCount, setReadSpeechCount] = useState(0);
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [progressRefreshTrigger, setProgressRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -279,6 +287,11 @@ export default function ReadSpeech() {
     })
       .then((res) => res.json().catch(() => []))
       .then((cats: { id: string; name: string }[]) => {
+        const map: Record<string, string> = {};
+        cats.forEach((c) => {
+          map[c.id] = c.name;
+        });
+        setCategoryMap(map);
         const readSpeech = cats.find(
           (c) => c.name?.toLowerCase() === 'read-speech',
         );
@@ -293,6 +306,30 @@ export default function ReadSpeech() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!user?.id || Object.keys(categoryMap).length === 0) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    setProgressLoading(true);
+    fetch(`${BACKEND_URL}/users/${user.id}/contributions/audio`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json().catch(() => null))
+      .then((data) => {
+        if (!data) return;
+        const items: ContributionItem[] = data.contributions || [];
+        const count = items.filter((item) => {
+          const names = (item.category_ids || []).map((id) =>
+            categoryMap[id]?.toLowerCase(),
+          );
+          return names.includes('read-speech');
+        }).length;
+        setReadSpeechCount(count);
+      })
+      .catch(() => {})
+      .finally(() => setProgressLoading(false));
+  }, [user?.id, categoryMap, progressRefreshTrigger]);
 
   const allRecorded = useMemo(
     () => recordings.length === 5 && recordings.every((r) => r !== null),
@@ -548,6 +585,7 @@ export default function ReadSpeech() {
     setRecordings(new Array(5).fill(null));
     setSentences([]);
 
+    setProgressRefreshTrigger((prev) => prev + 1);
     setTimeout(() => {
       refetch(effectiveFilters);
     }, 1500);
@@ -786,9 +824,6 @@ export default function ReadSpeech() {
                 <h1 className="text-2xl font-bold text-slate-900">
                   {t('tools.readSpeech')}
                 </h1>
-                <p className="text-sm text-slate-500">
-                  {t('tools.readSpeechDescription')}
-                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -798,13 +833,13 @@ export default function ReadSpeech() {
                     key={key}
                     type="button"
                     onClick={() => setSelectedLanguage(key)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    className={`px-2 py-1 text-xs font-medium rounded-md transition-all ${
                       selectedLanguage === key
                         ? 'bg-white text-emerald-700 shadow-sm border border-slate-200'
                         : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
-                    {cfg.label}
+                    {cfg.shortLabel}
                   </button>
                 ))}
               </div>
@@ -828,6 +863,21 @@ export default function ReadSpeech() {
           </button>
         </div>
       )}
+
+      {/* Progress bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-2 w-full">
+        <div className="flex items-center gap-2">
+          <Progress value={(readSpeechCount / 2000) * 100} className="h-1.5" />
+          <span className="text-[11px] text-slate-400 shrink-0">
+            {progressLoading
+              ? '...'
+              : t('readSpeech.progressOf', {
+                  current: readSpeechCount,
+                  total: 2000,
+                })}
+          </span>
+        </div>
+      </div>
 
       {/* Accent location prompt overlay */}
       {showAccentPrompt && (
