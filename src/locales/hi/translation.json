@@ -440,7 +440,12 @@
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
     "resume": "Resume",
-    "": ""
+    "": "",
+    "skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped": "जब स्थिति स्किप हो तो कहानी श्रेणी के लिए स्किप कारण खाली नहीं हो सकता।",
+    "skip": {
+      "reason": "स्किप कारण:"
+    },
+    "edits": "संपादन:"
   },
   "ui": {
     "failed": {
@@ -841,7 +846,10 @@
     "organisationType": "संगठन प्रकार",
     "educationCategory": "शिक्षा श्रेणी",
     "category": "",
-    "categoryStory": "श्रेणी: कहानी"
+    "categoryStory": "श्रेणी: कहानी",
+    "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "कहानी श्रेणी के लिए स्किप चिह्नित करने से पहले स्किप कारण सेट करें।",
+    "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "स्किप किए गए सेगमेंट पर श्रेणी को कहानी पर सेट करने से पहले स्किप कारण सेट करें।",
+    "status": "स्थिति:"
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",

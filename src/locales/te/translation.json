@@ -453,7 +453,12 @@
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
     "resume": "Resume",
-    "": ""
+    "": "",
+    "skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped": "స్థితి స్కిప్ అయినప్పుడు కథ వర్గానికి స్కిప్ కారణం ఖాళీగా ఉండకూడదు.",
+    "skip": {
+      "reason": "స్కిప్ కారణం:"
+    },
+    "edits": "సవరణలు:"
   },
   "ui": {
     "failed": {
@@ -853,7 +858,10 @@
     "organisationType": "సంస్థ రకం",
     "educationCategory": "విద్యా వర్గం",
     "category": "",
-    "categoryStory": "వర్గం: కథ"
+    "categoryStory": "వర్గం: కథ",
+    "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "కథ వర్గానికి స్కిప్ చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి.",
+    "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "స్కిప్ చేసిన సెగ్మెంట్‌లో వర్గాన్ని కథగా సెట్ చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి.",
+    "status": "స్థితి:"
   },
   "media": {
     "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",

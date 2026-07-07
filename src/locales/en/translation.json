@@ -461,7 +461,12 @@
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
     "resume": "Resume",
-    "": "—"
+    "": "—",
+    "skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped": "Skip reason cannot be empty for story category when status is skipped.",
+    "skip": {
+      "reason": "skip reason:"
+    },
+    "edits": "edits:"
   },
   "ui": {
     "failed": {
@@ -862,7 +867,10 @@
     "organisationType": "Organisation Type",
     "educationCategory": "Education Category",
     "category": "category:",
-    "categoryStory": "Category: Story"
+    "categoryStory": "Category: Story",
+    "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "Set a skip reason before marking as skipped for story category.",
+    "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "Set a skip reason before setting category to story on a skipped segment.",
+    "status": "status:"
   },
   "media": {
     "failedToSwitchCamera": "Failed to switch camera",

@@ -1,6 +1,5 @@
 import { SuggestionBar } from '@/components/SuggestionBar';
 import { AutoResizeTextArea } from '@/components/AutoResizeTextArea';
-import { useToolEventFilters } from '@/hooks/useToolEventFilters';
 import { useTeluguTyping } from '@/hooks/useTeluguTyping';
 import { transliterate } from '@/lib/teluguKeyboard';
 import { useTranslation } from 'react-i18next';
@@ -43,7 +42,7 @@ import {
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-import { BACKEND_URL } from '@/lib/constants';
+import { BACKEND_URL, IS_DOC_DIGITIZATION_VALIDATION } from '@/lib/constants';
 import { toast } from 'sonner';
 import { NetworkStrengthIndicator } from '@/components/NetworkStrengthIndicator';
 
@@ -343,11 +342,13 @@ function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
 function DocDigitization() {
   const { t } = useTranslation();
   const fallbackFilters = useMemo(
-    () => ({ media_type: ['document'], is_fully_proofread: false }),
+    () => ({ media_type: ['document'], is_fully_proofread: true }),
     [],
   );
-  const { reviewFilters, isReady: areReviewFiltersReady } =
-    useToolEventFilters(fallbackFilters);
+  // const { reviewFilters, isReady: areReviewFiltersReady } =
+  //   useToolEventFilters(fallbackFilters);
+  const reviewFilters = fallbackFilters;
+  const areReviewFiltersReady = true;
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [recordId, setRecordId] = useState<string | null>(null);
   const [fullRecordData, setFullRecordData] = useState<RecordDetails | null>(
@@ -593,6 +594,80 @@ function DocDigitization() {
           }
         }
       }
+      return newMap;
+    });
+  };
+
+  const handleValidationFieldChange = (
+    segmentIndex: number,
+    field: string,
+    value: string | string[],
+  ) => {
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      const pageSegments = newMap.get(pageNumber);
+      if (!pageSegments || segmentIndex >= pageSegments.length) return prevMap;
+      const updatedSegments = [...pageSegments];
+      const seg = { ...updatedSegments[segmentIndex] };
+
+      const currentCategory = String(seg.extraction_metadata?.category || '');
+
+      switch (field) {
+        case 'status':
+          if (value === 'proofread') {
+            seg.proofread = true;
+            seg.skipped = false;
+            seg.skip_reason = null;
+          } else if (value === 'skipped') {
+            if (currentCategory === 'story' && !seg.skip_reason) {
+              toast.error(
+                t(
+                  'categories.setASkipReasonBeforeMarkingAsSkippedForStoryCategory',
+                ),
+              );
+              return prevMap;
+            }
+            seg.proofread = false;
+            seg.skipped = true;
+          }
+          break;
+        case 'category':
+          if (value === 'story' && seg.skipped && !seg.skip_reason) {
+            toast.error(
+              t(
+                'categories.setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment',
+              ),
+            );
+            return prevMap;
+          }
+          seg.extraction_metadata = {
+            ...(seg.extraction_metadata || {}),
+            category: value,
+          };
+          break;
+        case 'skip_reason':
+          if (
+            (value === '' || value === 'None') &&
+            seg.skipped &&
+            currentCategory === 'story'
+          ) {
+            toast.error(
+              t(
+                'common.skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped',
+              ),
+            );
+            return prevMap;
+          }
+          seg.skip_reason =
+            value === '' || value === 'None' ? null : (value as string);
+          break;
+        case 'edits':
+          seg.edit = value as string[];
+          break;
+      }
+
+      updatedSegments[segmentIndex] = seg;
+      newMap.set(pageNumber, updatedSegments);
       return newMap;
     });
   };
@@ -1182,6 +1257,7 @@ function DocDigitization() {
     const updatedSegments = allSegments.map(({ originalIndex, ...rest }) => ({
       ...rest,
       text: rest.text.trim() === '' ? ' ' : rest.text,
+      edit: rest.edit ?? [],
       proofread: rest.skipped ? false : true,
       skipped: !!rest.skipped,
       skip_reason:
@@ -1318,7 +1394,10 @@ function DocDigitization() {
                 ? {
                     ...seg,
                     proofread: true,
-                    edit: editReasons.length > 0 ? [...editReasons] : seg.edit,
+                    edit:
+                      editReasons.length > 0
+                        ? [...editReasons]
+                        : (seg.edit ?? []),
                     extraction_metadata: {
                       ...(seg.extraction_metadata || {}),
                       category: 'story',
@@ -1936,6 +2015,187 @@ function DocDigitization() {
                                 </div>
                                 {flippedSegmentIndex === idx ? (
                                   <div className="space-y-2 mt-1">
+                                    {IS_DOC_DIGITIZATION_VALIDATION && (
+                                      <div className="text-[11px] space-y-1 mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-700">
+                                        <div>
+                                          <span className="font-bold text-gray-600 dark:text-gray-400">
+                                            status:{' '}
+                                          </span>
+                                          {metadataEditingIndex === idx ? (
+                                            <select
+                                              value={
+                                                segment.skipped
+                                                  ? 'skipped'
+                                                  : 'proofread'
+                                              }
+                                              onChange={(e) =>
+                                                handleValidationFieldChange(
+                                                  idx,
+                                                  'status',
+                                                  e.target.value,
+                                                )
+                                              }
+                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                            >
+                                              <option value="proofread">
+                                                Proofread
+                                              </option>
+                                              <option value="skipped">
+                                                Skipped
+                                              </option>
+                                            </select>
+                                          ) : (
+                                            <span
+                                              className={
+                                                segment.proofread
+                                                  ? 'text-green-600 font-semibold'
+                                                  : 'text-orange-600 font-semibold'
+                                              }
+                                            >
+                                              {segment.proofread
+                                                ? 'Proofread'
+                                                : segment.skipped
+                                                  ? 'Skipped'
+                                                  : 'Pending'}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <span className="font-bold text-gray-600 dark:text-gray-400">
+                                            category:{' '}
+                                          </span>
+                                          {metadataEditingIndex === idx ? (
+                                            <select
+                                              value={String(
+                                                segment.extraction_metadata
+                                                  ?.category || '',
+                                              )}
+                                              onChange={(e) =>
+                                                handleValidationFieldChange(
+                                                  idx,
+                                                  'category',
+                                                  e.target.value,
+                                                )
+                                              }
+                                              className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                            >
+                                              <option value="">None</option>
+                                              <option value="poem">poem</option>
+                                              <option value="story">
+                                                story
+                                              </option>
+                                              <option value="interview">
+                                                interview
+                                              </option>
+                                              <option value="article">
+                                                article
+                                              </option>
+                                              <option value="editorial">
+                                                editorial
+                                              </option>
+                                              <option value="miscellaneous">
+                                                miscellaneous
+                                              </option>
+                                            </select>
+                                          ) : (
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {String(
+                                                segment.extraction_metadata
+                                                  ?.category || 'None',
+                                              )}
+                                            </span>
+                                          )}
+                                        </div>
+                                        {segment.skipped && (
+                                          <div>
+                                            <span className="font-bold text-gray-600 dark:text-gray-400">
+                                              skip reason:{' '}
+                                            </span>
+                                            {metadataEditingIndex === idx ? (
+                                              <select
+                                                value={
+                                                  segment.skip_reason || 'None'
+                                                }
+                                                onChange={(e) =>
+                                                  handleValidationFieldChange(
+                                                    idx,
+                                                    'skip_reason',
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-[11px]"
+                                              >
+                                                <option value="None">
+                                                  None
+                                                </option>
+                                                <option value="Unclear page">
+                                                  Unclear page
+                                                </option>
+                                                <option value="Other">
+                                                  Other
+                                                </option>
+                                              </select>
+                                            ) : (
+                                              <span className="text-gray-800 dark:text-gray-200">
+                                                {segment.skip_reason || 'None'}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                        <div>
+                                          <span className="font-bold text-gray-600 dark:text-gray-400">
+                                            edits:{' '}
+                                          </span>
+                                          {metadataEditingIndex === idx ? (
+                                            <div className="ml-2 space-y-1 mt-1">
+                                              {[
+                                                'grammatical fixes',
+                                                'rearrangement',
+                                                'others',
+                                              ].map((reason) => (
+                                                <label
+                                                  key={reason}
+                                                  className="flex items-center gap-1 text-[11px] cursor-pointer"
+                                                >
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={
+                                                      segment.edit?.includes(
+                                                        reason,
+                                                      ) ?? false
+                                                    }
+                                                    onChange={(e) => {
+                                                      const current =
+                                                        segment.edit ?? [];
+                                                      const next = e.target
+                                                        .checked
+                                                        ? [...current, reason]
+                                                        : current.filter(
+                                                            (r) => r !== reason,
+                                                          );
+                                                      handleValidationFieldChange(
+                                                        idx,
+                                                        'edits',
+                                                        next,
+                                                      );
+                                                    }}
+                                                    className="cursor-pointer"
+                                                  />
+                                                  {reason}
+                                                </label>
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <span className="text-gray-800 dark:text-gray-200">
+                                              {segment.edit &&
+                                              segment.edit.length > 0
+                                                ? segment.edit.join(', ')
+                                                : 'None'}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
                                     {metadataEditingIndex === idx ? (
                                       <div className="text-[11px]">
                                         <span className="font-bold text-gray-600 dark:text-gray-400">
@@ -2869,6 +3129,196 @@ function DocDigitization() {
                                     </div>
                                     {flippedSegmentIndex === idx ? (
                                       <div className="space-y-2 mt-1">
+                                        {IS_DOC_DIGITIZATION_VALIDATION && (
+                                          <div className="text-xs space-y-1 mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-700">
+                                            <div>
+                                              <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                {t('categories.status')}{' '}
+                                              </span>
+                                              {metadataEditingIndex === idx ? (
+                                                <select
+                                                  value={
+                                                    segment.skipped
+                                                      ? 'skipped'
+                                                      : 'proofread'
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleValidationFieldChange(
+                                                      idx,
+                                                      'status',
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                                >
+                                                  <option value="proofread">
+                                                    Proofread
+                                                  </option>
+                                                  <option value="skipped">
+                                                    Skipped
+                                                  </option>
+                                                </select>
+                                              ) : (
+                                                <span
+                                                  className={
+                                                    segment.proofread
+                                                      ? 'text-green-600 font-semibold'
+                                                      : 'text-orange-600 font-semibold'
+                                                  }
+                                                >
+                                                  {segment.proofread
+                                                    ? 'Proofread'
+                                                    : segment.skipped
+                                                      ? 'Skipped'
+                                                      : 'Pending'}
+                                                </span>
+                                              )}
+                                            </div>
+                                            <div>
+                                              <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                category:{' '}
+                                              </span>
+                                              {metadataEditingIndex === idx ? (
+                                                <select
+                                                  value={String(
+                                                    segment.extraction_metadata
+                                                      ?.category || '',
+                                                  )}
+                                                  onChange={(e) =>
+                                                    handleValidationFieldChange(
+                                                      idx,
+                                                      'category',
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                                >
+                                                  <option value="">None</option>
+                                                  <option value="poem">
+                                                    poem
+                                                  </option>
+                                                  <option value="story">
+                                                    story
+                                                  </option>
+                                                  <option value="interview">
+                                                    interview
+                                                  </option>
+                                                  <option value="article">
+                                                    article
+                                                  </option>
+                                                  <option value="editorial">
+                                                    editorial
+                                                  </option>
+                                                  <option value="miscellaneous">
+                                                    miscellaneous
+                                                  </option>
+                                                </select>
+                                              ) : (
+                                                <span className="text-gray-800 dark:text-gray-200">
+                                                  {String(
+                                                    segment.extraction_metadata
+                                                      ?.category || 'None',
+                                                  )}
+                                                </span>
+                                              )}
+                                            </div>
+                                            {segment.skipped && (
+                                              <div>
+                                                <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                  {t('common.skip.reason')}{' '}
+                                                </span>
+                                                {metadataEditingIndex ===
+                                                idx ? (
+                                                  <select
+                                                    value={
+                                                      segment.skip_reason ||
+                                                      'None'
+                                                    }
+                                                    onChange={(e) =>
+                                                      handleValidationFieldChange(
+                                                        idx,
+                                                        'skip_reason',
+                                                        e.target.value,
+                                                      )
+                                                    }
+                                                    className="ml-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-xs"
+                                                  >
+                                                    <option value="None">
+                                                      None
+                                                    </option>
+                                                    <option value="Unclear page">
+                                                      Unclear page
+                                                    </option>
+                                                    <option value="Other">
+                                                      Other
+                                                    </option>
+                                                  </select>
+                                                ) : (
+                                                  <span className="text-gray-800 dark:text-gray-200">
+                                                    {segment.skip_reason ||
+                                                      'None'}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            )}
+                                            <div>
+                                              <span className="font-bold text-gray-600 dark:text-gray-400">
+                                                {t('common.edits')}{' '}
+                                              </span>
+                                              {metadataEditingIndex === idx ? (
+                                                <div className="ml-2 space-y-1 mt-1">
+                                                  {[
+                                                    'grammatical fixes',
+                                                    'rearrangement',
+                                                    'others',
+                                                  ].map((reason) => (
+                                                    <label
+                                                      key={reason}
+                                                      className="flex items-center gap-1 text-xs cursor-pointer"
+                                                    >
+                                                      <input
+                                                        type="checkbox"
+                                                        checked={
+                                                          segment.edit?.includes(
+                                                            reason,
+                                                          ) ?? false
+                                                        }
+                                                        onChange={(e) => {
+                                                          const current =
+                                                            segment.edit ?? [];
+                                                          const next = e.target
+                                                            .checked
+                                                            ? [
+                                                                ...current,
+                                                                reason,
+                                                              ]
+                                                            : current.filter(
+                                                                (r) =>
+                                                                  r !== reason,
+                                                              );
+                                                          handleValidationFieldChange(
+                                                            idx,
+                                                            'edits',
+                                                            next,
+                                                          );
+                                                        }}
+                                                        className="cursor-pointer"
+                                                      />
+                                                      {reason}
+                                                    </label>
+                                                  ))}
+                                                </div>
+                                              ) : (
+                                                <span className="text-gray-800 dark:text-gray-200">
+                                                  {segment.edit &&
+                                                  segment.edit.length > 0
+                                                    ? segment.edit.join(', ')
+                                                    : 'None'}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
                                         {metadataEditingIndex === idx ? (
                                           <div className="text-xs">
                                             <span className="font-bold text-gray-600 dark:text-gray-400">
