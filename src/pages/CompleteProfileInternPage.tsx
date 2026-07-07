@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -119,9 +119,36 @@ const CompleteProfileInternPage: React.FC = () => {
     });
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = useCallback((field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
+
+  const handleAcademicStreamChange = useCallback(
+    (value: string) => handleChange('academic_stream', value),
+    [handleChange],
+  );
+
+  const handleInstitutionIdChange = useCallback(
+    (institutionId: string) => handleChange('institution_id', institutionId),
+    [handleChange],
+  );
+
+  const handleYearOfStudyChange = useCallback(
+    (value: string) => handleChange('current_year_of_study', value),
+    [handleChange],
+  );
+
+  const handleRollNumberChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      handleChange('college_roll_number', e.target.value),
+    [handleChange],
+  );
+
+  const handleTaskRegisteredIdChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      handleChange('task_registered_id', e.target.value),
+    [handleChange],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,9 +260,7 @@ const CompleteProfileInternPage: React.FC = () => {
                     <SearchableSelect
                       id="academic_stream"
                       value={formData.academic_stream}
-                      onChange={(value) =>
-                        handleChange('academic_stream', value)
-                      }
+                      onChange={handleAcademicStreamChange}
                       options={academicStreamOptions}
                       placeholder={t('common.selectType')}
                     />
@@ -243,9 +268,7 @@ const CompleteProfileInternPage: React.FC = () => {
                   <div className="md:col-span-2">
                     <InstitutionSelector
                       institutionId={formData.institution_id}
-                      onChange={(institutionId) =>
-                        handleChange('institution_id', institutionId)
-                      }
+                      onChange={handleInstitutionIdChange}
                       academicStream={formData.academic_stream}
                     />
                   </div>
@@ -256,9 +279,7 @@ const CompleteProfileInternPage: React.FC = () => {
                     <SearchableSelect
                       id="current_year_of_study"
                       value={formData.current_year_of_study}
-                      onChange={(value) =>
-                        handleChange('current_year_of_study', value)
-                      }
+                      onChange={handleYearOfStudyChange}
                       options={yearList}
                       placeholder={t('common.selectYear')}
                     />
@@ -270,9 +291,7 @@ const CompleteProfileInternPage: React.FC = () => {
                     <Input
                       id="college_roll_number"
                       value={formData.college_roll_number}
-                      onChange={(e) =>
-                        handleChange('college_roll_number', e.target.value)
-                      }
+                      onChange={handleRollNumberChange}
                       placeholder={t('common.roll.number')}
                     />
                   </div>
@@ -283,9 +302,7 @@ const CompleteProfileInternPage: React.FC = () => {
                     <Input
                       id="task_registered_id"
                       value={formData.task_registered_id}
-                      onChange={(e) =>
-                        handleChange('task_registered_id', e.target.value)
-                      }
+                      onChange={handleTaskRegisteredIdChange}
                       placeholder={t('common.task.id')}
                     />
                   </div>

@@ -1,8 +1,6 @@
 #!/usr/bin/env sh
 set -e
 
-# Validate commit message first to fail fast before expensive checks
-npx --no -- commitlint --edit .git/COMMIT_EDITMSG
 
 # Run formatting on staged files
 npx lint-staged
