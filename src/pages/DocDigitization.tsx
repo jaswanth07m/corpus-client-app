@@ -1133,7 +1133,7 @@ function DocDigitization() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            filters: reviewFilters,
+            filters: { ...reviewFilters, lock: true },
             limit: 1,
           }),
         },
