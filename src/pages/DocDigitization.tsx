@@ -55,6 +55,7 @@ export type Segment = {
   text: string;
   confidence?: number;
   proofread?: boolean;
+  validated?: boolean;
   skipped?: boolean;
   skip_reason?: string;
   edit?: string[];
@@ -823,7 +824,7 @@ function DocDigitization() {
       currentPageSegments.some(
         (seg) =>
           (seg.extraction_metadata || seg.named_entities) &&
-          !seg.proofread &&
+          (IS_DOC_DIGITIZATION_VALIDATION ? !seg.validated : !seg.proofread) &&
           !seg.skipped &&
           seg.originalIndex !== undefined &&
           !flippedViewedOriginalIndices.has(seg.originalIndex),
@@ -855,6 +856,19 @@ function DocDigitization() {
       if (
         segs.length > 0 &&
         segs.every((seg) => seg.proofread || seg.skipped)
+      ) {
+        pages.add(page);
+      }
+    });
+    return pages;
+  }, [segmentsByPage]);
+
+  const validatedPages = useMemo(() => {
+    const pages = new Set<number>();
+    segmentsByPage.forEach((segs, page) => {
+      if (
+        segs.length > 0 &&
+        segs.every((seg) => seg.validated || seg.skipped)
       ) {
         pages.add(page);
       }
@@ -1028,6 +1042,9 @@ function DocDigitization() {
             genre: '',
           };
         }
+        if (seg.validated === undefined) {
+          seg.validated = false;
+        }
       });
 
       const groupedSegments = groupSegmentsByPage(segments);
@@ -1182,6 +1199,9 @@ function DocDigitization() {
             ...seg.extraction_metadata,
             genre: '',
           };
+        }
+        if (seg.validated === undefined) {
+          seg.validated = false;
         }
       });
 
@@ -1401,6 +1421,43 @@ function DocDigitization() {
                     extraction_metadata: {
                       ...(seg.extraction_metadata || {}),
                       category: 'story',
+                    },
+                  }
+                : seg,
+            ),
+          );
+        }
+      }
+      return newMap;
+    });
+    setEditReasons([]);
+
+    const idx = validPages.indexOf(pageNumber);
+    if (idx < validPages.length - 1) {
+      setPageNumber(validPages[idx + 1]);
+    }
+  }
+
+  function handleNextPage() {
+    cleanupEmptyCharacters();
+    setSegmentsByPage((prevMap) => {
+      const newMap = new Map(prevMap);
+      for (const [pg, segs] of newMap.entries()) {
+        if (segs.some((seg) => seg.end === pageNumber)) {
+          newMap.set(
+            pg,
+            segs.map((seg) =>
+              seg.end === pageNumber
+                ? {
+                    ...seg,
+                    validated: true,
+                    edit:
+                      editReasons.length > 0
+                        ? [...editReasons]
+                        : (seg.edit ?? []),
+                    extraction_metadata: {
+                      ...(seg.extraction_metadata || {}),
+                      category: seg.extraction_metadata?.category || 'story',
                     },
                   }
                 : seg,
@@ -1641,14 +1698,20 @@ function DocDigitization() {
                   <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-gray-500">
                     <span>Progress</span>
                     <span>
-                      {proofreadPages.size} / {validPages.length}
+                      {
+                        (IS_DOC_DIGITIZATION_VALIDATION
+                          ? validatedPages
+                          : proofreadPages
+                        ).size
+                      }{' '}
+                      / {validPages.length}
                     </span>
                   </div>
                   <div className="w-full h-1 bg-white/20 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-400 transition-all duration-500 ease-out"
                       style={{
-                        width: `${(proofreadPages.size / (validPages.length || 1)) * 100}%`,
+                        width: `${((IS_DOC_DIGITIZATION_VALIDATION ? validatedPages : proofreadPages).size / (validPages.length || 1)) * 100}%`,
                       }}
                     />
                   </div>
@@ -1678,12 +1741,21 @@ function DocDigitization() {
                             key={`mobile_zoom_page_opt_${p}`}
                             value={p}
                             className={
-                              proofreadPages.has(p)
+                              (IS_DOC_DIGITIZATION_VALIDATION
+                                ? validatedPages
+                                : proofreadPages
+                              ).has(p)
                                 ? 'text-green-600 font-bold'
                                 : 'text-gray-900'
                             }
                           >
-                            P{p} {proofreadPages.has(p) ? '✓' : ''}
+                            P{p}{' '}
+                            {(IS_DOC_DIGITIZATION_VALIDATION
+                              ? validatedPages
+                              : proofreadPages
+                            ).has(p)
+                              ? '✓'
+                              : ''}
                           </option>
                         ))}
                       </select>
@@ -1898,7 +1970,9 @@ function DocDigitization() {
                                 </span>
                                 {(segment.extraction_metadata ||
                                   segment.named_entities) &&
-                                  !segment.proofread &&
+                                  (IS_DOC_DIGITIZATION_VALIDATION
+                                    ? !segment.validated
+                                    : !segment.proofread) &&
                                   segment.originalIndex !== undefined &&
                                   !flippedViewedOriginalIndices.has(
                                     segment.originalIndex,
@@ -2695,14 +2769,20 @@ function DocDigitization() {
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-500">
                         <span>{t('common.overall.progress')}</span>
                         <span>
-                          {proofreadPages.size} / {validPages.length}
+                          {
+                            (IS_DOC_DIGITIZATION_VALIDATION
+                              ? validatedPages
+                              : proofreadPages
+                            ).size
+                          }{' '}
+                          / {validPages.length}
                         </span>
                       </div>
                       <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500 transition-all duration-500 ease-out"
                           style={{
-                            width: `${(proofreadPages.size / (validPages.length || 1)) * 100}%`,
+                            width: `${((IS_DOC_DIGITIZATION_VALIDATION ? validatedPages : proofreadPages).size / (validPages.length || 1)) * 100}%`,
                           }}
                         />
                       </div>
@@ -2735,12 +2815,21 @@ function DocDigitization() {
                                 key={`desktop_page_opt_${p}`}
                                 value={p}
                                 className={
-                                  proofreadPages.has(p)
+                                  (IS_DOC_DIGITIZATION_VALIDATION
+                                    ? validatedPages
+                                    : proofreadPages
+                                  ).has(p)
                                     ? 'text-green-600 font-bold'
                                     : 'text-gray-900 dark:text-gray-100'
                                 }
                               >
-                                Page {p} {proofreadPages.has(p) ? '✓' : ''}
+                                Page {p}{' '}
+                                {(IS_DOC_DIGITIZATION_VALIDATION
+                                  ? validatedPages
+                                  : proofreadPages
+                                ).has(p)
+                                  ? '✓'
+                                  : ''}
                               </option>
                             ))}
                           </select>
@@ -3008,7 +3097,9 @@ function DocDigitization() {
                                     </span>
                                     {(segment.extraction_metadata ||
                                       segment.named_entities) &&
-                                      !segment.proofread &&
+                                      (IS_DOC_DIGITIZATION_VALIDATION
+                                        ? !segment.validated
+                                        : !segment.proofread) &&
                                       segment.originalIndex !== undefined &&
                                       !flippedViewedOriginalIndices.has(
                                         segment.originalIndex,
@@ -3730,44 +3821,68 @@ function DocDigitization() {
 
         {/* Submit Button Section */}
         <div className="border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col sm:flex-row justify-center gap-4">
-          <button
-            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
-            onClick={() => {
-              setSkipCategory('');
-              setSkipReason('');
-              setShowSkipModal(true);
-            }}
-          >
-            <SkipForward className="inline h-4 w-4 mr-1" />
-            Skip
-          </button>
-          <button
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
-            onClick={() => setShowSaveConfirm(true)}
-            disabled={
-              isSubmitting ||
-              hasUnviewedMetadata ||
-              !isLastPageOfSegment ||
-              hasIncompleteRequiredFields ||
-              metadataEditingIndex !== null
-            }
-          >
-            {t('common.savePage')}
-          </button>
+          {!IS_DOC_DIGITIZATION_VALIDATION && (
+            <button
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded disabled:opacity-50 border-none"
+              onClick={() => {
+                setSkipCategory('');
+                setSkipReason('');
+                setShowSkipModal(true);
+              }}
+            >
+              <SkipForward className="inline h-4 w-4 mr-1" />
+              Skip
+            </button>
+          )}
+          {IS_DOC_DIGITIZATION_VALIDATION ? (
+            <button
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
+              onClick={handleNextPage}
+              disabled={
+                isSubmitting ||
+                hasUnviewedMetadata ||
+                !isLastPageOfSegment ||
+                hasIncompleteRequiredFields ||
+                metadataEditingIndex !== null
+              }
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
+              onClick={() => setShowSaveConfirm(true)}
+              disabled={
+                isSubmitting ||
+                hasUnviewedMetadata ||
+                !isLastPageOfSegment ||
+                hasIncompleteRequiredFields ||
+                metadataEditingIndex !== null
+              }
+            >
+              {t('common.savePage')}
+            </button>
+          )}
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50"
             onClick={() => setShowSubmitConfirm(true)}
             disabled={
               isSubmitting ||
               validPages.length === 0 ||
-              proofreadPages.size < validPages.length ||
+              (IS_DOC_DIGITIZATION_VALIDATION
+                ? validatedPages.size < validPages.length
+                : proofreadPages.size < validPages.length) ||
               hasUnviewedMetadata ||
               metadataEditingIndex !== null
             }
           >
             {isSubmitting
               ? 'Submitting...'
-              : proofreadPages.size === validPages.length
+              : (
+                    IS_DOC_DIGITIZATION_VALIDATION
+                      ? validatedPages.size === validPages.length
+                      : proofreadPages.size === validPages.length
+                  )
                 ? t('common.submitCompleteRecord')
                 : 'Submit all pages to enable'}
           </button>
