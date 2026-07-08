@@ -466,7 +466,8 @@
     "skip": {
       "reason": "skip reason:"
     },
-    "edits": "edits:"
+    "edits": "edits:",
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "Set a skip reason before completing edits for story category."
   },
   "ui": {
     "failed": {

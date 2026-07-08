@@ -445,7 +445,8 @@
     "skip": {
       "reason": "स्किप कारण:"
     },
-    "edits": "संपादन:"
+    "edits": "संपादन:",
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "कहानी श्रेणी के लिए संपादन पूरा करने से पहले स्किप कारण सेट करें।"
   },
   "ui": {
     "failed": {

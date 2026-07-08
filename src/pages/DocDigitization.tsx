@@ -802,18 +802,7 @@ function DocDigitization() {
     (seg) => seg.end === pageNumber,
   );
   const validPages = useMemo(
-    () =>
-      [...segmentsByPage.keys()]
-        .filter((page) => {
-          if (!IS_DOC_DIGITIZATION_VALIDATION) return true;
-          const segs = segmentsByPage.get(page);
-          if (!segs || segs.length === 0) return false;
-          return !segs.every(
-            (seg) =>
-              seg.skipped || (seg.edit && seg.edit.includes('rearrangement')),
-          );
-        })
-        .sort((a, b) => a - b),
+    () => [...segmentsByPage.keys()].sort((a, b) => a - b),
     [segmentsByPage],
   );
 
@@ -865,33 +854,46 @@ function DocDigitization() {
     return false;
   }, [segmentsByPage]);
 
+  const isSkippedValid = useCallback((seg: Segment) => {
+    if (!seg.skipped) return true;
+    const category = String(seg.extraction_metadata?.category || '');
+    if (category === 'story' && !(seg.skip_reason && seg.skip_reason.trim())) {
+      return false;
+    }
+    return true;
+  }, []);
+
   const proofreadPages = useMemo(() => {
     const pages = new Set<number>();
     segmentsByPage.forEach((segs, page) => {
       if (
         segs.length > 0 &&
-        segs.every((seg) => seg.proofread || seg.skipped)
+        segs.every(
+          (seg) => seg.proofread || (seg.skipped && isSkippedValid(seg)),
+        )
       ) {
         pages.add(page);
       }
     });
     const validSet = new Set(validPages);
     return new Set([...pages].filter((p) => validSet.has(p)));
-  }, [segmentsByPage, validPages]);
+  }, [segmentsByPage, validPages, isSkippedValid]);
 
   const validatedPages = useMemo(() => {
     const pages = new Set<number>();
     segmentsByPage.forEach((segs, page) => {
       if (
         segs.length > 0 &&
-        segs.every((seg) => seg.validated || seg.skipped)
+        segs.every(
+          (seg) => seg.validated || (seg.skipped && isSkippedValid(seg)),
+        )
       ) {
         pages.add(page);
       }
     });
     const validSet = new Set(validPages);
     return new Set([...pages].filter((p) => validSet.has(p)));
-  }, [segmentsByPage, validPages]);
+  }, [segmentsByPage, validPages, isSkippedValid]);
 
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
@@ -1410,6 +1412,20 @@ function DocDigitization() {
             'All character name and value fields must be filled.',
         }));
         return;
+      }
+      if (IS_DOC_DIGITIZATION_VALIDATION && seg) {
+        const isSkipped = seg.skipped || false;
+        const category = String(seg.extraction_metadata?.category || '');
+        if (
+          isSkipped &&
+          category === 'story' &&
+          !(seg.skip_reason && seg.skip_reason.trim())
+        ) {
+          toast.error(
+            t('common.setASkipReasonBeforeCompletingEditsForStoryCategory'),
+          );
+          return;
+        }
       }
     }
     cleanupEmptyCharacters();

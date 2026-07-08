@@ -458,7 +458,8 @@
     "skip": {
       "reason": "స్కిప్ కారణం:"
     },
-    "edits": "సవరణలు:"
+    "edits": "సవరణలు:",
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "కథ వర్గానికి సవరణలను పూర్తి చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి."
   },
   "ui": {
     "failed": {
