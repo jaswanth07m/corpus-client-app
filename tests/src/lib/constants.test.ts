@@ -61,12 +61,10 @@ describe('constants', () => {
   });
 
   describe('constants module structure', () => {
-    it('should only export BACKEND_URL', async () => {
+    it('should export expected named exports', async () => {
       const constantsModule = await import('../../../src/lib/constants');
-      const exports = Object.keys(constantsModule);
-
-      expect(exports).toEqual(['BACKEND_URL']);
-      expect(exports).toHaveLength(1);
+      expect('BACKEND_URL' in constantsModule).toBe(true);
+      expect('IS_DOC_DIGITIZATION_VALIDATION' in constantsModule).toBe(true);
     });
 
     it('should not have any unexpected exports', async () => {
@@ -76,7 +74,7 @@ describe('constants', () => {
         (constantsModule as Record<string, unknown>).default,
       ).toBeUndefined();
 
-      const validExports = ['BACKEND_URL'];
+      const validExports = ['BACKEND_URL', 'IS_DOC_DIGITIZATION_VALIDATION'];
       const actualExports = Object.keys(constantsModule);
 
       actualExports.forEach((exportName) => {

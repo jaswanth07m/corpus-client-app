@@ -453,7 +453,13 @@
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
     "resume": "Resume",
-    "": ""
+    "": "",
+    "skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped": "స్థితి స్కిప్ అయినప్పుడు కథ వర్గానికి స్కిప్ కారణం ఖాళీగా ఉండకూడదు.",
+    "skip": {
+      "reason": "స్కిప్ కారణం:"
+    },
+    "edits": "సవరణలు:",
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "కథ వర్గానికి సవరణలను పూర్తి చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి."
   },
   "ui": {
     "failed": {
@@ -775,7 +781,19 @@
           "details": "దశ 2: విద్యా వివరాలు"
         }
       }
-    }
+    },
+    "flip": {
+      "and": {
+        "read": {
+          "the": {
+            "other": {
+              "side": ""
+            }
+          }
+        }
+      }
+    },
+    "flip.and.read.the.other.side": "ఫ్లిప్ చేసి మరొక వైపు చదవండి"
   },
   "messages": {
     "networkErrorPleaseTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.",
@@ -842,7 +860,9 @@
     "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
     "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి",
     "authenticationRequired": "ప్రమాణీకరణ అవసరం",
-    "mustBeOnLastPageOfSegment": "సెగ్మెంట్ యొక్క చివరి పేజీలో ఉండాలి"
+    "mustBeOnLastPageOfSegment": "సెగ్మెంట్ యొక్క చివరి పేజీలో ఉండాలి",
+    "mustBeOnTheLastPageOfTheSegmentToProceed": "కొనసాగడానికి సెగ్మెంట్ చివరి పేజీలో ఉండాలి.",
+    "completeAllRequiredFieldsBeforeProceeding": "కొనసాగడానికి ముందు అన్ని అవసరమైన ఫీల్డ్‌లను పూర్తి చేయండి."
   },
   "categories": {
     "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",
@@ -853,7 +873,10 @@
     "organisationType": "సంస్థ రకం",
     "educationCategory": "విద్యా వర్గం",
     "category": "",
-    "categoryStory": "వర్గం: కథ"
+    "categoryStory": "వర్గం: కథ",
+    "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "కథ వర్గానికి స్కిప్ చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి.",
+    "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "స్కిప్ చేసిన సెగ్మెంట్‌లో వర్గాన్ని కథగా సెట్ చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి.",
+    "status": "స్థితి:"
   },
   "media": {
     "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",

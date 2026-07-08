@@ -461,7 +461,13 @@
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
     "resume": "Resume",
-    "": "—"
+    "": "—",
+    "skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped": "Skip reason cannot be empty for story category when status is skipped.",
+    "skip": {
+      "reason": "skip reason:"
+    },
+    "edits": "edits:",
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "Set a skip reason before completing edits for story category."
   },
   "ui": {
     "failed": {
@@ -783,6 +789,17 @@
           "details": "Step 2: Academic Details"
         }
       }
+    },
+    "flip": {
+      "and": {
+        "read": {
+          "the": {
+            "other": {
+              "side": "Flip and read the other side"
+            }
+          }
+        }
+      }
     }
   },
   "messages": {
@@ -851,7 +868,9 @@
     "longitudeMustBeBetween180And180": "Longitude must be between -180 and 180",
     "pleaseEnterTextContent": "Please enter text content",
     "authenticationRequired": "Authentication required",
-    "mustBeOnLastPageOfSegment": "Must be on last page of segment"
+    "mustBeOnLastPageOfSegment": "Must be on last page of segment",
+    "mustBeOnTheLastPageOfTheSegmentToProceed": "Must be on the last page of the segment to proceed.",
+    "completeAllRequiredFieldsBeforeProceeding": "Complete all required fields before proceeding."
   },
   "categories": {
     "chooseACategoryToContributeContent": "Choose a category to contribute content",
@@ -862,7 +881,10 @@
     "organisationType": "Organisation Type",
     "educationCategory": "Education Category",
     "category": "category:",
-    "categoryStory": "Category: Story"
+    "categoryStory": "Category: Story",
+    "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "Set a skip reason before marking as skipped for story category.",
+    "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "Set a skip reason before setting category to story on a skipped segment.",
+    "status": "status:"
   },
   "media": {
     "failedToSwitchCamera": "Failed to switch camera",

@@ -11,6 +11,7 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/lib/constants', () => ({
   BACKEND_URL: 'http://test-api.com',
+  IS_DOC_DIGITIZATION_VALIDATION: false,
 }));
 
 vi.mock('@/components/SuggestionBar', () => ({

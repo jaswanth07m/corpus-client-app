@@ -440,7 +440,13 @@
     "doYouWantToResume": "Do you want to resume where you left off?",
     "startFresh": "Start fresh",
     "resume": "Resume",
-    "": ""
+    "": "",
+    "skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped": "जब स्थिति स्किप हो तो कहानी श्रेणी के लिए स्किप कारण खाली नहीं हो सकता।",
+    "skip": {
+      "reason": "स्किप कारण:"
+    },
+    "edits": "संपादन:",
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "कहानी श्रेणी के लिए संपादन पूरा करने से पहले स्किप कारण सेट करें।"
   },
   "ui": {
     "failed": {
@@ -762,7 +768,19 @@
           "details": "चरण 2: शैक्षणिक विवरण"
         }
       }
-    }
+    },
+    "flip": {
+      "and": {
+        "read": {
+          "the": {
+            "other": {
+              "side": ""
+            }
+          }
+        }
+      }
+    },
+    "flip.and.read.the.other.side": "पलटें और दूसरी तरफ पढ़ें"
   },
   "messages": {
     "networkErrorPleaseTryAgain": "नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।",
@@ -830,7 +848,9 @@
     "longitudeMustBeBetween180And180": "देशांतर -180 और 180 के बीच होना चाहिए",
     "pleaseEnterTextContent": "कृपया टेक्स्ट सामग्री दर्ज करें",
     "authenticationRequired": "प्रमाणीकरण आवश्यक है",
-    "mustBeOnLastPageOfSegment": "सेगमेंट के अंतिम पृष्ठ पर होना चाहिए"
+    "mustBeOnLastPageOfSegment": "सेगमेंट के अंतिम पृष्ठ पर होना चाहिए",
+    "mustBeOnTheLastPageOfTheSegmentToProceed": "आगे बढ़ने के लिए सेगमेंट के अंतिम पृष्ठ पर होना चाहिए।",
+    "completeAllRequiredFieldsBeforeProceeding": "आगे बढ़ने से पहले सभी आवश्यक फ़ील्ड पूर्ण करें।"
   },
   "categories": {
     "chooseACategoryToContributeContent": "सामग्री योगदान देने के लिए एक श्रेणी चुनें",
@@ -841,7 +861,10 @@
     "organisationType": "संगठन प्रकार",
     "educationCategory": "शिक्षा श्रेणी",
     "category": "",
-    "categoryStory": "श्रेणी: कहानी"
+    "categoryStory": "श्रेणी: कहानी",
+    "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "कहानी श्रेणी के लिए स्किप चिह्नित करने से पहले स्किप कारण सेट करें।",
+    "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "स्किप किए गए सेगमेंट पर श्रेणी को कहानी पर सेट करने से पहले स्किप कारण सेट करें।",
+    "status": "स्थिति:"
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",
