@@ -780,7 +780,19 @@
           "details": "దశ 2: విద్యా వివరాలు"
         }
       }
-    }
+    },
+    "flip": {
+      "and": {
+        "read": {
+          "the": {
+            "other": {
+              "side": ""
+            }
+          }
+        }
+      }
+    },
+    "flip.and.read.the.other.side": "ఫ్లిప్ చేసి మరొక వైపు చదవండి"
   },
   "messages": {
     "networkErrorPleaseTryAgain": "నెట్‌వర్క్ లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.",
@@ -847,7 +859,9 @@
     "longitudeMustBeBetween180And180": "రేఖాంశం -180 మరియు 180 మధ్య ఉండాలి",
     "pleaseEnterTextContent": "దయచేసి టెక్స్ట్ కంటెంట్‌ను నమోదు చేయండి",
     "authenticationRequired": "ప్రమాణీకరణ అవసరం",
-    "mustBeOnLastPageOfSegment": "సెగ్మెంట్ యొక్క చివరి పేజీలో ఉండాలి"
+    "mustBeOnLastPageOfSegment": "సెగ్మెంట్ యొక్క చివరి పేజీలో ఉండాలి",
+    "mustBeOnTheLastPageOfTheSegmentToProceed": "కొనసాగడానికి సెగ్మెంట్ చివరి పేజీలో ఉండాలి.",
+    "completeAllRequiredFieldsBeforeProceeding": "కొనసాగడానికి ముందు అన్ని అవసరమైన ఫీల్డ్‌లను పూర్తి చేయండి."
   },
   "categories": {
     "chooseACategoryToContributeContent": "కంటెంట్ సహకరించడానికి వర్గాన్ని ఎంచుకోండి",

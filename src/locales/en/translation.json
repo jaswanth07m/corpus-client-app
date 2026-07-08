@@ -788,6 +788,17 @@
           "details": "Step 2: Academic Details"
         }
       }
+    },
+    "flip": {
+      "and": {
+        "read": {
+          "the": {
+            "other": {
+              "side": "Flip and read the other side"
+            }
+          }
+        }
+      }
     }
   },
   "messages": {
@@ -856,7 +867,9 @@
     "longitudeMustBeBetween180And180": "Longitude must be between -180 and 180",
     "pleaseEnterTextContent": "Please enter text content",
     "authenticationRequired": "Authentication required",
-    "mustBeOnLastPageOfSegment": "Must be on last page of segment"
+    "mustBeOnLastPageOfSegment": "Must be on last page of segment",
+    "mustBeOnTheLastPageOfTheSegmentToProceed": "Must be on the last page of the segment to proceed.",
+    "completeAllRequiredFieldsBeforeProceeding": "Complete all required fields before proceeding."
   },
   "categories": {
     "chooseACategoryToContributeContent": "Choose a category to contribute content",

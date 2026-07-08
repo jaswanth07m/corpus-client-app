@@ -620,45 +620,17 @@ function DocDigitization() {
             seg.skipped = false;
             seg.skip_reason = null;
           } else if (value === 'skipped') {
-            if (currentCategory === 'story' && !seg.skip_reason) {
-              toast.error(
-                t(
-                  'categories.setASkipReasonBeforeMarkingAsSkippedForStoryCategory',
-                ),
-              );
-              return prevMap;
-            }
             seg.proofread = false;
             seg.skipped = true;
           }
           break;
         case 'category':
-          if (value === 'story' && seg.skipped && !seg.skip_reason) {
-            toast.error(
-              t(
-                'categories.setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment',
-              ),
-            );
-            return prevMap;
-          }
           seg.extraction_metadata = {
             ...(seg.extraction_metadata || {}),
             category: value,
           };
           break;
         case 'skip_reason':
-          if (
-            (value === '' || value === 'None') &&
-            seg.skipped &&
-            currentCategory === 'story'
-          ) {
-            toast.error(
-              t(
-                'common.skipReasonCannotBeEmptyForStoryCategoryWhenStatusIsSkipped',
-              ),
-            );
-            return prevMap;
-          }
           seg.skip_reason =
             value === '' || value === 'None' ? null : (value as string);
           break;
@@ -669,6 +641,29 @@ function DocDigitization() {
 
       updatedSegments[segmentIndex] = seg;
       newMap.set(pageNumber, updatedSegments);
+
+      if (seg.originalIndex !== undefined) {
+        for (const [pg, segs] of newMap.entries()) {
+          if (pg === pageNumber) continue;
+          const sibIdx = segs.findIndex(
+            (s) => s.originalIndex === seg.originalIndex,
+          );
+          if (sibIdx !== -1) {
+            const sibSegs = [...segs];
+            sibSegs[sibIdx] = {
+              ...sibSegs[sibIdx],
+              proofread: seg.proofread,
+              skipped: seg.skipped,
+              skip_reason: seg.skip_reason,
+              validated: seg.validated,
+              edit: seg.edit,
+              extraction_metadata: seg.extraction_metadata,
+            };
+            newMap.set(pg, sibSegs);
+          }
+        }
+      }
+
       return newMap;
     });
   };
@@ -837,7 +832,16 @@ function DocDigitization() {
       currentPageSegments
         .filter((seg) => seg.end === pageNumber)
         .some((seg) => {
-          if (seg.skipped) return false;
+          if (seg.skipped) {
+            const category = String(seg.extraction_metadata?.category || '');
+            if (
+              category === 'story' &&
+              !(seg.skip_reason && seg.skip_reason.trim())
+            ) {
+              return true;
+            }
+            return false;
+          }
           return !isSegmentComplete(seg);
         }),
     [currentPageSegments, pageNumber],
@@ -1277,13 +1281,12 @@ function DocDigitization() {
     const updatedSegments = allSegments.map(({ originalIndex, ...rest }) => ({
       ...rest,
       text: rest.text.trim() === '' ? ' ' : rest.text,
+      validated: rest.validated ?? false,
       edit: rest.edit ?? [],
       proofread: rest.skipped ? false : true,
       skipped: !!rest.skipped,
       skip_reason:
-        rest.skip_reason && rest.skip_reason.trim()
-          ? rest.skip_reason
-          : undefined,
+        rest.skip_reason && rest.skip_reason.trim() ? rest.skip_reason : null,
       named_entities: {
         ...(rest.named_entities as Record<string, unknown>),
         locations:
@@ -1439,6 +1442,33 @@ function DocDigitization() {
   }
 
   function handleNextPage() {
+    if (!isLastPageOfSegment) {
+      toast.error(t('validation.mustBeOnTheLastPageOfTheSegmentToProceed'));
+      return;
+    }
+    if (hasUnviewedMetadata) {
+      toast.error(t('ui.flip.and.read.the.other.side'));
+      return;
+    }
+    const incompleteSegments = currentPageSegments
+      .filter((seg) => seg.end === pageNumber)
+      .filter((seg) => {
+        if (seg.skipped) {
+          const category = String(seg.extraction_metadata?.category || '');
+          if (
+            category === 'story' &&
+            !(seg.skip_reason && seg.skip_reason.trim())
+          ) {
+            return true;
+          }
+          return false;
+        }
+        return !isSegmentComplete(seg);
+      });
+    if (incompleteSegments.length > 0) {
+      toast.error(t('validation.completeAllRequiredFieldsBeforeProceeding'));
+      return;
+    }
     cleanupEmptyCharacters();
     setSegmentsByPage((prevMap) => {
       const newMap = new Map(prevMap);
@@ -3838,13 +3868,7 @@ function DocDigitization() {
             <button
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
               onClick={handleNextPage}
-              disabled={
-                isSubmitting ||
-                hasUnviewedMetadata ||
-                !isLastPageOfSegment ||
-                hasIncompleteRequiredFields ||
-                metadataEditingIndex !== null
-              }
+              disabled={isSubmitting || metadataEditingIndex !== null}
             >
               Next
             </button>
