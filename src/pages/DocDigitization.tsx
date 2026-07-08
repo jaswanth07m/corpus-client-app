@@ -1463,23 +1463,49 @@ function DocDigitization() {
       toast.error(t('ui.flip.and.read.the.other.side'));
       return;
     }
-    const incompleteSegments = currentPageSegments
+    const missingFields = new Set<string>();
+    currentPageSegments
       .filter((seg) => seg.end === pageNumber)
-      .filter((seg) => {
+      .forEach((seg) => {
         if (seg.skipped) {
           const category = String(seg.extraction_metadata?.category || '');
           if (
             category === 'story' &&
             !(seg.skip_reason && seg.skip_reason.trim())
           ) {
-            return true;
+            missingFields.add('skip reason');
           }
-          return false;
+          return;
         }
-        return !isSegmentComplete(seg);
+        const meta = seg.extraction_metadata || {};
+        if (!meta.genre || String(meta.genre).trim() === '')
+          missingFields.add('genre');
+        if (!meta.moral || String(meta.moral).trim() === '')
+          missingFields.add('moral');
+        if (!meta.title || String(meta.title).trim() === '')
+          missingFields.add('title');
+        if (!meta.author || String(meta.author).trim() === '')
+          missingFields.add('author');
+        const locs = seg.named_entities?.locations;
+        if (
+          !locs ||
+          (typeof locs === 'string' && locs.trim() === '') ||
+          (Array.isArray(locs) && locs.length === 0)
+        )
+          missingFields.add('locations');
+        const chars = seg.named_entities?.characters as
+          | Record<string, unknown>
+          | undefined;
+        if (
+          !chars ||
+          Object.entries(chars).filter(([k]) => !k.startsWith('__new_'))
+            .length === 0
+        )
+          missingFields.add('characters');
+        if (!(seg.edit && seg.edit.length > 0)) missingFields.add('edits');
       });
-    if (incompleteSegments.length > 0) {
-      toast.error(t('validation.completeAllRequiredFieldsBeforeProceeding'));
+    if (missingFields.size > 0) {
+      toast.error(`Complete required fields: ${[...missingFields].join(', ')}`);
       return;
     }
     cleanupEmptyCharacters();
