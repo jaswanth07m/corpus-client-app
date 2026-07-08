@@ -802,7 +802,18 @@ function DocDigitization() {
     (seg) => seg.end === pageNumber,
   );
   const validPages = useMemo(
-    () => [...segmentsByPage.keys()].sort((a, b) => a - b),
+    () =>
+      [...segmentsByPage.keys()]
+        .filter((page) => {
+          if (!IS_DOC_DIGITIZATION_VALIDATION) return true;
+          const segs = segmentsByPage.get(page);
+          if (!segs || segs.length === 0) return false;
+          return !segs.every(
+            (seg) =>
+              seg.skipped || (seg.edit && seg.edit.includes('rearrangement')),
+          );
+        })
+        .sort((a, b) => a - b),
     [segmentsByPage],
   );
 
@@ -864,8 +875,9 @@ function DocDigitization() {
         pages.add(page);
       }
     });
-    return pages;
-  }, [segmentsByPage]);
+    const validSet = new Set(validPages);
+    return new Set([...pages].filter((p) => validSet.has(p)));
+  }, [segmentsByPage, validPages]);
 
   const validatedPages = useMemo(() => {
     const pages = new Set<number>();
@@ -877,8 +889,9 @@ function DocDigitization() {
         pages.add(page);
       }
     });
-    return pages;
-  }, [segmentsByPage]);
+    const validSet = new Set(validPages);
+    return new Set([...pages].filter((p) => validSet.has(p)));
+  }, [segmentsByPage, validPages]);
 
   useEffect(() => {
     if (validPages.length > 0 && !validPages.includes(pageNumber)) {
