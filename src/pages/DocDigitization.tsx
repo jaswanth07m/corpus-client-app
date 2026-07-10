@@ -343,7 +343,11 @@ function groupSegmentsByPage(segments: Segment[]): Map<number, Segment[]> {
 function DocDigitization() {
   const { t } = useTranslation();
   const fallbackFilters = useMemo(
-    () => ({ media_type: ['document'], is_fully_proofread: true }),
+    () => ({
+      media_type: ['document'],
+      is_fully_proofread: true,
+      is_fully_validated: false,
+    }),
     [],
   );
   // const { reviewFilters, isReady: areReviewFiltersReady } =
