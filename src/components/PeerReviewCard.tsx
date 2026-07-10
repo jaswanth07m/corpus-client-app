@@ -77,7 +77,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   language: propLanguage,
   category,
 }) => {
-  const { languages } = useLanguages();
+  const { languages, languageOptions } = useLanguages();
   const recordUrl = `${window.location.origin}/records/${record_id}`;
   const [changed, setChanged] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -658,9 +658,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                 />
               </SelectTrigger>
               <SelectContent>
-                {languages.map((lang) => (
-                  <SelectItem key={lang} value={lang}>
-                    {lang}
+                {languageOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -655,7 +655,7 @@ function InlineGeoMap({ userIdentifier }: { userIdentifier: string }) {
 }
 
 function Profile() {
-  const { languages } = useLanguages();
+  const { languages, languageOptions } = useLanguages();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -1851,9 +1851,9 @@ function Profile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {languages.map((lang) => (
-                      <option key={lang} value={lang}>
-                        {lang}
+                    {languageOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>
@@ -1944,9 +1944,9 @@ function Profile() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {languages.map((lang) => (
-                      <option key={lang} value={lang}>
-                        {lang}
+                    {languageOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>

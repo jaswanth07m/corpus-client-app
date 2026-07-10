@@ -199,7 +199,7 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
   handleManualLocationSubmit,
 }) => {
   const { t } = useTranslation();
-  const { languages } = useLanguages();
+  const { languages, languageOptions } = useLanguages();
   const { preferences, setPreferences } = useUserPreferences();
   const [showPreferencesPanel, setShowPreferencesPanel] = useState(false);
   const [localPrefs, setLocalPrefs] = useState({
@@ -1827,9 +1827,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                 onChange={(e) => setSelectedLangugae(e.target.value)}
               >
                 <option value="">{t('common.SelectALanguage')}</option>
-                {languages.map((lang) => (
-                  <option key={lang} value={lang}>
-                    {lang}
+                {languageOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
                   </option>
                 ))}
               </select>
@@ -1969,9 +1969,9 @@ const ContentInput: React.FC<Partial<ContentInputProps>> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                   >
                     <option value="">Select Language</option>
-                    {languages.map((lang) => (
-                      <option key={lang} value={lang}>
-                        {lang}
+                    {languageOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>

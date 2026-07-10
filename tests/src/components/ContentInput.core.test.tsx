@@ -91,7 +91,7 @@ vi.mock('@/lib/languages', () => ({
     isLoading: false,
     error: null,
   }),
-  DEFAULT_PROFILE_LANGUAGES: ['telugu', 'hindi', 'english', 'urdu'],
+  DEFAULT_PROFILE_LANGUAGES: ['te', 'hi', 'en', 'ur'],
 }));
 
 vi.mock('@/hooks/useNetworkStrength', () => ({
@@ -813,8 +813,8 @@ describe('ContentInput', () => {
 
     it('displays language options', () => {
       renderWithProvider(<ContentInput {...createMockProps()} />);
-      expect(screen.getByText('assamese')).toBeInTheDocument();
-      expect(screen.getByText('hindi')).toBeInTheDocument();
+      expect(screen.getByText('Assamese')).toBeInTheDocument();
+      expect(screen.getByText('Hindi')).toBeInTheDocument();
     });
 
     it('calls setSelectedLangugae when language is selected', () => {

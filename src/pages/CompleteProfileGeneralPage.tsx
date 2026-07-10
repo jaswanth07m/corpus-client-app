@@ -25,7 +25,12 @@ import {
   internetSpeeds,
   dailyDataLimits,
 } from '@/lib/profileConstants';
-import { DEFAULT_PROFILE_LANGUAGES, useLanguages } from '@/lib/languages';
+import {
+  DEFAULT_PROFILE_LANGUAGES,
+  useLanguages,
+  getLanguageCode,
+  getLanguageName,
+} from '@/lib/languages';
 import LocationPicker from '@/components/LocationPicker';
 import {
   Globe,
@@ -337,7 +342,12 @@ const CompleteProfileGeneralPage: React.FC = () => {
       profile.language_proficiencies?.proficiencies &&
       profile.language_proficiencies.proficiencies.length > 0
     ) {
-      setLanguageProficiencies(profile.language_proficiencies.proficiencies);
+      setLanguageProficiencies(
+        profile.language_proficiencies.proficiencies.map((lp) => ({
+          ...lp,
+          language: getLanguageCode(lp.language),
+        })),
+      );
     }
 
     if (profile.from_place) {
@@ -523,7 +533,7 @@ const CompleteProfileGeneralPage: React.FC = () => {
       finalizeData.append('user_id', userId);
       finalizeData.append('media_type', 'document');
       finalizeData.append('release_rights', 'creator');
-      finalizeData.append('language', 'english');
+      finalizeData.append('language', 'en');
       finalizeData.append('total_chunks', '1');
       finalizeData.append('filename', file.name);
 
@@ -648,9 +658,12 @@ const CompleteProfileGeneralPage: React.FC = () => {
       language_proficiencies:
         languageProficiencies.filter((lp) => lp.proficiency).length > 0
           ? {
-              proficiencies: languageProficiencies.filter(
-                (lp) => lp.proficiency,
-              ),
+              proficiencies: languageProficiencies
+                .filter((lp) => lp.proficiency)
+                .map((lp) => ({
+                  ...lp,
+                  language: getLanguageName(lp.language),
+                })),
             }
           : null,
       phone_privacy: formData.phone_privacy || null,

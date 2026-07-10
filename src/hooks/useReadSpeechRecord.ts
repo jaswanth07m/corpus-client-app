@@ -72,7 +72,7 @@ export function useReadSpeechRecord() {
   const fetchRecords = useCallback(
     async (limit = 5, filters?: Record<string, unknown>) => {
       const activeFilters = filters ?? {
-        language: ['telugu'],
+        language: ['te'],
         media_type: ['text'],
         source_label: 'vikasitha-sentence-source',
       };
