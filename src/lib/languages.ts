@@ -6,20 +6,27 @@ export interface LanguageOption {
   label: string;
 }
 
-export const DEFAULT_PROFILE_LANGUAGES = ['telugu', 'hindi', 'english', 'urdu'];
+export interface LanguageResponseItem {
+  name: string;
+  code: string | null;
+}
+
+export const DEFAULT_PROFILE_LANGUAGES = ['te', 'hi', 'en', 'ur'];
 
 export function formatLanguageLabel(language: string): string {
   return language.charAt(0).toUpperCase() + language.slice(1);
 }
 
 export function toLanguageOptions(languages: string[]): LanguageOption[] {
-  return languages.map((language) => ({
-    value: language,
-    label: formatLanguageLabel(language),
+  return languages.map((code) => ({
+    value: code,
+    label: formatLanguageLabel(cachedLanguageNames[code] ?? code),
   }));
 }
 
 let cachedLanguages: string[] | null = null;
+let cachedLanguageNames: Record<string, string> = {};
+let cachedLanguageCodes: Record<string, string> = {};
 let inFlightLanguagesRequest: Promise<string[]> | null = null;
 
 export async function fetchLanguages(): Promise<string[]> {
@@ -32,19 +39,37 @@ export async function fetchLanguages(): Promise<string[]> {
   }
 
   inFlightLanguagesRequest = axiosInstance
-    .get<string[]>('/languages')
+    .get<LanguageResponseItem[]>('/languages')
     .then((response) => {
       const filtered = response.data.filter(
-        (lang) => lang.toLowerCase() !== 'na',
+        (item) => item.name.toLowerCase() !== 'na',
       );
-      cachedLanguages = filtered;
-      return filtered;
+      cachedLanguageNames = {};
+      cachedLanguageCodes = {};
+      for (const item of filtered) {
+        if (item.code) {
+          cachedLanguageNames[item.code] = item.name;
+          cachedLanguageCodes[item.name] = item.code;
+        }
+      }
+      cachedLanguages = filtered
+        .map((item) => item.code)
+        .filter((code): code is string => code !== null);
+      return cachedLanguages;
     })
     .finally(() => {
       inFlightLanguagesRequest = null;
     });
 
   return inFlightLanguagesRequest;
+}
+
+export function getLanguageName(code: string): string {
+  return cachedLanguageNames[code] ?? code;
+}
+
+export function getLanguageCode(name: string): string {
+  return cachedLanguageCodes[name] ?? name;
 }
 
 export function useLanguages() {

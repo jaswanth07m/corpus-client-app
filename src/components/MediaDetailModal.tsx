@@ -88,7 +88,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   onClose,
   isOwnProfile,
 }) => {
-  const { languages } = useLanguages();
+  const { languages, languageOptions } = useLanguages();
   const [showHistory, setShowHistory] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -926,9 +926,9 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {languages.map((lang) => (
-                          <SelectItem key={lang} value={lang}>
-                            {lang}
+                        {languageOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
                           </SelectItem>
                         ))}
                       </SelectContent>

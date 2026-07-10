@@ -29,7 +29,7 @@ import { useLanguages } from '@/lib/languages';
 const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
   isSharedView = false,
 }) => {
-  const { languages } = useLanguages();
+  const { languages, languageOptions } = useLanguages();
   const { t } = useTranslation();
   const { recordId } = useParams<{ recordId: string }>();
   const [record, setRecord] = useState<ContributionItem | null>(null);
@@ -675,9 +675,9 @@ const RecordDetails: React.FC<{ isSharedView?: boolean }> = ({
                           <option value="">
                             {t('common.SelectALanguage')}
                           </option>
-                          {languages.map((lang) => (
-                            <option key={lang} value={lang}>
-                              {lang}
+                          {languageOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
                             </option>
                           ))}
                         </select>

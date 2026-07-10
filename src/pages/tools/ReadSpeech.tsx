@@ -45,20 +45,20 @@ const LANGUAGE_CONFIGS: Record<
   string,
   { label: string; shortLabel: string; filters: ReviewFilters }
 > = {
-  telugu: {
+  te: {
     label: 'Telugu',
     shortLabel: 'అ',
     filters: {
-      language: ['telugu'],
+      language: ['te'],
       media_type: ['text'],
       source_label: 'vikasitha-sentence-source',
     },
   },
-  hindi: {
+  hi: {
     label: 'Hindi',
     shortLabel: 'अ',
     filters: {
-      language: ['hindi'],
+      language: ['hi'],
       media_type: ['text'],
       source_label: 'panchatantra-hindi-sentence-source',
     },
@@ -192,12 +192,12 @@ export default function ReadSpeech() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('telugu');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('te');
 
   const fallbackFilters = useMemo<ReviewFilters>(
     () =>
       LANGUAGE_CONFIGS[selectedLanguage]?.filters ??
-      LANGUAGE_CONFIGS.telugu.filters,
+      LANGUAGE_CONFIGS.te.filters,
     [selectedLanguage],
   );
   const { reviewFilters, isReady: areReviewFiltersReady } =
@@ -209,7 +209,7 @@ export default function ReadSpeech() {
   const effectiveFilters = useMemo<ReviewFilters>(() => {
     const langConfig =
       LANGUAGE_CONFIGS[selectedLanguage]?.filters ??
-      LANGUAGE_CONFIGS.telugu.filters;
+      LANGUAGE_CONFIGS.te.filters;
     return {
       ...reviewFilters,
       language: langConfig.language,
