@@ -15,7 +15,7 @@
 // to getRelativePointerPosition() (content space, i.e. inverse of the
 // Stage's own transform), which is what keeps drawing/selecting correct at
 // any zoom level or pan offset.
-
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { RefObject } from 'react';
 import {
@@ -75,6 +75,7 @@ export function AnnotationCanvas({
   onSelectShape,
   maxHeight = 520,
 }: AnnotationCanvasProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectedRectRef = useRef<Konva.Rect>(null);

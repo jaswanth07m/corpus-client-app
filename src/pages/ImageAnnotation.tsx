@@ -10,6 +10,7 @@
 // Not implemented by design (per MVP scope): polygons/segmentation, AI
 // assistance, persistence, record queue integration.
 
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import {
@@ -33,6 +34,7 @@ const DEFAULT_IMAGE_URL =
   'https://placehold.co/1024x683/e6f1fb/0c447c?text=Upload+an+image+to+annotate';
 
 export function ImageAnnotationPage() {
+  const { t } = useTranslation();
   const [imageUrl, setImageUrl] = useState<string>(DEFAULT_IMAGE_URL);
   const [hasImage, setHasImage] = useState(false);
   const [shapes, setShapes] = useState<AnnotationShape[]>([]);

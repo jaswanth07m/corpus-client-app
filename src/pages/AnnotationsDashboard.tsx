@@ -44,13 +44,7 @@ const AnnotationsDashboard = () => {
       icon: <Image className="h-8 w-8 text-emerald-600" />,
       path: '/tools/image-review',
     },
-    {
-      id: 'image-annotation',
-      title: t('tools.imageAnnotation'),
-      description: t('tools.imageAnnotationDescription'),
-      icon: <Image className="h-8 w-8 text-emerald-600" />,
-      path: '/tools/image-annotation',
-    },
+
     {
       id: 'audio-review',
       title: t('tools.audioTool', 'Audio Tool'),
