@@ -446,7 +446,25 @@
       "reason": "स्किप कारण:"
     },
     "edits": "संपादन:",
-    "setASkipReasonBeforeCompletingEditsForStoryCategory": "कहानी श्रेणी के लिए संपादन पूरा करने से पहले स्किप कारण सेट करें।"
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "कहानी श्रेणी के लिए संपादन पूरा करने से पहले स्किप कारण सेट करें।",
+    "drawBoundingBoxesOnAnImageAndOptionallyLabelThemThisIsALocalPrototypeNothingIsSavedToTheServerYet": "",
+    "noImageLoadedYet": "",
+    "uploadAnImageToStartDrawingBoundingBoxesNothingIsSentAnywhereThisStaysOnYourDeviceUntilTheAnnotationBackendIsConnected": "",
+    "uploadImage": "",
+    "draw": {
+      "box": ""
+    },
+    "selectMove": "",
+    "deleteSelected": "",
+    "clearAll": "",
+    "eg": {
+      "person": {
+        "car": {
+          "sign": ""
+        }
+      }
+    },
+    "annotationData": ""
   },
   "ui": {
     "failed": {
@@ -864,7 +882,8 @@
     "categoryStory": "श्रेणी: कहानी",
     "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "कहानी श्रेणी के लिए स्किप चिह्नित करने से पहले स्किप कारण सेट करें।",
     "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "स्किप किए गए सेगमेंट पर श्रेणी को कहानी पर सेट करने से पहले स्किप कारण सेट करें।",
-    "status": "स्थिति:"
+    "status": "स्थिति:",
+    "labelFor": ""
   },
   "media": {
     "failedToSwitchCamera": "कैमरा बदलने में विफल",
@@ -907,7 +926,8 @@
     "copyRecordUrl": "रिकॉर्ड URL कॉपी करें",
     "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "",
     "skipRecord": "",
-    "rerecord": ""
+    "rerecord": "",
+    "fitImageToScreen": ""
   },
   "stats": {
     "contributionsYet": "अभी तक योगदान नहीं।",
@@ -1046,7 +1066,9 @@
     },
     "tools": {
       "title": "उपकरण (Tools)",
-      "description": "एनोटेशन और प्रूफरीडिंग टूल्स तक पहुंचें।"
+      "description": "एनोटेशन और प्रूफरीडिंग टूल्स तक पहुंचें।",
+      "imageAnnotation": "छवि एनोटेशन",
+      "imageAnnotationDescription": "छवियों में वस्तुओं, क्षेत्रों और पैटर्न को एनोटेट करें"
     },
     "peerReviewTool": {
       "title": "सहकर्मी समीक्षा",

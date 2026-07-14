@@ -467,7 +467,25 @@
       "reason": "skip reason:"
     },
     "edits": "edits:",
-    "setASkipReasonBeforeCompletingEditsForStoryCategory": "Set a skip reason before completing edits for story category."
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "Set a skip reason before completing edits for story category.",
+    "drawBoundingBoxesOnAnImageAndOptionallyLabelThemThisIsALocalPrototypeNothingIsSavedToTheServerYet": "Draw bounding boxes on an image and optionally label them. This is a\n          local prototype — nothing is saved to the server yet.",
+    "noImageLoadedYet": "No image loaded yet",
+    "uploadAnImageToStartDrawingBoundingBoxesNothingIsSentAnywhereThisStaysOnYourDeviceUntilTheAnnotationBackendIsConnected": "Upload an image to start drawing bounding boxes. Nothing is sent\n                anywhere — this stays on your device until the annotation\n                backend is connected.",
+    "uploadImage": "Upload image",
+    "draw": {
+      "box": "Draw box"
+    },
+    "selectMove": "Select / move",
+    "deleteSelected": "Delete selected",
+    "clearAll": "Clear all",
+    "eg": {
+      "person": {
+        "car": {
+          "sign": "e.g. person, car, sign"
+        }
+      }
+    },
+    "annotationData": "Annotation data"
   },
   "ui": {
     "failed": {
@@ -884,7 +902,8 @@
     "categoryStory": "Category: Story",
     "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "Set a skip reason before marking as skipped for story category.",
     "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "Set a skip reason before setting category to story on a skipped segment.",
-    "status": "status:"
+    "status": "status:",
+    "labelFor": "Label for"
   },
   "media": {
     "failedToSwitchCamera": "Failed to switch camera",
@@ -932,7 +951,8 @@
     "audio": "Audio",
     "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "1. Are you sure all the text segments are validated to the\n                  page images provided?",
     "skipRecord": "Skip Record",
-    "rerecord": "Re-record"
+    "rerecord": "Re-record",
+    "fitImageToScreen": "Fit image to screen"
   },
   "stats": {
     "contributionsYet": "contributions yet.",
@@ -1071,7 +1091,9 @@
     },
     "tools": {
       "title": "Tools",
-      "description": "Access annotation and proofreading tools."
+      "description": "Access annotation and proofreading tools.",
+      "imageAnnotation": "Image Annotation",
+      "imageAnnotationDescription": "Annotate objects, regions, and patterns in images"
     },
     "peerReviewTool": {
       "title": "Peer Review",

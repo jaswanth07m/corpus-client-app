@@ -459,7 +459,25 @@
       "reason": "స్కిప్ కారణం:"
     },
     "edits": "సవరణలు:",
-    "setASkipReasonBeforeCompletingEditsForStoryCategory": "కథ వర్గానికి సవరణలను పూర్తి చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి."
+    "setASkipReasonBeforeCompletingEditsForStoryCategory": "కథ వర్గానికి సవరణలను పూర్తి చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి.",
+    "drawBoundingBoxesOnAnImageAndOptionallyLabelThemThisIsALocalPrototypeNothingIsSavedToTheServerYet": "",
+    "noImageLoadedYet": "",
+    "uploadAnImageToStartDrawingBoundingBoxesNothingIsSentAnywhereThisStaysOnYourDeviceUntilTheAnnotationBackendIsConnected": "",
+    "uploadImage": "",
+    "draw": {
+      "box": ""
+    },
+    "selectMove": "",
+    "deleteSelected": "",
+    "clearAll": "",
+    "eg": {
+      "person": {
+        "car": {
+          "sign": ""
+        }
+      }
+    },
+    "annotationData": ""
   },
   "ui": {
     "failed": {
@@ -876,7 +894,8 @@
     "categoryStory": "వర్గం: కథ",
     "setASkipReasonBeforeMarkingAsSkippedForStoryCategory": "కథ వర్గానికి స్కిప్ చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి.",
     "setASkipReasonBeforeSettingCategoryToStoryOnASkippedSegment": "స్కిప్ చేసిన సెగ్మెంట్‌లో వర్గాన్ని కథగా సెట్ చేయడానికి ముందు స్కిప్ కారణాన్ని సెట్ చేయండి.",
-    "status": "స్థితి:"
+    "status": "స్థితి:",
+    "labelFor": ""
   },
   "media": {
     "failedToSwitchCamera": "కెమెరా మార్చడం విఫలమైంది",
@@ -919,7 +938,8 @@
     "copyRecordUrl": "రికార్డ్ URL కాపీ చేయండి",
     "1AreYouSureAllTheTextSegmentsAreValidatedToThePageImagesProvided": "",
     "skipRecord": "",
-    "rerecord": ""
+    "rerecord": "",
+    "fitImageToScreen": ""
   },
   "stats": {
     "contributionsYet": "ఇంకా సహకారాలు లేవు.",
@@ -1058,7 +1078,9 @@
     },
     "tools": {
       "title": "సాధనాలు",
-      "description": "అనోటేషన్ మరియు ప్రూఫ్ రీడింగ్ సాధనాలను యాక్సెస్ చేయండి."
+      "description": "అనోటేషన్ మరియు ప్రూఫ్ రీడింగ్ సాధనాలను యాక్సెస్ చేయండి.",
+      "imageAnnotation": "చిత్ర ఉల్లేఖనం",
+      "imageAnnotationDescription": "చిత్రాలలో వస్తువులు, ప్రాంతాలు మరియు నమూనాలను ఉల్లేఖించండి"
     },
     "peerReviewTool": {
       "title": "పీర్ రివ్యూ",

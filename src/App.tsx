@@ -27,6 +27,7 @@ import RecordDetails from './pages/RecordDetails';
 import CompleteProfileGeneralPage from './pages/CompleteProfileGeneralPage';
 import CompleteProfileInternPage from './pages/CompleteProfileInternPage';
 import ReadSpeech from './pages/tools/ReadSpeech';
+import ImageAnnotationPage from './pages/ImageAnnotation';
 
 const queryClient = new QueryClient();
 
@@ -192,6 +193,14 @@ const App = () => (
                     element={
                       <RequireAuth>
                         <ReadSpeech />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/tools/image-annotation"
+                    element={
+                      <RequireAuth>
+                        <ImageAnnotationPage />
                       </RequireAuth>
                     }
                   />
