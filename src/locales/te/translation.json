@@ -477,7 +477,9 @@
         }
       }
     },
-    "annotationData": ""
+    "annotationData": "",
+    "downloadJson": "",
+    "importJson": ""
   },
   "ui": {
     "failed": {

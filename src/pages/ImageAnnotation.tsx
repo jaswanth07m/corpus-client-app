@@ -20,6 +20,8 @@ import {
   Trash2,
   Eraser,
   Upload,
+  Download,
+  FileUp,
 } from 'lucide-react';
 import { AnnotationCanvas } from '../components/annotation/AnnotationCanvas';
 import type { AnnotationShape, AnnotationTool } from '../types/annotation';
@@ -43,6 +45,7 @@ export function ImageAnnotationPage() {
   const [labelInput, setLabelInput] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const jsonInputRef = useRef<HTMLInputElement>(null);
   const objectUrlRef = useRef<string | null>(null);
 
   const handleFileChange = useCallback(
@@ -102,6 +105,55 @@ export function ImageAnnotationPage() {
     setShapes([]);
     setSelectedShapeId(null);
   }, []);
+
+  const handleDownloadJson = useCallback(() => {
+    const json = JSON.stringify(shapes, null, 2);
+
+    const blob = new Blob([json], {
+      type: 'application/json',
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'annotations.json';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  }, [shapes]);
+
+  const handleImportJson = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+
+      // Allow selecting the same file again later
+      event.target.value = '';
+
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const importedShapes: AnnotationShape[] = JSON.parse(text);
+
+        // Basic validation
+        if (!Array.isArray(importedShapes)) {
+          throw new Error('Invalid annotation file');
+        }
+
+        setShapes(importedShapes);
+        setSelectedShapeId(null);
+        setLabelInput('');
+      } catch (error) {
+        console.error('Failed to import annotations:', error);
+        alert('Invalid annotation JSON file.');
+      }
+    },
+    [],
+  );
 
   const handleLabelInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -170,6 +222,14 @@ export function ImageAnnotationPage() {
         accept="image/*"
         ref={fileInputRef}
         onChange={handleFileChange}
+        className="hidden"
+      />
+
+      <input
+        type="file"
+        accept=".json,application/json"
+        ref={jsonInputRef}
+        onChange={handleImportJson}
         className="hidden"
       />
 
@@ -267,6 +327,27 @@ export function ImageAnnotationPage() {
               >
                 <Upload className="h-4 w-4" />
                 {t('common.uploadImage')}
+              </Button>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={shapes.length === 0}
+                onClick={handleDownloadJson}
+              >
+                <Download className="h-4 w-4" />
+                {t('common.downloadJson')}
+              </Button>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => jsonInputRef.current?.click()}
+              >
+                <FileUp className="h-4 w-4" />
+                {t('common.importJson')}
               </Button>
             </CardContent>
           </Card>

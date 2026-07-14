@@ -7,6 +7,8 @@
       "digits": "/10 digits"
     },
     "91": "+91",
+    "downloadJson": "Download JSON",
+    "importJson": "Import JSON",
     "proofread": {
       "ocr": {
         "text": "Proofread OCR Text"
