@@ -487,7 +487,8 @@
         }
       }
     },
-    "annotationData": "Annotation data"
+    "annotationData": "Annotation data",
+    "exportYolo": "Export YOLO"
   },
   "ui": {
     "failed": {

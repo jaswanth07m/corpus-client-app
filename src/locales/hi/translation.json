@@ -466,7 +466,8 @@
     },
     "annotationData": "",
     "downloadJson": "",
-    "importJson": ""
+    "importJson": "",
+    "exportYolo": ""
   },
   "ui": {
     "failed": {

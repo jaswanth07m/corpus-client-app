@@ -22,6 +22,7 @@ import {
   Upload,
   Download,
   FileUp,
+  FileText,
 } from 'lucide-react';
 import { AnnotationCanvas } from '../components/annotation/AnnotationCanvas';
 import type { AnnotationShape, AnnotationTool } from '../types/annotation';
@@ -124,6 +125,66 @@ export function ImageAnnotationPage() {
     document.body.removeChild(link);
 
     URL.revokeObjectURL(url);
+  }, [shapes]);
+
+  const handleDownloadYolo = useCallback(() => {
+    // Build a label -> class id mapping
+    const labelMap = new Map<string, number>();
+    const classes: string[] = [];
+
+    const lines = shapes.map((shape) => {
+      const label = shape.label ?? 'unlabeled';
+
+      if (!labelMap.has(label)) {
+        labelMap.set(label, labelMap.size);
+        classes.push(label);
+      }
+
+      const classId = labelMap.get(label)!;
+
+      const centerX = shape.x + shape.width / 2;
+      const centerY = shape.y + shape.height / 2;
+
+      return [
+        classId,
+        centerX.toFixed(6),
+        centerY.toFixed(6),
+        shape.width.toFixed(6),
+        shape.height.toFixed(6),
+      ].join(' ');
+    });
+
+    const blob = new Blob([lines.join('\n')], {
+      type: 'text/plain',
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'annotations.txt';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+
+    const classesBlob = new Blob([classes.join('\n')], {
+      type: 'text/plain',
+    });
+
+    const classesUrl = URL.createObjectURL(classesBlob);
+
+    const classesLink = document.createElement('a');
+    classesLink.href = classesUrl;
+    classesLink.download = 'classes.txt';
+
+    document.body.appendChild(classesLink);
+    classesLink.click();
+    document.body.removeChild(classesLink);
+
+    URL.revokeObjectURL(classesUrl);
   }, [shapes]);
 
   const handleImportJson = useCallback(
@@ -348,6 +409,17 @@ export function ImageAnnotationPage() {
               >
                 <FileUp className="h-4 w-4" />
                 {t('common.importJson')}
+              </Button>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={shapes.length === 0}
+                onClick={handleDownloadYolo}
+              >
+                <FileText className="h-4 w-4" />
+                {t('common.exportYolo')}
               </Button>
             </CardContent>
           </Card>
