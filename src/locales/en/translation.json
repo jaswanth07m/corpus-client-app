@@ -1150,6 +1150,7 @@
     "peerReview": "Peer Review",
     "peerReviewDescription": "Review other users' contributions and provide feedback",
     "imageAnnotation": "Image Annotation",
+    "imageReview": "Image Review",
     "imageAnnotationDescription": "Annotate objects, regions, and patterns in images",
     "audioTool": "Audio Tool",
     "audioToolDescription": "Review and annotate audio recordings",

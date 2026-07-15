@@ -36,13 +36,21 @@ const AnnotationsDashboard = () => {
     },
     {
       id: 'image-review',
-      title: t('tools.imageAnnotation', 'Image Annotation'),
+      title: t('tools.imageReview', 'Image Review'),
       description: t(
         'tools.imageAnnotationDescription',
         'Annotate objects, regions, and patterns in images.',
       ),
       icon: <Image className="h-8 w-8 text-emerald-600" />,
       path: '/tools/image-review',
+    },
+
+    {
+      id: 'image-annotation',
+      title: 'Image Annotation ',
+      description: 'Draw, edit and export bounding box annotations on images.',
+      icon: <Image className="h-8 w-8 text-emerald-600" />,
+      path: '/tools/image-annotation',
     },
 
     {
@@ -179,15 +187,17 @@ const AnnotationsDashboard = () => {
                     ? 'tour-peer-review-tool'
                     : tool.id === 'image-review'
                       ? 'tour-image-review-tool'
-                      : tool.id === 'audio-review'
-                        ? 'tour-audio-review-tool'
-                        : tool.id === 'video-review'
-                          ? 'tour-video-review-tool'
-                          : tool.id === 'read-speech'
-                            ? 'tour-read-speech-tool'
-                            : tool.comingSoon && tool.id === 'ask-your-corpus'
-                              ? 'tour-future-tools'
-                              : undefined
+                      : tool.id === 'image-annotation'
+                        ? 'tour-image-annotation-tool'
+                        : tool.id === 'audio-review'
+                          ? 'tour-audio-review-tool'
+                          : tool.id === 'video-review'
+                            ? 'tour-video-review-tool'
+                            : tool.id === 'read-speech'
+                              ? 'tour-read-speech-tool'
+                              : tool.comingSoon && tool.id === 'ask-your-corpus'
+                                ? 'tour-future-tools'
+                                : undefined
               }
               onClick={() => !tool.comingSoon && navigate(tool.path)}
               className={`relative overflow-hidden group bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 border-2 ${

@@ -12,6 +12,7 @@ const useTranslationMock = vi.fn(() => ({
       'tools.peerReviewDescription':
         "Review other users' contributions and provide feedback.",
       'tools.imageAnnotation': 'Image Annotation',
+      'tools.imageReview': 'Image Review',
       'tools.imageAnnotationDescription':
         'Annotate objects, regions, and patterns in images.',
       'tools.audioTool': 'Audio Tool',
@@ -99,6 +100,7 @@ describe('AnnotationsDashboard', () => {
     it('should render all available annotation tools', () => {
       renderWithRouter(<AnnotationsDashboard />);
       expect(screen.getByText('Peer Review')).toBeInTheDocument();
+      expect(screen.getByText('Image Review')).toBeInTheDocument();
       expect(screen.getByText('Image Annotation')).toBeInTheDocument();
       expect(screen.getByText('Audio Tool')).toBeInTheDocument();
       expect(screen.getByText('Video Tool')).toBeInTheDocument();
@@ -188,13 +190,26 @@ describe('AnnotationsDashboard', () => {
       expect(navigateMock).toHaveBeenCalledWith('/peer-review');
     });
 
-    it('should navigate to /tools/image-review when clicking Image Annotation card', () => {
+    it('should navigate to /tools/image-review when clicking Image Review card', () => {
       renderWithRouter(<AnnotationsDashboard />);
-      const imageCard = screen.getByText('Image Annotation').closest('div');
+      const imageCard = screen.getByText('Image Review').closest('div');
       if (imageCard) {
         fireEvent.click(imageCard);
       }
       expect(navigateMock).toHaveBeenCalledWith('/tools/image-review');
+    });
+
+    it('should navigate to /tools/image-annotation when clicking Image Annotation card', () => {
+      renderWithRouter(<AnnotationsDashboard />);
+      const imageAnnotationCard = screen
+        .getByText('Image Annotation')
+        .closest('div');
+
+      if (imageAnnotationCard) {
+        fireEvent.click(imageAnnotationCard);
+      }
+
+      expect(navigateMock).toHaveBeenCalledWith('/tools/image-annotation');
     });
 
     it('should navigate to /tools/audio-review when clicking Audio Tool card', () => {
@@ -569,7 +584,7 @@ describe('AnnotationsDashboard', () => {
     it('should render exactly 11 tools', () => {
       renderWithRouter(<AnnotationsDashboard />);
       const toolCards = document.querySelectorAll('.group');
-      expect(toolCards.length).toBe(12);
+      expect(toolCards.length).toBe(13);
     });
 
     it('should render 6 available tools', () => {
@@ -608,7 +623,7 @@ describe('AnnotationsDashboard', () => {
     it('should render all tool cards', () => {
       renderWithRouter(<AnnotationsDashboard />);
       const toolCards = document.querySelectorAll('.group');
-      expect(toolCards.length).toBe(12);
+      expect(toolCards.length).toBe(13);
     });
   });
 });
